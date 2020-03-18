@@ -49,7 +49,7 @@ These github projects must be cloned into the `tools/vim/pack/plugins/start` fol
 | ---------------            | -------                                                                    |
 | Text Linting               | [ale](https://github.com/dense-analysis/ale)                               |
 | Fuzzy Finder               | [fzf.vim](https://github.com/junegunn/fzf.vim)                             |
-| Fuzzy Finder               | [fzf.vim.core](https://github.com/junegunn/fzf/blob/master/plugin/fzf.vim) |
+| Fuzzy Finder               | [fzf.core.vim](https://github.com/junegunn/fzf/blob/master/plugin/fzf.vim) |
 | Status Line                | [lightline.vim](https://github.com/itchyny/lightline.vim)                  |
 | Status Line                | [vim-gitbranch](https://github.com/itchyny/vim-gitbranch)                  |
 | Intellisense               | [omnisharp-vim](https://github.com/OmniSharp/omnisharp-vim)                |
