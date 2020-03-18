@@ -6,7 +6,7 @@ As a C# developer, I spent 4 years using the Visual Studio IDE (up to the 2019 v
 * Most of the things were of a point-and-click nature - which felt painfully repetitive
 * Having to switch to Notepad++ for my drafts meant a lot of going back and forth between windows
 * Working with two files side by side on one screen felt like too many drag-and-drops to perform
-* the sheer amount of elements from the graphical interface (task bar, menus, and docked window anchors mainly) made it look like there was a lot of complexity, tools and settings in my way of working
+* The sheer amount of elements from the graphical interface (task bar, menus, and docked window anchors mainly) made it look like there was a lot of complexity, tools and settings in my way of working
 * I consistently had several file explorers open at the same time. Lots of goingback back and forth between windows again
 * Some things took more time than I would have liked: startup (especially with ReSharper), running the unit tests, upgrading the IDE, ...
 
@@ -19,10 +19,10 @@ Coding is mainly editing text files, compiling and running. I'm pretty sure I ca
 The `$HOME/Desktop` folder is the root folder for my desktop environment. The main point being that one doesn't have to open a file explorer in order to access it.
 
 The desktop environment consists of:
-* a `tmp` folder for backup files, logs, archives
-* a `tools` folder for programs and scripts
-* a `my.pomodoro` file for tracking daily activity
-* a `my.notes` files for drafts, note taking, resource links, and overall knowledge database
+* one `tmp` folder for backup files, logs, archives and other sandbox projects
+* one `tools` folder for programs, scripts and config files
+* one `my.pomodoro` file to use for tracking daily activity and celebrate progress
+* one `my.notes` file to use for drafts, note taking, resource links, and overall knowledge database
 
 ### Tools ###
 
