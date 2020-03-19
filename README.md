@@ -47,6 +47,9 @@ These tools go in the `tools` folder and they must individually be put into the 
 	* We'll use it to rebuild Autohotkey's executable file every time we edit `my.ahk`
 * Set `gvim.exe` to always run as Administrator
 	* `gvim.exe` reacts much quicker than its terminal version on Windows!
+* To place the different `my.*` files in the correct locations:
+	* create the folder `$HOME/tools/vim/pack/plugins/start/vim-empower/colors`
+	* Edit and save `my.vimrc` and `my.colorscheme`
 * To create the AutoHotkey executable `tools/myAzertyKeyboard.RunMeAsAdmin.exe`, edit `my.ahk` with vim once and `:w` it.
 	* Set `tools/myAzertyKeyboard.RunMeAsAdmin.exe` to always run as Administrator as well
 
