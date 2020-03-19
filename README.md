@@ -29,17 +29,17 @@ The desktop environment consists of:
 These tools go in the `tools` folder and they must individually be put into the environment variable `$PATH`
 
 
-| Functionality          | Program/Script |
-| ---------------        | -------        |
-| Text editor            | Vim            |
-| g/re/p                 | ripgrep        |
-| Text Previewer         | bat            |
-| Text Fuzzy finder      | fzf            |
-| Versioning Control     | git            |
-| Keyboard optimization  | AutoHotKey     |
-| Terminal Pager         | less           |
-| Nuget explorer/fetcher | nuget          |
-| File explorer GUI      | vifm           |
+| Functionality          | Program/Script                                                                    |
+| ---------------        | -------                                                                           |
+| Text editor            | [Vim](https://www.vim.org/)                                                       |
+| g/re/p                 | [ripgrep](https://github.com/BurntSushi/ripgrep)                                  |
+| Text Previewer         | [bat](https://github.com/sharkdp/bat)                                             |
+| Text Fuzzy finder      | [fzf](https://github.com/junegunn/fzf)                                            |
+| Versioning Control     | [git](https://git-scm.com/)                                                       |
+| Keyboard optimization  | [AutoHotKey](https://www.autohotkey.com/)                                         |
+| Terminal Pager         | [less](http://gnuwin32.sourceforge.net/packages/less.htm)                         |
+| Nuget explorer/fetcher | [nuget](https://docs.microsoft.com/en-us/nuget/reference/nuget-exe-cli-reference) |
+| File explorer GUI      | [vifm](https://vifm.info/)                                                        |
 
 ### Vim plugins ###
 
