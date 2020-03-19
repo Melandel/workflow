@@ -10,7 +10,10 @@ As a C# developer, I spent 4 years using the Visual Studio IDE (up to the 2019 v
 * I consistently had several file explorers open at the same time. Lots of goingback back and forth between windows again
 * Some things took more time than I would have liked: startup (especially with ReSharper), running the unit tests, upgrading the IDE, ...
 
-Coding is mainly editing text files, compiling and running. I'm pretty sure I can do these with a lightweight, fast, cross-platform tool with minimal UI!
+I'm pretty sure I can get to a workflow with:
+* Minimal back and forth jumping between graphical elements/windows
+* Minimal point-and-click
+* Lightweight, fast and cross-platform tooling
 
 ## Design ##
 
