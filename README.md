@@ -81,7 +81,7 @@ These github projects must be cloned into the `tools/vim/pack/plugins/start` fol
 	* the python version can be found by opening gvim.exe with a text editor and searching for the word `python`
 	* use the same 64x or 86x bit version of python as vim's
 * Ultisnips also allows us to create our own snippets in a given folder
-	* currently, the folder is `tools/vim/pack/plugins/start/vim-snippets-perso`
+	* create the folder `$HOME/tools/vim/pack/plugins/start/vim-snippets-perso`
 * vim-g might need help to detect your browser by default. Don't hesitate to hardwire your browser's path in the plugin
 * vim-g doesn't handle the `%` sign. Consider adding `let query = escape(query, '%')` in the script
 
