@@ -41,6 +41,15 @@ These tools go in the `tools` folder and they must individually be put into the 
 | Nuget explorer/fetcher | [nuget](https://docs.microsoft.com/en-us/nuget/reference/nuget-exe-cli-reference) |
 | File explorer GUI      | [vifm](https://vifm.info/)                                                        |
 
+#### Notes about tools ####
+
+* Put `AutoHotkey`'s `Compiler` subfolder into `Path`
+	* We'll use it to rebuild Autohotkey's executable file every time we edit `my.ahk`
+* Set `gvim.exe` to always run as Administrator
+	* `gvim.exe` reacts much quicker than its terminal version on Windows!
+* To create the AutoHotkey executable `tools/myAzertyKeyboard.RunMeAsAdmin.exe`, edit `my.ahk` with vim once and `:w` it.
+	* Set `tools/myAzertyKeyboard.RunMeAsAdmin.exe` to always run as Administrator as well
+
 ### Vim plugins ###
 
 These github projects must be cloned into the `tools/vim/pack/plugins/start` folder
@@ -70,6 +79,7 @@ These github projects must be cloned into the `tools/vim/pack/plugins/start` fol
 * fzf has two vim scripts: one from fzf's repository(the core wrapper), and one from fzf.vim's repository (which defines several commands)
 * Ultisnips requires Python to be installed and in path.
 	* the python version can be found by opening gvim.exe with a text editor and searching for the word `python`
+	* use the same 64x or 86x bit version of python as vim's
 * Ultisnips also allows us to create our own snippets in a given folder
 	* currently, the folder is `tools/vim/pack/plugins/start/vim-snippets-perso`
 * vim-g might need help to detect your browser by default. Don't hesitate to hardwire your browser's path in the plugin
@@ -78,7 +88,7 @@ These github projects must be cloned into the `tools/vim/pack/plugins/start` fol
 
 ### Startup programs ###
 
-`vim`, `autohotkey` and your internet browser should be run when the system starts up.
+`gvim`, `tools/myAzertyKeyboard.exe` and your internet browser should be run when the system starts up.
 
 #### Windows ####
 For each program that should be run at startup:
@@ -92,4 +102,4 @@ Set WshShell = Nothing
 
 ### Task Bar Icons ###
 
-Don't forget to set the target of the task bar icon to `C:\Users\tranm\Desktop\tools\vim\gvim.exe -S` and its startup directory to `$HOME` in order to use and locate Vim's session file properly!
+Don't forget to set the target of the task bar icon to `$HOME\Desktop\tools\vim\gvim.exe -S` and its startup directory to `$HOME` in order to use and locate Vim's session file properly!
