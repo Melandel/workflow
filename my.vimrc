@@ -70,8 +70,10 @@ nnoremap <Leader>W :set wrap!<CR>
 
 " FileTypeDetect-------------------------------------------{{{
 augroup filetypedetect
-  	au! BufRead,BufNewFile *.pomodoro	setfiletype pomodoro
-  	au! BufRead,BufNewFile *.notes		setfiletype notes
+  	au! BufRead,BufNewFile *.pomodoro    setfiletype pomodoro
+  	au! BufRead,BufNewFile *.notes       setfiletype notes
+  	au! BufRead,BufNewFile *.keyboard    setfiletype autohotkey
+  	au! BufRead,BufNewFile *.colorscheme setfiletype vim
 augroup END
 "----------------------------------------------------}}}
 " Vim-------------------------------------------{{{
@@ -897,6 +899,6 @@ augroup duplicatefiles
 	au BufWritePost empower.vim saveas! $HOME/Desktop/my.colorscheme
 	au BufWritePost my.colorscheme saveas! $HOME/Desktop/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim
 
-	au BufWritePost my.ahk exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($HOME . '/Desktop/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
+	au BufWritePost my.keyboard exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($HOME . '/Desktop/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
 augroup end
 "----------------------------------------------------}}}
