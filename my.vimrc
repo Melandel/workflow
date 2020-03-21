@@ -692,7 +692,7 @@ set termwinsize=12*0
 tnoremap <C-W><C-W> <C-W>.
 
 " Leave terminal mode into Normal mode
-tnoremap <C-O> <C-W>N| tnoremap <C-V><C-O> <C-O>
+"tnoremap <C-O> <C-W>N| tnoremap <C-V><C-O> <C-O>
 "----------------------------------------------------}}}
 " Folding-------------------------------------------{{{
 
@@ -825,22 +825,15 @@ function! BuildVifmMarkCommandForFilePath(mark_label, file_path)
 	return '"mark ' . a:mark_label . ' ' . file_folder_path . ' ' . file_name . '"'
 endfunction
 
-let g:vifm_exec_args =  '+"colorscheme juef-zenburn"'
-
-" Open :terminal from vifm's shell feature
-let g:vifm_exec_args.=  '+"nnoremap s :!powershell -NoLogo<cr>"'
-
-" Set marks for vifm
+let g:vifm_exec_args = ' +"colorscheme juef-zenburn"'
+let g:vifm_exec_args.= ' +"fileviewer *.cs,*.csproj bat --tabs 4 --color always --wrap never --pager never --map-syntax csproj:xml -p %c %p"'
+let g:vifm_exec_args.= ' +"nnoremap <C-I> :histnext<cr>"'
+let g:vifm_exec_args.= ' +"nnoremap s :!powershell -NoLogo<cr>"'
 let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('v', $v)
 let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('p', $p)
-
-" Set previewer (bat)
-let g:vifm_exec_args.= ' +' . '"fileviewer *.cs,*.csproj bat --tabs 4 --color always --wrap never --pager never --map-syntax csproj:xml -p %c %p"'
-
-" Set shortcuts
-let g:vifm_exec_args.=  ' +"nnoremap K :q<cr>"'
-let g:vifm_exec_args.=  ' +"nnoremap ! /"'
-let g:vifm_exec_args.=  ' +"nnoremap yp :!echo %\"F|clip<cr>"'
+let g:vifm_exec_args.= ' +"nnoremap K :q<cr>"'
+let g:vifm_exec_args.= ' +"nnoremap ! /"'
+let g:vifm_exec_args.= ' +"nnoremap yp :!echo %\"F|clip<cr>"'
 
 "----------------------------------------------------}}}
 nnoremap <expr> <Leader>e ":Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
