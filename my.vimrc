@@ -895,11 +895,11 @@ nnoremap <Leader>_ mW:tabnew $pomodoro<CR>zMGkzazjzazk[zkkzt<C-Y>:vs<CR>`Wzz:sp 
 augroup duplicatefiles
 	au!
 
-	au BufWritePost _vimrc saveas! $HOME/Desktop/my.vimrc
-	au BufWritePost my.vimrc saveas! $HOME/Desktop/tools/vim/_vimrc
+	au BufWritePost _vimrc saveas! $HOME/Desktop/my.vimrc | bdelete #
+	au BufWritePost my.vimrc saveas! $HOME/Desktop/tools/vim/_vimrc | bdelete #
 
-	au BufWritePost empower.vim saveas! $HOME/Desktop/my.colorscheme
-	au BufWritePost my.colorscheme saveas! $HOME/Desktop/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim
+	au BufWritePost empower.vim saveas! $HOME/Desktop/my.colorscheme | bdelete #
+	au BufWritePost my.colorscheme saveas! $HOME/Desktop/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim | bdelete #
 
 	au BufWritePost my.keyboard exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($HOME . '/Desktop/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
 augroup end
