@@ -840,6 +840,8 @@ let g:vifm_exec_args.= ' +' . '"fileviewer *.cs,*.csproj bat --tabs 4 --color al
 " Set shortcuts
 let g:vifm_exec_args.=  ' +"nnoremap K :q<cr>"'
 let g:vifm_exec_args.=  ' +"nnoremap ! /"'
+let g:vifm_exec_args.=  ' +"nnoremap yp :!echo %\"F|clip<cr>"'
+
 "----------------------------------------------------}}}
 nnoremap <expr> <Leader>e ":Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
 nnoremap <expr> <Leader>E ":!start explorer.exe " . (bufname()=="" ? "." : "%:h") . "\<CR>"
