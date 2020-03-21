@@ -13,7 +13,7 @@ syntax reset
 "Nice blueyBlue #20a39e
 
 " Generic highlight groups-------------------------------------------{{{
-hi! Normal guibg=#272822 guifg=#E8E8E3 font='consolas:h11'
+hi! Normal guibg=#2C2C29 guifg=#E8E8E3 font='consolas:h11'
 hi! Visual guibg=#3a435e
 hi! Comment guifg=#575b61 gui=NONE
 hi! Constant guifg=#fb5012 gui=NONE
@@ -47,13 +47,13 @@ hi! Delimiter guifg=#fb5012 gui=NONE
 hi! SpecialComment guifg=#fb5012 gui=NONE
 hi! Title guifg=#fabd2f gui=NONE
 hi! ColorColumn guibg=#9f9aa4 gui=NONE
-hi! SignColumn guibg=#2D2E27 guifg=Grey gui=NONE
-hi! LineNr guibg=#2D2E27 guifg=#8F908A gui=NONE
+hi! SignColumn guibg=#31312D guifg=Grey gui=NONE
+hi! LineNr guibg=#31312D guifg=#8F908A gui=NONE
 hi! FoldColumn guibg=#3cb98f guifg=#3cb98f gui=NONE
-hi! Pmenu guibg=#2D2E27 guifg=#99c24d
+hi! Pmenu guibg=#31312D guifg=#99c24d
 hi! PmenuSel guibg=#455561 guifg=#fabd2f gui=NONE
-hi! CursorLine guibg=#2D2E27
-hi! CursorLineNr guibg=#2D2E27 guifg=#fabd2f
+hi! CursorLine guibg=#31312D
+hi! CursorLineNr guibg=#31312D guifg=#fabd2f
 hi! VertSplit guibg=#abb2bf guifg=#292c33
 hi! Search guibg=gray
 hi! Directory guifg=#729fcf
