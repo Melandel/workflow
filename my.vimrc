@@ -74,6 +74,7 @@ augroup filetypedetect
   	au! BufRead,BufNewFile *.notes       setfiletype notes
   	au! BufRead,BufNewFile *.keyboard    setfiletype autohotkey
   	au! BufRead,BufNewFile *.colorscheme setfiletype vim
+
 augroup END
 "----------------------------------------------------}}}
 " Vim-------------------------------------------{{{
@@ -542,7 +543,7 @@ nnoremap O m'O
 nnoremap vv ^vg_
 
 " Last inserted text
-nnoremap vi `[v`]h
+nnoremap vI `[v`]h
 
 "----------------------------------------------------}}}
 " Copy & Paste-------------------------------------------{{{
