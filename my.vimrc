@@ -73,6 +73,7 @@ augroup filetypedetect
   	au! BufRead,BufNewFile *.pomodoro    setfiletype pomodoro
   	au! BufRead,BufNewFile *.notes       setfiletype notes
   	au! BufRead,BufNewFile *.keyboard    setfiletype autohotkey
+  	au! BufRead,BufNewFile *.vimrc       setfiletype vim
   	au! BufRead,BufNewFile *.colorscheme setfiletype vim
 
 augroup END
