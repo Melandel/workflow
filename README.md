@@ -5,12 +5,12 @@ This project is a help for setting up my desktop environment on new workstations
 
 ## Why did you design this? ##
 As a C# developer, I spent 4 years using the Visual Studio IDE (up to the 2019 version, with ReSharper). My day-to-day workflow made me unhappy:
-* Browsing through the user interface with your eyes and mouse, after you've done it a million times over the last years, is wearisome; Shortcuts are more rewarding
-* Searching for, and focusing the right windows have always felt like a distraction (file explorers by dozens, anyone? Time lost tracking which window is for copy, and which window is for paste?)
-* Needing a text editor (i.e. Notepad++) in addition to my IDE felt plain wrong: why would I use another window if I need a text editor?
-* Working with two files side by side on one screen implied too many drag-and-drops
-* The constant presence of dozens of docked, collapsed windows felt like visual pollution
-* Some things took seconds when they should take milliseconds: IDE startup (especially with ReSharper), running the unit tests, upgrading the IDE, ...
+* Switching to another window always disrupted my focus
+* Point-and-clicking sometimes felt painful, especially on common operations that required several steps
+* Switching from the IDE back and forth to Notepad++ felt inefficient, like having 2 tools to do the job of 1
+* Working with two files side by side on one screen implied too many drag-and-drops so I never worked like that
+* All these collapsed, docked windows were necessary visual pollution because of the time gained compared to browsing to the right submenus
+* Disruptive waiting time. While firing up the IDE (esp. with ReSharper), while firing up the unit tests, while upgrading the IDE.
 
 ## So what did you want? ##
 I want an environment that allows a certain workflow where I can remain focused as long as possible. That workflow:
