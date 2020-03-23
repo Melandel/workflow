@@ -1,3 +1,53 @@
+" Desktop Integration:
+" Plugins-------------------------------------------{{{
+
+	function! MinpacInit()
+		packadd minpac
+		call minpac#init( #{dir:$VIM, package_name: 'plugins' } )
+
+		call minpac#add('dense-analysis/ale')
+		call minpac#add('junegunn/fzf.vim')
+		call minpac#add('itchyny/lightline.vim')
+		call minpac#add('itchyny/vim-gitbranch')
+		call minpac#add('OmniSharp/omnisharp-vim')
+		call minpac#add('wellle/targets.vim')
+		call minpac#add('michaeljsmith/vim-indent-object')
+		call minpac#add('SirVer/ultisnips')
+		call minpac#add('vifm/vifm.vim')
+		call minpac#add('edkolev/vim-amake')
+		call minpac#add('tpope/vim-dadbod')
+		call minpac#add('junegunn/vim-easy-align')
+		call minpac#add('tpope/vim-fugitive')
+		call minpac#add('szw/vim-g')
+		call minpac#add('tpope/vim-obsession')
+
+		call minpac#add('Melandel/vim-empower')
+		call minpac#add('Melandel/fzfcore.vim')
+		call minpac#add('Melandel/gvimtweak')
+	endfunction
+
+	command! MinPacInit call MinpacInit()
+
+"----------------------------------------------------}}}
+" First time-------------------------------------------{{{
+	if !isdirectory($VIM.'/pack/plugins')
+		call system('git clone https://github.com/k-takata/minpac.git ' . $VIM . '/pack/packmanager/opt/minpac')
+		call MinpacInit()
+		call minpac#update()
+		packloadall
+	endif
+"----------------------------------------------------}}}
+" Duplicated/Generated files-------------------------------------------{{{
+	augroup duplicatefiles
+		au!
+
+		au BufWritePost _vimrc saveas! $HOME/Desktop/setup/my_vimrc.vim | bdelete #
+		au BufWritePost my_vimrc.vim saveas! $HOME/Desktop/tools/vim/_vimrc | bdelete #
+
+		au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($HOME . '/Desktop/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
+	augroup end
+"----------------------------------------------------}}}
+
 " General:
 " Variables-------------------------------------------{{{
 let $v = $VIM . '/_vimrc'
@@ -55,10 +105,20 @@ if has("gui_running")
 	set guioptions-=t  "toolbar
 	set guioptions-=r  "scrollbar
 	set guioptions-=L  "scrollbar
+	set guioptions+=c  "console-style dialogs instead of popups
 	set guifont=consolas:h11
 	set termwintype=conpty
-	nnoremap ° :call libcallnr("gvimfullscreen_64.dll", "ToggleFullScreen", 0)<CR>
-	au GUIEnter * call libcallnr("gvimfullscreen_64.dll", "ToggleFullScreen", 0)
+
+	" Plugin: gvimtweak-------------------------------------------{{{
+	let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
+	let g:gvimtweak#enable_alpha_at_startup=1
+	let g:gvimtweak#enable_topmost_at_startup=0
+	let g:gvimtweak#enable_maximize_at_startup=1
+	let g:gvimtweak#enable_fullscreen_at_startup=1
+"----------------------------------------------------}}}
+	nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
+	nnoremap <silent> <A-n> :GvimTweakSetAlpha 10<CR>
+	nnoremap <silent> <A-p> :GvimTweakSetAlpha -10<CR>
 endif
 "----------------------------------------------------}}}
 " Wrapping-------------------------------------------{{{
@@ -68,226 +128,227 @@ nnoremap <Leader>W :set wrap!<CR>
 "----------------------------------------------------}}}
 " FileTypes-------------------------------------------{{{
 
-" FileTypeDetect-------------------------------------------{{{
-augroup filetypedetect
-  	au! BufRead,BufNewFile *.pomodoro    setfiletype pomodoro
-  	au! BufRead,BufNewFile *.notes       setfiletype notes
-  	au! BufRead,BufNewFile *.keyboard    setfiletype autohotkey
-  	au! BufRead,BufNewFile *.vimrc       setfiletype vim
-  	au! BufRead,BufNewFile *.colorscheme setfiletype vim
+	" FileTypeDetect-------------------------------------------{{{
+	augroup filetypedetect
+		au! BufRead,BufNewFile *.pomodoro    setfiletype pomodoro
+		au! BufRead,BufNewFile *.notes       setfiletype notes
+		au! BufRead,BufNewFile *.keyboard    setfiletype autohotkey
+		au! BufRead,BufNewFile *.vimrc       setfiletype vim
 
-augroup END
-"----------------------------------------------------}}}
-" Vim-------------------------------------------{{{
-augroup vimfiles
-	au!
-	au FileType vim setlocal foldmethod=marker
-augroup END
-"----------------------------------------------------}}}
-" Pomodoro file-------------------------------------------{{{
-function! PomodoroFolds()"-------------------------------------------{{{
-	let thisline = getline(v:lnum)
+	augroup END
+	"----------------------------------------------------}}}
+	" Vim-------------------------------------------{{{
+	
+	augroup vimfiles
+		au!
+		au FileType vim setlocal foldmethod=marker
+		au BufWritePost _vimrc,my_vimrc.vim GvimTweakToggleFullScreen | so % | GvimTweakToggleFullScreen
+	augroup END
+	"----------------------------------------------------}}}
+	" Pomodoro file-------------------------------------------{{{
+	function! PomodoroFolds()"-------------------------------------------{{{
+		let thisline = getline(v:lnum)
 
-	if match(thisline, '^\s*$') >= 0
-		return "0"
-	endif
+		if match(thisline, '^\s*$') >= 0
+			return "0"
+		endif
 
-	if match(thisline, '^\S') >= 0
-		return ">1"
-	endif
+		if match(thisline, '^\S') >= 0
+			return ">1"
+		endif
 
-	return "="
-endfunction
-"----------------------------------------------------}}}
-augroup pomodorofiles
-	autocmd!
-	au FileType pomodoro setlocal foldmethod=expr
-	au FileType pomodoro setlocal foldexpr=PomodoroFolds()
-	au FileType pomodoro setlocal foldtext=foldtext()
-augroup end
-"----------------------------------------------------}}}
-" Notes file-------------------------------------------{{{
-augroup notesfiles
-	autocmd!
-	au FileType notes setlocal foldmethod=marker
-augroup end
-"----------------------------------------------------}}}
-" C#-------------------------------------------{{{
-
-" Plugin: omnisharp-vim-------------------------------------------{{{
-sign define OmniSharpCodeActions text=💡
-let g:OmniSharp_start_without_solution = 1
-let g:OmniSharp_server_stdio = 1
-let g:OmniSharp_highlight_types = 2
-let g:OmniSharp_selector_ui = 'fzf'
-let g:OmniSharp_want_snippet=1
-let g:omnicomplete_fetch_full_documentation = 1
-let g:OmniSharp_highlight_debug = 1
-let g:OmniSharp_diagnostic_overrides = { 'CS1717': {'type': 'None'}, 'CS9019': {'type': 'None'} }
-" Highlight groups (omnisharp 'kinds')-------------------------------------------{{{
-let g:OmniSharp_highlight_groups = {
-\ 'csharpKeyword':				[ 'keyword' ],
-\ 'csharpNamespaceName':		  [ 'namespace name' ],
-\ 'csharpPunctuation':			[ 'punctuation' ],
-\ 'csharpOperator':			   [ 'operator' ],
-\ 'csharpInterfaceName':		  [ 'interface name' ],
-\ 'csharpStructName':			 [ 'struct name' ],
-\ 'csharpEnumName':			   [ 'enum name' ],
-\ 'csharpEnumMemberName':		 [ 'enum member name' ],
-\ 'csharpClassName':			  [ 'class name' ],
-\ 'csharpStaticSymbol':		   [ 'static symbol' ],
-\ 'csharpFieldName':			  [ 'field name' ],
-\ 'csharpPropertyName':		   [ 'property name' ],
-\ 'csharpMethodName':			 [ 'method name' ],
-\ 'csharpParameterName':		  [ 'parameter name' ],
-\ 'csharpLocalName':			  [ 'local name' ],
-\ 'csharpKeywordControl':		 [ 'keyword - control' ],
-\ 'csharpString':				 [ 'string' ],
-\ 'csharpNumber':				 [ 'number' ],
-\ 'csharpConstantName':		   [ 'constant name' ],
-\ 'csharpIdentifier':			 [ 'identifier' ],
-\ 'csharpExtensionMethodName':	[ 'extension method name' ],
-\ 'csharpComment':				[ 'comment' ],
-\ 'csharpXmlDocCommentName':	  [ 'xml doc comment - name' ],
-\ 'csharpXmlDocCommentDelimiter': [ 'xml doc comment - delimiter' ],
-\ 'csharpXmlDocCommentText':	  [ 'xml doc comment - text' ]
-\ }
-"----------------------------------------------------}}}
-"----------------------------------------------------}}}
-
-function! CSharpFolds()"-------------------------------------------{{{
-	let thisline = getline(v:lnum)
-
-	if thisline ==# ""
 		return "="
-	elseif match(thisline, '^\t\t}$') >= 0
-		return "<1"
-	elseif match(thisline, '\t\t{$') >= 0
-		return "1"
-	elseif match(thisline, '^\t\t\t') >= 0
-		return "1"
-	elseif match(thisline, '^\t\t') >= 0
-		return ">1"
-	else
-		return "0"
-endfunction
-"----------------------------------------------------}}}
-function! CSharpFolds2()"-------------------------------------------{{{
-	let thisline = getline(v:lnum)
-
-	if indent(v:lnum) < 8
-		return '='
-	endif
-
-	let previousline = getline(v:lnum-1)
-
-	if previousline =~ '^\s\+\['
-		return '='
-	endif
-
-	if thisline =~ '^\s\+\['
-		return 'a1'
-	endif
-
-	if thisline =~ '^\s\+{$'
-		" Open bracket by itself
-
-		" the previous line started the folding
-		return '='
-	endif
-
-	if thisline =~ '{$'
-		" Open bracket preceded by text
-		return 'a1'
-	endif
-
-	if thisline =~ '}$'
-		" Closing bracet by itself
-		return 's1'
-	endif
-
-	let nextline = getline(v:lnum+1)
-	if indent(v:lnum+1) >= 8 && getline(v:lnum+1) =~ '^\s\+{$'
-		return 'a1'
-	endif
-
-	return '='
-endfunction
-"----------------------------------------------------}}}
-function! CSharpFoldText()"-------------------------------------------{{{
-	let titleLineNr = v:foldstart
-	let line = getline(titleLineNr)
-
-	while (match(line, '\v^\s+([|\<)') >= 0 && titleLineNr < v:foldend)
-		let titleLineNr = titleLineNr + 1
-		let line = getline(titleLineNr)
-	endwhile
-
-	let ts = repeat(' ',&tabstop)
-	let line = substitute(line, '\t', ts, 'g')
-	"let foldsize = v:foldend - v:foldstart + 1
-	let foldsize = v:foldend - titleLineNr - 1
-	return line . ' [' . foldsize . ' line' . (foldsize > 1 ? 's' : '') . ']'
-endfunction
-"----------------------------------------------------}}}
-function! OSCountCodeActions() abort"-------------------------------------------{{{
-  if bufname('%') ==# '' || OmniSharp#FugitiveCheck() | return | endif
-  if !OmniSharp#IsServerRunning() | return | endif
-  let opts = {
-  \ 'CallbackCount': function('CBReturnCount'),
-  \ 'CallbackCleanup': {-> execute('sign unplace 99')}
-  \}
-  call OmniSharp#CountCodeActions(opts)
-endfunction
-
-function! CBReturnCount(count) abort
-  if a:count
-	let l = getpos('.')[1]
-	let f = expand('%:p')
-	execute ':sign place 99 line='.l.' name=OmniSharpCodeActions file='.f
-  endif
-endfunction
-"----------------------------------------------------}}}
-augroup csharpfiles
-	au!
-	autocmd FileType cs setlocal foldmethod=expr
-	autocmd FileType cs setlocal foldexpr=CSharpFolds2()
-	autocmd FileType cs setlocal foldtext=CSharpFoldText()
-	autocmd FileType cs setlocal foldminlines=2
-
-	autocmd FileType cs setlocal errorformat=\ %#%f(%l\\\,%c):\ %m
-	autocmd FileType cs setlocal makeprg=dotnet\ build
-	autocmd FileType cs nnoremap <LocalLeader>M :!dotnet run<CR>
-	autocmd CursorHold *.cs call OSCountCodeActions()
-	autocmd FileType cs set signcolumn=yes
-	autocmd BufWritePost *.cs :OmniSharpFixUsings<CR>:OmniSharpCodeFormat<CR>:OmniSharpGlobalCodeCheck<CR>
+	endfunction
+	"----------------------------------------------------}}}
+	augroup pomodorofiles
+		autocmd!
+		au FileType pomodoro setlocal foldmethod=expr
+		au FileType pomodoro setlocal foldexpr=PomodoroFolds()
+		au FileType pomodoro setlocal foldtext=foldtext()
+	augroup end
+	"----------------------------------------------------}}}
+	" Notes file-------------------------------------------{{{
+	augroup notesfiles
+		autocmd!
+		au FileType notes setlocal foldmethod=marker
+	augroup end
+	"----------------------------------------------------}}}
+	" C#-------------------------------------------{{{
 
 	" Plugin: omnisharp-vim-------------------------------------------{{{
-	autocmd FileType cs set updatetime=500
-	autocmd FileType cs nnoremap <buffer> ( :OmniSharpNavigateUp<CR>zz
-	autocmd FileType cs nnoremap <buffer> ) :OmniSharpNavigateDown<CR>zz
-	autocmd FileType cs nnoremap <buffer> gd :OmniSharpGotoDefinition<CR>
-	autocmd FileType cs nnoremap <buffer> gD :OmniSharpPreviewDefinition<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>i :OmniSharpFindImplementations<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>I :OmniSharpPreviewImplementation<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>s :OmniSharpFindSymbol<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>u :OmniSharpFindUsages<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>m :OmniSharpFindMembers<CR>
-	"autocmd FileType cs nnoremap <buffer> <LocalLeader>fx :OmniSharpFixUsings<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>t :OmniSharpTypeLookup<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>d :OmniSharpDocumentation<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>o :ALEDisable<CR>:OmniSharpStopServer<CR>:OmniSharpStartServer<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :ALEEnable<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>c :OmniSharpGlobalCodeCheck<CR>
-	autocmd FileType cs nnoremap <LocalLeader>q :OmniSharpGetCodeActions<CR>
-	autocmd FileType cs xnoremap <LocalLeader>q :call OmniSharp#GetCodeActions('visual')<CR>
-	autocmd FileType cs nnoremap <LocalLeader>r :OmniSharpRename<CR>
-	autocmd FileType cs nnoremap <LocalLeader>f :OmniSharpFixUsings<CR>:OmniSharpCodeFormat<CR>
-"----------------------------------------------------}}}
-augroup end
+	sign define OmniSharpCodeActions text=💡
+	let g:OmniSharp_start_without_solution = 1
+	let g:OmniSharp_server_stdio = 1
+	let g:OmniSharp_highlight_types = 2
+	let g:OmniSharp_selector_ui = 'fzf'
+	let g:OmniSharp_want_snippet=1
+	let g:omnicomplete_fetch_full_documentation = 1
+	let g:OmniSharp_highlight_debug = 1
+	let g:OmniSharp_diagnostic_overrides = { 'CS1717': {'type': 'None'}, 'CS9019': {'type': 'None'} }
+	" Highlight groups (omnisharp 'kinds')-------------------------------------------{{{
+	let g:OmniSharp_highlight_groups = {
+	\ 'csharpKeyword':				[ 'keyword' ],
+	\ 'csharpNamespaceName':		  [ 'namespace name' ],
+	\ 'csharpPunctuation':			[ 'punctuation' ],
+	\ 'csharpOperator':			   [ 'operator' ],
+	\ 'csharpInterfaceName':		  [ 'interface name' ],
+	\ 'csharpStructName':			 [ 'struct name' ],
+	\ 'csharpEnumName':			   [ 'enum name' ],
+	\ 'csharpEnumMemberName':		 [ 'enum member name' ],
+	\ 'csharpClassName':			  [ 'class name' ],
+	\ 'csharpStaticSymbol':		   [ 'static symbol' ],
+	\ 'csharpFieldName':			  [ 'field name' ],
+	\ 'csharpPropertyName':		   [ 'property name' ],
+	\ 'csharpMethodName':			 [ 'method name' ],
+	\ 'csharpParameterName':		  [ 'parameter name' ],
+	\ 'csharpLocalName':			  [ 'local name' ],
+	\ 'csharpKeywordControl':		 [ 'keyword - control' ],
+	\ 'csharpString':				 [ 'string' ],
+	\ 'csharpNumber':				 [ 'number' ],
+	\ 'csharpConstantName':		   [ 'constant name' ],
+	\ 'csharpIdentifier':			 [ 'identifier' ],
+	\ 'csharpExtensionMethodName':	[ 'extension method name' ],
+	\ 'csharpComment':				[ 'comment' ],
+	\ 'csharpXmlDocCommentName':	  [ 'xml doc comment - name' ],
+	\ 'csharpXmlDocCommentDelimiter': [ 'xml doc comment - delimiter' ],
+	\ 'csharpXmlDocCommentText':	  [ 'xml doc comment - text' ]
+	\ }
+	"----------------------------------------------------}}}
+	"----------------------------------------------------}}}
+
+	function! CSharpFolds()"-------------------------------------------{{{
+		let thisline = getline(v:lnum)
+
+		if thisline ==# ""
+			return "="
+		elseif match(thisline, '^\t\t}$') >= 0
+			return "<1"
+		elseif match(thisline, '\t\t{$') >= 0
+			return "1"
+		elseif match(thisline, '^\t\t\t') >= 0
+			return "1"
+		elseif match(thisline, '^\t\t') >= 0
+			return ">1"
+		else
+			return "0"
+	endfunction
+	"----------------------------------------------------}}}
+	function! CSharpFolds2()"-------------------------------------------{{{
+		let thisline = getline(v:lnum)
+
+		if indent(v:lnum) < 8
+			return '='
+		endif
+
+		let previousline = getline(v:lnum-1)
+
+		if previousline =~ '^\s\+\['
+			return '='
+		endif
+
+		if thisline =~ '^\s\+\['
+			return 'a1'
+		endif
+
+		if thisline =~ '^\s\+{$'
+			" Open bracket by itself
+
+			" the previous line started the folding
+			return '='
+		endif
+
+		if thisline =~ '{$'
+			" Open bracket preceded by text
+			return 'a1'
+		endif
+
+		if thisline =~ '}$'
+			" Closing bracet by itself
+			return 's1'
+		endif
+
+		let nextline = getline(v:lnum+1)
+		if indent(v:lnum+1) >= 8 && getline(v:lnum+1) =~ '^\s\+{$'
+			return 'a1'
+		endif
+
+		return '='
+	endfunction
+	"----------------------------------------------------}}}
+	function! CSharpFoldText()"-------------------------------------------{{{
+		let titleLineNr = v:foldstart
+		let line = getline(titleLineNr)
+
+		while (match(line, '\v^\s+([|\<)') >= 0 && titleLineNr < v:foldend)
+			let titleLineNr = titleLineNr + 1
+			let line = getline(titleLineNr)
+		endwhile
+
+		let ts = repeat(' ',&tabstop)
+		let line = substitute(line, '\t', ts, 'g')
+		"let foldsize = v:foldend - v:foldstart + 1
+		let foldsize = v:foldend - titleLineNr - 1
+		return line . ' [' . foldsize . ' line' . (foldsize > 1 ? 's' : '') . ']'
+	endfunction
+	"----------------------------------------------------}}}
+	function! OSCountCodeActions() abort"-------------------------------------------{{{
+	  if bufname('%') ==# '' || OmniSharp#FugitiveCheck() | return | endif
+	  if !OmniSharp#IsServerRunning() | return | endif
+	  let opts = {
+	  \ 'CallbackCount': function('CBReturnCount'),
+	  \ 'CallbackCleanup': {-> execute('sign unplace 99')}
+	  \}
+	  call OmniSharp#CountCodeActions(opts)
+	endfunction
+
+	function! CBReturnCount(count) abort
+	  if a:count
+		let l = getpos('.')[1]
+		let f = expand('%:p')
+		execute ':sign place 99 line='.l.' name=OmniSharpCodeActions file='.f
+	  endif
+	endfunction
+	"----------------------------------------------------}}}
+	augroup csharpfiles
+		au!
+		autocmd FileType cs setlocal foldmethod=expr
+		autocmd FileType cs setlocal foldexpr=CSharpFolds2()
+		autocmd FileType cs setlocal foldtext=CSharpFoldText()
+		autocmd FileType cs setlocal foldminlines=2
+
+		autocmd FileType cs setlocal errorformat=\ %#%f(%l\\\,%c):\ %m
+		autocmd FileType cs setlocal makeprg=dotnet\ build
+		autocmd FileType cs nnoremap <LocalLeader>M :!dotnet run<CR>
+		autocmd CursorHold *.cs call OSCountCodeActions()
+		autocmd FileType cs set signcolumn=yes
+		autocmd BufWritePost *.cs :OmniSharpFixUsings<CR>:OmniSharpCodeFormat<CR>:OmniSharpGlobalCodeCheck<CR>
+
+		" Plugin: omnisharp-vim-------------------------------------------{{{
+		autocmd FileType cs set updatetime=500
+		autocmd FileType cs nnoremap <buffer> ( :OmniSharpNavigateUp<CR>zz
+		autocmd FileType cs nnoremap <buffer> ) :OmniSharpNavigateDown<CR>zz
+		autocmd FileType cs nnoremap <buffer> gd :OmniSharpGotoDefinition<CR>
+		autocmd FileType cs nnoremap <buffer> gD :OmniSharpPreviewDefinition<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>i :OmniSharpFindImplementations<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>I :OmniSharpPreviewImplementation<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>s :OmniSharpFindSymbol<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>u :OmniSharpFindUsages<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>m :OmniSharpFindMembers<CR>
+		"autocmd FileType cs nnoremap <buffer> <LocalLeader>fx :OmniSharpFixUsings<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>t :OmniSharpTypeLookup<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>d :OmniSharpDocumentation<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>o :ALEDisable<CR>:OmniSharpStopServer<CR>:OmniSharpStartServer<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>O :ALEEnable<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>c :OmniSharpGlobalCodeCheck<CR>
+		autocmd FileType cs nnoremap <LocalLeader>q :OmniSharpGetCodeActions<CR>
+		autocmd FileType cs xnoremap <LocalLeader>q :call OmniSharp#GetCodeActions('visual')<CR>
+		autocmd FileType cs nnoremap <LocalLeader>r :OmniSharpRename<CR>
+		autocmd FileType cs nnoremap <LocalLeader>f :OmniSharpFixUsings<CR>:OmniSharpCodeFormat<CR>
+	"----------------------------------------------------}}}
+	augroup end
 
 
-"----------------------------------------------------}}}
+	"----------------------------------------------------}}}
 
 "----------------------------------------------------}}}
 
@@ -320,6 +381,13 @@ inoremap ^k <End>|  cnoremap ^k <End>
 "----------------------------------------------------}}}
 
 " Graphical Layout:
+" Colorscheme, Highlight groups-------------------------------------------{{{
+
+colorscheme empower
+
+nnoremap <LocalLeader>h :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<CR>
+nnoremap <LocalLeader>H :OmniSharpHighlightEchoKind<CR>
+"----------------------------------------------------}}}
 " Buffers, Windows & Tabs-------------------------------------------{{{
 set hidden
 set splitbelow
@@ -381,11 +449,11 @@ nnoremap <Leader>L <C-W>L
 nnoremap <Leader>r <C-W>r
 
 " Resize Window
-nnoremap <Leader>, :vert res -2<CR>
-nnoremap <Leader>; :vert res +2<CR>
-nnoremap <Leader>: :res -2<CR>
-nnoremap <Leader>! :res +2<CR>
-nnoremap <Leader>= <C-W>=
+nnoremap <silent> <A-h> :vert res -2<CR>
+nnoremap <silent> <A-l> :vert res +2<CR>
+nnoremap <silent> <A-j> :res -2<CR>
+nnoremap <silent> <A-k> :res +2<CR>
+nnoremap <silent> <A-m> <C-W>=
 
 " Alternate file fast switching
 nnoremap <Leader>d :b #<CR>
@@ -445,13 +513,6 @@ function! UpdateStatusBar(timer)
 endfunction
 let timer = timer_start(20000, 'UpdateStatusBar',{'repeat':-1})
 "----------------------------------------------------}}}
-" Colorscheme, Highlight groups-------------------------------------------{{{
-
-colorscheme empower
-
-nnoremap <LocalLeader>h :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<CR>
-nnoremap <LocalLeader>H :OmniSharpHighlightEchoKind<CR>
-"----------------------------------------------------}}}
 
 " Motions:
 " Cursor vertical position-------------------------------------------{{{
@@ -471,7 +532,7 @@ endfunction
 "----------------------------------------------------}}}
 " Current Line-------------------------------------------{{{
 
-function ExtendedHome()"-------------------------------------------{{{
+function! ExtendedHome()"-------------------------------------------{{{
     let column = col('.')
     normal! ^
     if column == col('.')
@@ -483,7 +544,7 @@ nnoremap <silent> <Home> :call ExtendedHome()<CR>
 vnoremap <silent> <Home> <Esc>:call ExtendedHome()<CR>mvgv`v
 onoremap <silent> <Home> :call ExtendedHome()<CR>
 
-function ExtendedEnd()"-------------------------------------------{{{
+function! ExtendedEnd()"-------------------------------------------{{{
     let column = col('.')
     normal! g_
     if column == col('.') || column == col('.')+1
@@ -548,6 +609,9 @@ nnoremap vI `[v`]h
 
 "----------------------------------------------------}}}
 " Copy & Paste-------------------------------------------{{{
+
+" Paste mode
+nnoremap <leader>P :set paste!<CR>
 
 " Yank current line, trimmed
 nnoremap Y y$
@@ -885,17 +949,4 @@ nnoremap <Leader>_ mW:tabnew $pomodoro<CR>zMGkzazjzazk[zkkzt<C-Y>:vs<CR>`Wzz:sp 
 " augroup end
 "nnoremap <silent> <Leader>t :call popup_create([#{text: strftime('%Hh%M - %A %d %B'), props:[#{type: 'time'}]}], #{time: 1750, padding: [0,1,0,1], border: [], borderhighlight: ['Keyword','Keyword', 'Keyword', 'Keyword']})<CR>
 
-"----------------------------------------------------}}}
-" Desktop Integration-------------------------------------------{{{
-augroup duplicatefiles
-	au!
-
-	au BufWritePost _vimrc saveas! $HOME/Desktop/my.vimrc | bdelete #
-	au BufWritePost my.vimrc saveas! $HOME/Desktop/tools/vim/_vimrc | bdelete #
-
-	au BufWritePost empower.vim saveas! $HOME/Desktop/my.colorscheme | bdelete #
-	au BufWritePost my.colorscheme saveas! $HOME/Desktop/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim | bdelete #
-
-	au BufWritePost my.keyboard exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($HOME . '/Desktop/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
-augroup end
 "----------------------------------------------------}}}
