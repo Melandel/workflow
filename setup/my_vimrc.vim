@@ -900,8 +900,8 @@ let g:vifm_exec_args.= ' +"nnoremap ! /"'
 let g:vifm_exec_args.= ' +"nnoremap yp :!echo %\"F|clip<cr>"'
 
 "----------------------------------------------------}}}
-nnoremap <expr> <Leader>e ":Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
-nnoremap <expr> <Leader>E ":!start explorer.exe " . (bufname()=="" ? "." : "%:h") . "\<CR>"
+nnoremap <expr> <Leader>e ":vs\<CR>:Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
+nnoremap <expr> <Leader>E ":sp\<CR>:Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
 
 "----------------------------------------------------}}}
 " Google query-------------------------------------------{{{
@@ -915,13 +915,12 @@ vnoremap <Leader>q :Google<CR>
 
 " Plugin: UltiSnips
 let g:UltiSnipsEditSplit="vertical"
-let g:UltiSnipsSnippetsDir=$VIM . "/pack/plugins/start/vim-snippets-perso"
-let g:UltiSnipsSnippetDirectories=[$VIM . "/pack/plugins/start/vim-snippets/ultisnips", $VIM . "/pack/plugins/start/vim-snippets-perso"]
+let g:UltiSnipsSnippetDirectories=[$VIM . "/pack/plugins/start/vim-snippets/ultisnips", $HOME . "/Desktop/snippets"]
 let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<tab>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 
-nnoremap su :UltiSnipsEdit<CR>G
+nnoremap su :UltiSnipsEdit!<CR>G
 
 augroup ultisnips
 	au!
