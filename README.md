@@ -9,8 +9,8 @@ As a C# developer, I spent 4 years using the Visual Studio IDE (up to the 2019 v
 * Point-and-clicking sometimes felt painful, especially on common operations that required several steps
 * Switching from the IDE back and forth to Notepad++ felt inefficient, like having 2 tools to do the job of 1
 * Working with two files side by side on one screen implied too many drag-and-drops so I never worked like that
-* All these collapsed, docked windows were necessary visual pollution because of the time gained compared to browsing to the right submenus
-* Disruptive waiting time. While firing up the IDE (esp. with ReSharper), while firing up the unit tests, while upgrading the IDE.
+* All these collapsed, docked windows were visual pollution yet still better than browsing the menus
+* Disruptive waiting time. While firing up the IDE/ReSharper, while firing up the unit tests, while upgrading the IDE
 
 ## So what did you want? ##
 I want an environment that allows a certain workflow where I can remain focused as long as possible. That workflow:
