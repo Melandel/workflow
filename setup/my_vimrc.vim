@@ -968,6 +968,9 @@ augroup end
 " Git-------------------------------------------{{{
 
 nnoremap <Leader>g :Git<CR>
+nnoremap <leader>ga :Gcommit --amend --no-edit<CR>
+nnoremap <leader>gp :Gpush<CR>
+nnoremap <leader>gP :Gpush --force-with-lease<CR>
 
 "----------------------------------------------------}}}
 " Pomodoro & Notes -------------------------------------------{{{
