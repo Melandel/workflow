@@ -119,15 +119,15 @@ q::
 	waitingForNextKey := false
 return
 s::
-	SendRaw, }
-	waitingForNextKey := false
-return
-d::
 	SendRaw, [
 	waitingForNextKey := false
 return
-f::
+d::
 	SendRaw, ]
+	waitingForNextKey := false
+return
+f::
+	SendRaw, }
 	waitingForNextKey := false
 return
 g::

@@ -356,9 +356,9 @@ nnoremap <Leader>W :set wrap!<CR>
 " AltGr keys-------------------------------------------{{{
 
 inoremap ^q {|		cnoremap ^q {
-inoremap ^s }|		cnoremap ^s }
-inoremap ^d [|		cnoremap ^d [
-inoremap ^f ]|		cnoremap ^f ]
+inoremap ^f }|		cnoremap ^s }
+inoremap ^s [|		cnoremap ^d [
+inoremap ^d ]|		cnoremap ^f ]
 inoremap ^w ~|		cnoremap ^w ~
 inoremap ^x #|		cnoremap ^x #
 inoremap ^c <Bar>|	cnoremap ^c <Bar>
@@ -900,8 +900,8 @@ let g:vifm_exec_args.= ' +"nnoremap ! /"'
 let g:vifm_exec_args.= ' +"nnoremap yp :!echo %\"F|clip<cr>"'
 
 "----------------------------------------------------}}}
-nnoremap <expr> <Leader>e ":vs\<CR>:Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
-nnoremap <expr> <Leader>E ":sp\<CR>:Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
+nnoremap <expr> <Leader>e ":Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
+nnoremap <expr> <Leader>E ":vs\<CR>:Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
 
 "----------------------------------------------------}}}
 " Google query-------------------------------------------{{{
