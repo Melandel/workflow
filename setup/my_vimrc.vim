@@ -973,7 +973,7 @@ nnoremap <Leader>g :Git<CR>
 " Pomodoro & Notes -------------------------------------------{{{
 
 " Open in a new tab
-nnoremap <Leader>_ mW:tabnew $pomodoro<CR>zMGkzazjzazk[zkkzt<C-Y>:vs<CR>`Wzz:sp $n<CR>zMGza[zjzt:exec 'resize ' . string(&lines * 0.7)<CR>:exec 'vertical resize ' . string(&columns * 0.6)<CR><C-W>k
+nnoremap <Leader>_ mW:tabnew $pomodoro<CR>zMGkzazjzazk[zkkzt<C-Y>:vs<CR>`Wzz:sp $n<CR>zMGza[zjzz:exec 'resize ' . string(&lines * 0.7)<CR>:exec 'vertical resize ' . string(&columns * 0.6)<CR><C-W>k
 
 "----------------------------------------------------}}}
 
