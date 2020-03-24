@@ -18,7 +18,6 @@
 		call minpac#add('tpope/vim-dadbod')
 		call minpac#add('junegunn/vim-easy-align')
 		call minpac#add('tpope/vim-fugitive')
-		call minpac#add('szw/vim-g')
 		call minpac#add('tpope/vim-obsession')
 
 		call minpac#add('Melandel/vim-empower')
@@ -904,13 +903,51 @@ nnoremap <expr> <Leader>e ":Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
 nnoremap <expr> <Leader>E ":vs\<CR>:Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
 
 "----------------------------------------------------}}}
-" Google query-------------------------------------------{{{
+" Web Browsing-------------------------------------------{{{
 
-" Plugin: vim-g
+function! OpenWebUrl(firstPartOfUrl,...)" -------------------------------------------{{{
+	echomsg &ft
+	let visualSelection = getpos('.') == getpos("'<") ? getline("'<")[getpos("'<")[2] - 1:getpos("'>")[2] - 1] : ''
+
+	let finalPartOfUrl = ((a:0 == 0) ? visualSelection : join(a:000))
+
+	let nbDoubleQuotes = len(substitute(finalPartOfUrl, '[^"]', '', 'g'))
+	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0
+		finalPartOfUrl.= ' "'
+	endif
+
+	let finalPartOfUrl = substitute(finalPartOfUrl, '^\s*\(.\{-}\)\s*$', '\1', '')
+	let finalPartOfUrl = substitute(finalPartOfUrl, '"', '\\"', 'g')
+
+	let url = a:firstPartOfUrl . finalPartOfUrl
+	let url = escape(url, '%')
+	silent! execute '! start firefox "" "' . url . '"'
+endfun
+" ----------------------------------------------------}}}
+
+command! -nargs=* -range Web :call OpenWebUrl('', <f-args>)
+vnoremap <Leader>w :Web<CR>
+
+command! -nargs=* -range WordreferenceFrEn :call OpenWebUrl('https://www.wordreference.com/fren/', <f-args>)
+command! -nargs=* -range GoogleTranslateFrEn :call OpenWebUrl('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
+nnoremap <Leader>t :WordreferenceFrEn 
+vnoremap <Leader>t :GoogleTranslateFrEn<CR>
+
+command! -nargs=* -range WordreferenceEnFr :call OpenWebUrl('https://www.wordreference.com/enfr/', <f-args>)
+command! -nargs=* -range GoogleTranslateEnFr :call OpenWebUrl('https://translate.google.com/?hl=fr#view=home&op=translate&sl=en&tl=fr&text=', <f-args>)
+nnoremap <Leader>T :WordreferenceEnFr 
+vnoremap <Leader>T :GoogleTranslateEnFr<CR>
+
+command! -nargs=* -range Google :call OpenWebUrl('http://google.com/search?q=', <f-args>)
 nnoremap <Leader>q :Google 
 vnoremap <Leader>q :Google<CR>
 
-"----------------------------------------------------}}}
+command! -nargs=* -range Youtube :call OpenWebUrl('https://www.youtube.com/results?search_query=', <f-args>)
+command! -nargs=* -range YoutubePlaylist :call OpenWebUrl('https://www.youtube.com/results?sp=EgIQAw%253D%253D&search_query=', <f-args>)
+nnoremap <Leader>y :Youtube 
+nnoremap <Leader>Y :YoutubePlaylist 
+
+" ----------------------------------------------------}}}
 " Snippets-------------------------------------------{{{
 
 " Plugin: UltiSnips
