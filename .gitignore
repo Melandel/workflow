@@ -3,6 +3,4 @@
 
 # Except...
 !.gitignore
-!setup/my_keyboard.ahk
-!setup/my_vimrc.vim
-!setup/my_vimium.json
+!setup

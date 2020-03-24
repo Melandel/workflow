@@ -356,9 +356,9 @@ nnoremap <Leader>W :set wrap!<CR>
 " AltGr keys-------------------------------------------{{{
 
 inoremap ^q {|		cnoremap ^q {
-inoremap ^f }|		cnoremap ^s }
 inoremap ^s [|		cnoremap ^d [
 inoremap ^d ]|		cnoremap ^f ]
+inoremap ^f }|		cnoremap ^s }
 inoremap ^w ~|		cnoremap ^w ~
 inoremap ^x #|		cnoremap ^x #
 inoremap ^c <Bar>|	cnoremap ^c <Bar>
