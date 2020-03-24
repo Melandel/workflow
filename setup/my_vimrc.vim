@@ -13,6 +13,7 @@
 		call minpac#add('wellle/targets.vim')
 		call minpac#add('michaeljsmith/vim-indent-object')
 		call minpac#add('SirVer/ultisnips')
+		call minpac#add('honza/vim-snippets')
 		call minpac#add('vifm/vifm.vim')
 		call minpac#add('edkolev/vim-amake')
 		call minpac#add('tpope/vim-dadbod')
@@ -29,7 +30,7 @@
 
 "----------------------------------------------------}}}
 " First time-------------------------------------------{{{
-	if !isdirectory($VIM.'/pack/plugins')
+if !isdirectory($VIM.'/pack/plugins')
 		call system('git clone https://github.com/k-takata/minpac.git ' . $VIM . '/pack/packmanager/opt/minpac')
 		call MinpacInit()
 		call minpac#update()
@@ -968,9 +969,6 @@ augroup end
 " Git-------------------------------------------{{{
 
 nnoremap <Leader>g :Git<CR>
-nnoremap <leader>ga :Gcommit --amend --no-edit<CR>
-nnoremap <leader>gp :Gpush<CR>
-nnoremap <leader>gP :Gpush --force-with-lease<CR>
 
 "----------------------------------------------------}}}
 " Pomodoro & Notes -------------------------------------------{{{
