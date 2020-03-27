@@ -751,6 +751,10 @@ set termwinsize=12*0
 
 " The following line breaks fzf.vim
 " set shell=powershell\ -NoLogo
+"
+"
+"
+"
 
 " Delete last word while typing a command line
 tnoremap <C-W><C-W> <C-W>.
@@ -895,6 +899,7 @@ let g:vifm_exec_args.= ' +"nnoremap <C-I> :histnext<cr>"'
 let g:vifm_exec_args.= ' +"nnoremap s :!powershell -NoLogo<cr>"'
 let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('v', $v)
 let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('p', $p)
+"let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('d', $HOME . '/Downloads/')
 let g:vifm_exec_args.= ' +"nnoremap K :q<cr>"'
 let g:vifm_exec_args.= ' +"nnoremap ! /"'
 let g:vifm_exec_args.= ' +"nnoremap yp :!echo %\"F|clip<cr>"'
