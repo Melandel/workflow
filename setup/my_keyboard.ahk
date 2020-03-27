@@ -69,6 +69,10 @@ return
 ; ² -> Screenshot
 vkDE::Send #+S
 
+#If WinActive("Guild Wars")
+CapsLock & q::Return
+#If
+
 #If not WinActive("GVIM")
 ; Enter, Arrows, Backspace / Del
 CapsLock & n::Send {Down}
