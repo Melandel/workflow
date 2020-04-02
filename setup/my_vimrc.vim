@@ -15,7 +15,6 @@
 		call minpac#add('SirVer/ultisnips')
 		call minpac#add('honza/vim-snippets')
 		call minpac#add('vifm/vifm.vim')
-		call minpac#add('edkolev/vim-amake')
 		call minpac#add('tpope/vim-dadbod')
 		call minpac#add('junegunn/vim-easy-align')
 		call minpac#add('tpope/vim-fugitive')
@@ -25,6 +24,7 @@
 		call minpac#add('Melandel/vim-empower')
 		call minpac#add('Melandel/fzfcore.vim')
 		call minpac#add('Melandel/gvimtweak')
+		call minpac#add('Melandel/vim-amake')
 	endfunction
 
 	command! MinPacInit call MinpacInit()
@@ -122,10 +122,25 @@ if has("gui_running")
 	nnoremap <silent> <A-p> :GvimTweakSetAlpha -10<CR>
 endif
 "----------------------------------------------------}}}
-" Wrapping-------------------------------------------{{{
+" Startup-------------------------------------------{{{
+function! ShowOptionsWhenOnlyOneWindow()
+	let thereIsOneWindow = winnr('$') == 1 && tabpagenr('$') == 1
 
-nnoremap <Leader>W :set wrap!<CR>
+	if thereIsOneWindow
+		let nbBuffers = len(getbufinfo({'buflisted':1}))
+		if nbBuffers > 1
+			execute('Buffers')
+		else
+			execute('History')
+		endif	
+	endif
+endfunction
 
+augroup startup
+	au!
+
+ 	autocmd VimEnter * call ShowOptionsWhenOnlyOneWindow()
+augroup end
 "----------------------------------------------------}}}
 " FileTypes-------------------------------------------{{{
 
@@ -659,7 +674,7 @@ set listchars=tab:▸\ ,eol:¬,extends:>,precedes:<
 set list
 
 " Clean trailing whitespace
-nnoremap <Leader>w :%s/\s\+$//<CR>:let @/=''<CR>
+nnoremap <Leader>W :%s/\s\+$//<CR>:let @/=''<CR>
 
 "----------------------------------------------------}}}
 " Vertical Alignment-------------------------------------------{{{
@@ -734,7 +749,7 @@ nnoremap <silent> <Leader>S ^vg_y:execute @@<CR>
 set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ $*
 
 nnoremap <Leader>f :Files <C-R>=fnamemodify('.', ':p')<CR>
-nnoremap <Leader>G :Agrep  <C-R>=fnamemodify('.', ':p')<CR><Home><Right><Right><Right><Right><Right><Right>
+nnoremap <Leader>G :Agrep  <C-R>=substitute(fnamemodify('.', ':p'), '\\', '/', 'g')<CR><Home><Right><Right><Right><Right><Right><Right>
 nnoremap <LocalLeader>m :Amake<CR>
 
 "----------------------------------------------------}}}
@@ -913,7 +928,6 @@ nnoremap <expr> <Leader>E ":vs\<CR>:Vifm " . (bufname()=="" ? "." : "%:h") . " .
 " Web Browsing-------------------------------------------{{{
 
 function! OpenWebUrl(firstPartOfUrl,...)" -------------------------------------------{{{
-	echomsg &ft
 	let visualSelection = getpos('.') == getpos("'<") ? getline("'<")[getpos("'<")[2] - 1:getpos("'>")[2] - 1] : ''
 
 	let finalPartOfUrl = ((a:0 == 0) ? visualSelection : join(a:000))
@@ -933,6 +947,7 @@ endfun
 " ----------------------------------------------------}}}
 
 command! -nargs=* -range Web :call OpenWebUrl('', <f-args>)
+nnoremap <Leader>w :Web <C-R>=expand('%:p')<CR><CR>
 vnoremap <Leader>w :Web<CR>
 
 command! -nargs=* -range WordreferenceFrEn :call OpenWebUrl('https://www.wordreference.com/fren/', <f-args>)
