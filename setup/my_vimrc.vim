@@ -20,6 +20,7 @@
 		call minpac#add('junegunn/vim-easy-align')
 		call minpac#add('tpope/vim-fugitive')
 		call minpac#add('tpope/vim-obsession')
+		call minpac#add('ap/vim-css-color')
 
 		call minpac#add('Melandel/vim-empower')
 		call minpac#add('Melandel/fzfcore.vim')
