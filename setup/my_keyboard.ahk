@@ -70,7 +70,7 @@ return
 vkDE::Send #+S
 
 #If WinActive("Guild Wars")
-CapsLock & q::Return
+CapsLock & q::Send {esc}
 #If
 
 #If not WinActive("GVIM")
