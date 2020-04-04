@@ -67,7 +67,9 @@ return
 
 
 ; ² -> Screenshot
+#If !WinActive("Warcraft III")
 vkDE::Send #+S
+#If
 
 #If WinActive("Guild Wars")
 CapsLock & q::Send {esc}
