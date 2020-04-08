@@ -921,8 +921,8 @@ let g:vifm_exec_args.= ' +"nnoremap ! /"'
 let g:vifm_exec_args.= ' +"nnoremap yp :!echo %\"F|clip<cr>"'
 
 "----------------------------------------------------}}}
-nnoremap <expr> <Leader>e ":Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
-nnoremap <expr> <Leader>E ":vs\<CR>:Vifm " . (bufname()=="" ? "." : "%:h") . " .\<CR>"
+nnoremap <expr> <Leader>e ":Vifm " . (bufname()=="" ? "." : "%:p:h") . " .\<CR>"
+nnoremap <expr> <Leader>E ":vs\<CR>:Vifm " . (bufname()=="" ? "." : "%:p:h") . " .\<CR>"
 
 "----------------------------------------------------}}}
 " Web Browsing-------------------------------------------{{{
