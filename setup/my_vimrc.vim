@@ -752,7 +752,7 @@ nnoremap <silent> <Leader>S ^vg_y:execute @@<CR>
 set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ $*
 
 nnoremap <Leader>f :Files <C-R>=fnamemodify('.', ':p')<CR>
-nnoremap <Leader>g :Agrep --no-ignore-parent  <C-R>=substitute(fnamemodify('.', ':p'), '\\', '/', 'g')<CR><Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
+nnoremap <Leader>g :Agrep --no-ignore-parent  <C-R>=fnamemodify('.', ':p')<CR><Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
 nnoremap <LocalLeader>m :Amake<CR>
 
 "----------------------------------------------------}}}
@@ -992,7 +992,7 @@ augroup end
 "----------------------------------------------------}}}
 " Git-------------------------------------------{{{
 
-nnoremap <silent> <Leader>G :Git<CR>
+nnoremap <silent> <Leader>G :Gtabedit :<CR>:set previewwindow<CR>
 
 "----------------------------------------------------}}}
 " Pomodoro & Notes -------------------------------------------{{{
