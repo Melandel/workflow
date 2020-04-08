@@ -953,7 +953,7 @@ endfun
 " ----------------------------------------------------}}}
 
 command! -nargs=* -range Web :call OpenWebUrl('', <f-args>)
-nnoremap <Leader>w :Web <C-R>=expand('%:p')<CR><CR>
+nnoremap <Leader>w :Web <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 vnoremap <Leader>w :Web<CR>
 
 command! -nargs=* -range WordreferenceFrEn :call OpenWebUrl('https://www.wordreference.com/fren/', <f-args>)
