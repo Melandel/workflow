@@ -1,0 +1,116 @@
+snippet build "Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)"
+build(${1:scope}): ${2:subject}
+
+${3:body}
+
+BREAKING CHANGE: ${4:isolate scope bindings definition has changed and
+	the inject option for the directive controller injection was removed.
+	
+	To migrate the code follow the example below:
+	
+	Before:
+	
+	scope: {
+	  myAttr: 'attribute',
+	  myBind: 'bind',
+	  myExpression: 'expression',
+	  myEval: 'evaluate',
+	  myAccessor: 'accessor'
+	}
+	
+	After:
+	
+	scope: {
+	  myAttr: '@',
+	  myBind: '@',
+	  myExpression: '&',
+	  // myEval - usually not useful, but in cases where the expression is assignable, you can use '='
+	  myAccessor: '=' // in directive's template change myAccessor() to myAccessor
+	}
+	
+	The removed \`inject\` wasn't generaly useful for directives so there should be no code using it.
+}
+Closes #${5:1234}
+endsnippet
+
+
+snippet ci "Changes to our CI configuration files and scripts (example scopes: Circle, BrowserStack, SauceLabs)"
+ci(${1:scope}): ${2:subject}
+
+${3:body:body}
+
+${4:BREAKING CHANGE:
+}
+Closes #${5:1234}
+endsnippet
+
+snippet docs "Documentation only changes"
+docs(${1:scope}): ${2:subject}
+
+${3:body:body}
+
+${4:BREAKING CHANGE:
+}
+Closes #${5:1234}
+endsnippet
+
+snippet feat "A new feature"
+feat(${1:scope}): ${2:subject}
+
+${3:body:body}
+
+${4:BREAKING CHANGE:
+}
+Closes #${5:1234}
+endsnippet
+
+snippet fix "A bug fix"
+fix(${1:scope}): ${2:subject}
+
+${3:body:body}
+
+${4:BREAKING CHANGE:
+}
+Closes #${5:1234}
+endsnippet
+
+snippet perf "A code change that improves performance"
+perf(${1:scope}): ${2:subject}
+
+${3:body:body}
+
+${4:BREAKING CHANGE:
+}
+Closes #${5:1234}
+endsnippet
+
+snippet refactor "A code change that neither fixes a bug nor adds a feature"
+refactor(${1:scope}): ${2:subject}
+
+${3:body:body}
+
+${4:BREAKING CHANGE:
+}
+Closes #${5:1234}
+endsnippet
+
+snippet style "Changes that do not affect the meaningo of the code (white-space, formatting, missing semi-colons, etc)"
+style(${1:scope}): ${2:subject}
+
+${3:body:body}
+
+${4:BREAKING CHANGE:
+}
+Closes #${5:1234}
+endsnippet
+
+snippet test "Adding missing tests or correcting existing tests"
+test(${1:scope}): ${2:subject}
+
+${3:body:body}
+
+${4:BREAKING CHANGE:
+}
+Closes #${5:1234}
+endsnippet
+
