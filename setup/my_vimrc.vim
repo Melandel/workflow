@@ -722,14 +722,14 @@ function! EnterSubdir()"-------------------------------------------{{{
     return ''
 endfunction
 "----------------------------------------------------}}}
-cnoremap <expr> <C-N> EnterSubdir()
+cnoremap <expr> j EnterSubdir()
 
 function! MoveUpIntoParentdir()"-------------------------------------------{{{
     call feedkeys("\<Up>", 't')
     return ''
 endfunction
 "----------------------------------------------------}}}
-cnoremap <expr> <C-P> MoveUpIntoParentdir()
+cnoremap <expr> k MoveUpIntoParentdir()
 
 "----------------------------------------------------}}}
 " Expanded characters-------------------------------------------{{{
