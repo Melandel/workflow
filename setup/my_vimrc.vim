@@ -997,11 +997,16 @@ augroup end
 "----------------------------------------------------}}}
 " Git-------------------------------------------{{{
 
-nnoremap <silent> <Leader>G :Gtabedit :<CR>:set previewwindow<CR>
+nnoremap <silent> <Leader>G :Gtabedit :<CR>
+
+augroup gitstatus
+	autocmd!
+	autocmd FileType fugitive set previewwindow
+augroup END
 
 augroup gitcommit
 	autocmd!
-	autocmd BufEnter COMMIT_EDITMSG startinsert
+	autocmd FileType gitcommit startinsert
 augroup END
 
 "----------------------------------------------------}}}
