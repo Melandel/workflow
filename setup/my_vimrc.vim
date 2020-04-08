@@ -717,6 +717,7 @@ inoremap <expr> <CR> ReturnAfterBracket()
 " Wild Menu-------------------------------------------{{{
 
 set wildmenu
+set wildcharm=<Tab>
 set wildignorecase
 set wildmode=full
 
@@ -725,15 +726,19 @@ function! EnterSubdir()"-------------------------------------------{{{
     return ''
 endfunction
 "----------------------------------------------------}}}
-cnoremap <expr> j EnterSubdir()
+cnoremap <expr> j (wildmenumode() == 1) ? EnterSubdir() : "j"
 
 function! MoveUpIntoParentdir()"-------------------------------------------{{{
     call feedkeys("\<Up>", 't')
     return ''
 endfunction
 "----------------------------------------------------}}}
-cnoremap <expr> k MoveUpIntoParentdir()
+cnoremap <expr> k (wildmenumode() == 1) ? MoveUpIntoParentdir() : "k"
 
+cnoremap <expr> h (wildmenumode() == 1) ? "\<s-Tab>" : "h"
+cnoremap <expr> l (wildmenumode() == 1) ? "\<Tab>"   : "l"
+
+cnoremap <expr> <Esc> (wildmenumode() == 1) ? " \<BS>"   : "\<Esc>"
 "----------------------------------------------------}}}
 " Expanded characters-------------------------------------------{{{
 
