@@ -999,6 +999,11 @@ augroup end
 
 nnoremap <silent> <Leader>G :Gtabedit :<CR>:set previewwindow<CR>
 
+augroup gitcommit
+	autocmd!
+	autocmd BufEnter COMMIT_EDITMSG startinsert
+augroup END
+
 "----------------------------------------------------}}}
 " Pomodoro & Notes -------------------------------------------{{{
 
