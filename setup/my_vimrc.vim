@@ -67,6 +67,9 @@ set encoding=utf8
 set scrolloff=0
 set backspace=indent,eol,start
 
+" Use forward slash when expanding file names
+set shellslash
+
 " Backup files
 set swapfile
 set directory=$HOME/Desktop/tmp/vim
