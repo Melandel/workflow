@@ -337,7 +337,7 @@ augroup end
 		autocmd FileType cs nnoremap <LocalLeader>M :!dotnet run<CR>
 		autocmd CursorHold *.cs call OSCountCodeActions()
 		autocmd FileType cs set signcolumn=yes
-		autocmd BufWritePost *.cs :OmniSharpFixUsings<CR>:OmniSharpCodeFormat<CR>:OmniSharpGlobalCodeCheck<CR>
+		autocmd BufWritePost *.cs OmniSharpFixUsings | OmniSharpCodeFormat | OmniSharpGlobalCodeCheck
 
 		" Plugin: omnisharp-vim-------------------------------------------{{{
 		autocmd FileType cs set updatetime=500
