@@ -27,7 +27,7 @@
 		call minpac#add('Melandel/vim-amake')
 	endfunction
 
-	command! MinPacInit call MinpacInit()
+	command! -bar MinPacInit call MinpacInit()
 
 "----------------------------------------------------}}}
 " First time-------------------------------------------{{{
