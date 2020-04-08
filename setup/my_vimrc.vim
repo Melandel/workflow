@@ -737,8 +737,6 @@ cnoremap <expr> k (wildmenumode() == 1) ? MoveUpIntoParentdir() : "k"
 
 cnoremap <expr> h (wildmenumode() == 1) ? "\<s-Tab>" : "h"
 cnoremap <expr> l (wildmenumode() == 1) ? "\<Tab>"   : "l"
-
-cnoremap <expr> <Esc> (wildmenumode() == 1) ? " \<BS>"   : "\<Esc>"
 "----------------------------------------------------}}}
 " Expanded characters-------------------------------------------{{{
 
