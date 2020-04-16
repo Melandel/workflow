@@ -703,14 +703,8 @@ nnoremap <expr> vp '`[' . strpart(getregtype(), 0, 1) . '`]'
 " Repeat last action
 nnoremap ù .
 
-" Record macro
-nnoremap <Leader>m q
-
 " Replay macro
-nnoremap à @@
-
-" Repeat last Ex command
-nnoremap . @:
+nnoremap . @@
 
 " ---------------------------------------------}}}
 " Whitespace characters Handler" --------------{{{
