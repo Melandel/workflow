@@ -844,8 +844,8 @@ set shortmess=filnxtToO
 nnoremap ! :call KeepCurrentWinLine('zR')<CR>/
 nnoremap q! q/
 nnoremap z! :call :BLines <C-R>=split(&foldmarker, ",")[0]<CR><CR>
+"
 " Display current cursor position in red (error color) for more visibility
-
 function! HLNext (blinktime)"------------------{{{
   let target_pat = '\c\%#'.@/
   let ring = matchadd('ErrorMsg', target_pat, 101)
