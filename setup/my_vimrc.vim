@@ -110,7 +110,7 @@ nnoremap < <<
 command! -bar Spaces2Tabs set noet ts=2 |%retab!
 
 " Leader keys
-noremap q <Nop>
+" noremap q <Nop>
 let mapleader = "s"
 let maplocalleader = "q"
 
@@ -345,7 +345,7 @@ endif
 	augroup end
 
 	"---------------------------------------------}}}
-	
+
 " AZERTY Keyboard:
 " AltGr keys" ---------------------------------{{{
 inoremap ^q {|		cnoremap ^q {
