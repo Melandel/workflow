@@ -986,8 +986,8 @@ augroup end
 " ---------------------------------------------}}}
 " Pomodoro" -----------------------------------{{{
 let preparation_ms = 5000 * 60
-let pomodoro_session_ms = 10000 * 60
-let pomodoro_break_ms = 5000 *60
+let pomodoro_session_ms = 25000 * 60
+let pomodoro_break_ms = 5000 * 60
 let nb_pomodoros_in_a_day = 24
 let g:current_cycle_nr = 0
 
