@@ -110,7 +110,6 @@ nnoremap < <<
 command! -bar Spaces2Tabs set noet ts=2 |%retab!
 
 " Leader keys
-" noremap q <Nop>
 let mapleader = "s"
 let maplocalleader = "q"
 
@@ -843,6 +842,7 @@ set ignorecase
 set shortmess=filnxtToO
 
 nnoremap ! :call KeepCurrentWinLine('zR')<CR>/
+nnoremap q! q/
 nnoremap z! :call :BLines <C-R>=split(&foldmarker, ",")[0]<CR><CR>
 " Display current cursor position in red (error color) for more visibility
 
