@@ -31,6 +31,7 @@ The desktop environment consists of:
 * a `my.pomodoro` file to use for tracking daily activity and celebrate progress. Also a todolist.
 * a `my.notes` file to use for writing drafts, taking notes, storing resource links, basically aknowledge database
 * a `tmp` folder for backup files, logs, archived diffs and other sandbox projects
+* a `setup` folder for backup files, logs, archived diffs and other sandbox projects
 * a `snippets` folder 
 
 ### Tools ###
@@ -38,42 +39,33 @@ The desktop environment consists of:
 These tools go in the `tools` folder if possible, as well as in the environment variable `$PATH`
 
 
-| Functionality          | Program/Script                                                                                               | Notes                                                                                  |
-| ---------------        | -------                                                                                                      | -----                                                                                  |
-| Keyboard optimization  | [AutoHotKey](https://www.autohotkey.com/)                                                                    | Re-run the installer to change the installation folder to `$HOME/tools`.               |
-|                        |                                                                                                              | Put also its `Compiler` subfolder into `Path`                                          |
-|                        |                                                                                                              | Generate the `exe` by editing & saving `setup/my_keyboard.ahk` inside Vim              |
-| Web Browser            | [Firefox](https://www.mozilla.org/en-US/firefox/new/)                                                        | Go to `Advanced install options` to choose the install folder                          |
-| Versioning Control     | [git](https://git-scm.com/downloads)                                                                         |                                                                                        |
-| Text editor            | [Vim](https://github.com/vim/vim-win32-installer/releases)                                                   | Pick x64 or x86. Set `gvim.exe` to run as Administrator                                |
-| File explorer GUI      | [vifm](https://vifm.info/downloads.shtml)                                                                    |                                                                                        |
-| g/re/p                 | [ripgrep](https://github.com/BurntSushi/ripgrep/releases)                                                    |                                                                                        |
-| Text Previewer         | [bat](https://github.com/sharkdp/bat/releases)                                                               |                                                                                        |
-| Fuzzy finder           | [fzf](https://github.com/junegunn/fzf-bin/releases)                                                          |                                                                                        |
-| Terminal Pager         | [less](https://github.com/Pscx/Pscx/blob/81b76cfdb1343f84880e0e2cd647db5c56cf354b/Imports/Less-394/less.exe) |                                                                                        |
-| Nuget explorer/fetcher | [nuget](https://www.nuget.org/downloads)                                                                     |                                                                                        |
-| Scripting language     | [python (needed by vim's plugin UltiSnips)](https://www.python.org/downloads/windows/)                       | Be sure you install the same version (x64 or x86) as vim                               |
-|                        |                                                                                                              | To know which python you need, enter insert mode inside vim and read the error message |
+| Functionality          | Program/Script                                                                                               | Notes                                                                                      |
+| ---------------        | -------                                                                                                      | -----                                                                                      |
+| Keyboard optimization  | [AutoHotKey](https://www.autohotkey.com/)                                                                    | Re-run the installer to change the installation folder to `$HOME/tools`.                   |
+|                        |                                                                                                              | Put also its `Compiler` subfolder into `Path`                                              |
+|                        |                                                                                                              | Generate the `exe` by editing & saving `setup/my_keyboard.ahk` inside Vim                  |
+| Web Browser            | [Firefox](https://www.mozilla.org/en-US/firefox/new/)                                                        | Go to `Advanced install options` to choose the install folder                              |
+| Versioning Control     | [git](https://git-scm.com/downloads)                                                                         |                                                                                            |
+| Text editor            | [Vim](https://github.com/vim/vim-win32-installer/releases)                                                   | Pick x64 or x86. Set `gvim.exe` to run as Administrator                                    |
+|                        |                                                                                                              | The plugins are automatically installed when `:source ~/Desktop/setup/my_vimrc.vim` in vim |
+| File explorer GUI      | [vifm](https://vifm.info/downloads.shtml)                                                                    |                                                                                            |
+| g/re/p                 | [ripgrep](https://github.com/BurntSushi/ripgrep/releases)                                                    |                                                                                            |
+| Text Previewer         | [bat](https://github.com/sharkdp/bat/releases)                                                               |                                                                                            |
+| Fuzzy finder           | [fzf](https://github.com/junegunn/fzf-bin/releases)                                                          |                                                                                            |
+| Terminal Pager         | [less](https://github.com/Pscx/Pscx/blob/81b76cfdb1343f84880e0e2cd647db5c56cf354b/Imports/Less-394/less.exe) |                                                                                            |
+| Nuget explorer/fetcher | [nuget](https://www.nuget.org/downloads)                                                                     |                                                                                            |
+| Scripting language     | [python (needed by vim's plugin UltiSnips)](https://www.python.org/downloads/windows/)                       | Be sure you install the same version (x64 or x86) as vim                                   |
+| C# REPL                | [dotnet-script](https://github.com/filipw/dotnet-script)                                                     | Install as a dotnet tool (`dotnet tool install`)                                           |
 
-### Vim plugins ###
+### Config files ###
 
-The plugins are automatically installed when running vim for the first time after running `:source ~/Desktop/setup/my_vimrc.vim`
 
-| Functionality              | Plugin                                                                                                                         |
-| ---------------            | -------                                                                                                                        |
-| Text Linting               | [ale](https://github.com/dense-analysis/ale)                                                                                   |
-| Fuzzy Finder               | [fzf.vim](https://github.com/junegunn/fzf.vim) & [fzfcore.vim](https://github.com/junegunn/fzf/blob/master/plugin/fzf.vim)     |
-| Status Line                | [lightline.vim](https://github.com/itchyny/lightline.vim) & [vim-gitbranch](https://github.com/itchyny/vim-gitbranch)          |
-| C# Intellisense            | [omnisharp-vim](https://github.com/OmniSharp/omnisharp-vim)                                                                    |
-| Text Objects               | [targets.vim](https://github.com/wellle/targets.vim) & [vim-indent-object](https://github.com/michaeljsmith/vim-indent-object) |
-| Snippets                   | [ultisnips](https://github.com/SirVer/ultisnips)                                                                               |
-| File explorer              | [vifm.vim](https://github.com/vifm/vifm.vim)                                                                                   |
-| Asynchronous Make and Grep | [vim-amake.vim](https://github.com/edkolev/vim-amake)                                                                          |
-| Database Querying          | [vim-dadbod](https://github.com/tpope/vim-dadbod)                                                                              |
-| Vertical Alignment         | [vim-easy-align](https://github.com/junegunn/vim-easy-align)                                                                   |
-| Git workflow               | [vim-fugitive](https://github.com/tpope/vim-fugitive)                                                                          |
-| Google Query               | [vim-g](https://github.com/szw/vim-g)                                                                                          |
-| Session Management         | [vim-obsession](https://github.com/tpope/vim-obsession)                                                                        |
+| File                    | Notes                                                                                                       |
+| ---------------         | -------                                                                                                     |
+| setup/my_keyboard.ahk   | Autohotkey script. Remaps CAPS LOCK to Ctrl/Esc and all AltGr keys to using caret (^), amongst other things |
+| setup/my_vimrc.vim      | vim config file. Create a symbolic link `$HOME/Desktop/tools/vim/_vimrc` referring to it                    |
+| setup/my_vimium.json    | Firefox web-extension Vimium's config file. In the extension panel, import this file                        |
+| setup/my_omnisharp.json | omnisharp server config file. Copy it to `$HOME/.omnisharp/omnisharp.json`                                  |
 
 ### Startup programs ###
 
