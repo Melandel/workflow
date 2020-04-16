@@ -1200,8 +1200,3 @@ augroup END
 nnoremap <silent> <Leader>G :Gtabedit :<CR>
 
 " ---------------------------------------------}}}
-
-" Others:
-" Dashboard example" --------------------------{{{
-"nnoremap <Leader>_ mW:tabnew $pomodoro<CR>zMGkzazjzazk[zkkzt<C-Y>:vs<CR>`Wzz:sp $n<CR>zMGza[zjzz:exec 'resize ' . string(&lines * 0.7)<CR>:exec 'vertical resize ' . string(&columns * 0.6)<CR><C-W>k
-" ---------------------------------------------}}}
