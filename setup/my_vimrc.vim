@@ -61,6 +61,11 @@ let $v = $VIM . '/_vimrc'
 let $d = $HOME . '/Desktop'
 let $p = $VIM . '/pack/plugins/start/'
 let $c = $VIM . '/pack/plugins/start/vim-empower/colors/empower.vim'
+let $n = $d.'/my.notes'
+let $r = $d.'/my.resources'
+let $hz = $d.'/my.happyzone'
+let $dz = $d.'/my.drivenzone'
+let $k = $d.'/my.knowledge'
 
 function! KeepCurrentWinLine(keys)
 	let winLineBefore=winline()
@@ -431,8 +436,7 @@ nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 nnoremap <Leader>s :split<CR>
 nnoremap <Leader>v :vsplit<CR>
 nnoremap K :q<CR>
-nnoremap <Leader>o :let bufnr=bufnr('%')\|tabedit\|cd $d\|call BuildMyLayout(bufnr)<CR>
-nnoremap <Leader>O mW:tabnew<CR>`W
+nnoremap <Leader>o mW:tabnew<CR>`W:silent call ToggleMyMetaBanner()<CR>
 nnoremap <silent> <Leader>x :tabclose<CR>
 nnoremap <Leader>X :tabonly<CR>:sp<CR>:q<CR>:let g:zindex+=1<CR>:call DisplayPopupTime()<CR>
 
@@ -478,7 +482,6 @@ nnoremap <Leader>H <C-W>H
 nnoremap <Leader>J <C-W>J
 nnoremap <Leader>K <C-W>K
 nnoremap <Leader>L <C-W>L
-nnoremap <Leader>r <C-W>r
 
 " Resize Window
 nnoremap <silent> <A-h> :vert res -2<CR>
@@ -934,57 +937,30 @@ autocmd QuickFixCmdPost	l* nested lwindow
 "---------------------------------------------}}}1
 
 " Additional Functionalities:
-" My Layout" ---------------------------------{{{1
-
-function! BuildMyLayout(...) abort" ----------{{{2
-	if a:0 > 3
-		echoerr 'Too many arguments (' . a:0 . ') for BuildMyLayout'
-		return
-	endif
-	
-	if winnr('$') != 1
-		echoerr 'Use this function only in a tab that has only one window. Maybe use `:tabnew` before?'
-		return
-	endif
-	
-	lcd $d
-
-	if exists ('a:2')
-		let commandTemplate = type(a:2) == type(0) ? 'buffer #%d' : 'buffer %s'
-		silent execute(printf(commandTemplate, a:2))
-	endif
-	silent vertical 50split my.resources| split my.happyzone | split my.drivenzone | split my.knowledge | wincmd k | wincmd k | wincmd k | resize 12 | wincmd j | resize 12 | wincmd j | resize 12 |wincmd h 
-	
-	let bigHeight= &lines-9
-	if !exists('a:1')
-		execute(printf('%dnew', bigHeight)) 
+" My Meta Files" -----------------------------{{{1
+function! ToggleMyMetaBanner()" --------------{{{2
+	let buffers = map(tabpagebuflist(), {idx, itm -> bufname(itm)})
+	let metafiles = filter(tabpagebuflist(), {idx, itm -> bufname(itm) =~ '\v^my\.'})
+	if len(metafiles) >= 3
+		 for bufid in metafiles
+		 	call win_gotoid(bufwinid(bufid))
+				write | quit
+		 endfor
 	else
-		let commandTemplate = type(a:1) == type(0) ? '%dnew #%d' : '%dnew %s'	
-		silent execute(printf(commandTemplate, bigHeight, a:1))
+		mark V | let originalWinNr = winnr()
+
+		vnew $r| wincmd L
+		new $hz
+		new $dz
+		new $k | vertical resize 50
+
+		execute(originalWinNr.'wincmd w') | normal! `V
+		delmarks V
 	endif
-	silent wincmd k | resize 9 
-
-	if !exists('a:3')
-		98vnew
-	else
-		let commandTemplate = type(a:3) == type(0) ? 'vertical 98new #%d' : 'vertical 98new %s'	
-		silent execute(printf(commandTemplate, a:3))
-	endif
-
-	silent wincmd h | wincmd j
 endfunction
-" --------------------------------------------}}}2
-command! -bar Layout call BuildMyLayout(<f-args>)
-
-function! ResizeLayoutWithSideBanner()" ------{{{2
-	let current_pos = getpos('.')
-	wincmd l | wincmd l | wincmd l | vertical resize 50
-	wincmd h | wincmd k | wincmd h | vertical resize 98 | resize 9
-
-	call setpos('.', current_pos)
-endfunction
-" --------------------------------------------}}}2
-command! -bar ResizeLayoutWithSideBanner call ResizeLayoutWithSideBanner()
+" -------------------------------------------}}}2
+command! ToggleMetaBanner silent call ToggleMyMetaBanner()
+nnoremap <Leader>m :ToggleMetaBanner<CR>
 
 " --------------------------------------------}}}1
 " Time & Tab Info" ---------------------------{{{1
