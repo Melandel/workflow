@@ -1100,7 +1100,7 @@ function! DisplayPomodoroBreakStart(cycle_nr, nb_pomodoros_in_a_day, ...)" ----{
 		\ 'Il est temps de passer [5 minutes] sur des choses qui n''ont rien à voir pour te changer les idées! ',
 		\ '',
 		\ 'Tu as passé suffisamment de moments dans le passé à coder en faisant plein de fautes d''étourderie',
-		\ 'pour savoir ce que la qualité de tes implémentations va évoluer sans pause mentale ;)',
+		\ 'pour savoir comment la qualité de tes implémentations va évoluer sans pause mentale ;)',
 		\ '',
 		\ 'Je te recommande de commencer par célébrer tes progrès :)'
 	\)
