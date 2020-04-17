@@ -144,6 +144,10 @@ h::
 	SendInput, {+}
 	waitingForNextKey := false
 return
+l::
+	SendInput, {`%}
+	waitingForNextKey := false
+return
 w::
 	SendInput, ~{Space}
 	waitingForNextKey := false
