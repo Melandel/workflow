@@ -524,61 +524,40 @@ function! FileSizeAndRows() abort" -----------{{{2
 endfunction
 " --------------------------------------------}}}2
 function! MyFilePathIndicator() abort" -------{{{2
-	let file_path_absolute = expand('%:p')
-	let git_path_absolute = fnamemodify(gitbranch#dir(file_path_absolute), ':h')
-	
-	if git_path_absolute == '.'
-		let file_path_relative_to_git_path = expand('%')
-		let git_path_indicator = ''
-	else
-		let file_path_relative_to_git_path = file_path_absolute[len(git_path_absolute)+1:]
-		let git_path_indicator = printf('%s[%s/%s]', gitbranch#name(), fnamemodify(git_path_absolute, ':h:t'), fnamemodify(git_path_absolute, ':t'))
-	endif
-
-	let path = ''
-	if git_path_indicator != ''
-		let path.= printf('%s ', git_path_indicator)
-	endif
+	let path = GitRootAndCwd()
 
 	let current_directory = getcwd()
-	let current_directory_filename = fnamemodify(current_directory, ':t')
-	if stridx(path, current_directory_filename) == -1
-		let path .= printf('%s/%s ', fnamemodify(current_directory, ':h:t'), fnamemodify(current_directory, ':t'))
+	if stridx(path, fnamemodify(current_directory, ':t')) == -1
+		let path .= printf(' %s/%s', fnamemodify(current_directory, ':h:t'), fnamemodify(current_directory, ':t'))
 	endif
+	
+	let path .= ' '.GitFilePath()
 
-	let path.= file_path_relative_to_git_path
-	return substitute(path, current_directory_filename, '(&)', '')
+	return substitute(path, fnamemodify(current_directory, ':t') , '(&)', '')
 endfunction
 " --------------------------------------------}}}2
-function! MyFilePathIndicatorWithoutPwd()" ---{{{2
+function! GitFilePath()" ---------------------{{{2
 	let file_path_absolute = expand('%:p')
 	let git_path_absolute = fnamemodify(gitbranch#dir(file_path_absolute), ':h')
 	
-	if git_path_absolute == '.'
-		let file_path_relative_to_git_path = expand('%')
-		let git_path_indicator = ''
-	else
-		let file_path_relative_to_git_path = file_path_absolute[len(git_path_absolute)+1:]
-		let git_path_indicator = printf('%s[%s/%s]', gitbranch#name(), fnamemodify(git_path_absolute, ':h:t'), fnamemodify(git_path_absolute, ':t'))
-	endif
+	return git_path_absolute == '.' ? expand('%') : file_path_absolute[len(git_path_absolute)+1:]
+endfunction
+" --------------------------------------------}}}2
+function! GitRootAndCwd()" -------------------{{{2
+	let file_path_absolute = expand('%:p')
+	let git_path_absolute = fnamemodify(gitbranch#dir(file_path_absolute), ':h')
 
-	let path = ''
-	if git_path_indicator != ''
-		let path.= printf('%s:', git_path_indicator)
-	endif
-
-	let path.= file_path_relative_to_git_path
-	return path
+	return git_path_absolute == '.' ? '' :	printf('%s[%s/%s]', gitbranch#name(), fnamemodify(git_path_absolute, ':h:t'), fnamemodify(git_path_absolute, ':t')) 
 endfunction
 " --------------------------------------------}}}2
 
 let g:lightline = {
 	\ 'colorscheme': 'empower',
-	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'mypathinfo': 'MyFilePathIndicator', 'mypathinfo2': 'MyFilePathIndicatorWithoutPwd' },
+	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'mypathinfo': 'MyFilePathIndicator', 'gitpath': 'GitFilePath', 'gitroot': 'GitRootAndCwd' },
 	\ 'active': {   'left':  [ [ 'mode', 'paste', 'readonly', 'modified' ], [ 'mypathinfo' ] ],
 				\   'right': [ [ 'filesize_and_rows' ] ] },
-	\ 'inactive': {   'left':  [  ],
-				\   'right': [ [ 'mypathinfo2', 'modified', 'readonly' ] ] }
+	\ 'inactive': {   'left':  [ [ 'gitroot' ] ],
+	\   'right': [ [ 'gitpath', 'modified', 'readonly' ] ] }
 				\ }
 " --------------------------------------------}}}1
 
