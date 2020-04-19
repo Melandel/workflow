@@ -152,7 +152,11 @@ endif
 " FileTypes:
 " vim" ---------------------------------------{{{1
 		function! LcdToPluginDirectory(...)" -----------{{{2
+			if getwinvar(1, '&filetype') == 'fugitive' | return | endif
+			" asking for diff in fugitive-status displays an error
+
 			let filepath = expand('%:p')
+			if filepath !~ '\v%(start|opt)' | return | endif
 
 			let path = fnamemodify(filepath, ':h')
 			let previous_path = path
@@ -899,25 +903,16 @@ set ignorecase
 " Display '1 out of 23 matches' when searching
 set shortmess=filnxtToO
 nnoremap ! /
-"nnoremap ! :call KeepCurrentWinLine('zR')<CR>/
+vnoremap ! "vy/<C-R>v
+
 nnoremap q! q/
 nnoremap z! :BLines {{{<CR>
-"
-" Display current cursor position in red (error color) for more visibility
-function! HLNext (blinktime)"-----------------{{{2
-  let target_pat = '\c\%#'.@/
-  let ring = matchadd('ErrorMsg', target_pat, 101)
-  redraw
-  exec 'sleep ' . float2nr(a:blinktime * 1000) . 'm'
-  call matchdelete(ring)
-  redraw
-endfunction
-"---------------------------------------------}}}2
-"nnoremap <silent> n :silent! call execute('keepjumps normal! n') \| call KeepCurrentWinLine('zMzv')\| call HLNext(0.15)<cr>
-"nnoremap <silent> N :silent! call execute('keepjumps normal! N') \| call KeepCurrentWinLine('zMzv')\| call HLNext(0.15)<cr>
 
-" search selected text
-vnoremap * "vy/\V<C-R>v\C<cr>:call KeepCurrentWinLine('zMzv')\| call HLNext(0.15)<cr>
+command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
+nnoremap <silent> n n:UnderlineCurrentSearchItem<CR>
+nnoremap <silent> N N:UnderlineCurrentSearchItem<CR>
+nnoremap <silent> * *<C-O>:UnderlineCurrentSearchItem<CR>
+vnoremap * "vy/\V<C-R>v\C<cr>:UnderlineCurrentSearchItem<CR>
 "---------------------------------------------}}}1
 " Autocompletion (Insert Mode)" --------------{{{1
 
