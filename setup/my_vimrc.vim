@@ -631,7 +631,7 @@ let g:lightline = {
 "
 function! BrowseLayoutDown()" ----------------{{{2
 	if &diff
-		keepjumps execute 'silent! normal! ]c'
+		keepjumps execute 'silent! normal! ]czv'
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cnext
 	else
@@ -643,7 +643,7 @@ nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 
 function! BrowseLayoutUp()" ------------------{{{2
 	if &diff
-		keepjumps execute 'silent! normal! [c'
+		keepjumps execute 'silent! normal! [czv'
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cprev
 	else
@@ -932,7 +932,7 @@ set diffopt+=algorithm:histogram,indent-heuristic
 
 augroup diff
 	au!
-	au OptionSet diff let &cursorline=!v:option_new
+	autocmd OptionSet diff let &cursorline=!v:option_new
 augroup end
 
 "---------------------------------------------}}}1
