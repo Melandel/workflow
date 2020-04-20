@@ -1,58 +1,58 @@
 " Desktop Integration:
 " Plugins" -----------------------------------{{{1
+function! MinpacInit()" -----------------{{{2
+	packadd minpac
+	call minpac#init( #{dir:$VIM, package_name: 'plugins' } )
 
-	function! MinpacInit()
-		packadd minpac
-		call minpac#init( #{dir:$VIM, package_name: 'plugins' } )
+	call minpac#add('dense-analysis/ale')
+	call minpac#add('junegunn/fzf.vim')
+	call minpac#add('jremmen/vim-ripgrep')
+	call minpac#add('itchyny/lightline.vim')
+	call minpac#add('itchyny/vim-gitbranch')
+	call minpac#add('OmniSharp/omnisharp-vim')
+	call minpac#add('gyim/vim-boxdraw')
 
-		call minpac#add('dense-analysis/ale')
-		call minpac#add('junegunn/fzf.vim')
-		call minpac#add('jremmen/vim-ripgrep')
-		call minpac#add('itchyny/lightline.vim')
-		call minpac#add('itchyny/vim-gitbranch')
-		call minpac#add('OmniSharp/omnisharp-vim')
-		call minpac#add('gyim/vim-boxdraw')
+	call minpac#add('SirVer/ultisnips')
+	call minpac#add('honza/vim-snippets')
+	call minpac#add('vifm/vifm.vim')
+	call minpac#add('tpope/vim-dadbod')
+	call minpac#add('tpope/vim-surround')
+	call minpac#add('tpope/vim-repeat')
+	call minpac#add('junegunn/vim-easy-align')
+	call minpac#add('tpope/vim-fugitive')
+	call minpac#add('tpope/vim-obsession')
+	call minpac#add('ap/vim-css-color')
 
-		call minpac#add('SirVer/ultisnips')
-		call minpac#add('honza/vim-snippets')
-		call minpac#add('vifm/vifm.vim')
-		call minpac#add('tpope/vim-dadbod')
-		call minpac#add('tpope/vim-surround')
-		call minpac#add('tpope/vim-repeat')
-		call minpac#add('junegunn/vim-easy-align')
-		call minpac#add('tpope/vim-fugitive')
-		call minpac#add('tpope/vim-obsession')
-		call minpac#add('ap/vim-css-color')
+	call minpac#add('wellle/targets.vim')
+	call minpac#add('michaeljsmith/vim-indent-object')
 
-		call minpac#add('wellle/targets.vim')
-		call minpac#add('michaeljsmith/vim-indent-object')
+	call minpac#add('Melandel/vim-empower')
+	call minpac#add('Melandel/fzfcore.vim')
+	call minpac#add('Melandel/gvimtweak')
+	call minpac#add('Melandel/vim-amake')
 
-		call minpac#add('Melandel/vim-empower')
-		call minpac#add('Melandel/fzfcore.vim')
-		call minpac#add('Melandel/gvimtweak')
-		call minpac#add('Melandel/vim-amake')
+	call minpac#add('ajatkj/vim-qotd')
+	call minpac#add('ajatkj/vim-helper')
+endfunction
+" ---------------------------------------}}}2
+command! -bar MinPacInit call MinpacInit()
+command! -bar MinPacUpdate call MinpacInit()| call minpac#clean()| call minpac#update()
 
-		call minpac#add('ajatkj/vim-qotd')
-		call minpac#add('ajatkj/vim-helper')
-	endfunction
-
-	command! -bar MinPacInit call MinpacInit()
-	command! -bar MinPacUpdate call MinpacInit()| call minpac#clean()| call minpac#update()
-
+packadd! matchit
 " --------------------------------------------}}}1
 " First time" --------------------------------{{{1
 if !isdirectory($VIM.'/pack/plugins')
-		call system('git clone https://github.com/k-takata/minpac.git ' . $VIM . '/pack/packmanager/opt/minpac')
-		call MinpacInit()
-		call minpac#update()
-		packloadall
-	endif
+	call system('git clone https://github.com/k-takata/minpac.git ' . $VIM . '/pack/packmanager/opt/minpac')
+	call MinpacInit()
+	call minpac#update()
+	packloadall
+endif
 " --------------------------------------------}}}1
 " Duplicated/Generated files" ----------------{{{1
-	augroup duplicatefiles
-		au!
-		au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($HOME . '/Desktop/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
-	augroup end
+augroup duplicatefiles
+	au!
+	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($HOME . '/Desktop/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
+augroup end
 " --------------------------------------------}}}1
 
 " General:
@@ -66,18 +66,6 @@ let $r = $d.'/my.resources'
 let $hz = $d.'/my.happyzone'
 let $dz = $d.'/my.drivenzone'
 let $k = $d.'/my.knowledge'
-
-function! KeepCurrentWinLine(keys)
-	let winLineBefore=winline()
-	execute printf('keepjumps normal! %s', a:keys)
-	let winLineAfter=winline()
-	
-	if winLineAfter > winLineBefore
-		execute printf("keepjumps silent normal! %d \<C-E>", (winLineAfter-winLineBefore))
-	elseif winLineAfter < winLineBefore
-		execute printf("keepjumps silent normal! %d \<C-Y>", (winLineBefore-winLineAfter))
-	endif
-endfunction
 " --------------------------------------------}}}1
 " Settings" ----------------------------------{{{1
 syntax on
@@ -87,43 +75,19 @@ set novisualbell
 set langmenu=en_US.UTF-8
 set encoding=utf8
 set scrolloff=0
-set backspace=indent,eol,start
-
-" Use forward slash when expanding file names
-set shellslash
-
-" Backup files
+set relativenumber
+set number
+set cursorline
+set backspace=indent,start,eol
+set listchars=tab:▸\ ,eol:¬,extends:>,precedes:<
+set list
 set noswapfile
-"set directory=$HOME/Desktop/tmp/vim
+set directory=$HOME/Desktop/tmp/vim
 set backup
 set backupdir=$HOME/Desktop/tmp/vim
 set undofile
 set undodir=$HOME/Desktop/tmp/vim
-
-set cursorline
-
-set relativenumber
-set number
-
-" Indentation & Tabs
-set smartindent
-set tabstop=1
-set shiftwidth=1
-nnoremap > >>
-nnoremap < <<
-
-command! -bar Spaces2Tabs set noet ts=2 |%retab!
-
-" Leader keys
-let mapleader = "s"
-let maplocalleader = "q"
-
-" Command line mode
-" This is relevant because all custom commands start with an upper case
-nnoremap / :
-
-" Matchit plugin (%)
-packadd! matchit
+set shellslash " path autocompletion works either with \, either with /. ripgrep path arguments needs either \\, either /. Let's use /.
 
 " GVim specific
 if has("gui_running")
@@ -136,304 +100,58 @@ if has("gui_running")
 	set guifont=consolas:h11
 	set termwintype=conpty
 
-	" Plugin: gvimtweak" ------------------------{{{2
-	let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
-	let g:gvimtweak#enable_alpha_at_startup=1
-	let g:gvimtweak#enable_topmost_at_startup=0
-	let g:gvimtweak#enable_maximize_at_startup=1
-	let g:gvimtweak#enable_fullscreen_at_startup=1
-	nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
-" --------------------------------------------}}}2
-	nnoremap <silent> <A-n> :GvimTweakSetAlpha 10<CR>
-	nnoremap <silent> <A-p> :GvimTweakSetAlpha -10<CR>
 endif
 " --------------------------------------------}}}1
+" Tabs and Indentation" ------------------{{{
+set smartindent
+set tabstop=1
+set shiftwidth=1
 
-" FileTypes:
-" vim" ---------------------------------------{{{1
-		function! LcdToPluginDirectory(...)" -----------{{{2
-			if getwinvar(1, '&filetype') == 'fugitive' | return | endif
-			" asking for diff in fugitive-status displays an error
+nnoremap > >>
+nnoremap < <<
 
-			let filepath = expand('%:p')
-			if filepath !~ '\v%(start|opt)' | return | endif
+command! -bar Spaces2Tabs set noet ts=2 |%retab!
+" ---------------------------------------}}}
+" Leader keys" ---------------------------{{{
+let mapleader = 's'
+let maplocalleader = 'q'
+" ---------------------------------------}}}
+" Local Current Directories" -------------{{{
+function! LcdToPluginDirectory(...)" -----------{{{2
+	if getwinvar(1, '&filetype') == 'fugitive' | return | endif
+	" asking for diff in fugitive-status displays an error
 
-			let path = fnamemodify(filepath, ':h')
-			let previous_path = path
-			while path !~ '\v%(start|opt)$'
-				let previous_path = path
-				let path = fnamemodify(path, ':h')
-			endwhile
+	let filepath = expand('%:p')
+	if filepath !~ '\v%(start|opt)' | return | endif
 
-			execute(printf('lcd %s', previous_path))
-		endfunc
+	let path = fnamemodify(filepath, ':h')
+	let previous_path = path
+	while path !~ '\v%(start|opt)$'
+		let previous_path = path
+		let path = fnamemodify(path, ':h')
+	endwhile
+
+	execute(printf('lcd %s', previous_path))
+endfunc
 " --------------------------------------------}}}2
-	augroup vimfiles
-		au!
-		au BufRead,WinEnter *.vim call LcdToPluginDirectory()
-		au BufEnter *vimrc*,*.vim setlocal foldmethod=expr foldexpr=MyFoldExpr() foldtext=MyFoldText() commentstring=\"\ %s
-		autocmd BufEnter *vimrc*,*.vim vnoremap <silent> zf :FoldCreate<CR>
-	augroup END
-" --------------------------------------------}}}1
-" my" ----------------------------------------{{{1
-	augroup myfiletypedetect
-		au!
-		autocmd BufRead,BufNewFile my.* setfiletype my
-		autocmd BufEnter my.* setlocal foldmethod=expr foldexpr=MyFoldExpr() commentstring=
-		autocmd BufEnter my.* vnoremap <silent> zf :FoldCreate<CR>
-	augroup END
-
-	function! MyFoldExpr()
-		let res = ''
-		let line=getline(v:lnum)
-		let pos_brackets = match(line, '\v%(\{\{\{|\}\}\})\d?$')
-		if pos_brackets == -1
-			let res= '='
-		else
-			let is_beginning = line[pos_brackets] == '{'
-			let line_length = len(line)
-
-			if line_length == (pos_brackets + 3)
-				let res= printf('%s1', (is_beginning ? 'a' : 's'))
-			else
-				let following_char = line[pos_brackets+3]
-
-				if following_char =~ '\s'
-					let res= printf('%s1', (is_beginning ? 'a' : 's'))
-				else
-					let res= printf('%s%s', ( is_beginning ? '>' : '<'), following_char)
-				endif
-			endif
-		endif
-
-		return res
-	endfunction
-
-	function! MyFoldCreate() range
-		let last_column_reached = 49
-		let comment_string = &commentstring == '' ? '' : split(&commentstring, '%s')[0]
-		let title_max_length = last_column_reached-len('{{{')-len(comment_string)-len('-')
-
-		execute string(a:firstline)
-		if col('$') > title_max_length
-			echoerr 'The first selected line should be smaller than ' . title_max_length
-			return
-		endif
-
-		execute(printf('normal! A%s%s{{{', comment_string, repeat('-', last_column_reached - len('{{{') - len(comment_string) - col('$') +1)))
-		execute(printf("normal! %dGoT\<Esc>", a:lastline))
-		execute(printf("normal! A\<BS>%s%s}}}", comment_string, repeat('-', last_column_reached - len(comment_string) - len('}}}') - len('$'))))
-	endfunction
-	command! -bar -range FoldCreate <line1>,<line2>call MyFoldCreate()
-
-	" Pomodoro file" ----------------------------{{{2
-	function! PomodoroFolds()"-------------------{{{3
-		let thisline = getline(v:lnum)
-
-		if match(thisline, '^\s*$') >= 0
-			return "0"
-		endif
-
-		if match(thisline, '^\S') >= 0
-			return ">1"
-		endif
-
-		return "="
-	endfunction
-	"--------------------------------------------}}}3
-	augroup pomodorofiles
-		autocmd!
-		au BufEnter my.pomodoro setlocal foldmethod=expr
-		au BufEnter my.pomodoro setlocal foldexpr=PomodoroFolds()
-		au BufEnter my.pomodoro setlocal foldtext=foldtext()
-	augroup end
-	"--------------------------------------------}}}2
-	" Notes file" -------------------------------{{{2
-	augroup notesfiles
-		autocmd!
-		au BufEnter *.notes setlocal foldmethod=marker
-	augroup end
-"---------------------------------------------}}}2
-" --------------------------------------------}}}1
-" cs(c#)" ------------------------------------{{{1
-	" omnisharp options" ------------------------{{{2
-	"let g:OmniSharp_start_server = 0
-	"let g:OmniSharp_start_without_solution = 1
-	"let g:OmniSharp_loglevel = 'debug'
-	let g:OmniSharp_server_stdio = 1
-	let g:OmniSharp_highlight_types = 3
-	let g:OmniSharp_selector_ui = 'fzf'
-	let g:OmniSharp_want_snippet=1
-	let g:omnicomplete_fetch_full_documentation = 1
-	let g:OmniSharp_highlight_debug = 1
-	let g:OmniSharp_diagnostic_showid = 1
-	let g:OmniSharp_diagnostic_overrides = { 'CS8019': {'type': 'None'} }
-	let g:OmniSharp_highlight_groups = {
-	\ 'csharpKeyword':                [ 'keyword'                     ],
-	\ 'csharpNamespaceName':          [ 'namespace name'              ],
-	\ 'csharpPunctuation':            [ 'punctuation'                 ],
-	\ 'csharpOperator':               [ 'operator'                    ],
-	\ 'csharpInterfaceName':          [ 'interface name'              ],
-	\ 'csharpStructName':             [ 'struct name'                 ],
-	\ 'csharpEnumName':               [ 'enum name'                   ],
-	\ 'csharpEnumMemberName':         [ 'enum member name'            ],
-	\ 'csharpClassName':              [ 'class name'                  ],
-	\ 'csharpStaticSymbol':           [ 'static symbol'               ],
-	\ 'csharpFieldName':              [ 'field name'                  ],
-	\ 'csharpPropertyName':           [ 'property name'               ],
-	\ 'csharpMethodName':             [ 'method name'                 ],
-	\ 'csharpParameterName':          [ 'parameter name'              ],
-	\ 'csharpLocalName':              [ 'local name'                  ],
-	\ 'csharpKeywordControl':         [ 'keyword - control'           ],
-	\ 'csharpString':                 [ 'string'                      ],
-	\ 'csharpNumber':                 [ 'number'                      ],
-	\ 'csharpConstantName':           [ 'constant name'               ],
-	\ 'csharpIdentifier':             [ 'identifier'                  ],
-	\ 'csharpExtensionMethodName':    [ 'extension method name'       ],
-	\ 'csharpComment':                [ 'comment'                     ],
-	\ 'csharpXmlDocCommentName':      [ 'xml doc comment - name'      ],
-	\ 'csharpXmlDocCommentDelimiter': [ 'xml doc comment - delimiter' ],
-	\ 'csharpXmlDocCommentText':      [ 'xml doc comment - text'      ]
-	\ }
-" --------------------------------------------}}}2
-	let g:fold_levels = []
-	function! CsFoldExpr()" ---------------------{{{2
-		let bufnr=bufnr('%')
-		if v:lnum ==1
-			let nb_lines = line('$')
-			let g:fold_levels = map(range(nb_lines+1), {x-> '='})
-			let g:fold_levels[nb_lines] = 0
-			let g:fold_levels[nb_lines-1] = 0
-			let recent_member_declaration = 1
-			let recent_class_declaration = 1
-			let pat_member_declaration_beginning                             = '\v^%(' . repeat('\t', 3) . '*|' . repeat('\ ', 2*&tabstop+1) . '*)<%(private|protected|public)>' 
-			let pat_member_declaration_end_if_right_before_another_beginning = '\v%(^.*})|;\s*$'
-			let pat_attribute_or_comment                                     = '\v^%(' . repeat('\t', 3) . '*|' . repeat('\ ', 2*&tabstop+1) . '*)%(/|[).*$'
-			let pat_class_or_interface_or_enum_or_struct                               = '\v<%(class|interface|enum|struct)>'
-
-			for i in range(nb_lines-2, 1, -1)
-				let line = getline(i)
-
-				if line =~ pat_member_declaration_beginning && line !~ pat_class_or_interface_or_enum_or_struct
-					let recent_member_declaration = 1
-					if line =~pat_member_declaration_end_if_right_before_another_beginning
-						let g:fold_levels[i] = '='
-					else
-						let g:fold_levels[i] = 'a1'
-					endif
-				elseif line =~ pat_class_or_interface_or_enum_or_struct
-					let recent_class_declaration = 1
-				elseif line =~ pat_member_declaration_end_if_right_before_another_beginning
-					if recent_class_declaration	
-						let g:fold_levels[i] = '='
-						let recent_class_declaration = 0
-					elseif recent_member_declaration
-						let g:fold_levels[i] = 's1'
-						let recent_member_declaration = 0
-					endif
-				elseif line =~ pat_attribute_or_comment	&& g:fold_levels[i+1] == 'a1'
-					let g:fold_levels[i+1] = '='
-					let g:fold_levels[i] = 'a1'
-				endif
-			endfor
+function! LcdToSlnOrCsproj(...)" -----------{{{2
+	let omnisharp_host = getbufvar(bufnr('%'), 'OmniSharp_host')
+	if empty(omnisharp_host)
+		return
 	endif
-
-	let res = g:fold_levels[v:lnum]
-	"echomsg printf('[%d:%s;%d] %s', v:lnum, res, match(getline(v:lnum), '\v<%(class|interface)>'),getline(v:lnum))
-	return res
-	endfunction
+	let srcRoot = fnamemodify(omnisharp_host.sln_or_dir, ':h')
+	execute(printf('lcd %s', srcRoot))
+endfunc
 " --------------------------------------------}}}2
-	let g:keywords_mapping = {
-		\ 'public': '+',
-		\ 'internal': '&',
-		\ 'protected': '|',
-		\ 'private': '-',
-		\ 'static': '^',
-		\ 'abstract': '%',
-		\ 'override': 'o',
-		\ 'async': 'a'
-	\}
-	function! CsParseMemberDeclaration(line)" ---{{{2
-		let res = {}
-		let res.name = matchlist(a:line, '\v(%(\w|\<|\>|\[|\])+)\(')[1]
-		if (expand('%:t') == printf('%s.cs', res.name ))
-			let res.output = res.name
-		else
-			let res.output = matchlist(a:line, '\v(%(\w|\<|\>|\[|\])+) %(\w|\<|\>|\[|\])+\(')[1] 
-		end
 
-		let res.indent = a:line[:match(a:line, '\a')-1]
+augroup lcd
+	au!
+	autocmd BufRead,WinEnter *.vim silent call LcdToPluginDirectory()
+	autocmd BufRead,WinEnter my.* silent lcd $d
+	autocmd BufRead,WinEnter *.cs silent call LcdToSlnOrCsproj()
+augroup end
+" ---------------------------------------}}}
 
-		let meta_keywords = split(a:line[:stridx(a:line, res.output)-1], '\s\+')
-		let res.meta = {'keywords':[], 'shortversion': ''}
-		for kw in meta_keywords
-			call add(res.meta.keywords, kw)
-			let res.meta.shortversion.= get(g:keywords_mapping, kw)
-		endfor
-
-		let res.params = []
-		let params = split(a:line[stridx(a:line, res.name)+ len(res.name) + 1:match(a:line, '\)')-1], ', ')
-		for param in params
-			let parsed = split(param, ' ')
-			call add(res.params, {'type': parsed[0], 'name': parsed[1]})
-		endfor
-
-		return res
-		" -------------------------------------------}}}2
-	endfunction
-	function! CsFoldText()" ---------------------{{{2
-		let titleLineNr = v:foldstart
-		let line = getline(titleLineNr)
-
-		while (match(line, '\v^\s+([|\<)') >= 0 && titleLineNr < v:foldend)
-			let titleLineNr += 1
-		let line = getline(titleLineNr)
-		endwhile
-	let nucolwidth = &fdc + &number * &numberwidth
-	let windowwidth = winwidth(0) - nucolwidth - (&foldcolumn ? 3 : 0)
-	let foldedlinecount = v:foldend - v:foldstart - 1
-
-	let d = CsParseMemberDeclaration(line)
-	return printf('%s%s%s%s %s -> %s [%s line%s]', d.indent, d.meta.shortversion, repeat(' ', 4-len(d.meta.shortversion)), d.name, empty(d.params) ? '' : '{ '.join(map(d.params, {_,itm->printf('%s @%s',itm.name, itm.type)}), ', ').' }', d.output, foldedlinecount, foldedlinecount > 1 ? 's' : '')
-	endfunction
-""  --------------------------------------------}}}2
-		function! LcdToSlnOrCsproj(...)" -----------{{{2
-			let omnisharp_host = getbufvar(bufnr('%'), 'OmniSharp_host')
-			if empty(omnisharp_host)
-				return
-			endif
-			let srcRoot = fnamemodify(omnisharp_host.sln_or_dir, ':h')
-			execute(printf('lcd %s', srcRoot))
-		endfunc
-" --------------------------------------------}}}2
-	augroup csharpfiles
-		au!
-		autocmd BufEnter *.cs setlocal foldmethod=expr foldexpr=CsFoldExpr() foldtext=CsFoldText()
-		autocmd BufEnter *.cs silent call LcdToSlnOrCsproj()
-		autocmd BufEnter *.cs setlocal errorformat=\ %#%f(%l\\\,%c):\ %m
-		autocmd BufEnter *.cs setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true
-		autocmd BufEnter *.cs nnoremap <LocalLeader>M :!dotnet run<CR>
-		autocmd BufWritePost *.cs OmniSharpFixUsings | OmniSharpCodeFormat
-		autocmd FileType cs nnoremap <buffer> ( :OmniSharpNavigateUp<CR>zz
-		autocmd FileType cs nnoremap <buffer> ) :OmniSharpNavigateDown<CR>zz
-		autocmd FileType cs nnoremap <buffer> gd :OmniSharpGotoDefinition<CR>
-		autocmd FileType cs nnoremap <buffer> gD :OmniSharpPreviewDefinition<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>i :OmniSharpFindImplementations<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>I :OmniSharpPreviewImplementation<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>s :OmniSharpFindSymbol<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>u :OmniSharpFindUsages<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>m :OmniSharpFindMembers<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>t :OmniSharpTypeLookup<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>d :OmniSharpDocumentation<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>O :ALEEnable<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>c :OmniSharpGlobalCodeCheck<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>q :OmniSharpGetCodeActions<CR>
-		autocmd FileType cs xnoremap <buffer> <LocalLeader>q :call OmniSharp#GetCodeActions('visual')<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>r :OmniSharpRename<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>f :OmniSharpFixUsings<CR>:OmniSharpCodeFormat<CR>
-	augroup end
-
-	"--------------------------------------------}}}1
 
 " AZERTY Keyboard:
 " AltGr keys" --------------------------------{{{1
@@ -509,6 +227,9 @@ nnoremap <Leader>h <C-W>h
 nnoremap <Leader>j <C-W>j
 nnoremap <Leader>k <C-W>k
 nnoremap <Leader>l <C-W>l
+nnoremap <Leader>n gt
+nnoremap <Leader>p gT
+
 augroup windows
 	autocmd!
 	"
@@ -518,10 +239,27 @@ augroup windows
 	" Safety net if I close a window accidentally
 	autocmd QuitPre * mark K
 	" Make sure Vim returns to the same line when you reopen a file.
-    autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute 'normal! g`"zvzz' | endif
+ autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute 'normal! g`"zvzz' | endif
 augroup end
-nnoremap <Leader>n gt
-nnoremap <Leader>p gT
+
+
+
+" Position Window
+nnoremap <Leader>H <C-W>H
+nnoremap <Leader>J <C-W>J
+nnoremap <Leader>K <C-W>K
+nnoremap <Leader>L <C-W>L
+
+" Resize Window
+nnoremap <silent> <A-h> :vert res -2<CR>
+nnoremap <silent> <A-l> :vert res +2<CR>
+nnoremap <silent> <A-j> :res -2<CR>
+nnoremap <silent> <A-k> :res +2<CR>
+nnoremap <silent> <A-m> <C-W>=
+
+" Alternate file fast switching
+nnoremap <Leader>d :b #<CR>
+
 function! SwapWindowContents(hjkl_keys)"------{{{2
 	mark V
 	let originalWinNr = winnr()
@@ -540,28 +278,13 @@ nnoremap SJ :SwapWindows j<CR> | nnoremap SJJ :SwapWindows jj<CR> | nnoremap SJK
 nnoremap SK :SwapWindows k<CR> | nnoremap SKJ :SwapWindows kj<CR> | nnoremap SKK :SwapWindows kk<CR> | nnoremap SKH :SwapWindows kh<CR> | nnoremap SKL :SwapWindows kl<CR>
 nnoremap SH :SwapWindows h<CR> | nnoremap SHJ :SwapWindows hj<CR> | nnoremap SHK :SwapWindows hk<CR> | nnoremap SHH :SwapWindows hh<CR> | nnoremap SHL :SwapWindows hl<CR>
 nnoremap SL :SwapWindows l<CR> | nnoremap SLJ :SwapWindows lj<CR> | nnoremap SLK :SwapWindows lk<CR> | nnoremap SLH :SwapWindows lh<CR> | nnoremap SLL :SwapWindows ll<CR>
-
-" Position Window
-nnoremap <Leader>H <C-W>H
-nnoremap <Leader>J <C-W>J
-nnoremap <Leader>K <C-W>K
-nnoremap <Leader>L <C-W>L
-
-" Resize Window
-nnoremap <silent> <A-h> :vert res -2<CR>
-nnoremap <silent> <A-l> :vert res +2<CR>
-nnoremap <silent> <A-j> :res -2<CR>
-nnoremap <silent> <A-k> :res +2<CR>
-nnoremap <silent> <A-m> <C-W>=
-
-" Alternate file fast switching
-nnoremap <Leader>d :b #<CR>
 " --------------------------------------------}}}1
 " Status bar" --------------------------------{{{1
 set laststatus=2
-function! FoldLevel()
-	return &foldlevel
+function! FoldLevel()"------------------------{{{2
+	return printf('FoldLevel:%d', &foldlevel)
 endfunction
+"---------------------------------------------}}}2
 function! FileSizeAndRows() abort" -----------{{{2
 	let rows = line('$')
 
@@ -621,34 +344,46 @@ endfunction
 let g:lightline = {
 	\ 'colorscheme': 'empower',
 	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'mypathinfo': 'MyFilePathIndicator', 'gitpath': 'GitFilePath', 'gitroot': 'GitRootAndCwd', 'fl': 'FoldLevel' },
-	\ 'active':   {   'left':  [ [ 'mode', 'paste', 'readonly', 'modified', 'fl' ], [ 'mypathinfo' ] ], 'right': [ [ 'filesize_and_rows' ]               ] },
+	\ 'active':   {   'left':  [ [ 'mode', 'fl', 'paste', 'readonly', 'modified' ], [ 'mypathinfo' ] ], 'right': [ [ 'filesize_and_rows' ]               ] },
 	\ 'inactive': {   'left':  [ [ 'gitroot' ]                                                       ], 'right': [ [ 'gitpath', 'modified', 'readonly' ] ] }
 \}
 " --------------------------------------------}}}1
 
 " Motions:
+" hjkl"-----------------------------------{{{
+nnoremap j gj
+nnoremap k gk
+""----------------------------------------}}}
 " Browsing File Architecture" ----------------{{{1
 "
 function! BrowseLayoutDown()" ----------------{{{2
 	if &diff
-		keepjumps execute 'silent! normal! ]czv'
+		keepjumps execute 'silent! normal! ]czx'
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cnext
 	else
 		keepjumps execute 'silent! normal! }}{j'
 	endif
+
+	norma! m'
 endfunction
 " --------------------------------------------}}}2
 nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 
 function! BrowseLayoutUp()" ------------------{{{2
 	if &diff
-		keepjumps execute 'silent! normal! [czv'
+		keepjumps execute 'silent! normal! [czx'
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cprev
 	else
-		keepjumps execute 'silent! normal! {{j'
+		let original_pos = line('.')
+		normal! {j
+		if line('.') == original_pos
+			keepjumps normal! {{j
+		endif
 	endif
+
+	normal! m'
 endfunction
 " --------------------------------------------}}}2
 nnoremap <silent> <C-K> :call BrowseLayoutUp()<CR>
@@ -710,29 +445,12 @@ vnoremap az [zo]zVg_|   onoremap az :normal vaz<CR>
 vnoremap if ggoGV| onoremap if :normal vif<CR>
 
 " --------------------------------------------}}}1
-" Jump list" ---------------------------------{{{1
-
-" Add to jump list when doing an operation
-nnoremap m m'm
-nnoremap c m'c
-nnoremap d m'd
-nnoremap y m'y
-nnoremap r m'r
-nnoremap s m's
-nnoremap i m'i
-nnoremap I m'I
-nnoremap a m'a
-nnoremap A m'A
-nnoremap o m'o
-nnoremap O m'O
-
-" --------------------------------------------}}}1
 
 " Text Operations:
 " Visualization" -----------------------------{{{1
 
-" Current, trimmed line
-nnoremap vv ^vg_
+" select until end of line
+nnoremap vv vg_
 
 " Last inserted text
 nnoremap vI `[v`]h
@@ -767,15 +485,8 @@ vnoremap P "0P
 nnoremap <expr> vp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
 " --------------------------------------------}}}1
-" Macros and Repeat-Last-Action" -------------{{{1
-
-" Repeat last action
+" Repeat-Last-Action" -------------{{{1
 nnoremap ù .
-
-" --------------------------------------------}}}1
-" Whitespace characters Handler" -------------{{{1
-set listchars=tab:▸\ ,eol:¬,extends:>,precedes:<
-set list
 " --------------------------------------------}}}1
 " Vertical Alignment" ------------------------{{{1
 xmap ga <Plug>(EasyAlign)
@@ -822,77 +533,108 @@ vnoremap <silent> <Leader>S y:execute @@<CR>
 nnoremap <silent> <Leader>S ^vg_y:execute @@<CR>
 
 " Write output of a vim command in a buffer
-nnoremap ç :put=execute('')<Left><Left>
+nnoremap ç :let script=''\|call histadd('cmd',script)\|put=execute(script)<Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
 
 augroup vimsourcing
 	au!
-	" Prevent screen from redrawing after re-sourcing vimrc
 	autocmd BufWritePost _vimrc GvimTweakToggleFullScreen | so % | GvimTweakToggleFullScreen
 augroup end
 
 "---------------------------------------------}}}1
 " Find, Grep, Make, Equal" -------------------{{{1
-
 set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ $*
 
-nnoremap <Leader>f :Files <C-R>=fnamemodify('.', ':p')<CR><CR>
+nnoremap <Leader>f :Files<CR>
 nnoremap <Leader>F :Files <C-R>=fnamemodify('.', ':p')<CR>
 nnoremap <Leader>g :Agrep --no-ignore-parent  <C-R>=fnamemodify('.', ':p')<CR><Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
 vnoremap <Leader>g "vy:let cmd = printf('Agrep --no-ignore-parent %s %s',escape(@v,'\\#%'),fnamemodify('.', ':p'))\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
-nnoremap <LocalLeader>m :Amake<CR>
-
 "---------------------------------------------}}}1
 " Registers" ---------------------------------{{{1
-
 command! ClearRegisters for i in range(34,122) | silent! call setreg(nr2char(i), []) | endfor
-
 "---------------------------------------------}}}1
 " Terminal" ----------------------------------{{{1
-
 set termwinsize=12*0
-
 tnoremap <C-s>h <C-W>h
 tnoremap <C-s>j <C-W>j
 tnoremap <C-s>k <C-W>k
 tnoremap <C-s>l <C-W>l
-
-" The following line breaks fugitive.vim
-" set shell=powershell\ -NoLogo
-
-
-
-" Delete last word while typing a command line
-tnoremap <C-W><C-W> <C-W>.
-
 "---------------------------------------------}}}1
 " Folding" -----------------------------------{{{1
+	function! MyFoldExpr()" -----------------{{{2
+		let res = ''
+		let line=getline(v:lnum)
+		let pos_brackets = match(line, '\v%(\{\{\{|\}\}\})\d?$')
+		if pos_brackets == -1
+			let res= '='
+		else
+			let is_beginning = line[pos_brackets] == '{'
+			let line_length = len(line)
 
-" nnoremap <silent> zj :keepjumps execute 'silent! normal! zczjztkzCkzC2jzO'<CR>
-" nnoremap <silent> zk :keepjumps execute 'silent! normal! zczk[zkztkzCkzC2jzO'<CR>
-" 
-function! MyFoldText()" ----------------------{{{2
-	let line = getline(v:foldstart)
-	let end_of_title = stridx(line, (&commentstring == '' ? '-' : split(&commentstring, '%s')[0]), match(line, '\a'))-1
-	let nucolwidth = &fdc + &number * &numberwidth
-	let windowwidth = winwidth(0) - nucolwidth - (&foldcolumn ? 3 : 0)
-	let foldedlinecount = v:foldend - v:foldstart - 2
+			if line_length == (pos_brackets + 3)
+				let res= printf('%s1', (is_beginning ? 'a' : 's'))
+			else
+				let following_char = line[pos_brackets+3]
 
-	return printf('%s%s%d', line[:end_of_title], repeat(' ', windowwidth - (end_of_title+1) - len(string(foldedlinecount))), foldedlinecount)
+				if following_char =~ '\s'
+					let res= printf('%s1', (is_beginning ? 'a' : 's'))
+				else
+					let res= printf('%s%s', ( is_beginning ? '>' : '<'), following_char)
+				endif
+			endif
+		endif
+
+		return res
+	endfunction
+	" ---------------------------------------}}}2
+	function! MyFoldText()" ----------------------{{{2
+		let line = getline(v:foldstart)
+		let end_of_title = stridx(line, (&commentstring == '' ? '-' : split(&commentstring, '%s')[0]), match(line, '\a'))-1
+		let nucolwidth = &fdc + &number * &numberwidth
+		let windowwidth = winwidth(0) - nucolwidth - 3
+		let foldedlinecount = v:foldend - v:foldstart - 1
+
+		return printf('%s%s%d', line[:end_of_title], repeat(' ', windowwidth - (end_of_title+1) - len(string(foldedlinecount))), foldedlinecount)
+	endfunction
+	" --------------------------------------------}}}2
+	function! MyFoldCreate() range" ---------{{{2
+		let last_column_reached = 50 - 1 - 1 - 3
+		let comment_string = &commentstring == '' ? '' : split(&commentstring, '%s')[0]
+		let title_max_length = last_column_reached-len('{{{')-len(comment_string)-len('-')
+
+		execute string(a:firstline)
+		if col('$') > title_max_length
+			echoerr 'The first selected line should be smaller than ' . title_max_length
+			return
+		endif
+
+		execute(printf('normal! A%s%s{{{', comment_string, repeat('-', last_column_reached - len('{{{') - len(comment_string) - col('$') +1)))
+		set backspace-=eol | execute(printf("normal! %dGo\<BS>T\<Esc>", a:lastline)) | set backspace+=eol
+		execute(printf("normal! A\<BS>%s%s}}}", comment_string, repeat('-', last_column_reached - len(comment_string) - len('}}}') - len('$'))))
+	endfunction
+	" ---------------------------------------}}}2
+	function! CursorIsInClosedFold()
+		return foldclosed(line('.')) > 0
+	endfunction
+function! ToggleUpdatedFoldLevel()"------{{{2
+	if CursorIsInClosedFold()
+		normal! zx
+	else
+		normal! zX
+	endif
 endfunction
-" --------------------------------------------}}}2
+"----------------------------------------}}}2
+
+set foldmethod=expr
+set foldexpr=MyFoldExpr()
 set foldtext=MyFoldText()
-" 
-" nnoremap <silent> zr :call KeepCurrentWinLine('zr')<CR>
-" nnoremap <silent> zR :call KeepCurrentWinLine('zR')<CR>
-" nnoremap <silent> zm :call KeepCurrentWinLine('zm')<CR>
-" nnoremap <silent> zM :call KeepCurrentWinLine('zM')<CR>
-" 
-" " Toggle current fold
-" nnoremap <silent> <Space> :silent! call KeepCurrentWinLine('za')<CR>
-nnoremap <silent> <Space> za
-" 
-" " Close all folds except the one cursor is in
-" nnoremap <silent> zo :call KeepCurrentWinLine('zMzv')<CR>
+
+command! -bar -range FoldCreate <line1>,<line2>call MyFoldCreate()
+
+nnoremap <silent> zf <S-V>:FoldCreate<CR>
+vnoremap <silent> zf :FoldCreate<CR>
+nnoremap <silent> zj :keepjumps normal! zj<CR>
+nnoremap <silent> zk :keepjumps normal! zkzkzj<CR>
+nnoremap <silent> <Space> :silent call ToggleUpdatedFoldLevel()<CR>
 
 "---------------------------------------------}}}1
 " Search" ------------------------------------{{{1
@@ -909,6 +651,7 @@ nnoremap q! q/
 nnoremap z! :BLines {{{<CR>
 
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
+
 nnoremap <silent> n n:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> N N:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> * *<C-O>:UnderlineCurrentSearchItem<CR>
@@ -923,7 +666,7 @@ inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
 inoremap <expr> <Esc> pumvisible() ? "\<C-E>" : "\<Esc>"
 
 " <C-N> for omnicompletion, <C-P> for context completion
-inoremap <expr> <C-N> pumvisible() ? "\<C-N>" : "\<C-X>\<C-O>"
+inoremap <expr> <C-N> pumvisible() ? "\<C-N>" : (&omnifunc == '') ? "\<C-N>" : "\<C-X>\<C-O>"
 
 "---------------------------------------------}}}1
 " Diff" --------------------------------------{{{1
@@ -936,36 +679,19 @@ augroup diff
 augroup end
 
 "---------------------------------------------}}}1
-" Calculator" --------------------------------{{{1
-
-inoremap <C-B> <C-O>yiW<End>=<C-R>=<C-R>0<CR>
-
-"---------------------------------------------}}}1
-" QuickFix window" ---------------------------{{{1
+" QuickFix, Preview, Location window" ---------------------------{{{1
 
 " Always show at the bottom of other windows
 augroup quickfix
 	au!
+" Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
 	autocmd QuickFixCmdPost [^l]* nested cwindow
 	autocmd FileType qf wincmd J
-augroup end
 
-" Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
-
-"---------------------------------------------}}}1
-" Preview window--" --------------------------{{{1
-
-" Close preview window on leaving the insert mode
-augroup autocompletion
-	autocmd!
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | pclose | endif
+
+	autocmd QuickFixCmdPost	l* nested lwindow
 augroup end
-
-"---------------------------------------------}}}1
-" Location window" ---------------------------{{{1
-
-" Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
-autocmd QuickFixCmdPost	l* nested lwindow
 
 "---------------------------------------------}}}1
 
@@ -985,7 +711,7 @@ function! ToggleMyMetaBanner()" --------------{{{2
 		vnew $r| wincmd L
 		new $hz
 		new $dz
-		new $k | vertical resize 50
+		new $k | vertical resize 50 | setlocal winfixwidth
 
 		execute(originalWinNr.'wincmd w') | normal! `V
 		delmarks V
@@ -995,7 +721,22 @@ endfunction
 command! ToggleMetaBanner silent call ToggleMyMetaBanner()
 nnoremap <Leader>m :ToggleMetaBanner<CR>
 
+augroup mymetabanner
+	au!
+	autocmd BufEnter my.* setlocal nolist
+augroup END
+
 " --------------------------------------------}}}1
+" Full screen" ---------------------------{{{
+let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
+let g:gvimtweak#enable_alpha_at_startup=1
+let g:gvimtweak#enable_topmost_at_startup=0
+let g:gvimtweak#enable_maximize_at_startup=1
+let g:gvimtweak#enable_fullscreen_at_startup=1
+nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
+nnoremap <silent> <A-n> :GvimTweakSetAlpha 10<CR>
+nnoremap <silent> <A-p> :GvimTweakSetAlpha -10<CR>
+" ---------------------------------------}}}
 " Time & Tab Info" ---------------------------{{{1
 
 let g:zindex = 50
@@ -1032,17 +773,7 @@ function! DisplayPopupTimeSpan(fms, bd_hi, ...)" ---{{{2
 	let seconds = seconds > 9 ? string(seconds) : '0'.string(seconds)
 
 	let content = printf('%sm%ss', minutes, seconds)
-		call popup_create(
-			\ content,
-			\ { 
-			\ 'time': 1000,
-			\ 'highlight':'Normal',
-			\ 'border':[],
-			\ 'borderhighlight':repeat([eval(a:bd_hi)], 4),
-			\ 'line': 1,
-			\ 'col': &columns - 8
-			\ }
-		\)
+		call popup_create( content, {  'time': 1000, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat([eval(a:bd_hi)], 4), 'line': 1, 'col': &columns - 8 })
 	let g:countdown -= 1000
 endfunction
 " -------------------------------------------}}}2
@@ -1050,69 +781,25 @@ function! DisplayPopupPomodoro(title, ...)" ---------{{{2
 	if empty(prop_type_get('time')) | call prop_type_add('time', #{highlight: 'PopupTime'}) | endif
 
 	let content = [strftime('[%Hh%M] - %A %d %B'), ''] + a:000 + ['', 'La petite citation du jour:', printf('  %s', qotd#getquoteoftheday())]
-	call popup_create(
-		\ content,
-		\ { 
-		\ 'title': printf(' %s ', a:title),
-		\ 'close':'button',
-		\ 'zindex':g:zindex,
-		\ 'highlight':'Normal',
-		\ 'border':[],
-		\ 'borderhighlight':repeat(['csharpClassName'], 4),
-		\ 'padding':[1,1,1,2]
-		\ }
-	\)
+	call popup_create( content, {  'title': printf(' %s ', a:title), 'close':'button', 'zindex':g:zindex, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpClassName'], 4), 'padding':[1,1,1,2] })
 
 	let g:zindex+=1
 endfunction
 " -------------------------------------------}}}2
 function! DisplayPomodoroIntroduction()" -----{{{2
-	call DisplayPopupPomodoro(
-		\ 'Un nouveau soleil se lève...',
-		\ 'Bonjour :D',
-		\ '',
-		\ "Essayons d'avoir une journée productive!",
-		\ '',
-		\ "L'objectif est de gérer notre énergie cognitive en ne se perdant pas dans un sujet trop longtemps!",
-		\ '',
-		\ "Commençons par prendre [5 minutes] pour se mettre dans le bain et planifier les objectifs de la journée :)"
-	\)
+	call DisplayPopupPomodoro( 'Un nouveau soleil se lève...', 'Bonjour :D', '', "Essayons d'avoir une journée productive!", '', "L'objectif est de gérer notre énergie cognitive en ne se perdant pas dans un sujet trop longtemps!", '', "Commençons par prendre [5 minutes] pour se mettre dans le bain et planifier les objectifs de la journée :)")
 endfunction
 " ------------------------------------------(-}}}2
 function! DisplayPomodoroEnding(nb, ...)" ----{{{2
-	call DisplayPopupPomodoro(
-		\ "Le soleil n'ira pas plus haut aujourd'hui!",
-		\ 'Maintenant, le plus dur...',
-		\ '',
-		\ printf("%d pomodoros se sont déroulés aujourd'hui. ", a:nb),
-		\ '',
-		\ 'Il est temps de faire autre chose !! :)',
-		\ '',
-		\ "Ressource tes énergies pour demain au lieu de forcer dessus pour rien!"
-		\)
+	call DisplayPopupPomodoro( "Le soleil n'ira pas plus haut aujourd'hui!", 'Maintenant, le plus dur...', '', printf("%d pomodoros se sont déroulés aujourd'hui. ", a:nb), '', 'Il est temps de faire autre chose !! :)', '', "Ressource tes énergies pour demain au lieu de forcer dessus pour rien!")
 endfunction
 " -------------------------------------------}}}2
 function! DisplayPomodoroSessionStart(cycle_nr, nb_pomodoros_in_a_day, ...)" --{{{2
-	call DisplayPopupPomodoro(
-		\ printf('[%d/%d] Une nouvelle session démarre...', a:cycle_nr, a:nb_pomodoros_in_a_day),
-		\ 'Tu viens de passer 5 minutes complètes à te préparer à te re-concentrer sur un problème.',
-		\ '',
-		\ 'Il est temps de passer [25 minutes] sur un nombre restreint de problèmes sans dérangement!'
-	\)
+	call DisplayPopupPomodoro( printf('[%d/%d] Une nouvelle session démarre...', a:cycle_nr, a:nb_pomodoros_in_a_day), 'Tu viens de passer 5 minutes complètes à te préparer à te re-concentrer sur un problème.', '', 'Il est temps de passer [25 minutes] sur un nombre restreint de problèmes sans dérangement!')
 endfunction
 " -------------------------------------------}}}2
 function! DisplayPomodoroBreakStart(cycle_nr, nb_pomodoros_in_a_day, ...)" ----{{{2
-	call DisplayPopupPomodoro(
-		\ printf('[%d/%d] Fin de la session Pomodoro!', a:cycle_nr, a:nb_pomodoros_in_a_day),
-		\ 'Tu viens de passer 25 minutes complètes sur un nombre restreint de problèmes.',
-		\ '',
-		\ 'Il est temps de passer [5 minutes] sur des choses qui n''ont rien à voir pour te changer les idées! ',
-		\ '',
-		\ 'Tu as passé suffisamment de moments dans le passé à coder en faisant plein de fautes d''étourderie',
-		\ 'pour savoir comment la qualité de tes implémentations va évoluer sans pause mentale ;)',
-		\ '',
-		\ 'Je te recommande de commencer par célébrer tes progrès :)'
-	\)
+	call DisplayPopupPomodoro( printf('[%d/%d] Fin de la session Pomodoro!', a:cycle_nr, a:nb_pomodoros_in_a_day), 'Tu viens de passer 25 minutes complètes sur un nombre restreint de problèmes.', '', 'Il est temps de passer [5 minutes] sur des choses qui n''ont rien à voir pour te changer les idées! ', '', 'Tu as passé suffisamment de moments dans le passé à coder en faisant plein de fautes d''étourderie', 'pour savoir comment la qualité de tes implémentations va évoluer sans pause mentale ;)', '', 'Je te recommande de commencer par célébrer tes progrès :)')
 endfunction
 " -------------------------------------------}}}2
 
@@ -1238,7 +925,7 @@ let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<tab>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 
-nnoremap su :UltiSnipsEdit!<CR>G
+nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 " --------------------------------------------}}}1
 " Git" ---------------------------------------{{{1
 augroup gitstatus
@@ -1249,9 +936,177 @@ augroup END
 augroup gitcommit
 	autocmd!
 	autocmd FileType gitcommit startinsert
-	"autocmd FileType gitcommit execute('Snippets')
 augroup END
 
 nnoremap <silent> <Leader>G :Gtabedit :<CR>
-
 " --------------------------------------------}}}1
+
+" Specific Workflows:
+" cs(c#)" ------------------------------------{{{1
+function! CsFoldExpr()" ---------------------{{{2
+	if !exists('g:fold_levels')
+		let g:fold_levels = []
+	endif
+
+	let bufnr=bufnr('%')
+	if v:lnum ==1
+		let nb_lines = line('$')
+		let g:fold_levels = map(range(nb_lines+1), {x-> '='})
+		let g:fold_levels[nb_lines] = 0
+		let g:fold_levels[nb_lines-1] = 0
+		let recent_member_declaration = 1
+		let recent_class_declaration = 1
+		let pat_member_declaration_beginning                             = '\v^%(' . repeat('\t', 3) . '*|' . repeat('\ ', 2*&tabstop+1) . '*)<%(private|protected|public)>' 
+		let pat_member_declaration_end_if_right_before_another_beginning = '\v%(^.*})|;\s*$'
+		let pat_attribute_or_comment                                     = '\v^%(' . repeat('\t', 3) . '*|' . repeat('\ ', 2*&tabstop+1) . '*)%(/|[).*$'
+		let pat_class_or_interface_or_enum_or_struct                               = '\v<%(class|interface|enum|struct)>'
+
+		for i in range(nb_lines-2, 1, -1)
+			let line = getline(i)
+
+			if line =~ pat_member_declaration_beginning && line !~ pat_class_or_interface_or_enum_or_struct
+				let recent_member_declaration = 1
+				if line =~pat_member_declaration_end_if_right_before_another_beginning
+					let g:fold_levels[i] = '='
+				else
+					let g:fold_levels[i] = 'a1'
+				endif
+			elseif line =~ pat_class_or_interface_or_enum_or_struct
+				let recent_class_declaration = 1
+			elseif line =~ pat_member_declaration_end_if_right_before_another_beginning
+				if recent_class_declaration	
+					let g:fold_levels[i] = '='
+					let recent_class_declaration = 0
+				elseif recent_member_declaration
+					let g:fold_levels[i] = 's1'
+					let recent_member_declaration = 0
+				endif
+			elseif line =~ pat_attribute_or_comment	&& g:fold_levels[i+1] == 'a1'
+				let g:fold_levels[i+1] = '='
+				let g:fold_levels[i] = 'a1'
+			endif
+		endfor
+endif
+
+let res = g:fold_levels[v:lnum]
+"echomsg printf('[%d:%s;%d] %s', v:lnum, res, match(getline(v:lnum), '\v<%(class|interface)>'),getline(v:lnum))
+return res
+endfunction
+" --------------------------------------------}}}2
+function! CsParseMemberDeclaration(line)" ---{{{2
+	if !exists('g:keywords_mapping')
+		let g:keywords_mapping = { 'public': '+', 'internal': '&', 'protected': '|', 'private': '-', 'static': '^', 'abstract': '%', 'override': 'o', 'async': 'a'}
+	endif
+	let res = {}
+	let res.name = matchlist(a:line, '\v(%(\w|\<|\>|\[|\])+)\(')[1]
+	if (expand('%:t') == printf('%s.cs', res.name ))
+		let res.output = res.name
+	else
+		let res.output = matchlist(a:line, '\v(%(\w|\<|\>|\[|\])+) %(\w|\<|\>|\[|\])+\(')[1] 
+	end
+
+	let res.indent = a:line[:match(a:line, '\a')-1]
+
+	let meta_keywords = split(a:line[:stridx(a:line, res.output)-1], '\s\+')
+	let res.meta = {'keywords':[], 'shortversion': ''}
+	for kw in meta_keywords
+		call add(res.meta.keywords, kw)
+		let res.meta.shortversion.= get(g:keywords_mapping, kw)
+	endfor
+
+	let res.params = []
+	let params = split(a:line[stridx(a:line, res.name)+ len(res.name) + 1:match(a:line, '\)')-1], ', ')
+	for param in params
+		let parsed = split(param, ' ')
+		call add(res.params, {'type': parsed[0], 'name': parsed[1]})
+	endfor
+
+	return res
+endfunction
+" -------------------------------------------}}}2
+function! CsFoldText()" ---------------------{{{2
+	let titleLineNr = v:foldstart
+	let line = getline(titleLineNr)
+
+	while (match(line, '\v^\s+([|\<)') >= 0 && titleLineNr < v:foldend)
+		let titleLineNr += 1
+	let line = getline(titleLineNr)
+	endwhile
+let nucolwidth = &fdc + &number * &numberwidth
+let windowwidth = winwidth(0) - nucolwidth - (&foldcolumn ? 3 : 0)
+let foldedlinecount = v:foldend - v:foldstart - 1
+
+let d = CsParseMemberDeclaration(line)
+return printf('%s%s%s%s %s -> %s [%s line%s]', d.indent, d.meta.shortversion, repeat(' ', 4-len(d.meta.shortversion)), d.name, empty(d.params) ? '' : '{ '.join(map(d.params, {_,itm->printf('%s @%s',itm.name, itm.type)}), ', ').' }', d.output, foldedlinecount, foldedlinecount > 1 ? 's' : '')
+endfunction
+"  --------------------------------------------}}}2
+let g:OmniSharp_server_stdio = 1"--------{{{
+let g:OmniSharp_popup_options = {
+\ 'highlight': 'csharpClassName',
+\ 'padding': [1,1,1,2],
+\ 'border': [1],
+\ 'borderhighlight': ['csharpInterfaceName']
+\}
+let g:OmniSharp_highlight_types = 3
+let g:OmniSharp_selector_ui = 'fzf'
+let g:OmniSharp_want_snippet=1
+let g:omnicomplete_fetch_full_documentation = 1
+let g:OmniSharp_highlight_debug = 1
+let g:OmniSharp_diagnostic_showid = 1
+let g:OmniSharp_diagnostic_overrides = { 'CS8019': {'type': 'None'} }
+let g:OmniSharp_highlight_groups = { 
+	\ 'csharpKeyword':                [ 'keyword'                     ],
+	\ 'csharpNamespaceName':          [ 'namespace name'              ],
+	\ 'csharpPunctuation':            [ 'punctuation'                 ],
+	\ 'csharpOperator':               [ 'operator'                    ],
+	\ 'csharpInterfaceName':          [ 'interface name'              ],
+	\ 'csharpStructName':             [ 'struct name'                 ],
+	\ 'csharpEnumName':               [ 'enum name'                   ],
+	\ 'csharpEnumMemberName':         [ 'enum member name'            ],
+	\ 'csharpClassName':              [ 'class name'                  ],
+	\ 'csharpStaticSymbol':           [ 'static symbol'               ],
+	\ 'csharpFieldName':              [ 'field name'                  ],
+	\ 'csharpPropertyName':           [ 'property name'               ],
+	\ 'csharpMethodName':             [ 'method name'                 ],
+	\ 'csharpParameterName':          [ 'parameter name'              ],
+	\ 'csharpLocalName':              [ 'local name'                  ],
+	\ 'csharpKeywordControl':         [ 'keyword - control'           ],
+	\ 'csharpString':                 [ 'string'                      ],
+	\ 'csharpNumber':                 [ 'number'                      ],
+	\ 'csharpConstantName':           [ 'constant name'               ],
+	\ 'csharpIdentifier':             [ 'identifier'                  ],
+	\ 'csharpExtensionMethodName':    [ 'extension method name'       ],
+	\ 'csharpComment':                [ 'comment'                     ],
+	\ 'csharpXmlDocCommentName':      [ 'xml doc comment - name'      ],
+	\ 'csharpXmlDocCommentDelimiter': [ 'xml doc comment - delimiter' ],
+	\ 'csharpXmlDocCommentText':      [ 'xml doc comment - text'      ]
+	\ }
+"----------------------------------------}}}
+
+	augroup csharpfiles
+		au!
+		autocmd BufEnter *.cs setlocal foldmethod=expr foldexpr=CsFoldExpr() foldtext=CsFoldText()
+		autocmd BufEnter *.cs setlocal errorformat=\ %#%f(%l\\\,%c):\ %m
+		autocmd BufEnter *.cs setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true
+		autocmd BufEnter *.cs nnoremap <LocalLeader>M :!dotnet run<CR>
+		autocmd BufWritePost *.cs OmniSharpFixUsings | OmniSharpCodeFormat
+		autocmd FileType cs nnoremap <buffer> zk :OmniSharpNavigateUp<CR>zz
+		autocmd FileType cs nnoremap <buffer> zj :OmniSharpNavigateDown<CR>zz
+		autocmd FileType cs nnoremap <buffer> gd :OmniSharpGotoDefinition<CR>
+		autocmd FileType cs nnoremap <buffer> gD :OmniSharpPreviewDefinition<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>i :OmniSharpFindImplementations<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>I :OmniSharpPreviewImplementation<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>s :OmniSharpFindSymbol<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>u :OmniSharpFindUsages<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>m :OmniSharpFindMembers<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>t :OmniSharpTypeLookup<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>d :OmniSharpDocumentation<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>O :ALEEnable<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>c :OmniSharpGlobalCodeCheck<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>q :OmniSharpGetCodeActions<CR>
+		autocmd FileType cs xnoremap <buffer> <LocalLeader>q :call OmniSharp#GetCodeActions('visual')<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>r :OmniSharpRename<CR>
+		autocmd FileType cs nnoremap <buffer> <LocalLeader>f :OmniSharpFixUsings<CR>:OmniSharpCodeFormat<CR>
+	augroup end
+
+	"--------------------------------------------}}}1
