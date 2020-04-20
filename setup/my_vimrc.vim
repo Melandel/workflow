@@ -676,6 +676,7 @@ set diffopt+=algorithm:histogram,indent-heuristic
 augroup diff
 	au!
 	autocmd OptionSet diff let &cursorline=!v:option_new
+	autocmd OptionSet diff normal! gg]c
 augroup end
 
 "---------------------------------------------}}}1
