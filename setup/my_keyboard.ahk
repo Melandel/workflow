@@ -193,5 +193,9 @@ $Space::
 	send, {vkDD}{Space}
 	waitingfornextkey := false
 return
+v::
+	send, {vkDD}v
+	waitingfornextkey := false
+return
 #If
 
