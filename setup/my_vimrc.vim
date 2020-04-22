@@ -159,6 +159,11 @@ function! NextCharacter()
 	return strcharpart(getline('.')[col('.') - 2:], 0, 1)
 endfunction
 
+function! ExecuteAndAddIntoHistory(script)
+	call histadd('cmd', a:script)
+	execute(a:script)
+endfunction
+
 "---------------------------------------}}}
 
 " AZERTY Keyboard:
@@ -437,8 +442,57 @@ function! MoveCursorToLast(pattern)" ----{{{2
 	let match = searchpos(a:pattern, 'b', line('.'))
 endfunction
 " ---------------------------------------}}}2
-nnoremap <silent> / :call MoveCursorToNext('[^A-Za-z_ \t]\C')<CR>
-nnoremap <silent> . :call MoveCursorToLast('[^A-Za-z_ \t]\C')<CR>
+function! MoveToLastMatch()"------------{{{2
+	let lastcmd = histget('cmd', -1)
+
+	if lastcmd =~ 'MoveCursorTo'
+		execute substitute(lastcmd, 'Next', 'Last', 'g')
+	else
+		normal! ,
+	endif
+endfunction
+"---------------------------------------}}}2
+function! MoveToNextMatch()"------------{{{2
+	let lastcmd = histget('cmd', -1)
+
+	if lastcmd =~ 'MoveCursorTo'
+		execute substitute(lastcmd, 'Last', 'Next', 'g')
+	else
+		normal! ;
+	endif
+endfunction
+"---------------------------------------}}}2
+nnoremap <silent> <Leader>, :call ExecuteAndAddIntoHistory("call MoveCursorToNext('[^A-Za-z_ \\t]\\C')")<CR>
+nnoremap <silent> <Leader>; :call ExecuteAndAddIntoHistory("call MoveCursorToNext('[A-Z_]\\C')")<CR>
+nnoremap <silent> , :call MoveToLastMatch()<CR>
+nnoremap <silent> ; :call MoveToNextMatch()<CR>
+
+function! VMoveToLastMatch()"------------{{{2
+	normal! gv
+	let lastcmd = histget('cmd', -1)
+
+	if lastcmd =~ 'MoveCursorTo'
+		execute substitute(lastcmd, 'Next', 'Last', 'g')
+	else
+		normal! ,
+	endif
+endfunction
+"---------------------------------------}}}2
+function! VMoveToNextMatch()"------------{{{2
+	normal! gv
+	let lastcmd = histget('cmd', -1)
+
+	if lastcmd =~ 'MoveCursorTo'
+		execute substitute(lastcmd, 'Last', 'Next', 'g')
+	else
+		normal! ;
+	endif
+endfunction
+"---------------------------------------}}}2
+vnoremap <silent> <Leader>, :<C-U>call ExecuteAndAddIntoHistory("call MoveCursorToNext('[^A-Za-z_ \\t]\\C')") \| normal! v`<o<CR>
+vnoremap <silent> <Leader>; :<C-U>call ExecuteAndAddIntoHistory("call MoveCursorToNext('[A-Z_]\\C')") \| normal! v`<o<CR>
+vnoremap <silent> , :<C-U>call VMoveToLastMatch()<CR>
+vnoremap <silent> ; :<C-U>call VMoveToNextMatch()<CR>
 " ---------------------------------------}}}1
 " Text objects" -------------------------{{{1
 
@@ -447,7 +501,7 @@ let g:targets_jumpRanges = 'cr cb cB lc ac Ac lr rr ll lb ar ab lB Ar aB Ab AB r
 
 " Lines
 vnoremap il ^og_| onoremap il :normal vil<CR>
-vnoremap al 0o$h|  onoremap al :normal val<CR>
+vnoremap al 0o$h| onoremap al :normal val<CR>
 
 " Folds
 vnoremap iz [zjo]zkVg_| onoremap iz :normal viz<CR>
@@ -614,8 +668,8 @@ tnoremap <C-s>l <C-W>l
 		let title_max_length = last_column_reached-len('{{{')-len(comment_string)-len('-')
 
 		execute string(a:firstline)
-		if col('$') > title_max_length
-			echoerr 'The first selected line should be smaller than ' . title_max_length
+	if col('$') > title_max_length
+		echoerr 'The first selected line should be smaller than ' . title_max_length
 			return
 		endif
 
@@ -664,6 +718,7 @@ set ignorecase
 set shortmess=filnxtToO
 nnoremap ! /
 vnoremap ! "vy/<C-R>v
+nnoremap <Leader>! :BLines<CR>
 
 nnoremap q! q/
 nnoremap z! :BLines {{{<CR>
@@ -716,14 +771,19 @@ augroup end
 
 " Additional Functionalities:
 " My Files" -----------------------------{{{1
+function! GetMyFilesBuffers()
+	return filter(tabpagebuflist(), {idx, itm -> bufname(itm) =~ 'my\.'})
+endfunction
 function! ToggleMyFiles()" --------------{{{2
-	let buffers = map(tabpagebuflist(), {idx, itm -> bufname(itm)})
-	let metafiles = filter(tabpagebuflist(), {idx, itm -> bufname(itm) =~ 'my\.'})
-	if len(metafiles) >= 3
-		 for bufid in metafiles
-				call win_gotoid(bufwinid(bufid)) | write | quit
-		 endfor
+	let mybuffers = GetMyFilesBuffers()
+if len(mybuffers) >= 3
+		call HideMyFiles(mybuffers)
 	else
+		call ShowMyFiles()
+	endif
+endfunction
+" ---------------------------------------}}}2
+function! ShowMyFiles()"----------------{{{2
 		mark V
 		let originalWinNr = winnr()
 		vnew $desktop/my.day | normal! Gzx[zkzt
@@ -736,10 +796,20 @@ function! ToggleMyFiles()" --------------{{{2
 		execute(originalWinNr.'wincmd w')
 		normal! `V
 		delmarks V
-	endif
 endfunction
-" ---------------------------------------}}}2
+"---------------------------------------}}}2
+function! HideMyFiles(...)"----------------{{{2
+	let mybuffers = (a:0 > 0) ? a:1 :filter(tabpagebuflist(), {idx, itm -> bufname(itm) =~ 'my\.'}) 
+
+	for bufid in mybuffers
+		call win_gotoid(bufwinid(bufid)) | write | quit
+	endfor
+endfunction
+"---------------------------------------}}}2
+command! ShowMyFiles silent call ShowMyFiles()
+command! HideMyFiles silent call HideMyFiles()
 command! ToggleMyFiles silent call ToggleMyFiles()
+
 nnoremap <Leader>m :ToggleMyFiles<CR>
 
 augroup myfiles
@@ -781,77 +851,64 @@ augroup end
 
 " ---------------------------------------}}}1
 " Pomodoro" -----------------------------{{{1
-let preparation_ms = 5000 * 60
-let pomodoro_session_ms = 25000 * 60
-let pomodoro_break_ms = 5000 * 60
-let nb_pomodoros_in_a_day = 24
-let g:current_cycle_nr = 0
-
-function! DisplayPopupTimeSpan(fms, bd_hi, ...)" ---{{{2
-	let milliseconds=eval(a:fms)
+function! DisplayTimer(t, hi, ...)"-----{{{2
+	let milliseconds=eval(a:t)
 	let seconds = milliseconds / 1000
 	let minutes = seconds / 60
 	let seconds = seconds % 60
 	let minutes = minutes > 9 ? string(minutes) : '0'.string(minutes)
 	let seconds = seconds > 9 ? string(seconds) : '0'.string(seconds)
+	let content = printf('%sm%ss [%s]', minutes, seconds, g:cyclecount)
+	let highlight_group = eval(a:hi)
 
-	let content = printf('%sm%ss', minutes, seconds)
-		call popup_create( content, {  'time': 1000, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat([eval(a:bd_hi)], 4), 'line': 1, 'col': &columns - 8 })
-	let g:countdown -= 1000
-endfunction
-" ---------------------------------------}}}2
-function! DisplayPopupPomodoro(title, ...)" ---------{{{2
-	if empty(prop_type_get('time')) | call prop_type_add('time', #{highlight: 'PopupTime'}) | endif
+	call popup_create( content, {  'time': 1000, 'highlight':highlight_group, 'border':[0,0,0,1], 'borderhighlight':repeat([highlight_group], 4), 'line': &lines-2, 'col': &columns - 11 })
 
-	let content = [strftime('[%Hh%M] - %A %d %B'), ''] + a:000 + ['', 'La petite citation du jour:', printf('  %s', qotd#getquoteoftheday())]
-	call popup_create( content, {  'title': printf(' %s ', a:title), 'close':'button', 'zindex':g:zindex, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpClassName'], 4), 'padding':[1,1,1,2] })
+	execute('let '.a:t.' -= 1000')
+endfunction
+"---------------------------------------}}}2
+function! StartCycles()"----------------{{{2
+	let session_time_in_minutes = 25
+	let break_time_in_minutes = 5
+	let cycle_time_in_minutes = session_time_in_minutes + break_time_in_minutes
+	let g:cyclecount = 0
 
-	let g:zindex+=1
+	call StartCycle(session_time_in_minutes, break_time_in_minutes)
+	let l:timer = timer_start(cycle_time_in_minutes*60*1000, function('StartCycle', [session_time_in_minutes, break_time_in_minutes]), {'repeat': -1})
 endfunction
-" ---------------------------------------}}}2
-function! DisplayPomodoroIntroduction()" {{{2
-	call DisplayPopupPomodoro( 'Un nouveau soleil se lève...', 'Bonjour :D', '', "Essayons d'avoir une journée productive!", '', "L'objectif est de gérer notre énergie cognitive en ne se perdant pas dans un sujet trop longtemps!", '', "Commençons par prendre [5 minutes] pour se mettre dans le bain et planifier les objectifs de la journée :)")
+"---------------------------------------}}}2
+function! StartCycle(dur1,dur2,...)"----{{{
+	call StartSession(a:dur1)
+	let l:timer = timer_start(a:dur1*60*1000, function('StartBreak', [a:dur2]))
 endfunction
-" ---------------------------------------}}}2
-function! DisplayPomodoroEnding(nb, ...)" ----{{{2
-	call DisplayPopupPomodoro( "Le soleil n'ira pas plus haut aujourd'hui!", 'Maintenant, le plus dur...', '', printf("%d pomodoros se sont déroulés aujourd'hui. ", a:nb), '', 'Il est temps de faire autre chose !! :)', '', "Ressource tes énergies pour demain au lieu de forcer dessus pour rien!")
-endfunction
-" ---------------------------------------}}}2
-function! DisplayPomodoroSessionStart(cycle_nr, nb_pomodoros_in_a_day, ...)" --{{{2
-	call DisplayPopupPomodoro( printf('[%d/%d] Une nouvelle session démarre...', a:cycle_nr, a:nb_pomodoros_in_a_day), 'Tu viens de passer 5 minutes complètes à te préparer à te re-concentrer sur un problème.', '', 'Il est temps de passer [25 minutes] sur un nombre restreint de problèmes sans dérangement!')
-endfunction
-" ---------------------------------------}}}2
-function! DisplayPomodoroBreakStart(cycle_nr, nb_pomodoros_in_a_day, ...)" ----{{{2
-	call DisplayPopupPomodoro( printf('[%d/%d] Fin de la session Pomodoro!', a:cycle_nr, a:nb_pomodoros_in_a_day), 'Tu viens de passer 25 minutes complètes sur un nombre restreint de problèmes.', '', 'Il est temps de passer [5 minutes] sur des choses qui n''ont rien à voir pour te changer les idées! ', '', 'Tu as passé suffisamment de moments dans le passé à coder en faisant plein de fautes d''étourderie', 'pour savoir comment la qualité de tes implémentations va évoluer sans pause mentale ;)', '', 'Je te recommande de commencer par célébrer tes progrès :)')
-endfunction
-" ---------------------------------------}}}2
+"---------------------------------------}}}
+function! StartSession(minutes, ...)"---{{{
+	let mybuffers = GetMyFilesBuffers()
+	if len(mybuffers) >= 3
+		call HideMyFiles(mybuffers)
+	endif
+	call ShowMyFiles()
 
-function! InitPomodoroDay(preparation_duration, session_duration, break_duration, nb_pomodoros_in_a_day)
-	call DisplayPomodoroIntroduction()
-	let l:timer_cycles = timer_start(a:preparation_duration, function('StartPomodoroCycles', [a:session_duration, a:break_duration, a:nb_pomodoros_in_a_day]))
-	let l:timer_end = timer_start(a:preparation_duration + a:nb_pomodoros_in_a_day * (a:session_duration+a:break_duration), function('DisplayPomodoroEnding', [a:nb_pomodoros_in_a_day]))
-endfunction
-
-function! StartPomodoroCycles(session_duration, break_duration, nb_pomodoros_in_a_day, ...)
-	call StartPomodoroCycle(a:session_duration, a:break_duration, a:nb_pomodoros_in_a_day)
-	let l:timer = timer_start(a:session_duration+a:break_duration, function('StartPomodoroCycle', [a:session_duration, a:break_duration, a:nb_pomodoros_in_a_day]), {'repeat': a:nb_pomodoros_in_a_day-1})
+	let g:cyclecount += 1
+	let g:pomodoro_session_timer_ms = a:minutes*60*1000 - 1000
+	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_session_timer_ms', "'csharpInterfaceName'"]), {'repeat': a:minutes * 60 - 1})
+	call popup_create(printf('[%s]   ( `ω´)   New pomodoro session started!', strftime('%Hh%M')), { 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpString'], 4), 'close': 'button' })
 
 endfunction
-
-function! StartPomodoroCycle(session_ms, break_ms, nb_pomodoros_in_a_day, ...)
-		let g:current_cycle_nr += 1
-		let g:countdown = a:session_ms+a:break_ms
-
-		call DisplayPomodoroSessionStart(g:current_cycle_nr, a:nb_pomodoros_in_a_day)
-		let l:timer = timer_start(a:session_ms, function('DisplayPomodoroBreakStart', [g:current_cycle_nr, a:nb_pomodoros_in_a_day]))
-
-		call DisplayPopupTimeSpan('g:countdown', printf('g:countdown > %d ? "%s" : "%s"', a:break_ms, 'csharpClassName', 'csharpKeyword'))
-		let l:timer2 =timer_start(1000, function('DisplayPopupTimeSpan', ['g:countdown', printf('g:countdown > %d ? "%s" : "%s"', a:break_ms, 'csharpClassName', 'csharpKeyword')]), {'repeat': g:countdown/1000})
+"---------------------------------------}}}
+function! StartBreak(minutes, ...)"-----{{{
+	let mybuffers = GetMyFilesBuffers()
+	if len(mybuffers) >= 3
+		call HideMyFiles(mybuffers)
+	endif
+	call ShowMyFiles()
+	let g:pomodoro_break_timer_ms = a:minutes*60*1000 - 1000
+	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_break_timer_ms', "'csharpKeyword'"]), {'repeat': a:minutes * 60 - 1})
+	call popup_create(printf('[%s]   (*´∀`*)   Well done! End of the pomodoro session!', strftime('%Hh%M')), { 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpClassName'], 4), 'close': 'button' })
 endfunction
-
+"---------------------------------------}}}
 augroup pomodoro
 	au!
-	"autocmd VimEnter * call InitPomodoroDay(preparation_ms, pomodoro_session_ms,pomodoro_break_ms,nb_pomodoros_in_a_day)
+	autocmd VimEnter * call StartCycles()
 augroup end
 " ---------------------------------------}}}1
 " Quotes" -------------------------------{{{1
