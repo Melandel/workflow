@@ -17,7 +17,6 @@ function! MinpacInit()
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
 	call minpac#add('OmniSharp/omnisharp-vim')
-	call minpac#add('gyim/vim-boxdraw')
 
 	call minpac#add('SirVer/ultisnips')
 	call minpac#add('honza/vim-snippets')
@@ -33,8 +32,7 @@ function! MinpacInit()
 	call minpac#add('wellle/targets.vim')
 	call minpac#add('michaeljsmith/vim-indent-object')
 
-	call minpac#add('vim-scripts/DrawIt')
-
+	call minpac#add('Melandel/DrawIt')
 	call minpac#add('Melandel/vim-empower')
 	call minpac#add('Melandel/fzfcore.vim')
 	call minpac#add('Melandel/gvimtweak')
