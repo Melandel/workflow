@@ -1039,7 +1039,7 @@ let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 " ---------------------------------------}}}1
 " Git" ----------------------------------{{{1
-nnoremap <silent> <Leader>G :tabedit % \| G \| res 12 \| set winfixheight<CR>
+nnoremap <silent> <Leader>G :tab G<CR>
 " ---------------------------------------}}}1
 " Smart Brackets and quotes"------------{{{1
 function! DeclareBracketContent()"------{{{2
