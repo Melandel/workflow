@@ -240,16 +240,16 @@ nnoremap <Leader>s :split<CR>
 nnoremap <Leader>v :vsplit<CR>
 nnoremap K :q<CR>
 nnoremap <Leader>o mW:tabnew<CR>`W:silent call ToggleMyFiles()<CR>
-nnoremap <silent> <Leader>x :tabclose<CR>
+nnoremap <silent> <Leader>x :tabclose<CR> | nnoremap <C-s>x :tabclose<CR>
 nnoremap <Leader>X :tabonly<CR>:sp<CR>:q<CR>:let g:zindex+=1<CR>:call DisplayPopupTime()<CR>
 
 " Browse to Window or Tab
-nnoremap <Leader>h <C-W>h
-nnoremap <Leader>j <C-W>j
-nnoremap <Leader>k <C-W>k
-nnoremap <Leader>l <C-W>l
-nnoremap <Leader>n gt
-nnoremap <Leader>p gT
+nnoremap <Leader>h <C-W>h| nnoremap <C-s>h <C-W>h| tnoremap <C-s>h <C-W>h
+nnoremap <Leader>j <C-W>j| nnoremap <C-s>l <C-W>l| tnoremap <C-s>l <C-W>l 
+nnoremap <Leader>k <C-W>k| nnoremap <C-s>j <C-W>j| tnoremap <C-s>j <C-W>j
+nnoremap <Leader>l <C-W>l| nnoremap <C-s>k <C-W>k| tnoremap <C-s>k <C-W>k
+nnoremap <Leader>n gt|     nnoremap <C-s>n gt
+nnoremap <Leader>p gT|     nnoremap <C-s>p gT
 
 augroup windows
 	autocmd!
@@ -629,10 +629,6 @@ command! ClearRegisters for i in range(34,122) | silent! call setreg(nr2char(i),
 "----------------------------------------}}}1
 " Terminal" -----------------------------{{{1
 set termwinsize=12*0
-tnoremap <C-s>h <C-W>h
-tnoremap <C-s>j <C-W>j
-tnoremap <C-s>k <C-W>k
-tnoremap <C-s>l <C-W>l
 "----------------------------------------}}}1
 " Folding" ------------------------------{{{1
 function! MyFoldExpr()" ----------------{{{2
