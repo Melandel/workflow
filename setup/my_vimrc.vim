@@ -126,6 +126,16 @@ function! LcdToPluginDirectory(...)" ----{{{2
 
 	execute(printf('lcd %s', previous_path))
 endfunc
+
+function! LcdToGitRoot()"---------------{{{2
+	let gitrootdir = fnamemodify(gitbranch#dir(expand('%:p')), ':h')
+
+	echo printf('Current directory path set to: %s', gitrootdir)
+	execute(printf('lcd %s', gitrootdir))
+endfunction
+"---------------------------------------}}}2
+command LG call LcdToGitRoot()
+
 " ---------------------------------------}}}2
 function! LcdToSlnOrCsproj(...)" --------{{{2
 	let omnisharp_host = getbufvar(bufnr('%'), 'OmniSharp_host')
