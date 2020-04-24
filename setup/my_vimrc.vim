@@ -625,67 +625,68 @@ tnoremap <C-s>k <C-W>k
 tnoremap <C-s>l <C-W>l
 "----------------------------------------}}}1
 " Folding" ------------------------------{{{1
-	function! MyFoldExpr()" ----------------{{{2
-		let res = ''
-		let line=getline(v:lnum)
-		let pos_brackets = match(line, '\v%(\{\{\{|\}\}\})\d?$')
-		if pos_brackets == -1
-			let res= '='
-		else
-			let is_beginning = line[pos_brackets] == '{'
-			let line_length = len(line)
+function! MyFoldExpr()" ----------------{{{2
+	let res = ''
+	let line=getline(v:lnum)
+	let pos_brackets = match(line, '\v%(\{\{\{|\}\}\})\d?$')
+	if pos_brackets == -1
+		let res= '='
+	else
+		let is_beginning = line[pos_brackets] == '{'
+		let line_length = len(line)
 
-			if line_length == (pos_brackets + 3)
+		if line_length == (pos_brackets + 3)
+			let res= printf('%s1', (is_beginning ? 'a' : 's'))
+		else
+			let following_char = line[pos_brackets+3]
+
+			if following_char =~ '\s'
 				let res= printf('%s1', (is_beginning ? 'a' : 's'))
 			else
-				let following_char = line[pos_brackets+3]
-
-				if following_char =~ '\s'
-					let res= printf('%s1', (is_beginning ? 'a' : 's'))
-				else
-					let res= printf('%s%s', ( is_beginning ? '>' : '<'), following_char)
-				endif
+				let res= printf('%s%s', ( is_beginning ? '>' : '<'), following_char)
 			endif
 		endif
+	endif
 
-		return res
-	endfunction
-	" --------------------------------------}}}2
-	function! MyFoldText()" ----------------{{{2
-		let line = getline(v:foldstart)
-		let end_of_title = stridx(line, (&commentstring == '' ? '-' : split(&commentstring, '%s')[0]), match(line, '\a'))-1
-		let nucolwidth = &fdc + &number * &numberwidth
-		let windowwidth = winwidth(0) - nucolwidth - 3
-		let foldedlinecount = v:foldend - v:foldstart - 1
+	return res
+endfunction
+" --------------------------------------}}}2
+function! MyFoldText()" ----------------{{{2
+	let line = getline(v:foldstart)
+	let end_of_title = stridx(line, (&commentstring == '' ? '-' : split(&commentstring, '%s')[0]), match(line, '\a'))-1
+	let nucolwidth = &fdc + &number * &numberwidth
+	let windowwidth = winwidth(0) - nucolwidth - 3
+	let foldedlinecount = v:foldend - v:foldstart - 1
 
-		return printf('%s%s%d', line[:end_of_title], repeat(' ', windowwidth - (end_of_title+1) - len(string(foldedlinecount))), foldedlinecount)
-	endfunction
-	" --------------------------------------}}}2
-	function! MyFoldCreate() range" --------{{{2
-		let last_column_reached = 50 - 7 "1 for eol listchar, 2 for line number, 2 for relative line number, 1 for foldcolumn, 1 for foldlevel
-		let comment_string = &commentstring == '' ? '' : split(&commentstring, '%s')[0]
-		let title_max_length = last_column_reached-len('{{{')-len(comment_string)-len('-')
+	return printf('%s%s%d', line[:end_of_title], repeat(' ', windowwidth - (end_of_title+1) - len(string(foldedlinecount))), foldedlinecount)
+endfunction
+" --------------------------------------}}}2
+function! MyFoldCreate() range" --------{{{2
+	let last_column_reached = 50 - 7 "1 for eol listchar, 2 for line number, 2 for relative line number, 1 for foldcolumn, 1 for foldlevel
+	let comment_string = &commentstring == '' ? '' : split(&commentstring, '%s')[0]
+	let title_max_length = last_column_reached-len('{{{')-len(comment_string)-len('-')
 
-		execute string(a:firstline)
-	if col('$') > title_max_length
-		echoerr 'The first selected line should be smaller than ' . title_max_length
-			return
-		endif
+	execute string(a:firstline)
+if col('$') > title_max_length
+	echoerr 'The first selected line should be smaller than ' . title_max_length
+		return
+	endif
 
-		let title_foldmarker = printf('%s%s{{{', comment_string, repeat('-', last_column_reached - len('{{{') - len(comment_string) - col('$') +1))
-		execute('normal! A'.title_foldmarker)
+	let title_foldmarker = printf('%s%s{{{', comment_string, repeat('-', last_column_reached - len('{{{') - len(comment_string) - col('$') +1))
+	execute('normal! A'.title_foldmarker)
 
-		execute('copy '.a:lastline)
-		normal! vt{r-f{v$r}
-		if comment_string != ''
-			execute('normal! ^R'.comment_string)
-			execute('normal! $')
-		endif
-	endfunction
-	" --------------------------------------}}}2
-	function! CursorIsInClosedFold()
-		return foldclosed(line('.')) > 0
-	endfunction
+	execute('copy '.a:lastline)
+	normal! vt{r-f{v$r}
+	if comment_string != ''
+		execute('normal! ^R'.comment_string)
+		execute('normal! $')
+	endif
+endfunction
+" --------------------------------------}}}2
+function! CursorIsInClosedFold()"------{{{2
+	return foldclosed(line('.')) > 0
+endfunction
+"--------------------------------------}}}
 function! ToggleUpdatedFoldLevel()"------{{{2
 	if CursorIsInClosedFold()
 		normal! zx
@@ -694,6 +695,14 @@ function! ToggleUpdatedFoldLevel()"------{{{2
 	endif
 endfunction
 "----------------------------------------}}}2
+function! MoveToPreviousFoldBeginning()
+	keepjumps normal! zk
+	if CursorIsInClosedFold()
+		return
+	else
+		keepjumps normal! [z
+	endif
+endfunction
 
 set foldmethod=expr
 set foldexpr=MyFoldExpr()
@@ -701,11 +710,13 @@ set foldtext=MyFoldText()
 
 command! -bar -range FoldCreate <line1>,<line2>call MyFoldCreate()
 
+nnoremap <silent> <Space> :silent call ToggleUpdatedFoldLevel()<CR>
 nnoremap <silent> zf <S-V>:FoldCreate<CR>
 vnoremap <silent> zf :FoldCreate<CR>
 nnoremap <silent> zj :keepjumps normal! zj<CR>
-nnoremap <silent> zk :keepjumps normal! zkzkzj<CR>
-nnoremap <silent> <Space> :silent call ToggleUpdatedFoldLevel()<CR>
+nnoremap <silent> zk :silent call MoveToPreviousFoldBeginning()<CR>
+nnoremap <silent> z{ [z
+nnoremap <silent> z} ]z
 
 "----------------------------------------}}}1
 " Search" -------------------------------{{{1
