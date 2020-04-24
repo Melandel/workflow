@@ -462,8 +462,8 @@ function! MoveToNextMatch()"------------{{{2
 	endif
 endfunction
 "---------------------------------------}}}2
-nnoremap <silent> <Leader>, :call ExecuteAndAddIntoHistory("call MoveCursorToNext('[^A-Za-z_ \\t]\\C')")<CR>
-nnoremap <silent> <Leader>; :call ExecuteAndAddIntoHistory("call MoveCursorToNext('[A-Z_]\\C')")<CR>
+nnoremap <silent> <Leader>, :call ExecuteAndAddIntoHistory("call MoveCursorToNext('[A-Z_]\\C')")<CR>
+nnoremap <silent> <Leader>; :call ExecuteAndAddIntoHistory("call MoveCursorToNext('[^A-Za-z_ \\t]\\C')")<CR>
 nnoremap <silent> , :call MoveToLastMatch()<CR>
 nnoremap <silent> ; :call MoveToNextMatch()<CR>
 
@@ -489,8 +489,8 @@ function! VMoveToNextMatch()"------------{{{2
 	endif
 endfunction
 "---------------------------------------}}}2
-vnoremap <silent> <Leader>, :<C-U>call ExecuteAndAddIntoHistory("call MoveCursorToNext('[^A-Za-z_ \\t]\\C')") \| normal! v`<o<CR>
-vnoremap <silent> <Leader>; :<C-U>call ExecuteAndAddIntoHistory("call MoveCursorToNext('[A-Z_]\\C')") \| normal! v`<o<CR>
+vnoremap <silent> <Leader>, :<C-U>call ExecuteAndAddIntoHistory("call MoveCursorToNext('[A-Z_]\\C')") \| normal! v`<o<CR>
+vnoremap <silent> <Leader>; :<C-U>call ExecuteAndAddIntoHistory("call MoveCursorToNext('[^A-Za-z_ \\t]\\C')") \| normal! v`<o<CR>
 vnoremap <silent> , :<C-U>call VMoveToLastMatch()<CR>
 vnoremap <silent> ; :<C-U>call VMoveToNextMatch()<CR>
 " ---------------------------------------}}}1
