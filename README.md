@@ -56,6 +56,7 @@ These tools go in the `tools` folder if possible, as well as in the environment 
 | Nuget explorer/fetcher | [nuget](https://www.nuget.org/downloads)                                                                     |                                                                                            |
 | Scripting language     | [python (needed by vim's plugin UltiSnips)](https://www.python.org/downloads/windows/)                       | Be sure you install the same version (x64 or x86) as vim                                   |
 | C# REPL                | [dotnet-script](https://github.com/filipw/dotnet-script)                                                     | Install as a dotnet tool (`dotnet tool install`)                                           |
+| Zip Utility            | [7-zip](https://www.7-zip.org/download.html)                                                                 |                                                                                            |
 
 ### Config files ###
 
