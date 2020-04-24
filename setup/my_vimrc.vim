@@ -1043,7 +1043,7 @@ let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 " ---------------------------------------}}}1
 " Git" ----------------------------------{{{1
-nnoremap <silent> <Leader>G :tabedit % \| G \| res 12<CR>
+nnoremap <silent> <Leader>G :tabedit % \| G \| res 12 \| set winfixheight<CR>
 " ---------------------------------------}}}1
 " Smart Brackets and quotes"------------{{{1
 function! DeclareBracketContent()"------{{{2
@@ -1084,7 +1084,7 @@ vnoremap <silent> <CR> om'h<Esc>:call CloseBracket(CurrentCharacter())<CR>
 " Diagrams"-----------------------------{{{1
 augroup mydiagrams
 	autocmd!
-	autocmd BufWritePost *.ascii silent exec('! start /b "" svgbob "%:p" -o "%:p:r.svg"') | call OpenWebUrl(substitute(printf('%s.svg', expand('%:p:r')), '/', '\\', 'g'))
+	autocmd BufWritePost *.diag silent exec('! start /b "" svgbob "%:p" -o "%:p:r.svg"') | call OpenWebUrl(substitute(printf('%s.svg', expand('%:p:r')), '/', '\\', 'g'))
 augroup END
 
 nnoremap <Leader>D :20new \| lcd $desktop/diagrams \| normal! yy18pgg<CR>:DrawIt<CR>
