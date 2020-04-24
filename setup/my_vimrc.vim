@@ -380,7 +380,8 @@ function! BrowseLayoutDown()" -----------{{{2
 		keepjumps execute 'silent! normal! }}{j'
 	endif
 
-	norma! m'
+	silent! normal! zv
+	normal! m'
 endfunction
 " ---------------------------------------}}}2
 nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
@@ -398,6 +399,7 @@ function! BrowseLayoutUp()" -------------{{{2
 		endif
 	endif
 
+	silent! normal! zv
 	normal! m'
 endfunction
 " ---------------------------------------}}}2
