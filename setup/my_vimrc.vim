@@ -1043,12 +1043,7 @@ let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 " ---------------------------------------}}}1
 " Git" ----------------------------------{{{1
-augroup gitstatus
-	autocmd!
-	autocmd FileType fugitive set previewwindow
-augroup END
-
-nnoremap <silent> <Leader>G :Gtabedit :<CR>
+nnoremap <silent> <Leader>G :tabedit % \| G \| res 12<CR>
 " ---------------------------------------}}}1
 " Smart Brackets and quotes"------------{{{1
 function! DeclareBracketContent()"------{{{2
