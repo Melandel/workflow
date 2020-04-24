@@ -880,8 +880,9 @@ function! DisplayTimer(t, hi, ...)"-----{{{2
 	let seconds = seconds > 9 ? string(seconds) : '0'.string(seconds)
 	let content = printf('%sm%ss [%s]', minutes, seconds, g:cyclecount)
 	let highlight_group = eval(a:hi)
+	let g:zindex += 1
 
-	call popup_create( content, {  'time': 1000, 'highlight':highlight_group, 'border':[0,0,0,1], 'borderhighlight':repeat([highlight_group], 4), 'line': &lines-2, 'col': &columns - 11 })
+	call popup_create( content, {  'time': 1000, 'highlight':highlight_group, 'border':[0,0,0,1], 'borderhighlight':repeat([highlight_group], 4), 'line': &lines-2, 'col': &columns - 11, 'zindex':g:zindex })
 
 	execute('let '.a:t.' -= 1000')
 endfunction
@@ -910,7 +911,8 @@ function! StartSession(minutes, ...)"---{{{
 
 	let g:cyclecount += 1
 	let g:pomodoro_session_timer_ms = a:minutes*60*1000 - 1000
-	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_session_timer_ms', "'csharpInterfaceName'"]), {'repeat': a:minutes * 60 - 1})
+ " we repeat with 10 seconds margin; justification: we can only specify the <minimum> time before the function starts, so each second is potentially delayed
+	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_session_timer_ms', "'csharpInterfaceName'"]), {'repeat': a:minutes * 60 - 1 - 10})
 	call popup_create(printf('[%s]   ( `ω´)   Pomodoro session %d started!', strftime('%Hh%M'), g:cyclecount), { 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpString'], 4), 'close': 'button' })
 
 endfunction
@@ -922,7 +924,8 @@ function! StartBreak(minutes, ...)"-----{{{
 	endif
 	call ShowMyFiles()
 	let g:pomodoro_break_timer_ms = a:minutes*60*1000 - 1000
-	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_break_timer_ms', "'csharpKeyword'"]), {'repeat': a:minutes * 60 - 1})
+	" we repeat with 10 seconds margin; justification: we can only specify the <minimum> time before the function starts, so each second is potentially delayed
+	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_break_timer_ms', "'csharpKeyword'"]), {'repeat': a:minutes * 60 - 1 - 10})
 	call popup_create(printf('[%s]   (*´∀`*)   Well done! End of the pomodoro session %d!', strftime('%Hh%M'), g:cyclecount), { 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpClassName'], 4), 'close': 'button' })
 endfunction
 "---------------------------------------}}}
@@ -1043,11 +1046,6 @@ nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 augroup gitstatus
 	autocmd!
 	autocmd FileType fugitive set previewwindow
-augroup END
-
-augroup gitcommit
-	autocmd!
-	autocmd FileType gitcommit startinsert
 augroup END
 
 nnoremap <silent> <Leader>G :Gtabedit :<CR>
