@@ -528,8 +528,7 @@ nnoremap Y y$
 " Yank into system clipboard
 nnoremap zy "+y
 nnoremap zY "+Y
-nnoremap <C-C> "+y
-vnoremap <C-C> "+y
+vnoremap zy "+y
 
 " Paste from system clipboard
 nnoremap zp :set paste<CR>o<Esc>"+p:set nopaste<CR>
