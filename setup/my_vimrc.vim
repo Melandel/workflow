@@ -1081,6 +1081,15 @@ endfunc
 inoremap <silent> ^v <Esc>:call DeclareBracketContent()<CR>
 vnoremap <silent> <CR> om'h<Esc>:call CloseBracket(CurrentCharacter())<CR>
 "---------------------------------------}}}1
+" Diagrams"-----------------------------{{{1
+augroup mydiagrams
+	autocmd!
+	autocmd BufWritePost *.ascii silent exec('! start /b "" svgbob "%:p" -o "%:p:r.svg"') | call OpenWebUrl(substitute(printf('%s.svg', expand('%:p:r')), '/', '\\', 'g'))
+augroup END
+
+nnoremap <Leader>D :20new \| lcd $desktop/diagrams \| normal! yy18pgg<CR>:DrawIt<CR>
+"---------------------------------------}}}1
+
 
 " Specific Workflows:
 " cs(c#)" -------------------------------{{{1
