@@ -110,23 +110,6 @@ let mapleader = 's'
 let maplocalleader = 'q'
 " ---------------------------------------}}}
 " Local Current Directories" ------------{{{
-function! LcdToPluginDirectory(...)" ----{{{2
-	if getwinvar(1, '&filetype') == 'fugitive' | return | endif
-	" asking for diff in fugitive-status displays an error
-
-	let filepath = expand('%:p')
-	if filepath !~ '\v%(start|opt)' | return | endif
-
-	let path = fnamemodify(filepath, ':h')
-	let previous_path = path
-	while path !~ '\v%(start|opt)$'
-		let previous_path = path
-		let path = fnamemodify(path, ':h')
-	endwhile
-
-	execute(printf('lcd %s', previous_path))
-endfunc
-
 function! LcdToGitRoot()"---------------{{{2
 	let gitrootdir = fnamemodify(gitbranch#dir(expand('%:p')), ':h')
 
@@ -134,9 +117,6 @@ function! LcdToGitRoot()"---------------{{{2
 	execute(printf('lcd %s', gitrootdir))
 endfunction
 "---------------------------------------}}}2
-command LG call LcdToGitRoot()
-
-" ---------------------------------------}}}2
 function! LcdToSlnOrCsproj(...)" --------{{{2
 	let omnisharp_host = getbufvar(bufnr('%'), 'OmniSharp_host')
 	if empty(omnisharp_host)
@@ -146,12 +126,11 @@ function! LcdToSlnOrCsproj(...)" --------{{{2
 	execute(printf('lcd %s', srcRoot))
 endfunc
 " ---------------------------------------}}}2
+command LG call LcdToGitRoot()
 
 augroup lcd
 	au!
-	autocmd BufRead,WinEnter *.vim silent call LcdToPluginDirectory()
-	autocmd BufRead,WinEnter my.* silent lcd $desktop
-	autocmd BufRead,WinEnter *.cs silent call LcdToSlnOrCsproj()
+	autocmd BufRead,WinEnter * silent lcd $desktop | silent call LcdToGitRoot() | silent call LcdToSlnOrCsproj()
 augroup end
 " ---------------------------------------}}}
 " Utils"--------------------------------{{{
