@@ -1059,7 +1059,8 @@ vnoremap <silent> <CR> om'h<Esc>:call CloseBracket(CurrentCharacter())<CR>
 " Diagrams"-----------------------------{{{1
 augroup mydiagrams
 	autocmd!
-	autocmd BufWritePost *.diag silent exec('!svgbob "%:p" -o "%:p:r.svg"') | call OpenWebUrl(substitute(printf('%s.svg', expand('%:p:r')), '/', '\\', 'g'))
+	autocmd BufWinEnter *.bob silent set fileformat=unix
+	autocmd BufWritePost *.bob silent exec('!svgbob "%:p" -o "%:p:r.svg"') | call OpenWebUrl(substitute(printf('%s.svg', expand('%:p:r')), '/', '\\', 'g'))
 augroup END
 
 nnoremap <Leader>D :20new \| lcd $desktop/diagrams \| normal! yy18pgg<CR>:DrawIt<CR>
