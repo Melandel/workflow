@@ -909,7 +909,7 @@ function! StartSession(minutes, ...)"---{{{
 	let g:pomodoro_session_timer_ms = a:minutes*60*1000 - 1000
  " we repeat with 10 seconds margin; justification: we can only specify the <minimum> time before the function starts, so each second is potentially delayed
 	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_session_timer_ms', "'csharpInterfaceName'"]), {'repeat': a:minutes * 60 - 1 - 10})
-	call popup_create(printf('[%s]   ( `ω´)   Pomodoro session %d started!', strftime('%Hh%M'), g:cyclecount), { 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpString'], 4), 'close': 'button' })
+	call popup_create(printf('[%s]   ( `ω´)   Pomodoro session %d started!', strftime('%Hh%M'), g:cyclecount), { 'time': 60*1000, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpString'], 4), 'close': 'button' })
 
 endfunction
 "---------------------------------------}}}
@@ -922,7 +922,7 @@ function! StartBreak(minutes, ...)"-----{{{
 	let g:pomodoro_break_timer_ms = a:minutes*60*1000 - 1000
 	" we repeat with 10 seconds margin; justification: we can only specify the <minimum> time before the function starts, so each second is potentially delayed
 	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_break_timer_ms', "'csharpKeyword'"]), {'repeat': a:minutes * 60 - 1 - 10})
-	call popup_create(printf('[%s]   (*´∀`*)   Well done! End of the pomodoro session %d!', strftime('%Hh%M'), g:cyclecount), { 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpClassName'], 4), 'close': 'button' })
+	call popup_create(printf('[%s]   (*´∀`*)   Well done! End of the pomodoro session %d!', strftime('%Hh%M'), g:cyclecount), { 'time': 60*1000, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpClassName'], 4), 'close': 'button' })
 endfunction
 "---------------------------------------}}}
 augroup pomodoro
