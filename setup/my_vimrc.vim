@@ -151,6 +151,11 @@ function! ExecuteAndAddIntoHistory(script)
 	execute(a:script)
 endfunction
 
+function! ClearTrailingWhiteSpaces()
+	%s/\s\+$//e
+endfunction
+command ClearTrailingWhiteSpaces call ClearTrailingWhiteSpaces()
+
 "---------------------------------------}}}
 
 " AZERTY Keyboard:
