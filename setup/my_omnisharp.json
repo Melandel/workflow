@@ -1,5 +1,9 @@
 {
 	"FormattingOptions": {
 		"UseTabs": true
+	},
+	"MsBuild":
+	{
+			"UseLegacySdkResolver": true
 	}
 }

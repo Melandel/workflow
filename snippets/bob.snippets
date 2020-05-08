@@ -1,0 +1,25 @@
+snippet node "diagram node with rounded corners" b
+${0}`!p
+snip.rv = f'.{"-"*(len(t[1])+5+6-2)}.\n|'
+ `{w} ${1:${VISUAL:content}}`!p
+snip.rv = f'     |\n\'{"-"*(len(t[1])+5+6-2)}\''
+`
+endsnippet
+
+snippet rnode "diagram node with square corners" b
+${0}`!p
+snip.rv = f'+{"-"*(len(t[1])+5+6-2)}+\n|'
+ `{w} ${1:${VISUAL:content}}`!p
+snip.rv = f'     |\n+{"-"*(len(t[1])+5+6-2)}+'
+`
+endsnippet
+
+snippet title "long diagram node for title" b
+`!p
+if not snip.c:
+	width = int(vim.eval("&textwidth")) or 71
+snip.rv = f'+{"-"*(width-2)}+\n'
+ `${0}${1:${VISUAL:content}} {U}`!p
+snip.rv = f'\n+{"-"*(width-2)}+'
+`
+endsnippet

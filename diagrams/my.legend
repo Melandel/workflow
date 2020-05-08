@@ -1,0 +1,31 @@
+# Legend:
+g = {
+ fill: #8CB369;
+}
+G = {
+ fill: #A1CCA5;
+}
+u = {
+ fill: #84ACCE;
+}
+U = {
+ fill: #729FCF;
+}
+b = {
+ fill: #C8AB83;
+}
+B = {
+ fill: #D3CCA6;
+}
+r = {
+ fill: #FCB97D;
+}
+R = {
+ fill: #FF8E72;
+}
+w = {
+ fill: #abadb0;
+}
+W = {
+ fill: #E8E5DA;
+}

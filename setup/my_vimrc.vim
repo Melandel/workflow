@@ -11,12 +11,12 @@ function! MinpacInit()
 	packadd minpac
 	call minpac#init( #{dir:$VIM, package_name: 'plugins' } )
 
-	call minpac#add('dense-analysis/ale')
+	call minpac#add('dense-analysis/ale')" , {'rev': '41ff80dc9ec2cc834cc8c4aaa753e308223d48b8'})
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('jremmen/vim-ripgrep')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
-	call minpac#add('OmniSharp/omnisharp-vim')
+	call minpac#add('OmniSharp/omnisharp-vim')" , {'rev': 'c9f457ab86c197edc58a3463fbf407e9168d79b9'})
 
 	call minpac#add('SirVer/ultisnips')
 	call minpac#add('honza/vim-snippets')
@@ -32,7 +32,7 @@ function! MinpacInit()
 	call minpac#add('wellle/targets.vim')
 	call minpac#add('michaeljsmith/vim-indent-object')
 
-	call minpac#add('Melandel/DrawIt')
+	"call minpac#add('Melandel/DrawIt')
 	call minpac#add('Melandel/vim-empower')
 	call minpac#add('Melandel/fzfcore.vim')
 	call minpac#add('Melandel/gvimtweak')
@@ -80,6 +80,7 @@ set backup
 set backupdir=$HOME/Desktop/tmp/vim
 set undofile
 set undodir=$HOME/Desktop/tmp/vim
+set viewdir=$HOME/Desktop/tmp/vim
 set shellslash " path autocompletion works either with \, either with /. ripgrep path arguments needs either \\, either /. Let's use /.
 
 " GVim specific
@@ -95,6 +96,9 @@ if has("gui_running")
 
 endif
 " ---------------------------------------}}}1
+" Line Wrapping"------------------------{{{1
+nnoremap <silent> <Leader>W :set wrap!<CR>
+"---------------------------------------}}}1
 " Tabs and Indentation" -----------------{{{
 set smartindent
 set tabstop=1
@@ -103,7 +107,7 @@ set shiftwidth=1
 nnoremap > >>
 nnoremap < <<
 
-command! -bar Spaces2Tabs set noet ts=2 |%retab!
+command! -bar Spaces2Tabs set noet ts=4 |%retab!|set ts=1
 " ---------------------------------------}}}
 " Leader keys" --------------------------{{{
 let mapleader = 's'
@@ -112,8 +116,6 @@ let maplocalleader = 'q'
 " Local Current Directories" ------------{{{
 function! LcdToGitRoot()"---------------{{{2
 	let gitrootdir = fnamemodify(gitbranch#dir(expand('%:p')), ':h')
-
-	echo printf('Current directory path set to: %s', gitrootdir)
 	execute(printf('lcd %s', gitrootdir))
 endfunction
 "---------------------------------------}}}2
@@ -126,11 +128,11 @@ function! LcdToSlnOrCsproj(...)" --------{{{2
 	execute(printf('lcd %s', srcRoot))
 endfunc
 " ---------------------------------------}}}2
-command LG call LcdToGitRoot()
+command! -bar Lcd silent lcd $desktop | call LcdToGitRoot() | call LcdToSlnOrCsproj() | echomsg printf('Current directory path set to: %s', getcwd())
 
 augroup lcd
 	au!
-	autocmd BufRead,WinEnter * silent lcd $desktop | silent call LcdToGitRoot() | silent call LcdToSlnOrCsproj()
+	autocmd BufRead * lcd $desktop | call LcdToGitRoot() | call LcdToSlnOrCsproj()
 augroup end
 " ---------------------------------------}}}
 " Utils"--------------------------------{{{
@@ -223,7 +225,7 @@ nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 nnoremap <Leader>s :split<CR>
 nnoremap <Leader>v :vsplit<CR>
 nnoremap K :q<CR>
-nnoremap <Leader>o mW:tabnew<CR>`W:silent call ToggleMyFiles()<CR>
+nnoremap <Leader>o mW:tabnew<CR>`W
 nnoremap <silent> <Leader>x :tabclose<CR> | nnoremap <C-s>x :tabclose<CR>
 nnoremap <Leader>X :tabonly<CR>:sp<CR>:q<CR>:let g:zindex+=1<CR>:call DisplayPopupTime()<CR>
 
@@ -260,7 +262,28 @@ nnoremap <silent> <A-h> :vert res -2<CR>
 nnoremap <silent> <A-l> :vert res +2<CR>
 nnoremap <silent> <A-j> :res -2<CR>
 nnoremap <silent> <A-k> :res +2<CR>
-nnoremap <silent> <A-m> <C-W>=
+
+" Resize a window for some text
+function! FocusLines(nblines)"----------{{{2
+	split
+	wincmd k
+ setlocal nowrap
+
+	let winid = win_getid()
+	wincmd h
+	let is_leftmost_win = win_getid() == winid
+	if is_leftmost_win
+		setlocal winfixwidth
+	else
+		call win_gotoid(winid)
+	endif
+
+ execute('resize '.(a:nblines+2+1))
+	normal! kztj
+endfunction
+"---------------------------------------}}}2
+command! -nargs=1 -bar FocusLines call FocusLines(<f-args>)
+nnoremap <Leader>r :FocusLines 
 
 " Alternate file fast switching
 nnoremap <Leader>d :b #<CR>
@@ -291,7 +314,29 @@ nnoremap SL :SwapWindows l<CR> | nnoremap SLJ :SwapWindows lj<CR> | nnoremap SLK
 " Status bar" ---------------------------{{{1
 set laststatus=2
 function! FoldLevel()"-------------------{{{2
-	return printf('FoldLevel:%d', &foldlevel)
+	if &foldlevel == 0
+		return 'O'
+	elseif &foldlevel == 1
+		return 'I'
+	elseif &foldlevel == 2
+		return 'II'
+	elseif &foldlevel == 3
+		return 'III'
+	elseif &foldlevel == 4
+		return 'IV'
+	elseif &foldlevel == 5
+		return 'V'
+	elseif &foldlevel == 6
+		return 'VI'
+	elseif &foldlevel == 7
+		return 'VII'
+	elseif &foldlevel == 8
+		return 'VIII'
+	elseif &foldlevel == 9
+		return 'IX'
+	else
+		return string(&foldlevel)
+	endif
 endfunction
 "----------------------------------------}}}2
 function! FileSizeAndRows() abort" ------{{{2
@@ -322,39 +367,39 @@ function! FileSizeAndRows() abort" ------{{{2
 	return printf('%drows[%s]:%d%%', rows, size, percent)
 endfunction
 " ---------------------------------------}}}2
-function! MyFilePathIndicator() abort" --{{{2
-	let path = GitRootAndCwd()
+function! GitBranchAndPathInfo()"-------{{{2
+	let gitinfo = GitInfo()
+	let gitfolderpath = GitFolderPath()
 
-	let current_directory = getcwd()
-	if stridx(path, fnamemodify(current_directory, ':t')) == -1
-		let path .= printf(' %s/%s', fnamemodify(current_directory, ':h:t'), fnamemodify(current_directory, ':t'))
-	endif
-	
-	let path .= ' '.GitFilePath()
+	return gitinfo . ' => ' . (gitfolderpath == '' ? '' : gitfolderpath.'/' ) . expand('%:t')
+endfunction
+"---------------------------------------}}}2
+function! GitInfo()"--------------------{{{2
+	let filepath = expand('%:p')
+	let gitbranch = gitbranch#name()
+	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
+	let gitrootfolderinfo = fnamemodify(gitrootfolder, ':h:t') . '/' . fnamemodify(gitrootfolder, ':t')
+	let filegitpath = filepath[len(gitrootfolder)+1:]
 
-	return substitute(path, fnamemodify(current_directory, ':t') , '(&)', '')
+	return printf('%s [%s]', gitrootfolderinfo, gitbranch)
 endfunction
-" ---------------------------------------}}}2
-function! GitFilePath()" ----------------{{{2
-	let file_path_absolute = expand('%:p')
-	let git_path_absolute = fnamemodify(gitbranch#dir(file_path_absolute), ':h')
-	
-	return git_path_absolute == '.' ? expand('%') : file_path_absolute[len(git_path_absolute)+1:]
-endfunction
-" ---------------------------------------}}}2
-function! GitRootAndCwd()" --------------{{{2
-	let file_path_absolute = expand('%:p')
-	let git_path_absolute = fnamemodify(gitbranch#dir(file_path_absolute), ':h')
+"---------------------------------------}}}2
+function! GitFolderPath()"--------------------{{{2
+	let filepath = expand('%:p')
+	let folderpath = expand('%:p:h')
+	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
+	let gitrootfolderinfo = fnamemodify(gitrootfolder, ':h:t') . '/' . fnamemodify(gitrootfolder, ':t')
+	let foldergitpath = folderpath[len(gitrootfolder)+1:]
 
-	return git_path_absolute == '.' ? '' :	printf('%s[%s/%s]', gitbranch#name(), fnamemodify(git_path_absolute, ':h:t'), fnamemodify(git_path_absolute, ':t')) 
+	return foldergitpath
 endfunction
-" ---------------------------------------}}}2
+"---------------------------------------}}}2
 
 let g:lightline = {
 	\ 'colorscheme': 'empower',
-	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'mypathinfo': 'MyFilePathIndicator', 'gitpath': 'GitFilePath', 'gitroot': 'GitRootAndCwd', 'fl': 'FoldLevel' },
-	\ 'active':   {   'left':  [ [ 'mode', 'fl', 'paste', 'readonly', 'modified' ], [ 'mypathinfo' ] ], 'right': [ [ 'filesize_and_rows' ]               ] },
-	\ 'inactive': {   'left':  [ [ 'gitroot' ]                                                       ], 'right': [ [ 'gitpath', 'modified', 'readonly' ] ] }
+	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'foldlevel': 'FoldLevel', 'mypathinfo': 'GitBranchAndPathInfo', 'gitfolderpath': 'GitFolderPath', 'gitinfo': 'GitInfo' },
+	\ 'active':   {   'left':  [ [ 'mode', 'paste', 'readonly', 'modified' ], [ 'foldlevel', 'mypathinfo' ] ], 'right': [ [ 'filesize_and_rows' ]              ] },
+	\ 'inactive': {   'left':  [ [], [], ['gitinfo']                                                            ], 'right': [ [ 'filename', 'modified', 'readonly' ], ['gitfolderpath'] ] }
 \}
 " ---------------------------------------}}}1
 
@@ -685,7 +730,7 @@ function! ToggleUpdatedFoldLevel()"------{{{2
 	endif
 endfunction
 "----------------------------------------}}}2
-function! MoveToPreviousFoldBeginning()
+function! GoToPreviousFoldBeginning()"--{{{2
 	keepjumps normal! zk
 	if CursorIsInClosedFold()
 		return
@@ -693,6 +738,7 @@ function! MoveToPreviousFoldBeginning()
 		keepjumps normal! [z
 	endif
 endfunction
+"---------------------------------------}}}2
 
 set foldmethod=expr
 set foldexpr=MyFoldExpr()
@@ -701,10 +747,11 @@ set foldtext=MyFoldText()
 command! -bar -range FoldCreate <line1>,<line2>call MyFoldCreate()
 
 nnoremap <silent> <Space> :silent call ToggleUpdatedFoldLevel()<CR>
+nnoremap <silent> zv zvzz
 nnoremap <silent> zf <S-V>:FoldCreate<CR>
 vnoremap <silent> zf :FoldCreate<CR>
 nnoremap <silent> zj :keepjumps normal! zj<CR>
-nnoremap <silent> zk :silent call MoveToPreviousFoldBeginning()<CR>
+nnoremap <silent> zk :silent call GoToPreviousFoldBeginning()<CR>
 nnoremap <silent> z{ [z
 nnoremap <silent> z} ]z
 
@@ -784,26 +831,32 @@ if len(mybuffers) >= 3
 endfunction
 " ---------------------------------------}}}2
 function! ShowMyFiles()"----------------{{{2
-		mark V
-		let originalWinNr = winnr()
+		let original_winid = win_getid(winnr())
+		windo setlocal winfixheight winfixwidth
+
+		let botright_winid =win_getid(winnr('$')) 
+		call win_gotoid(botright_winid)
+		setlocal nowinfixheight nowinfixwidth
+
 		vnew $desktop/my.day | normal! Gzx[zkzt
 		wincmd L
 		new $desktop/my.happyplace |normal! Gzx[zkzt 
 		new $desktop/my.todo
 		new $desktop/my.notabene
 		vertical resize 50
-		setlocal winfixwidth
-		execute(originalWinNr.'wincmd w')
-		normal! `V
-		delmarks V
+		call win_gotoid(original_winid)
 endfunction
 "---------------------------------------}}}2
-function! HideMyFiles(...)"----------------{{{2
-	let mybuffers = (a:0 > 0) ? a:1 :filter(tabpagebuflist(), {idx, itm -> bufname(itm) =~ 'my\.'}) 
+function! HideMyFiles(...)"-------------{{{2
+	let original_winid = win_getid(winnr())
+	let mybuffers = (a:0 > 0) ? a:1 :filter(copy(tabpagebuflist()), {idx, itm -> bufname(itm) =~ 'my\.'}) 
 
 	for bufid in mybuffers
 		call win_gotoid(bufwinid(bufid)) | write | quit
 	endfor
+
+	call win_gotoid(original_winid)
+	windo setlocal nowinfixheight nowinfixwidth
 endfunction
 "---------------------------------------}}}2
 command! ShowMyFiles silent call ShowMyFiles()
@@ -1062,13 +1115,40 @@ inoremap <silent> ^v <Esc>:call DeclareBracketContent()<CR>
 vnoremap <silent> <CR> om'h<Esc>:call CloseBracket(CurrentCharacter())<CR>
 "---------------------------------------}}}1
 " Diagrams"-----------------------------{{{1
+function! InitNewDiagram(filename)"-------------{{{2
+	execute(printf('tabedit %s.bob',a:filename))
+	read my.legend
+ call feedkeys("ggOnode\<Tab>")
+endfunction
+"---------------------------------------}}}2
+command! -nargs=1 -bar NewDiagram lcd $desktop/diagrams | call InitNewDiagram(<f-args>)
+nnoremap <Leader>D :NewDiagram 
+function! RegisterBoxLineTypes()"-------{{{2
+	"empty box line
+	let @e=@"[0] . repeat(' ', len(@")-2). @"[len(@")-1]
+
+	"border box line
+	let @b="'" . repeat('-', len(@")-2). "'"
+
+	"limit box line (second bordere type)
+	let @l="'" . repeat('~', len(@")-2). "'"
+endfunction
+"---------------------------------------}}}2
 augroup mydiagrams
 	autocmd!
-	autocmd BufWinEnter *.bob silent set fileformat=unix
-	autocmd BufWritePost *.bob silent exec('!svgbob "%:p" -o "%:p:r.svg"') | call OpenWebUrl(substitute(printf('%s.svg', expand('%:p:r')), '/', '\\', 'g'))
+	autocmd BufRead,BufWinEnter *.bob silent setlocal filetype=bob fileformat=unix 
+ autocmd BufRead,BufWinEnter *.bob silent set virtualedit=all
+	autocmd BufLeave *.bob silent set virtualedit=
+	autocmd BufRead,BufWinEnter *.bob silent vnoremap <buffer> p p 
+	autocmd BufRead,BufWinEnter *.bob silent vnoremap <buffer> vv F\|<C-v>,
+	autocmd BufRead,BufWinEnter *.bob silent vnoremap <buffer> vV F\!<C-v>,
+	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> H r-h
+	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> J r\|j
+	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> K r\|k
+	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> L r-l
+	autocmd TextYankPost *.bob call RegisterBoxLineTypes()
+	autocmd BufWritePost *.bob silent exec('!svgbob "%:p" -o "%:p:r.svg" --background \#575b61 --fill-color \#abadb0') | call OpenWebUrl('', substitute(printf('%s.svg', expand('%:p:r')), '/', '\\', 'g'))
 augroup END
-
-nnoremap <Leader>D :20new \| lcd $desktop/diagrams \| normal! yy18pgg<CR>:DrawIt<CR>
 "---------------------------------------}}}1
 
 
@@ -1171,13 +1251,16 @@ let d = CsParseMemberDeclaration(line)
 return printf('%s%s%s%s %s -> %s [%s line%s]', d.indent, d.meta.shortversion, repeat(' ', 4-len(d.meta.shortversion)), d.name, empty(d.params) ? '' : '{ '.join(map(d.params, {_,itm->printf('%s @%s',itm.name, itm.type)}), ', ').' }', d.output, foldedlinecount, foldedlinecount > 1 ? 's' : '')
 endfunction
 "  --------------------------------------}}}2
-let g:OmniSharp_server_stdio = 1"--------{{{
+let g:OmniSharp_server_stdio = 1
+let g:ale_linters = { 'cs': ['OmniSharp'] }
 let g:OmniSharp_popup_options = {
 \ 'highlight': 'csharpClassName',
 \ 'padding': [1,1,1,2],
 \ 'border': [1],
 \ 'borderhighlight': ['csharpInterfaceName']
 \}
+"let g:OmniSharp_start_without_solution = 1
+let g:OmniSharp_loglevel = 'debug'
 let g:OmniSharp_highlight_types = 3
 let g:OmniSharp_selector_ui = 'fzf'
 let g:OmniSharp_want_snippet=1
