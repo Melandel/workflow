@@ -263,6 +263,10 @@ nnoremap <silent> <A-k> :res +2<CR>|      tnoremap <silent> <A-k> <C-W>N:res +2<
 " Resize a window for some text
 function! FocusLines(...) range"--------{{{2
 	let nblines_minus_one = (a:0 == 1) ? a:1 : (a:lastline - a:firstline)
+	if getline(a:lastline) =~ '^\s*$'
+		echomsg 'hehe'
+		let nblines_minus_one -=1
+	endif
 
 	split
 	wincmd k
