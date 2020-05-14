@@ -264,7 +264,6 @@ nnoremap <silent> <A-k> :res +2<CR>|      tnoremap <silent> <A-k> <C-W>N:res +2<
 function! FocusLines(...) range"--------{{{2
 	let nblines_minus_one = (a:0 == 1) ? a:1 : (a:lastline - a:firstline)
 	if getline(a:lastline) =~ '^\s*$'
-		echomsg 'hehe'
 		let nblines_minus_one -=1
 	endif
 
@@ -992,7 +991,7 @@ function! GetQuote()
 	return allquotes[random_index]
 endfunction
 
-command! Quote echo GetQuote()
+command! Quote echomsg GetQuote()
 
 nnoremap <Leader>Q :Quote<CR>
 " ---------------------------------------}}}1
