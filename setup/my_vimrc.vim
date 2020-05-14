@@ -13,7 +13,6 @@ function! MinpacInit()
 
 	call minpac#add('dense-analysis/ale')" , {'rev': '41ff80dc9ec2cc834cc8c4aaa753e308223d48b8'})
 	call minpac#add('junegunn/fzf.vim')
-	call minpac#add('jremmen/vim-ripgrep')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
 	call minpac#add('OmniSharp/omnisharp-vim')" , {'rev': 'c9f457ab86c197edc58a3463fbf407e9168d79b9'})
@@ -32,7 +31,6 @@ function! MinpacInit()
 	call minpac#add('wellle/targets.vim')
 	call minpac#add('michaeljsmith/vim-indent-object')
 
-	"call minpac#add('Melandel/DrawIt')
 	call minpac#add('Melandel/vim-empower')
 	call minpac#add('Melandel/fzfcore.vim')
 	call minpac#add('Melandel/gvimtweak')
@@ -81,7 +79,6 @@ set backupdir=$HOME/Desktop/tmp/vim
 set undofile
 set undodir=$HOME/Desktop/tmp/vim
 set viewdir=$HOME/Desktop/tmp/vim
-set shellslash " path autocompletion works either with \, either with /. ripgrep path arguments needs either \\, either /. Let's use /.
 
 " GVim specific
 if has("gui_running")
@@ -258,13 +255,15 @@ nnoremap <Leader>K <C-W>K
 nnoremap <Leader>L <C-W>L
 
 " Resize Window
-nnoremap <silent> <A-h> :vert res -2<CR>
-nnoremap <silent> <A-l> :vert res +2<CR>
-nnoremap <silent> <A-j> :res -2<CR>
-nnoremap <silent> <A-k> :res +2<CR>
+nnoremap <silent> <A-h> :vert res -2<CR>| tnoremap <silent> <A-h> <C-W>N:vert res -2<CR>zb
+nnoremap <silent> <A-l> :vert res +2<CR>| tnoremap <silent> <A-l> <C-W>N:vert res +2<CR>zb
+nnoremap <silent> <A-j> :res -2<CR>|      tnoremap <silent> <A-j> <C-W>N:res -2<CR>zb
+nnoremap <silent> <A-k> :res +2<CR>|      tnoremap <silent> <A-k> <C-W>N:res +2<CR>zb
 
 " Resize a window for some text
-function! FocusLines(nblines)"----------{{{2
+function! FocusLines(...) range"--------{{{2
+	let nblines_minus_one = (a:0 == 1) ? a:1 : (a:lastline - a:firstline)
+
 	split
 	wincmd k
  setlocal nowrap
@@ -278,12 +277,24 @@ function! FocusLines(nblines)"----------{{{2
 		call win_gotoid(winid)
 	endif
 
- execute('resize '.(a:nblines+2+1))
+ execute('resize '.(nblines_minus_one+2+1))
 	normal! kztj
 endfunction
 "---------------------------------------}}}2
-command! -nargs=1 -bar FocusLines call FocusLines(<f-args>)
+command! -range -nargs=? -bar FocusLines <line1>,<line2>call FocusLines(<f-args>)
 nnoremap <Leader>r :FocusLines 
+vnoremap <Leader>r :FocusLines<CR>
+
+" Move to window by number
+nnoremap <silent> <Leader>& 1<C-W>W
+nnoremap <silent> <Leader>é 2<C-W>W
+nnoremap <silent> <Leader>" 3<C-W>W
+nnoremap <silent> <Leader>' 4<C-W>W
+nnoremap <silent> <Leader>( 5<C-W>W
+nnoremap <silent> <Leader>- 6<C-W>W
+nnoremap <silent> <Leader>è 7<C-W>W
+nnoremap <silent> <Leader>_ 8<C-W>W
+nnoremap <silent> <Leader>ç 9<C-W>W
 
 " Alternate file fast switching
 nnoremap <Leader>d :b #<CR>
@@ -394,12 +405,15 @@ function! GitFolderPath()"--------------------{{{2
 	return foldergitpath
 endfunction
 "---------------------------------------}}}2
+function! WinNr()
+	return winnr()
+endfunction
 
 let g:lightline = {
 	\ 'colorscheme': 'empower',
-	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'foldlevel': 'FoldLevel', 'mypathinfo': 'GitBranchAndPathInfo', 'gitfolderpath': 'GitFolderPath', 'gitinfo': 'GitInfo' },
+	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'foldlevel': 'FoldLevel', 'mypathinfo': 'GitBranchAndPathInfo', 'gitfolderpath': 'GitFolderPath', 'gitinfo': 'GitInfo', 'winnr': 'WinNr' },
 	\ 'active':   {   'left':  [ [ 'mode', 'paste', 'readonly', 'modified' ], [ 'foldlevel', 'mypathinfo' ] ], 'right': [ [ 'filesize_and_rows' ]              ] },
-	\ 'inactive': {   'left':  [ [], [], ['gitinfo']                                                            ], 'right': [ [ 'filename', 'modified', 'readonly' ], ['gitfolderpath'] ] }
+	\ 'inactive': {   'left':  [ [], [], ['gitinfo']                                                            ], 'right': [ [ 'filename', 'winnr', 'modified', 'readonly' ], ['gitfolderpath'] ] }
 \}
 " ---------------------------------------}}}1
 
@@ -920,7 +934,7 @@ function! DisplayTimer(t, hi, ...)"-----{{{2
 	execute('let '.a:t.' -= 1000')
 endfunction
 "---------------------------------------}}}2
-function! StartCycles()"----------------{{{2
+function! StartCycles(...)"----------------{{{2
 	let session_time_in_minutes = 25
 	let break_time_in_minutes = 5
 	let cycle_time_in_minutes = session_time_in_minutes + break_time_in_minutes
@@ -964,7 +978,7 @@ endfunction
 "---------------------------------------}}}
 augroup pomodoro
 	au!
-	autocmd VimEnter * call StartCycles()
+	autocmd VimEnter * call timer_start(2000, 'StartCycles')
 augroup end
 " ---------------------------------------}}}1
 " Quotes" -------------------------------{{{1
@@ -1007,8 +1021,8 @@ let g:vifm_exec_args.= ' +"highlight CmdLine cterm=none ctermfg=default ctermbg=
 let g:vifm_exec_args.= ' +"highlight WildMenu cterm=none ctermfg=NavajoWhite1 ctermbg=Grey46"'
 let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('v', $v)
 let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('p', $p)
-nnoremap <silent> <expr> <Leader>e ":set noshellslash \| Vifm " . (bufname()=="" ? "." : "%:p:h") . " . \| set shellslash\<CR>"
-nnoremap <silent> <expr> <Leader>E ":set noshellslash \| vs\<CR>:Vifm " . (bufname()=="" ? "." : "%:p:h") . " . \| set shellslash\<CR>"
+nnoremap <silent> <expr> <Leader>e ":Vifm " . (bufname()=="" ? "." : "%:p:h") . "\<CR>"
+nnoremap <silent> <expr> <Leader>E ":vs\<CR>:Vifm " . (bufname()=="" ? "." : "%:p:h") . "\<CR>"
 
 " ---------------------------------------}}}1
 " Web Browsing" -------------------------{{{1
@@ -1146,112 +1160,15 @@ augroup mydiagrams
 	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> J r\|j
 	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> K r\|k
 	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> L r-l
+	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> <silent> <Leader>w :exec('silent !svgbob "%:p" -o "%:p:r.svg" --background \#575b61 --fill-color transparent') \| call OpenWebUrl('', printf('%s.svg', expand('%:p:r')))<CR>
 	autocmd TextYankPost *.bob call RegisterBoxLineTypes()
-	autocmd BufWritePost *.bob silent exec('!svgbob "%:p" -o "%:p:r.svg" --background \#575b61 --fill-color \#abadb0') | call OpenWebUrl('', substitute(printf('%s.svg', expand('%:p:r')), '/', '\\', 'g'))
 augroup END
 "---------------------------------------}}}1
 
 
 " Specific Workflows:
 " cs(c#)" -------------------------------{{{1
-function! CsFoldExpr()" -----------------{{{2
-	if !exists('g:fold_levels')
-		let g:fold_levels = []
-	endif
-
-	let bufnr=bufnr('%')
-	if v:lnum ==1
-		let nb_lines = line('$')
-		let g:fold_levels = map(range(nb_lines+1), {x-> '='})
-		let g:fold_levels[nb_lines] = 0
-		let g:fold_levels[nb_lines-1] = 0
-		let recent_member_declaration = 1
-		let recent_class_declaration = 1
-		let pat_member_declaration_beginning                             = '\v^%(' . repeat('\t', 3) . '*|' . repeat('\ ', 2*&tabstop+1) . '*)<%(private|protected|public)>' 
-		let pat_member_declaration_end_if_right_before_another_beginning = '\v%(^.*})|;\s*$'
-		let pat_attribute_or_comment                                     = '\v^%(' . repeat('\t', 3) . '*|' . repeat('\ ', 2*&tabstop+1) . '*)%(/|[).*$'
-		let pat_class_or_interface_or_enum_or_struct                               = '\v<%(class|interface|enum|struct)>'
-
-		for i in range(nb_lines-2, 1, -1)
-			let line = getline(i)
-
-			if line =~ pat_member_declaration_beginning && line !~ pat_class_or_interface_or_enum_or_struct
-				let recent_member_declaration = 1
-				if line =~pat_member_declaration_end_if_right_before_another_beginning
-					let g:fold_levels[i] = '='
-				else
-					let g:fold_levels[i] = 'a1'
-				endif
-			elseif line =~ pat_class_or_interface_or_enum_or_struct
-				let recent_class_declaration = 1
-			elseif line =~ pat_member_declaration_end_if_right_before_another_beginning
-				if recent_class_declaration	
-					let g:fold_levels[i] = '='
-					let recent_class_declaration = 0
-				elseif recent_member_declaration
-					let g:fold_levels[i] = 's1'
-					let recent_member_declaration = 0
-				endif
-			elseif line =~ pat_attribute_or_comment	&& g:fold_levels[i+1] == 'a1'
-				let g:fold_levels[i+1] = '='
-				let g:fold_levels[i] = 'a1'
-			endif
-		endfor
-endif
-
-let res = g:fold_levels[v:lnum]
-"echomsg printf('[%d:%s;%d] %s', v:lnum, res, match(getline(v:lnum), '\v<%(class|interface)>'),getline(v:lnum))
-return res
-endfunction
-" ---------------------------------------}}}2
-function! CsParseMemberDeclaration(line)" ---{{{2
-	if !exists('g:keywords_mapping')
-		let g:keywords_mapping = { 'public': '+', 'internal': '&', 'protected': '|', 'private': '-', 'static': '^', 'abstract': '%', 'override': 'o', 'async': 'a'}
-	endif
-	let res = {}
-	let res.name = matchlist(a:line, '\v(%(\w|\<|\>|\[|\])+)\(')[1]
-	if (expand('%:t') == printf('%s.cs', res.name ))
-		let res.output = res.name
-	else
-		let res.output = matchlist(a:line, '\v(%(\w|\<|\>|\[|\])+) %(\w|\<|\>|\[|\])+\(')[1] 
-	end
-
-	let res.indent = a:line[:match(a:line, '\a')-1]
-
-	let meta_keywords = split(a:line[:stridx(a:line, res.output)-1], '\s\+')
-	let res.meta = {'keywords':[], 'shortversion': ''}
-	for kw in meta_keywords
-		call add(res.meta.keywords, kw)
-		let res.meta.shortversion.= get(g:keywords_mapping, kw)
-	endfor
-
-	let res.params = []
-	let params = split(a:line[stridx(a:line, res.name)+ len(res.name) + 1:match(a:line, '\)')-1], ', ')
-	for param in params
-		let parsed = split(param, ' ')
-		call add(res.params, {'type': parsed[0], 'name': parsed[1]})
-	endfor
-
-	return res
-endfunction
-" ---------------------------------------}}}2
-function! CsFoldText()" -----------------{{{2
-	let titleLineNr = v:foldstart
-	let line = getline(titleLineNr)
-
-	while (match(line, '\v^\s+([|\<)') >= 0 && titleLineNr < v:foldend)
-		let titleLineNr += 1
-	let line = getline(titleLineNr)
-	endwhile
-let nucolwidth = &fdc + &number * &numberwidth
-let windowwidth = winwidth(0) - nucolwidth - (&foldcolumn ? 3 : 0)
-let foldedlinecount = v:foldend - v:foldstart - 1
-
-let d = CsParseMemberDeclaration(line)
-return printf('%s%s%s%s %s -> %s [%s line%s]', d.indent, d.meta.shortversion, repeat(' ', 4-len(d.meta.shortversion)), d.name, empty(d.params) ? '' : '{ '.join(map(d.params, {_,itm->printf('%s @%s',itm.name, itm.type)}), ', ').' }', d.output, foldedlinecount, foldedlinecount > 1 ? 's' : '')
-endfunction
-"  --------------------------------------}}}2
-let g:OmniSharp_server_stdio = 1
+let g:OmniSharp_server_stdio = 1"-------{{{2
 let g:ale_linters = { 'cs': ['OmniSharp'] }
 let g:OmniSharp_popup_options = {
 \ 'highlight': 'csharpClassName',
@@ -1259,7 +1176,6 @@ let g:OmniSharp_popup_options = {
 \ 'border': [1],
 \ 'borderhighlight': ['csharpInterfaceName']
 \}
-"let g:OmniSharp_start_without_solution = 1
 let g:OmniSharp_loglevel = 'debug'
 let g:OmniSharp_highlight_types = 3
 let g:OmniSharp_selector_ui = 'fzf'
@@ -1295,11 +1211,10 @@ let g:OmniSharp_highlight_groups = {
 	\ 'csharpXmlDocCommentDelimiter': [ 'xml doc comment - delimiter' ],
 	\ 'csharpXmlDocCommentText':      [ 'xml doc comment - text'      ]
 	\ }
-"----------------------------------------}}}
+"----------------------------------------}}}2
 
 	augroup csharpfiles
 		au!
-		"autocmd BufEnter *.cs setlocal foldmethod=expr foldexpr=CsFoldExpr() foldtext=CsFoldText()
 		autocmd BufEnter *.cs setlocal errorformat=\ %#%f(%l\\\,%c):\ %m
 		autocmd BufEnter *.cs setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true
 		autocmd BufEnter *.cs nnoremap <LocalLeader>M :!dotnet run<CR>
