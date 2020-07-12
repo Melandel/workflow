@@ -11,11 +11,12 @@ function! MinpacInit()
 	packadd minpac
 	call minpac#init( #{dir:$VIM, package_name: 'plugins' } )
 
-	call minpac#add('dense-analysis/ale')" , {'rev': '41ff80dc9ec2cc834cc8c4aaa753e308223d48b8'})
+	call minpac#add('dense-analysis/ale')
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
-	call minpac#add('OmniSharp/omnisharp-vim')" , {'rev': 'c9f457ab86c197edc58a3463fbf407e9168d79b9'})
+	call minpac#add('OmniSharp/omnisharp-vim')
+	call minpac#add('nickspoons/vim-sharpenup')
 
 	call minpac#add('SirVer/ultisnips')
 	call minpac#add('honza/vim-snippets')
@@ -93,9 +94,6 @@ if has("gui_running")
 
 endif
 " ---------------------------------------}}}1
-" Line Wrapping"------------------------{{{1
-nnoremap <silent> <Leader>W :set wrap!<CR>
-"---------------------------------------}}}1
 " Tabs and Indentation" -----------------{{{
 set smartindent
 set tabstop=1
@@ -238,10 +236,12 @@ augroup windows
 	autocmd!
 	"
 	" foldcolumn serves here to give a visual clue for the current window
-	autocmd WinLeave * setlocal norelativenumber foldcolumn=0
-	autocmd WinEnter * setlocal relativenumber foldcolumn=1
+	autocmd WinLeave * if !pumvisible() | setlocal norelativenumber foldcolumn=0 | endif
+	autocmd WinEnter * if !pumvisible() | setlocal relativenumber foldcolumn=1 | endif
+
 	" Safety net if I close a window accidentally
 	autocmd QuitPre * mark K
+
 	" Make sure Vim returns to the same line when you reopen a file.
  autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute 'normal! g`"zvzz' | endif
 augroup end
@@ -255,10 +255,11 @@ nnoremap <Leader>K <C-W>K
 nnoremap <Leader>L <C-W>L
 
 " Resize Window
-nnoremap <silent> <A-h> :vert res -2<CR>| tnoremap <silent> <A-h> <C-W>N:vert res -2<CR>zb
-nnoremap <silent> <A-l> :vert res +2<CR>| tnoremap <silent> <A-l> <C-W>N:vert res +2<CR>zb
-nnoremap <silent> <A-j> :res -2<CR>|      tnoremap <silent> <A-j> <C-W>N:res -2<CR>zb
-nnoremap <silent> <A-k> :res +2<CR>|      tnoremap <silent> <A-k> <C-W>N:res +2<CR>zb
+nnoremap <silent> <Leader>_ <C-W>_| nnoremap <silent> <Leader>\| <C-W>\|
+nnoremap <silent> <A-h> :vert res -2<CR>| tmap <silent> <A-h> <C-W>N:vert res -2<CR>i
+nnoremap <silent> <A-l> :vert res +2<CR>| tmap <silent> <A-l> <C-W>N:vert res +2<CR>i
+nnoremap <silent> <A-j> :res -2<CR>|      tmap <silent> <A-j> <C-W>N:res -2<CR>i
+nnoremap <silent> <A-k> :res +2<CR>|      tmap <silent> <A-k> <C-W>N:res +2<CR>i
 
 " Resize a window for some text
 function! FocusLines(...) range"--------{{{2
@@ -384,18 +385,28 @@ endfunction
 function! GitBranchAndPathInfo()"-------{{{2
 	let gitinfo = GitInfo()
 	let gitfolderpath = GitFolderPath()
+	let filename = expand('%:t')
+	if filename == ''
+		let filename = '[No Name]'
+	endif
 
-	return gitinfo . ' => ' . (gitfolderpath == '' ? '' : gitfolderpath.'/' ) . expand('%:t')
+	return substitute(gitinfo . (gitinfo != '' ? ' => ' : '') . (gitfolderpath == '' ? '' : gitfolderpath.'/' ) . filename, '\', '/', 'g')
 endfunction
 "---------------------------------------}}}2
 function! GitInfo()"--------------------{{{2
 	let filepath = expand('%:p')
+	if filepath == ''
+		return ''
+	endif
+
 	let gitbranch = gitbranch#name()
 	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
 	let gitrootfolderinfo = fnamemodify(gitrootfolder, ':h:t') . '/' . fnamemodify(gitrootfolder, ':t')
 	let filegitpath = filepath[len(gitrootfolder)+1:]
+	let fileparent = expand('%:p:h:t')
+	let filegrandparent = expand('%:p:h:h:t')
 
-	return printf('%s [%s]', gitrootfolderinfo, gitbranch)
+	return substitute(printf('[%s] %s… %s/%s', gitbranch, gitrootfolderinfo, fileparent, filegrandparent), '\', '/', 'g')
 endfunction
 "---------------------------------------}}}2
 function! GitFolderPath()"--------------------{{{2
@@ -405,18 +416,28 @@ function! GitFolderPath()"--------------------{{{2
 	let gitrootfolderinfo = fnamemodify(gitrootfolder, ':h:t') . '/' . fnamemodify(gitrootfolder, ':t')
 	let foldergitpath = folderpath[len(gitrootfolder)+1:]
 
-	return foldergitpath
+	return substitute(foldergitpath, '\', '/', 'g')
 endfunction
 "---------------------------------------}}}2
 function! WinNr()
 	return winnr()
 endfunction
 
+exec("source $p/vim-sharpenup/autoload/sharpenup/statusline.vim")
+let g:sharpenup_statusline_opts = '%s'
+let g:sharpenup_statusline_opts = { 'Highlight': 0 }
+let g:sharpenup_statusline_opts = {
+\ 'TextLoading': '%s (Loading)',
+\ 'TextReady': '%s',
+\ 'TextDead': '%s (Not running)',
+\ 'Highlight': 0
+\}
 let g:lightline = {
 	\ 'colorscheme': 'empower',
 	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'foldlevel': 'FoldLevel', 'mypathinfo': 'GitBranchAndPathInfo', 'gitfolderpath': 'GitFolderPath', 'gitinfo': 'GitInfo', 'winnr': 'WinNr' },
-	\ 'active':   {   'left':  [ [ 'mode', 'paste', 'readonly', 'modified' ], [ 'foldlevel', 'mypathinfo' ] ], 'right': [ [ 'filesize_and_rows' ]              ] },
-	\ 'inactive': {   'left':  [ [], [], ['gitinfo']                                                            ], 'right': [ [ 'filename', 'winnr', 'modified', 'readonly' ], ['gitfolderpath'] ] }
+	\ 'component': { 'sharpenup': sharpenup#statusline#Build() },
+	\ 'active':   {   'left':  [ [ 'mode', 'paste', 'readonly', 'modified' ], [ 'sharpenup' ] ], 'right': [ ['filename' ], [ 'gitinfo' ] ] },
+	\ 'inactive': {   'left':  [ [ 'readonly', 'modified'], [ 'sharpenup' ] ], 'right': [ [ 'filename' ], [ 'gitinfo' ] ] }
 \}
 " ---------------------------------------}}}1
 
@@ -427,7 +448,7 @@ nnoremap k gk
 ""---------------------------------------}}}
 " Browsing File Architecture" -----------{{{1
 "
-function! BrowseLayoutDown()" -----------{{{2
+function! BrowseLayoutDown()" -----------{{{2 
 	if &diff
 		keepjumps execute 'silent! normal! ]czx'
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
@@ -463,6 +484,8 @@ nnoremap <silent> <C-K> :call BrowseLayoutUp()<CR>
 
 " ---------------------------------------}}}1
 " Current Line" -------------------------{{{1
+
+nnoremap <silent> . :let c= strcharpart(getline('.')[col('.') - 1:], 0, 1)\|exec "normal! f".c<CR>
 
 function! ExtendedHome()" ---------------{{{2
     let column = col('.')
@@ -622,24 +645,6 @@ set wildcharm=<Tab>
 set wildignorecase
 set wildmode=full
 
-function! EnterSubdir()"-----------------{{{2
-    call feedkeys("\<Down>", 't')
-    return ''
-endfunction
-"----------------------------------------}}}2
-cnoremap <expr> j (wildmenumode() == 1) ? EnterSubdir() : "j"
-
-function! MoveUpIntoParentdir()"---------{{{2
-    call feedkeys("\<Up>", 't')
-    return ''
-endfunction
-"----------------------------------------}}}2
-cnoremap <expr> k (wildmenumode() == 1) ? MoveUpIntoParentdir() : "k"
-
-cnoremap <expr> h (wildmenumode() == 1) ? "\<s-Tab>" : "h"
-cnoremap <expr> l (wildmenumode() == 1) ? "\<Tab>"   : "l"
-
-"cnoremap <expr> <Esc> (wildmenumode() == 1) ? " \<BS>"   : "\<Esc>"
 "----------------------------------------}}}1
 " Expanded characters" ------------------{{{1
 
@@ -667,14 +672,15 @@ set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ $*
 
 nnoremap <Leader>f :Files<CR>
 nnoremap <Leader>F :Files <C-R>=fnamemodify('.', ':p')<CR>
-nnoremap <Leader>g :Agrep --no-ignore-parent  <C-R>=fnamemodify('.', ':p')<CR><Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
-vnoremap <Leader>g "vy:let cmd = printf('Agrep --no-ignore-parent %s %s',escape(@v,'\\#%'),fnamemodify('.', ':p'))\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
+nnoremap <Leader>g :Lcd<CR>:Agrep --no-ignore-parent 
+vnoremap <Leader>g "vy:Lcd<CR>:let cmd = printf('Agrep --no-ignore-parent %s %s',escape(@v,'\\#%'),getcwd())\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
 "----------------------------------------}}}1
 " Registers" ----------------------------{{{1
 command! ClearRegisters for i in range(34,122) | silent! call setreg(nr2char(i), []) | endfor
 "----------------------------------------}}}1
 " Terminal" -----------------------------{{{1
 set termwinsize=12*0
+tnoremap <C-W>N <C-W>N:setlocal norelativenumber nonumber foldcolumn=0 nowrap<CR>zb
 "----------------------------------------}}}1
 " Folding" ------------------------------{{{1
 function! MyFoldExpr()" ----------------{{{2
@@ -769,8 +775,8 @@ nnoremap <silent> zf <S-V>:FoldCreate<CR>
 vnoremap <silent> zf :FoldCreate<CR>
 nnoremap <silent> zj :keepjumps normal! zj<CR>
 nnoremap <silent> zk :silent call GoToPreviousFoldBeginning()<CR>
-nnoremap <silent> z{ [z
-nnoremap <silent> z} ]z
+nnoremap <silent> zh [z
+nnoremap <silent> zl ]z
 
 "----------------------------------------}}}1
 " Search" -------------------------------{{{1
@@ -793,18 +799,27 @@ nnoremap <silent> n n:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> N N:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> * *<C-O>:UnderlineCurrentSearchItem<CR>
 vnoremap * "vy/\V<C-R>v\C<cr>:UnderlineCurrentSearchItem<CR>
+
+function! CopyMatches(reg)
+  let hits = []
+  %s//\=len(add(hits, submatch(0))) ? submatch(0) : ''/gne
+  let reg = empty(a:reg) ? '+' : a:reg
+  execute 'let @'.reg.' = join(hits, "\n") . "\n"'
+endfunction
+command! -nargs=? CopyMatches :call CopyMatches(<f-args>)
 "----------------------------------------}}}1
 " Autocompletion (Insert Mode)" ---------{{{1
 
 " <Enter> confirms selection
-inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
+"inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
 
 " <Esc> cancels popup menu
-inoremap <expr> <Esc> pumvisible() ? "\<C-E>" : "\<Esc>"
+"inoremap <expr> <Esc> pumvisible() ? "\<C-E>" : "\<Esc>"
 
 " <C-N> for omnicompletion, <C-P> for context completion
-inoremap <expr> <C-N> pumvisible() ? "\<C-N>" : (&omnifunc == '') ? "\<C-N>" : "\<C-X>\<C-O>"
-
+inoremap <expr> <C-N> pumvisible() ? '<Down>' : (&omnifunc == '') ? '<C-N>' : '<C-X><C-O>'
+"inoremap <expr> <C-P> pumvisible() ? '<Up>' : '<Up>'
+inoremap <C-P> <C-R>=pumvisible() ? "\<lt>Up>" : "\<lt>C-P>"<CR>
 "----------------------------------------}}}1
 " Diff" ---------------------------------{{{1
 
@@ -836,11 +851,11 @@ augroup end
 " Additional Functionalities:
 " My Files" -----------------------------{{{1
 function! GetMyFilesBuffers()
-	return filter(tabpagebuflist(), {idx, itm -> bufname(itm) =~ 'my\.'})
+	return filter(tabpagebuflist(), {idx, itm -> bufname(itm) =~ 'my\.day\|my\.happyplace\|my\.todo\|my\.notabene'})
 endfunction
 function! ToggleMyFiles()" --------------{{{2
 	let mybuffers = GetMyFilesBuffers()
-if len(mybuffers) >= 3
+if len(mybuffers) > 0 && len(mybuffers) % 4 == 0
 		call HideMyFiles(mybuffers)
 	else
 		call ShowMyFiles()
@@ -880,7 +895,7 @@ command! ShowMyFiles silent call ShowMyFiles()
 command! HideMyFiles silent call HideMyFiles()
 command! ToggleMyFiles silent call ToggleMyFiles()
 
-nnoremap <Leader>m :ToggleMyFiles<CR>
+nnoremap <Leader>m :ToggleMyFiles<CR> | nnoremap <C-W>m :ToggleMyFiles<CR> | tmap <C-S>m <C-W>N:ToggleMyFiles<CR>i
 
 augroup myfiles
 	au!
@@ -891,99 +906,99 @@ augroup end
 
 " ---------------------------------------}}}1
 " Full screen" --------------------------{{{
-let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
+let g:gvimtweak#window_alpha=200 " alpha value (180 ~ 255) default: 245
 let g:gvimtweak#enable_alpha_at_startup=1
 let g:gvimtweak#enable_topmost_at_startup=0
 let g:gvimtweak#enable_maximize_at_startup=1
 let g:gvimtweak#enable_fullscreen_at_startup=1
 nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
-nnoremap <silent> <A-n> :GvimTweakSetAlpha 10<CR>
-nnoremap <silent> <A-p> :GvimTweakSetAlpha -10<CR>
+nnoremap <silent> <A-n> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-n> <C-W>N:GvimTweakSetAlpha 10<CR>i
+nnoremap <silent> <A-p> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-p> <C-W>N:GvimTweakSetAlpha i-10<CR>i
 " ---------------------------------------}}}
-" Time & Tab Info" ----------------------{{{1
-
-let g:zindex = 50
-function! DisplayPopupTime(...)" --------{{{2
-	if empty(prop_type_get('time'))
-		call prop_type_add('time', #{highlight: 'PopupTime'})
-	endif
-
-	let text = printf('%s  %s  %s', printf('[Tab%s(%s)]', tabpagenr(), tabpagenr('$')), strftime('%A %d %B'), strftime('[%Hh%M]'))
-	let text_length = len(text)
-	call popup_create([#{text: text, props:[#{type: 'time', col:1, end_col:1+text_length}]}], #{time:20000, line:&lines+2, col:&columns + 1 - text_length, zindex:g:zindex})
-endfunction
-" ---------------------------------------}}}2
-augroup timedisplay
-	au!
-	autocmd VimEnter * call DisplayPopupTime() | let t = timer_start(20000, 'DisplayPopupTime', {'repeat':-1})
-	autocmd TabLeave,TabEnter * let g:zindex+=1 | call DisplayPopupTime()
-augroup end
-
-" ---------------------------------------}}}1
-" Pomodoro" -----------------------------{{{1
-function! DisplayTimer(t, hi, ...)"-----{{{2
-	let milliseconds=eval(a:t)
-	let seconds = milliseconds / 1000
-	let minutes = seconds / 60
-	let seconds = seconds % 60
-	let minutes = minutes > 9 ? string(minutes) : '0'.string(minutes)
-	let seconds = seconds > 9 ? string(seconds) : '0'.string(seconds)
-	let content = printf('%sm%ss [%s]', minutes, seconds, g:cyclecount)
-	let highlight_group = eval(a:hi)
-	let g:zindex += 1
-
-	call popup_create( content, {  'time': 1000, 'highlight':highlight_group, 'border':[0,0,0,1], 'borderhighlight':repeat([highlight_group], 4), 'line': &lines-2, 'col': &columns - 11, 'zindex':g:zindex })
-
-	execute('let '.a:t.' -= 1000')
-endfunction
-"---------------------------------------}}}2
-function! StartCycles(...)"----------------{{{2
-	let session_time_in_minutes = 25
-	let break_time_in_minutes = 5
-	let cycle_time_in_minutes = session_time_in_minutes + break_time_in_minutes
-	let g:cyclecount = 0
-
-	call StartCycle(session_time_in_minutes, break_time_in_minutes)
-	let l:timer = timer_start(cycle_time_in_minutes*60*1000, function('StartCycle', [session_time_in_minutes, break_time_in_minutes]), {'repeat': -1})
-endfunction
-"---------------------------------------}}}2
-function! StartCycle(dur1,dur2,...)"----{{{
-	call StartSession(a:dur1)
-	let l:timer = timer_start(a:dur1*60*1000, function('StartBreak', [a:dur2]))
-endfunction
-"---------------------------------------}}}
-function! StartSession(minutes, ...)"---{{{
-	let mybuffers = GetMyFilesBuffers()
-	if len(mybuffers) >= 3
-		call HideMyFiles(mybuffers)
-	endif
-	call ShowMyFiles()
-
-	let g:cyclecount += 1
-	let g:pomodoro_session_timer_ms = a:minutes*60*1000 - 1000
- " we repeat with 10 seconds margin; justification: we can only specify the <minimum> time before the function starts, so each second is potentially delayed
-	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_session_timer_ms', "'csharpInterfaceName'"]), {'repeat': a:minutes * 60 - 1 - 10})
-	call popup_create(printf('[%s]   ( `ω´)   Pomodoro session %d started!', strftime('%Hh%M'), g:cyclecount), { 'time': 60*1000, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpString'], 4), 'close': 'button' })
-
-endfunction
-"---------------------------------------}}}
-function! StartBreak(minutes, ...)"-----{{{
-	let mybuffers = GetMyFilesBuffers()
-	if len(mybuffers) >= 3
-		call HideMyFiles(mybuffers)
-	endif
-	call ShowMyFiles()
-	let g:pomodoro_break_timer_ms = a:minutes*60*1000 - 1000
-	" we repeat with 10 seconds margin; justification: we can only specify the <minimum> time before the function starts, so each second is potentially delayed
-	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_break_timer_ms', "'csharpKeyword'"]), {'repeat': a:minutes * 60 - 1 - 10})
-	call popup_create(printf('[%s]   (*´∀`*)   Well done! End of the pomodoro session %d!', strftime('%Hh%M'), g:cyclecount), { 'time': 60*1000, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpClassName'], 4), 'close': 'button' })
-endfunction
-"---------------------------------------}}}
-augroup pomodoro
-	au!
-	autocmd VimEnter * call timer_start(2000, 'StartCycles')
-augroup end
-" ---------------------------------------}}}1
+" " Time & Tab Info" ----------------------{{{1
+" 
+" let g:zindex = 50
+" function! DisplayPopupTime(...)" --------{{{2
+" 	if empty(prop_type_get('time'))
+" 		call prop_type_add('time', #{highlight: 'PopupTime'})
+" 	endif
+" 
+" 	let text = printf('%s  %s  %s', printf('[Tab%s(%s)]', tabpagenr(), tabpagenr('$')), strftime('%A %d %B'), strftime('[%Hh%M]'))
+" 	let text_length = len(text)
+" 	call popup_create([#{text: text, props:[#{type: 'time', col:1, end_col:1+text_length}]}], #{time:20000, line:&lines+2, col:&columns + 1 - text_length, zindex:g:zindex})
+" endfunction
+" " ---------------------------------------}}}2
+" augroup timedisplay
+" 	au!
+" 	autocmd VimEnter * call DisplayPopupTime() | let t = timer_start(20000, 'DisplayPopupTime', {'repeat':-1})
+" 	autocmd TabLeave,TabEnter * let g:zindex+=1 | call DisplayPopupTime()
+" augroup end
+" 
+" " ---------------------------------------}}}1
+" " Pomodoro" -----------------------------{{{1
+" function! DisplayTimer(t, hi, ...)"-----{{{2
+" 	let milliseconds=eval(a:t)
+" 	let seconds = milliseconds / 1000
+" 	let minutes = seconds / 60
+" 	let seconds = seconds % 60
+" 	let minutes = minutes > 9 ? string(minutes) : '0'.string(minutes)
+" 	let seconds = seconds > 9 ? string(seconds) : '0'.string(seconds)
+" 	let content = printf('%sm%ss [%s]', minutes, seconds, g:cyclecount)
+" 	let highlight_group = eval(a:hi)
+" 	let g:zindex += 1
+" 
+" 	call popup_create( content, {  'time': 1000, 'highlight':highlight_group, 'border':[0,0,0,1], 'borderhighlight':repeat([highlight_group], 4), 'line': &lines-2, 'col': &columns - 11, 'zindex':g:zindex })
+" 
+" 	execute('let '.a:t.' -= 1000')
+" endfunction
+" "---------------------------------------}}}2
+" function! StartCycles(...)"----------------{{{2
+" 	let session_time_in_minutes = 25
+" 	let break_time_in_minutes = 5
+" 	let cycle_time_in_minutes = session_time_in_minutes + break_time_in_minutes
+" 	let g:cyclecount = 0
+" 
+" 	call StartCycle(session_time_in_minutes, break_time_in_minutes)
+" 	let l:timer = timer_start(cycle_time_in_minutes*60*1000, function('StartCycle', [session_time_in_minutes, break_time_in_minutes]), {'repeat': -1})
+" endfunction
+" "---------------------------------------}}}2
+" function! StartCycle(dur1,dur2,...)"----{{{
+" 	call StartSession(a:dur1)
+" 	let l:timer = timer_start(a:dur1*60*1000, function('StartBreak', [a:dur2]))
+" endfunction
+" "---------------------------------------}}}
+" function! StartSession(minutes, ...)"---{{{
+" 	let mybuffers = GetMyFilesBuffers()
+" 	if len(mybuffers) > 0 && len(mybuffers) %4 == 0
+" 		call HideMyFiles(mybuffers)
+" 	endif
+" 	call ShowMyFiles()
+" 
+" 	let g:cyclecount += 1
+" 	let g:pomodoro_session_timer_ms = a:minutes*60*1000 - 1000
+"  " we repeat with 10 seconds margin; justification: we can only specify the <minimum> time before the function starts, so each second is potentially delayed
+" 	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_session_timer_ms', "'csharpInterfaceName'"]), {'repeat': a:minutes * 60 - 1 - 10})
+" 	call popup_create(printf('[%s]   ( `ω´)   Pomodoro session %d started!', strftime('%Hh%M'), g:cyclecount), { 'time': 60*1000, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpString'], 4), 'close': 'button' })
+" 
+" endfunction
+" "---------------------------------------}}}
+" function! StartBreak(minutes, ...)"-----{{{
+" 	let mybuffers = GetMyFilesBuffers()
+" 	if len(mybuffers) > 0 && len(mybuffers) %4 == 0
+" 		call HideMyFiles(mybuffers)
+" 	endif
+" 	call ShowMyFiles()
+" 	let g:pomodoro_break_timer_ms = a:minutes*60*1000 - 1000
+" 	" we repeat with 10 seconds margin; justification: we can only specify the <minimum> time before the function starts, so each second is potentially delayed
+" 	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_break_timer_ms', "'csharpKeyword'"]), {'repeat': a:minutes * 60 - 1 - 10})
+" 	call popup_create(printf('[%s]   (*´∀`*)   Well done! End of the pomodoro session %d!', strftime('%Hh%M'), g:cyclecount), { 'time': 60*1000, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpClassName'], 4), 'close': 'button' })
+" endfunction
+" "---------------------------------------}}}
+" augroup pomodoro
+" 	au!
+" 	autocmd VimEnter * call timer_start(2000, 'StartCycles')
+" augroup end
+" " ---------------------------------------}}}1
 " Quotes" -------------------------------{{{1
 function! GetQuote()
 	let allquotes = readfile($desktop.'/my.quotes')
@@ -1008,10 +1023,13 @@ endfunction
 
 let g:vifm_exec_args = ' +"fileviewer *.cs,*.csproj bat --tabs 4 --color always --wrap never --pager never --map-syntax csproj:xml -p %c %p"'
 let g:vifm_exec_args.= ' +"windo set number relativenumber numberwidth=1"'
+let g:vifm_exec_args.= ' +"set dotdirs=rootparent"'
+let g:vifm_exec_args.= ' +"filter /(bin|obj)/"'
 let g:vifm_exec_args.= ' +"set runexec"'
 let g:vifm_exec_args.= ' +"nnoremap <C-I> :histnext<cr>"'
 let g:vifm_exec_args.= ' +"nnoremap s :!powershell -NoLogo<cr>"'
 let g:vifm_exec_args.= ' +"nnoremap K :q<cr>"'
+let g:vifm_exec_args.= ' +"nnoremap E :!start explorer .<cr>"'
 let g:vifm_exec_args.= ' +"nnoremap ! /"'
 let g:vifm_exec_args.= ' +"nnoremap yp :!echo %\"F|clip<cr>"'
 let g:vifm_exec_args.= ' +"highlight Border cterm=none ctermbg=DarkSeaGreen4"'
@@ -1024,8 +1042,8 @@ let g:vifm_exec_args.= ' +"highlight CmdLine cterm=none ctermfg=default ctermbg=
 let g:vifm_exec_args.= ' +"highlight WildMenu cterm=none ctermfg=NavajoWhite1 ctermbg=Grey46"'
 let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('v', $v)
 let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('p', $p)
-nnoremap <silent> <expr> <Leader>e ":Vifm " . (bufname()=="" ? "." : "%:p:h") . "\<CR>"
-nnoremap <silent> <expr> <Leader>E ":vs\<CR>:Vifm " . (bufname()=="" ? "." : "%:p:h") . "\<CR>"
+nnoremap <silent> <Leader>e :let folder = bufname()=="" ? "." : expand("%:p:h") \| exec "edit " . folder<CR>
+nnoremap <Leader>E :e <C-R>=bufname()=="" ? "." : expand("%:p:h")<CR><Tab><Tab>
 
 " ---------------------------------------}}}1
 " Web Browsing" -------------------------{{{1
@@ -1095,42 +1113,6 @@ nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 " Git" ----------------------------------{{{1
 nnoremap <silent> <Leader>G :tab G<CR>
 " ---------------------------------------}}}1
-" Smart Brackets and quotes"------------{{{1
-function! DeclareBracketContent()"------{{{2
-	let g:declare_bracket_content = 1
-	normal! lv
-endfunc
-"---------------------------------------}}}2
-function! CloseBracket(open)"-----------{{{2
-	if !exists('g:declare_bracket_content') || g:declare_bracket_content == 0
-		execute("normal! \<CR>")
-		return
-	endif
-
-	let g:declare_bracket_content = 0
-	let close = ''
-	if a:open == '('
-		let close = ')'
-	elseif a:open == '{'
-		let close = '}'
-	elseif a:open == '['
-		let close = ']'
-	elseif a:open == '"'
-		let close = '"'
-	elseif a:open == "'"
-		let close = "'"
-	elseif a:open == '`'
-		let close = '`'
-	else
-		return
-	endif
-
-	execute("normal! gvo\<Esc>a".close)
-endfunc
-"---------------------------------------}}}2
-inoremap <silent> ^v <Esc>:call DeclareBracketContent()<CR>
-vnoremap <silent> <CR> om'h<Esc>:call CloseBracket(CurrentCharacter())<CR>
-"---------------------------------------}}}1
 " Diagrams"-----------------------------{{{1
 function! InitNewDiagram(filename)"-------------{{{2
 	execute(printf('tabedit %s.bob',a:filename))
@@ -1170,76 +1152,119 @@ augroup END
 
 
 " Specific Workflows:
-" cs(c#)" -------------------------------{{{1
+" " cs(c#)" -------------------------------{{{1
 let g:OmniSharp_server_stdio = 1"-------{{{2
 let g:ale_linters = { 'cs': ['OmniSharp'] }
-let g:OmniSharp_popup_options = {
-\ 'highlight': 'csharpClassName',
-\ 'padding': [1,1,1,2],
-\ 'border': [1],
-\ 'borderhighlight': ['csharpInterfaceName']
-\}
+let g:OmniSharp_popup = 0
 let g:OmniSharp_loglevel = 'debug'
 let g:OmniSharp_highlight_types = 3
 let g:OmniSharp_selector_ui = 'fzf'
 let g:OmniSharp_want_snippet=1
-let g:omnicomplete_fetch_full_documentation = 1
-let g:OmniSharp_highlight_debug = 1
 let g:OmniSharp_diagnostic_showid = 1
-let g:OmniSharp_diagnostic_overrides = { 'CS8019': {'type': 'None'} }
-let g:OmniSharp_highlight_groups = { 
-	\ 'csharpKeyword':                [ 'keyword'                     ],
-	\ 'csharpNamespaceName':          [ 'namespace name'              ],
-	\ 'csharpPunctuation':            [ 'punctuation'                 ],
-	\ 'csharpOperator':               [ 'operator'                    ],
-	\ 'csharpInterfaceName':          [ 'interface name'              ],
-	\ 'csharpStructName':             [ 'struct name'                 ],
-	\ 'csharpEnumName':               [ 'enum name'                   ],
-	\ 'csharpEnumMemberName':         [ 'enum member name'            ],
-	\ 'csharpClassName':              [ 'class name'                  ],
-	\ 'csharpStaticSymbol':           [ 'static symbol'               ],
-	\ 'csharpFieldName':              [ 'field name'                  ],
-	\ 'csharpPropertyName':           [ 'property name'               ],
-	\ 'csharpMethodName':             [ 'method name'                 ],
-	\ 'csharpParameterName':          [ 'parameter name'              ],
-	\ 'csharpLocalName':              [ 'local name'                  ],
-	\ 'csharpKeywordControl':         [ 'keyword - control'           ],
-	\ 'csharpString':                 [ 'string'                      ],
-	\ 'csharpNumber':                 [ 'number'                      ],
-	\ 'csharpConstantName':           [ 'constant name'               ],
-	\ 'csharpIdentifier':             [ 'identifier'                  ],
-	\ 'csharpExtensionMethodName':    [ 'extension method name'       ],
-	\ 'csharpComment':                [ 'comment'                     ],
-	\ 'csharpXmlDocCommentName':      [ 'xml doc comment - name'      ],
-	\ 'csharpXmlDocCommentDelimiter': [ 'xml doc comment - delimiter' ],
-	\ 'csharpXmlDocCommentText':      [ 'xml doc comment - text'      ]
-	\ }
-"----------------------------------------}}}2
+" 
+" 	"---------------------------------------}}}1
+augroup lightline_integration
+  autocmd!
+  autocmd User OmniSharpStarted,OmniSharpReady,OmniSharpStopped call lightline#update()
+augroup END
+augroup csharpfiles
+	au!
+	autocmd BufEnter *.cs setlocal errorformat=\ %#%f(%l\\\,%c):\ %m
+	autocmd BufEnter *.cs setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true
+	autocmd BufEnter *.cs nnoremap <silent> <LocalLeader>m :silent Lcd \| silent make<CR>
+	autocmd BufWritePost *.cs OmniSharpCodeFormat
+	autocmd FileType cs nmap <buffer> zk <Plug>(omnisharp_navigate_up)
+	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
+	autocmd FileType cs nmap <buffer> z! :BLines public\\|private\\|protected<CR>
+	autocmd FileType cs nmap <buffer> gd <Plug>(omnisharp_go_to_definition)
+	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
+	autocmd FileType cs nmap <buffer> <LocalLeader>i <Plug>(omnisharp_find_implementations)
+	autocmd FileType cs nmap <buffer> <LocalLeader>I <Plug>(omnisharp_preview_implementations)
+	autocmd FileType cs nmap <buffer> <LocalLeader>s <Plug>(omnisharp_find_symbol)
+	autocmd FileType cs nmap <buffer> <LocalLeader>u <Plug>(omnisharp_find_usages)
+	autocmd FileType cs nmap <buffer> <LocalLeader>l :OmniSharpFindMembers<CR>
+	autocmd FileType cs nmap <buffer> <LocalLeader>t <Plug>(omnisharp_type_lookup)
+	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_documentation)
+	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
+	autocmd FileType cs nmap <buffer> <LocalLeader>q <Plug>(omnisharp_code_actions)
+	autocmd FileType cs xmap <buffer> <LocalLeader>q <Plug>(omnisharp_code_actions)
+	autocmd FileType cs nmap <buffer> <LocalLeader>r <Plug>(omnisharp_rename)
+	autocmd FileType cs nmap <buffer> <LocalLeader>= <Plug>(omnisharp_code_format)
+	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
+	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
+augroup end
 
-	augroup csharpfiles
-		au!
-		autocmd BufEnter *.cs setlocal errorformat=\ %#%f(%l\\\,%c):\ %m
-		autocmd BufEnter *.cs setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true
-		autocmd BufEnter *.cs nnoremap <LocalLeader>M :!dotnet run<CR>
-		autocmd BufWritePost *.cs OmniSharpFixUsings | OmniSharpCodeFormat
-		autocmd FileType cs nnoremap <buffer> zk :OmniSharpNavigateUp<CR>zz
-		autocmd FileType cs nnoremap <buffer> zj :OmniSharpNavigateDown<CR>zz
-		autocmd FileType cs nnoremap <buffer> z! :BLines public\\|private\\|protected<CR>
-		autocmd FileType cs nnoremap <buffer> gd :OmniSharpGotoDefinition<CR>
-		autocmd FileType cs nnoremap <buffer> gD :OmniSharpPreviewDefinition<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>i :OmniSharpFindImplementations<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>I :OmniSharpPreviewImplementation<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>s :OmniSharpFindSymbol<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>u :OmniSharpFindUsages<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>m :OmniSharpFindMembers<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>t :OmniSharpTypeLookup<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>d :OmniSharpDocumentation<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>O :ALEEnable<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>c :OmniSharpGlobalCodeCheck<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>q :OmniSharpGetCodeActions<CR>
-		autocmd FileType cs xnoremap <buffer> <LocalLeader>q :call OmniSharp#GetCodeActions('visual')<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>r :OmniSharpRename<CR>
-		autocmd FileType cs nnoremap <buffer> <LocalLeader>f :OmniSharpFixUsings<CR>:OmniSharpCodeFormat<CR>
-	augroup end
-
-	"---------------------------------------}}}1
+"
+"	\ 'ExcludedCode': '', 	
+"	\ 'ModuleName': '', 	
+"	\ 'WhiteSpace': '', 	
+"	\ 'Text': '', 	
+"	\ 'RegexAnchor': '', 	
+"	\ 'RegexQuantifier': '', 	
+"	\ 'RegexGrouping': '', 	
+"	\ 'RegexAlternation': '', 	
+"	\ 'RegexText': '', 	
+"	\ 'RegexSelfEscapedCharacter': '',
+"	\ 'RegexOtherEscape': ''
+"	\ 'RegexCharacterClass': '' 	
+"	\ 'OperatorOverloaded': '', 	
+"	\ 'PreprocessorKeyword': '', 	
+"	\ 'PreprocessorText': '', 	
+let g:OmniSharp_highlight_groups = {
+	\ 'Comment': 'Comment', 	
+	\ 'Identifier': 'Identifier',
+	\ 'Keyword': 'Keyword', 	
+	\ 'ControlKeyword': 'String', 	
+	\ 'NumericLiteral': 'Number', 	
+	\ 'Operator': 'Identifier', 	
+	\ 'StringLiteral': 'String', 	
+	\ 'StaticSymbol': 'Identifier',
+	\ 'Punctuation': 'Identifier', 	
+	\ 'VerbatimStringLiteral': 'String', 	
+	\ 'StringEscapeCharacter': 'Special', 	
+	\ 'ClassName': 'Pmenu',
+	\ 'DelegateName': 'Identifier',
+	\ 'EnumName': 'Structure',
+	\ 'InterfaceName': 'Character',
+	\ 'StructName': 'Float',
+	\ 'TypeParameterName': 'Type',
+	\ 'FieldName': 'Identifier',
+	\ 'EnumMemberName': 'Structure',
+	\ 'ConstantName': 'Constant',
+	\ 'LocalName': 'Identifier',
+	\ 'ParameterName': 'Constant',
+	\ 'MethodName': 'Identifier',
+	\ 'ExtensionMethodName': 'Identifier',
+	\ 'PropertyName': 'Identifier',
+	\ 'EventName': 'Identifier',
+	\ 'NamespaceName': 'Identifier',
+	\ 'LabelName': 'Label',
+	\ 'XmlDocCommentAttributeName': 'Comment', 	
+	\ 'XmlDocCommentAttributeQuotes': 'Comment', 	
+	\ 'XmlDocCommentAttributeValue': 'Comment', 	
+	\ 'XmlDocCommentCDataSection': 'Comment', 	
+	\ 'XmlDocCommentComment': 'Comment', 	
+	\ 'XmlDocCommentDelimiter': 'Comment', 	
+	\ 'XmlDocCommentEntityReference': 'Comment', 	
+	\ 'XmlDocCommentName': 'Comment', 	
+	\ 'XmlDocCommentProcessingInstruction': 'Comment', 	
+	\ 'XmlDocCommentText': 'Comment', 	
+	\ 'XmlLiteralAttributeName': 'Comment', 	
+	\ 'XmlLiteralAttributeQuotes': 'Comment', 	
+	\ 'XmlLiteralAttributeValue': 'Comment', 	
+	\ 'XmlLiteralCDataSection': 'Comment', 	
+	\ 'XmlLiteralComment': 'Comment', 	
+	\ 'XmlLiteralDelimiter': 'Comment', 	
+	\ 'XmlLiteralEmbeddedExpression': 'Comment', 	
+	\ 'XmlLiteralEntityReference': 'Comment', 	
+	\ 'XmlLiteralName': 'Comment', 	
+	\ 'XmlLiteralProcessingInstruction': 'Comment', 	
+	\ 'XmlLiteralText': 'Comment', 	
+	\ 'RegexComment': 'Comment' 	
+\}
+let g:OmniSharp_diagnostic_exclude_paths = [
+\ 'obj\\',
+\ '[Tt]emp\\',
+\ '\.nuget\\',
+\ '\<AssemblyInfo\.cs\>'
+\]
