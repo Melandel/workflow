@@ -1185,8 +1185,6 @@ let g:OmniSharp_highlight_types = 3
 let g:OmniSharp_selector_ui = 'fzf'
 let g:OmniSharp_want_snippet=1
 let g:OmniSharp_diagnostic_showid = 1
-" 
-" 	"---------------------------------------}}}1
 augroup lightline_integration
   autocmd!
   autocmd User OmniSharpStarted,OmniSharpReady,OmniSharpStopped call lightline#update()
@@ -1292,3 +1290,4 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 \ '\.nuget\\',
 \ '\<AssemblyInfo\.cs\>'
 \]
+" 	"---------------------------------------}}}1
