@@ -1149,6 +1149,30 @@ augroup mydiagrams
 	autocmd TextYankPost *.bob call RegisterBoxLineTypes()
 augroup END
 "---------------------------------------}}}1
+" Brackets"-----------------------------{{{1
+function! SmartBracketPowerActivate()
+	let brackets = [['(', ')'], ['{', '}'], ['[', ']'], ['"', '"'], ["'", "'"], ['`', '`'], ['<', '>']]
+
+	let last2chars = substitute(getline('.')[:col('.')-1], '\s', '', 'g')[-2:]
+	let pairindex = index(map(copy(brackets), {_,itm -> itm[0].itm[1]}), last2chars)
+	if pairindex >= 0
+		return "\<Left>\<CR>\<CR>\<Up>\<Tab>"
+	endif
+
+	let lastchar = last2chars[1]
+	let charindex = index(map(copy(brackets), {_,itm -> itm[0]}), lastchar)
+	if charindex >= 0
+		let matchingbracket = brackets[charindex][1] 
+		if matchingbracket == '}'
+			let matchingbracket = "\<Space>\<Space>}\<Left>"
+		endif
+
+		return matchingbracket . "\<Left>"
+	endif
+endfunction
+inoremap <expr><silent> <C-O> SmartBracketPowerActivate()
+"---------------------------------------}}}1
+
 
 
 " Specific Workflows:
