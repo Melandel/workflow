@@ -30,7 +30,6 @@ function! MinpacInit()
 	call minpac#add('ap/vim-css-color')
 
 	call minpac#add('wellle/targets.vim')
-	call minpac#add('michaeljsmith/vim-indent-object')
 
 	call minpac#add('Melandel/vim-empower')
 	call minpac#add('Melandel/fzfcore.vim')
@@ -91,7 +90,6 @@ if has("gui_running")
 	set guioptions+=c  "console-style dialogs instead of popups
 	set guifont=consolas:h11
 	set termwintype=conpty
-
 endif
 " ---------------------------------------}}}1
 " Tabs and Indentation" -----------------{{{
@@ -406,7 +404,7 @@ function! GitInfo()"--------------------{{{2
 	let fileparent = expand('%:p:h:t')
 	let filegrandparent = expand('%:p:h:h:t')
 
-	return substitute(printf('[%s] %s… %s/%s', gitbranch, gitrootfolderinfo, fileparent, filegrandparent), '\', '/', 'g')
+	return substitute(printf('[%s] %s… %s/%s', gitbranch, gitrootfolderinfo, filegrandparent, fileparent), '\', '/', 'g')
 endfunction
 "---------------------------------------}}}2
 function! GitFolderPath()"--------------------{{{2
@@ -1177,7 +1175,7 @@ inoremap <expr><silent> <C-O> SmartBracketPowerActivate()
 
 " Specific Workflows:
 " " cs(c#)" -------------------------------{{{1
-let g:OmniSharp_server_stdio = 1"-------{{{2
+let g:OmniSharp_server_stdio = 1
 let g:ale_linters = { 'cs': ['OmniSharp'] }
 let g:OmniSharp_popup = 0
 let g:OmniSharp_loglevel = 'debug'
@@ -1189,6 +1187,7 @@ augroup lightline_integration
   autocmd!
   autocmd User OmniSharpStarted,OmniSharpReady,OmniSharpStopped call lightline#update()
 augroup END
+
 augroup csharpfiles
 	au!
 	autocmd BufEnter *.cs setlocal errorformat=\ %#%f(%l\\\,%c):\ %m
@@ -1204,7 +1203,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>I <Plug>(omnisharp_preview_implementations)
 	autocmd FileType cs nmap <buffer> <LocalLeader>s <Plug>(omnisharp_find_symbol)
 	autocmd FileType cs nmap <buffer> <LocalLeader>u <Plug>(omnisharp_find_usages)
-	autocmd FileType cs nmap <buffer> <LocalLeader>l :OmniSharpFindMembers<CR>
+	autocmd FileType cs nmap <buffer> <LocalLeader>l <Plug>(omnisharp_find_members)
 	autocmd FileType cs nmap <buffer> <LocalLeader>t <Plug>(omnisharp_type_lookup)
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_documentation)
 	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
