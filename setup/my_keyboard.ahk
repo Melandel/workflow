@@ -49,6 +49,12 @@ CapsLock & vk30::Send #{vk30}
 ; Others
 ; Capslock & ù
 CapsLock & vkC0::Send {LWin down}{LWin up}
+; CapsLock & ,
+CapsLock & vkBC::Send {Down}
+
+; CapsLock & ;
+CapsLock & vkBE::Send {Up}
+
 
 ; § for switching in and out of vim
 vkA0 & vkDF::
