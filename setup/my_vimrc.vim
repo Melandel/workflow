@@ -20,7 +20,9 @@ function! MinpacInit()
 
 	call minpac#add('SirVer/ultisnips')
 	call minpac#add('honza/vim-snippets')
-	call minpac#add('vifm/vifm.vim')
+
+	call minpac#add('justinmk/vim-dirvish')
+
 	call minpac#add('tpope/vim-dadbod')
 	call minpac#add('tpope/vim-surround')
 	call minpac#add('tpope/vim-repeat')
@@ -151,6 +153,9 @@ function! ClearTrailingWhiteSpaces()
 endfunction
 command ClearTrailingWhiteSpaces call ClearTrailingWhiteSpaces()
 
+function! QuickFixWindowIsOpen()
+	return len(filter(range(1, winnr('$')), {_,x -> getwinvar(x, '&syntax') == 'qf'}))
+endfunction
 "---------------------------------------}}}
 
 " AZERTY Keyboard:
@@ -253,11 +258,13 @@ nnoremap <Leader>K <C-W>K
 nnoremap <Leader>L <C-W>L
 
 " Resize Window
-nnoremap <silent> <Leader>_ <C-W>_| nnoremap <silent> <Leader>\| <C-W>\|
 nnoremap <silent> <A-h> :vert res -2<CR>| tmap <silent> <A-h> <C-W>N:vert res -2<CR>i
 nnoremap <silent> <A-l> :vert res +2<CR>| tmap <silent> <A-l> <C-W>N:vert res +2<CR>i
 nnoremap <silent> <A-j> :res -2<CR>|      tmap <silent> <A-j> <C-W>N:res -2<CR>i
 nnoremap <silent> <A-k> :res +2<CR>|      tmap <silent> <A-k> <C-W>N:res +2<CR>i
+nnoremap <silent> <Leader>= <C-W>=
+nnoremap <silent> <Leader>\| <C-W>\|
+nnoremap <silent> <Leader>_ <C-W>_
 
 " Resize a window for some text
 function! FocusLines(...) range"--------{{{2
@@ -287,19 +294,8 @@ command! -range -nargs=? -bar FocusLines <line1>,<line2>call FocusLines(<f-args>
 nnoremap <Leader>r :FocusLines 
 vnoremap <Leader>r :FocusLines<CR>
 
-" Move to window by number
-nnoremap <silent> <Leader>& 1<C-W>W
-nnoremap <silent> <Leader>é 2<C-W>W
-nnoremap <silent> <Leader>" 3<C-W>W
-nnoremap <silent> <Leader>' 4<C-W>W
-nnoremap <silent> <Leader>( 5<C-W>W
-nnoremap <silent> <Leader>- 6<C-W>W
-nnoremap <silent> <Leader>è 7<C-W>W
-nnoremap <silent> <Leader>_ 8<C-W>W
-nnoremap <silent> <Leader>ç 9<C-W>W
-
 " Alternate file fast switching
-nnoremap <Leader>d :b #<CR>
+noremap <Leader>d <C-^>
 
 function! SwapWindowContents(hjkl_keys)"-{{{2
 	mark V
@@ -326,32 +322,6 @@ nnoremap SL :SwapWindows l<CR> | nnoremap SLJ :SwapWindows lj<CR> | nnoremap SLK
 " ---------------------------------------}}}1
 " Status bar" ---------------------------{{{1
 set laststatus=2
-function! FoldLevel()"-------------------{{{2
-	if &foldlevel == 0
-		return 'O'
-	elseif &foldlevel == 1
-		return 'I'
-	elseif &foldlevel == 2
-		return 'II'
-	elseif &foldlevel == 3
-		return 'III'
-	elseif &foldlevel == 4
-		return 'IV'
-	elseif &foldlevel == 5
-		return 'V'
-	elseif &foldlevel == 6
-		return 'VI'
-	elseif &foldlevel == 7
-		return 'VII'
-	elseif &foldlevel == 8
-		return 'VIII'
-	elseif &foldlevel == 9
-		return 'IX'
-	else
-		return string(&foldlevel)
-	endif
-endfunction
-"----------------------------------------}}}2
 function! FileSizeAndRows() abort" ------{{{2
 	let rows = line('$')
 
@@ -380,62 +350,43 @@ function! FileSizeAndRows() abort" ------{{{2
 	return printf('%drows[%s]:%d%%', rows, size, percent)
 endfunction
 " ---------------------------------------}}}2
-function! GitBranchAndPathInfo()"-------{{{2
-	let gitinfo = GitInfo()
-	let gitfolderpath = GitFolderPath()
-	let filename = expand('%:t')
-	if filename == ''
-		let filename = '[No Name]'
-	endif
-
-	return substitute(gitinfo . (gitinfo != '' ? ' => ' : '') . (gitfolderpath == '' ? '' : gitfolderpath.'/' ) . filename, '\', '/', 'g')
-endfunction
-"---------------------------------------}}}2
-function! GitInfo()"--------------------{{{2
-	let filepath = expand('%:p')
-	if filepath == ''
-		return ''
-	endif
-
-	let gitbranch = gitbranch#name()
-	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
-	let gitrootfolderinfo = fnamemodify(gitrootfolder, ':h:t') . '/' . fnamemodify(gitrootfolder, ':t')
-	let filegitpath = filepath[len(gitrootfolder)+1:]
-	let fileparent = expand('%:p:h:t')
-	let filegrandparent = expand('%:p:h:h:t')
-
-	return substitute(printf('[%s] %s… %s/%s', gitbranch, gitrootfolderinfo, filegrandparent, fileparent), '\', '/', 'g')
-endfunction
-"---------------------------------------}}}2
-function! GitFolderPath()"--------------------{{{2
+function! FolderRelativePathFromGit()
 	let filepath = expand('%:p')
 	let folderpath = expand('%:p:h')
 	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
-	let gitrootfolderinfo = fnamemodify(gitrootfolder, ':h:t') . '/' . fnamemodify(gitrootfolder, ':t')
 	let foldergitpath = folderpath[len(gitrootfolder)+1:]
 
-	return substitute(foldergitpath, '\', '/', 'g')
+	return './' . substitute(foldergitpath, '\', '/', 'g')
 endfunction
-"---------------------------------------}}}2
+function! GitBranch()
+	return printf('[%s]', gitbranch#name())
+endfunction
+function! GitInfo()
+	return FolderRelativePathFromGit() . ' ' . GitBranch()
+endfunction
+function! IsOmniSharpRelated()
+	return OmniSharp#GetHost().sln_or_dir =~ '\v\.(sln|csproj)$'
+endfunction
 function! WinNr()
-	return winnr()
+	return printf('[Window #%s]', winnr())
 endfunction
-
 exec("source $p/vim-sharpenup/autoload/sharpenup/statusline.vim")
+
 let g:sharpenup_statusline_opts = '%s'
 let g:sharpenup_statusline_opts = { 'Highlight': 0 }
 let g:sharpenup_statusline_opts = {
-\ 'TextLoading': '%s (Loading)',
+\ 'TextLoading': '%s…',
 \ 'TextReady': '%s',
-\ 'TextDead': '%s (Not running)',
+\ 'TextDead': '…',
 \ 'Highlight': 0
 \}
 let g:lightline = {
 	\ 'colorscheme': 'empower',
-	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'foldlevel': 'FoldLevel', 'mypathinfo': 'GitBranchAndPathInfo', 'gitfolderpath': 'GitFolderPath', 'gitinfo': 'GitInfo', 'winnr': 'WinNr' },
-	\ 'component': { 'sharpenup': sharpenup#statusline#Build() },
-	\ 'active':   {   'left':  [ [ 'mode', 'paste', 'readonly', 'modified' ], [ 'sharpenup' ] ], 'right': [ ['filename' ], [ 'gitinfo' ] ] },
-	\ 'inactive': {   'left':  [ [ 'readonly', 'modified'], [ 'sharpenup' ] ], 'right': [ [ 'filename' ], [ 'gitinfo' ] ] }
+	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'winnr': 'WinNr', 'gitbranch': 'GitBranch', 'foldergitpath': 'FolderRelativePathFromGit'	},
+	\ 'component': { 'sharpenup': sharpenup#statusline#Build(), 'gitinfo': '%<%{FolderRelativePathFromGit()} %{GitBranch()}' },
+	\ 'component_visible_condition': { 'sharpenup': 'IsOmniSharpRelated()' },
+	\ 'active':   {   'left':  [ [ 'mode', 'paste', 'readonly', 'modified' ] ], 'right': [ ['sharpenup', 'filename',  'readonly', 'modified' ], [ 'gitinfo' ] ] },
+	\ 'inactive': {   'left':  [ ['winnr'] ], 'right': [ [ 'sharpenup', 'filename', 'readonly', 'modified' ], [ 'gitinfo' ] ] }
 \}
 " ---------------------------------------}}}1
 
@@ -815,9 +766,7 @@ command! -nargs=? CopyMatches :call CopyMatches(<f-args>)
 "inoremap <expr> <Esc> pumvisible() ? "\<C-E>" : "\<Esc>"
 
 " <C-N> for omnicompletion, <C-P> for context completion
-inoremap <expr> <C-N> pumvisible() ? '<Down>' : (&omnifunc == '') ? '<C-N>' : '<C-X><C-O>'
-"inoremap <expr> <C-P> pumvisible() ? '<Up>' : '<Up>'
-inoremap <C-P> <C-R>=pumvisible() ? "\<lt>Up>" : "\<lt>C-P>"<CR>
+inoremap <expr> <C-N> (&omnifunc == '') ? '<C-N>' : '<C-X><C-O>'
 "----------------------------------------}}}1
 " Diff" ---------------------------------{{{1
 
@@ -904,7 +853,7 @@ augroup end
 
 " ---------------------------------------}}}1
 " Full screen" --------------------------{{{
-let g:gvimtweak#window_alpha=200 " alpha value (180 ~ 255) default: 245
+let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
 let g:gvimtweak#enable_alpha_at_startup=1
 let g:gvimtweak#enable_topmost_at_startup=0
 let g:gvimtweak#enable_maximize_at_startup=1
@@ -1009,39 +958,23 @@ command! Quote echomsg GetQuote()
 nnoremap <Leader>Q :Quote<CR>
 " ---------------------------------------}}}1
 " File explorer (graphical)" ------------{{{1
-
-let g:vifm_replace_netrw = 1
-
-function! BuildVifmMarkCommandForFilePath(mark_label, file_path)
-	let file_folder_path = substitute(fnamemodify(a:file_path, ':h'), '\\', '/', 'g')
-	let file_name = substitute(fnamemodify(a:file_path, ':t'), '\\', '/', 'g')
-
-	return '"mark ' . a:mark_label . ' ' . file_folder_path . ' ' . file_name . '"'
+" Tree"---------------------------------{{{2
+function Tree(...)
+	execute('read !tree.exe '.join(a:000, ' '))
 endfunction
-
-let g:vifm_exec_args = ' +"fileviewer *.cs,*.csproj bat --tabs 4 --color always --wrap never --pager never --map-syntax csproj:xml -p %c %p"'
-let g:vifm_exec_args.= ' +"windo set number relativenumber numberwidth=1"'
-let g:vifm_exec_args.= ' +"set dotdirs=rootparent"'
-let g:vifm_exec_args.= ' +"filter /(bin|obj)/"'
-let g:vifm_exec_args.= ' +"set runexec"'
-let g:vifm_exec_args.= ' +"nnoremap <C-I> :histnext<cr>"'
-let g:vifm_exec_args.= ' +"nnoremap s :!powershell -NoLogo<cr>"'
-let g:vifm_exec_args.= ' +"nnoremap K :q<cr>"'
-let g:vifm_exec_args.= ' +"nnoremap E :!start explorer .<cr>"'
-let g:vifm_exec_args.= ' +"nnoremap ! /"'
-let g:vifm_exec_args.= ' +"nnoremap yp :!echo %\"F|clip<cr>"'
-let g:vifm_exec_args.= ' +"highlight Border cterm=none ctermbg=DarkSeaGreen4"'
-let g:vifm_exec_args.= ' +"highlight TopLineSel cterm=none ctermfg=NavajoWhite1 ctermbg=DarkSeaGreen4"'
-let g:vifm_exec_args.= ' +"highlight TopLine cterm=none ctermfg=default ctermbg=DarkSeaGreen4"'
-let g:vifm_exec_args.= ' +"highlight CurrLine cterm=none ctermfg=NavajoWhite1 ctermbg=66"'
-let g:vifm_exec_args.= ' +"highlight OtherLine cterm=none ctermfg=default ctermbg=Grey30"'
-let g:vifm_exec_args.= ' +"highlight StatusLine cterm=none ctermfg=default ctermbg=Grey42"'
-let g:vifm_exec_args.= ' +"highlight CmdLine cterm=none ctermfg=default ctermbg=Grey23"'
-let g:vifm_exec_args.= ' +"highlight WildMenu cterm=none ctermfg=NavajoWhite1 ctermbg=Grey46"'
-let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('v', $v)
-let g:vifm_exec_args.= ' +' . BuildVifmMarkCommandForFilePath('p', $p)
-nnoremap <silent> <Leader>e :let folder = bufname()=="" ? "." : expand("%:p:h") \| exec "edit " . folder<CR>
-nnoremap <Leader>E :e <C-R>=bufname()=="" ? "." : expand("%:p:h")<CR><Tab><Tab>
+command! -nargs=* Tree call Tree(<f-args>)
+"---------------------------------------}}}2
+" Dirvish"------------------------------{{{2
+nmap <Leader>e <Plug>(dirvish_up)
+augroup my_dirvish
+	au!
+	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | mark L
+	autocmd FileType dirvish nmap <buffer> <LocalLeader>m :let b:vifm_mappings = (b:vifm_mappings ? 0 : 1)<CR>
+	autocmd FileType dirvish nmap <buffer> <expr> l b:vifm_mappings ? 'i' : 'l'
+	autocmd FileType dirvish nmap <buffer> <expr> h b:vifm_mappings ? "\<Leader>e" : 'h'
+	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>q :Shdo  {} {}<Left><Left><Left><Left><Left><Left>
+augroup end
+"---------------------------------------}}}2
 
 " ---------------------------------------}}}1
 " Web Browsing" -------------------------{{{1
@@ -1149,7 +1082,7 @@ augroup END
 "---------------------------------------}}}1
 " Brackets"-----------------------------{{{1
 function! SmartBracketPowerActivate()
-	let brackets = [['(', ')'], ['{', '}'], ['[', ']'], ['"', '"'], ["'", "'"], ['`', '`'], ['<', '>']]
+	let brackets = [['(', ')'], ['{', '}'], ['[', ']'], ["'", "'"], ['"', '"'], ["'", "'"], ['`', '`'], ['<', '>']]
 
 	let last2chars = substitute(getline('.')[:col('.')-1], '\s', '', 'g')[-2:]
 	let pairindex = index(map(copy(brackets), {_,itm -> itm[0].itm[1]}), last2chars)
@@ -1174,7 +1107,8 @@ inoremap <expr><silent> <C-O> SmartBracketPowerActivate()
 
 
 " Specific Workflows:
-" " cs(c#)" -------------------------------{{{1
+" cs(c#)" -------------------------------{{{1
+let g:OmniSharp_start_server = 0
 let g:OmniSharp_server_stdio = 1
 let g:ale_linters = { 'cs': ['OmniSharp'] }
 let g:OmniSharp_popup = 0
@@ -1188,12 +1122,43 @@ augroup lightline_integration
   autocmd User OmniSharpStarted,OmniSharpReady,OmniSharpStopped call lightline#update()
 augroup END
 
+function! CSharpBuild()
+	let omnisharp_host = getbufvar(bufnr('%'), 'OmniSharp_host')
+	if empty(omnisharp_host) || !get(omnisharp_host, 'initialized')
+		echomsg "Omnisharp server isn't loaded. Please load Omnisharp server with :OmniSharpStartServer."
+		return
+endif
+
+	set cmdheight=4
+	setlocal errorformat=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
+	setlocal errorformat+=%-G%.%#
+	setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true\ /clp:NoSummary
+	call LcdToSlnOrCsproj()
+	silent make
+
+	if QuickFixWindowIsOpen()
+		set cmdheight=1
+		return
+	endif
+
+	setlocal errorformat=%A\ %#X\ %.%#
+	setlocal errorformat+=%Z\ %#X\ %.%#
+	setlocal errorformat+=%-C\ %#Arborescence%.%#
+	setlocal errorformat+=%C\ %#at%.%#\ in\ %f:line\ %l
+	setlocal errorformat+=%-C%.%#\ Message\ d'erreur%.%#
+	setlocal errorformat+=%-C%.%#\ (pos\ %.%#
+	setlocal errorformat+=%C\ %#%m\ Failure
+	setlocal errorformat+=%C\ %#%m
+	setlocal errorformat+=%-G%.%#
+	setlocal makeprg=dotnet\ test\ --no-build\ --nologo
+	call LcdToSlnOrCsproj()
+	silent make
+	set cmdheight=1
+endfunction
+
 augroup csharpfiles
 	au!
-	autocmd BufEnter *.cs setlocal errorformat=\ %#%f(%l\\\,%c):\ %m
-	autocmd BufEnter *.cs setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true
-	autocmd BufEnter *.cs nnoremap <silent> <LocalLeader>m :silent Lcd \| silent make<CR>
-	autocmd BufWritePost *.cs OmniSharpCodeFormat
+	autocmd FileType cs nnoremap <silent> <LocalLeader>m :call CSharpBuild()<CR>
 	autocmd FileType cs nmap <buffer> zk <Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
 	autocmd FileType cs nmap <buffer> z! :BLines public\\|private\\|protected<CR>
@@ -1290,3 +1255,4 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 \ '\<AssemblyInfo\.cs\>'
 \]
 " 	"---------------------------------------}}}1
+" dirvish
