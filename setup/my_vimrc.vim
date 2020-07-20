@@ -123,7 +123,6 @@ function! UpdateLocalCurrentDirectory()
 	endif
 
 	execute('lcd '.dir)
-	echomsg printf('Current directory path set to: %s', dir)
 	return dir
 endfunction
 
@@ -335,69 +334,66 @@ nnoremap SL :SwapWindows l<CR> | nnoremap SLJ :SwapWindows lj<CR> | nnoremap SLK
 " ---------------------------------------}}}1
 " Status bar" ---------------------------{{{1
 set laststatus=2
-function! FileSizeAndRows() abort" ------{{{2
-	let rows = line('$')
 
-	let l:bytes = getfsize(expand('%p'))
-	if (l:bytes >= 1024)
-		let l:kbytes = l:bytes / 1025
-	endif
-	if (exists('kbytes') && l:kbytes >= 1000)
-		let l:mbytes = l:kbytes / 1000
-	endif
-
-	if l:bytes <= 0
-		let size = '0'
-	endif
-
-	if (exists('mbytes'))
-		let size = l:mbytes . 'MB'
-	elseif (exists('kbytes'))
-		let size = l:kbytes . 'KB'
-	else
-		let size = l:bytes . 'B'
-	endif
-
-	let percent = 100*line('.')/rows
-
-	return printf('%drows[%s]:%d%%', rows, size, percent)
+function! WinNr()
+	return printf('[Window #%s]', winnr())
 endfunction
-" ---------------------------------------}}}2
+
+function! GitBranch()
+	return printf('[%s]', gitbranch#name())
+endfunction
+
 function! FolderRelativePathFromGit()
 	let filepath = expand('%:p')
 	let folderpath = expand('%:p:h')
 	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
 	let foldergitpath = folderpath[len(gitrootfolder)+1:]
-
 	return './' . substitute(foldergitpath, '\', '/', 'g')
 endfunction
-function! GitBranch()
-	return printf('[%s]', gitbranch#name())
-endfunction
-function! GitInfo()
-	return FolderRelativePathFromGit() . ' ' . GitBranch()
-endfunction
-function! WinNr()
-	return printf('[Window #%s]', winnr())
-endfunction
-exec("source $p/vim-sharpenup/autoload/sharpenup/statusline.vim")
 
-let g:sharpenup_statusline_opts = '%s'
-let g:sharpenup_statusline_opts = { 'Highlight': 0 }
-let g:sharpenup_statusline_opts = {
-\ 'TextLoading': '%s…',
-\ 'TextReady': '%s',
-\ 'TextDead': '…',
-\ 'Highlight': 0
-\}
+exec("source $p/vim-sharpenup/autoload/sharpenup/statusline.vim")
+let g:sharpenup_statusline_opts = { 'TextLoading': '%s…', 'TextReady': '%s', 'TextDead': '_', 'Highlight': 0 }
+
 let g:lightline = {
 	\ 'colorscheme': 'empower',
-	\ 'component_function': { 'filesize_and_rows': 'FileSizeAndRows', 'winnr': 'WinNr', 'gitbranch': 'GitBranch', 'foldergitpath': 'FolderRelativePathFromGit'	},
-	\ 'component': { 'sharpenup': sharpenup#statusline#Build(), 'gitinfo': '%<%{FolderRelativePathFromGit()} %{GitBranch()}' },
-	\ 'component_visible_condition': { 'sharpenup': 'IsOmniSharpRelated()' },
-	\ 'active':   {   'left':  [ [ 'mode', 'paste', 'readonly', 'modified' ] ], 'right': [ ['sharpenup', 'filename',  'readonly', 'modified' ], [ 'gitinfo' ] ] },
-	\ 'inactive': {   'left':  [ ['winnr'] ], 'right': [ [ 'sharpenup', 'filename', 'readonly', 'modified' ], [ 'gitinfo' ] ] }
-\}
+	\ 'component_function': {
+	\    'filesize_and_rows': 'FileSizeAndRows',
+	\    'winnr': 'WinNr'
+	\ },
+	\ 'component': {
+	\   'sharpenup': sharpenup#statusline#Build(),
+	\   'gitinfo': '%{FolderRelativePathFromGit()} %{GitBranch()}',
+	\   'time': '%{strftime("%A %d %B [%Hh%M]")}',
+	\   'winnr2': '#%{winnr()}'
+ \ },
+	\ 'component_visible_condition': {
+	\    'sharpenup': 'IsOmniSharpRelated()',
+	\    'winnr2': '0'
+	\  },
+	\ 'active':   {
+	\    'left':  [
+	\        [ 'mode', 'winnr2', 'paste', 'readonly', 'modified' ],
+	\        [ 'time' ]
+	\    ],
+	\    'right': [
+	\        ['sharpenup', 'filename', 'readonly', 'modified' ],
+	\        [ 'gitinfo' ]
+	\    ]
+	\ },
+	\ 'inactive': {
+	\    'left':  [
+	\        ['winnr']
+	\    ],
+	\    'right': [
+	\        [ 'sharpenup', 'filename', 'readonly', 'modified' ],
+	\        [ 'gitinfo' ]
+	\    ]
+	\ }
+	\}
+let timer = timer_start(20000, 'UpdateStatusBar',{'repeat':-1})
+function! UpdateStatusBar(timer)
+  execute 'let &ro = &ro'
+endfunction
 " ---------------------------------------}}}1
 
 " Motions:
@@ -985,7 +981,7 @@ augroup my_dirvish
 	autocmd FileType dirvish nmap <buffer> <expr> l b:vifm_mappings ? 'i' : 'l'
 	autocmd FileType dirvish nmap <buffer> <expr> h b:vifm_mappings ? "\<Leader>e" : 'h'
 	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>q :Shdo  {} {}<Left><Left><Left><Left><Left><Left>
-	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>t ggdG:Tree -df --noreport<CR>
+	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>t :vnew<CR>:Tree -df --noreport -I "bin\|obj"<Home><Right><Right><Right><Right><Right><Right><Right><Right>
 augroup end
 "---------------------------------------}}}2
 
@@ -1147,7 +1143,7 @@ endif
 	setlocal errorformat+=%-G%.%#
 	setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true\ /clp:NoSummary
 	let g:lcd_qf = getcwd()
-	silent make
+	make
 
 	if IsQuickFixWindowOpen()
 		set cmdheight=1
@@ -1165,7 +1161,7 @@ endif
 	setlocal errorformat+=%-G%.%#
 	setlocal makeprg=dotnet\ test\ --no-build\ --nologo
 	let g:lcd_qf = getcwd()
-	silent make
+	make
 	set cmdheight=1
 endfunction
 
@@ -1268,4 +1264,3 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 \ '\<AssemblyInfo\.cs\>'
 \]
 " 	"---------------------------------------}}}1
-" dirvish
