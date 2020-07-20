@@ -240,12 +240,12 @@ nnoremap <silent> <Leader>x :tabclose<CR> | nnoremap <C-s>x :tabclose<CR>
 nnoremap <Leader>X :tabonly<CR>:sp<CR>:q<CR>:let g:zindex+=1<CR>:call DisplayPopupTime()<CR>
 
 " Browse to Window or Tab
-nnoremap <Leader>h <C-W>h| nnoremap <C-s>h <C-W>h| tnoremap <C-s>h <C-W>h
-nnoremap <Leader>j <C-W>j| nnoremap <C-s>l <C-W>l| tnoremap <C-s>l <C-W>l 
-nnoremap <Leader>k <C-W>k| nnoremap <C-s>j <C-W>j| tnoremap <C-s>j <C-W>j
-nnoremap <Leader>l <C-W>l| nnoremap <C-s>k <C-W>k| tnoremap <C-s>k <C-W>k
-nnoremap <Leader>n gt|     nnoremap <C-s>n gt
-nnoremap <Leader>p gT|     nnoremap <C-s>p gT
+nnoremap <silent> <Leader>h <C-W>h| nnoremap <silent> <C-s>h <C-W>h| tnoremap <silent> <C-s>h <C-W>h
+nnoremap <silent> <Leader>j <C-W>j| nnoremap <silent> <C-s>l <C-W>l| tnoremap <silent> <C-s>l <C-W>l 
+nnoremap <silent> <Leader>k <C-W>k| nnoremap <silent> <C-s>j <C-W>j| tnoremap <silent> <C-s>j <C-W>j
+nnoremap <silent> <Leader>l <C-W>l| nnoremap <silent> <C-s>k <C-W>k| tnoremap <silent> <C-s>k <C-W>k
+nnoremap <silent> <Leader>n gt|     nnoremap <silent> <C-s>n gt
+nnoremap <silent> <Leader>p gT|     nnoremap <silent> <C-s>p gT
 
 augroup windows
 	autocmd!
@@ -264,10 +264,10 @@ augroup end
 
 
 " Position Window
-nnoremap <Leader>H <C-W>H
-nnoremap <Leader>J <C-W>J
-nnoremap <Leader>K <C-W>K
-nnoremap <Leader>L <C-W>L
+nnoremap <silent> <Leader>H <C-W>H
+nnoremap <silent> <Leader>J <C-W>J
+nnoremap <silent> <Leader>K <C-W>K
+nnoremap <silent> <Leader>L <C-W>L
 
 " Resize Window
 nnoremap <silent> <A-h> :vert res -2<CR>| tmap <silent> <A-h> <C-W>N:vert res -2<CR>i
@@ -327,10 +327,10 @@ function! SwapWindowContents(hjkl_keys)"-{{{2
 endfunction
 "----------------------------------------}}}2
 command! -nargs=1 -bar SwapWindows call SwapWindowContents(<f-args>)
-nnoremap SJ :SwapWindows j<CR> | nnoremap SJJ :SwapWindows jj<CR> | nnoremap SJK :SwapWindows jk<CR> | nnoremap SJH :SwapWindows jh<CR> | nnoremap SJL :SwapWindows jl<CR> 
-nnoremap SK :SwapWindows k<CR> | nnoremap SKJ :SwapWindows kj<CR> | nnoremap SKK :SwapWindows kk<CR> | nnoremap SKH :SwapWindows kh<CR> | nnoremap SKL :SwapWindows kl<CR>
-nnoremap SH :SwapWindows h<CR> | nnoremap SHJ :SwapWindows hj<CR> | nnoremap SHK :SwapWindows hk<CR> | nnoremap SHH :SwapWindows hh<CR> | nnoremap SHL :SwapWindows hl<CR>
-nnoremap SL :SwapWindows l<CR> | nnoremap SLJ :SwapWindows lj<CR> | nnoremap SLK :SwapWindows lk<CR> | nnoremap SLH :SwapWindows lh<CR> | nnoremap SLL :SwapWindows ll<CR>
+nnoremap SJ <silent> :SwapWindows j<CR> | nnoremap <silent> SJJ :SwapWindows jj<CR> | nnoremap <silent> SJK :SwapWindows jk<CR> | nnoremap <silent> SJH :SwapWindows jh<CR> | nnoremap <silent> SJL :SwapWindows jl<CR> 
+nnoremap SK <silent> :SwapWindows k<CR> | nnoremap <silent> SKJ :SwapWindows kj<CR> | nnoremap <silent> SKK :SwapWindows kk<CR> | nnoremap <silent> SKH :SwapWindows kh<CR> | nnoremap <silent> SKL :SwapWindows kl<CR>
+nnoremap SH <silent> :SwapWindows h<CR> | nnoremap <silent> SHJ :SwapWindows hj<CR> | nnoremap <silent> SHK :SwapWindows hk<CR> | nnoremap <silent> SHH :SwapWindows hh<CR> | nnoremap <silent> SHL :SwapWindows hl<CR>
+nnoremap SL <silent> :SwapWindows l<CR> | nnoremap <silent> SLJ :SwapWindows lj<CR> | nnoremap <silent> SLK :SwapWindows lk<CR> | nnoremap <silent> SLH :SwapWindows lh<CR> | nnoremap <silent> SLL :SwapWindows ll<CR>
 " ---------------------------------------}}}1
 " Status bar" ---------------------------{{{1
 set laststatus=2
