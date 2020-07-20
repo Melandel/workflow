@@ -629,7 +629,7 @@ set switchbuf+=uselast
 nnoremap <Leader>f :Files<CR>
 nnoremap <Leader>F :Files <C-R>=fnamemodify('.', ':p')<CR>
 nnoremap <Leader>g :let g:lcd_qf = getcwd()<CR>:Agrep 
-vnoremap <Leader>g "vy:let g:lcd_qf = getcwd()<CR>:let cmd = printf('Agrep %s %s',escape(@v,'\\#%'),getcwd())\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
+vnoremap <Leader>g "vy:let g:lcd_qf = getcwd()<CR>:let cmd = printf('lcd %s \| Agrep %s',getcwd(),substitute(@v,'#', '\\\\#', 'g'))\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
 "----------------------------------------}}}1
 " Registers" ----------------------------{{{1
 command! ClearRegisters for i in range(34,122) | silent! call setreg(nr2char(i), []) | endfor
@@ -817,7 +817,6 @@ if len(mybuffers) > 0 && len(mybuffers) % 4 == 0
 endfunction
 " ---------------------------------------}}}2
 function! ShowMyFiles()"----------------{{{2
-		let original_winid = win_getid(winnr())
 		windo setlocal winfixheight winfixwidth
 
 		let botright_winid =win_getid(winnr('$')) 
@@ -830,7 +829,7 @@ function! ShowMyFiles()"----------------{{{2
 		new $desktop/my.todo
 		new $desktop/my.notabene
 		vertical resize 50
-		call win_gotoid(original_winid)
+		wincmd k
 endfunction
 "---------------------------------------}}}2
 function! HideMyFiles(...)"-------------{{{2
