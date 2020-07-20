@@ -623,7 +623,7 @@ augroup end
 
 "----------------------------------------}}}1
 " Find, Grep, Make, Equal" --------------{{{1
-set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-line-number\ \"$*\"
+set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-column\ \"$*\"
 set switchbuf+=uselast
 
 nnoremap <Leader>f :Files<CR>
