@@ -109,28 +109,44 @@ let mapleader = 's'
 let maplocalleader = 'q'
 " ---------------------------------------}}}
 " Local Current Directories" ------------{{{
-function! LcdToGitRoot()"---------------{{{2
-	let gitrootdir = fnamemodify(gitbranch#dir(expand('%:p')), ':h')
-	execute(printf('lcd %s', gitrootdir))
-endfunction
-"---------------------------------------}}}2
-function! LcdToSlnOrCsproj(...)" --------{{{2
-	let omnisharp_host = getbufvar(bufnr('%'), 'OmniSharp_host')
-	if empty(omnisharp_host)
-		return
+
+let g:lcd_qf = getcwd()
+function! UpdateLocalCurrentDirectory()
+	let dir = expand('%:h:p')
+
+	if IsOmniSharpRelated()
+		let dir = fnamemodify(b:OmniSharp_host.sln_or_dir, ':p:h')
+	elseif IsInsideGitClone()
+		let dir = fnamemodify(gitbranch#dir(expand('%:p')), ':h')
+	elseif &ft == 'qf'
+		let dir = g:lcd_qf
 	endif
-	let srcRoot = fnamemodify(omnisharp_host.sln_or_dir, ':h')
-	execute(printf('lcd %s', srcRoot))
-endfunc
-" ---------------------------------------}}}2
-command! -bar Lcd silent lcd $desktop | call LcdToGitRoot() | call LcdToSlnOrCsproj() | echomsg printf('Current directory path set to: %s', getcwd())
+
+	execute('lcd '.dir)
+	echomsg printf('Current directory path set to: %s', dir)
+	return dir
+endfunction
+
+command! -bar Lcd call UpdateLocalCurrentDirectory()
 
 augroup lcd
 	au!
-	autocmd BufRead * lcd $desktop | call LcdToGitRoot() | call LcdToSlnOrCsproj()
+	autocmd BufRead * Lcd
 augroup end
 " ---------------------------------------}}}
 " Utils"--------------------------------{{{
+function! IsQuickFixWindowOpen()
+	return len(filter(range(1, winnr('$')), {_,x -> getwinvar(x, '&syntax') == 'qf'}))
+endfunction
+
+function! IsInsideGitClone()
+	return gitbranch#dir(expand('%:p')) != ''
+endfunction
+
+function! IsOmniSharpRelated()
+	return exists('b:OmniSharp_host.sln_or_dir') && b:OmniSharp_host.sln_or_dir =~ '\v\.(sln|csproj)$'
+endfunction
+
 function! LastCharacter()
 	return strcharpart(getline('.')[col('.'):], 0, 1)
 endfunction
@@ -153,9 +169,6 @@ function! ClearTrailingWhiteSpaces()
 endfunction
 command ClearTrailingWhiteSpaces call ClearTrailingWhiteSpaces()
 
-function! QuickFixWindowIsOpen()
-	return len(filter(range(1, winnr('$')), {_,x -> getwinvar(x, '&syntax') == 'qf'}))
-endfunction
 "---------------------------------------}}}
 
 " AZERTY Keyboard:
@@ -363,9 +376,6 @@ function! GitBranch()
 endfunction
 function! GitInfo()
 	return FolderRelativePathFromGit() . ' ' . GitBranch()
-endfunction
-function! IsOmniSharpRelated()
-	return OmniSharp#GetHost().sln_or_dir =~ '\v\.(sln|csproj)$'
 endfunction
 function! WinNr()
 	return printf('[Window #%s]', winnr())
@@ -617,12 +627,13 @@ augroup end
 
 "----------------------------------------}}}1
 " Find, Grep, Make, Equal" --------------{{{1
-set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ $*
+set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-line-number\ \"$*\"
+set switchbuf+=uselast
 
 nnoremap <Leader>f :Files<CR>
 nnoremap <Leader>F :Files <C-R>=fnamemodify('.', ':p')<CR>
-nnoremap <Leader>g :Lcd<CR>:Agrep --no-ignore-parent 
-vnoremap <Leader>g "vy:Lcd<CR>:let cmd = printf('Agrep --no-ignore-parent %s %s',escape(@v,'\\#%'),getcwd())\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
+nnoremap <Leader>g :let g:lcd_qf = getcwd()<CR>:Agrep 
+vnoremap <Leader>g "vy:let g:lcd_qf = getcwd()<CR>:let cmd = printf('Agrep %s %s',escape(@v,'\\#%'),getcwd())\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
 "----------------------------------------}}}1
 " Registers" ----------------------------{{{1
 command! ClearRegisters for i in range(34,122) | silent! call setreg(nr2char(i), []) | endfor
@@ -968,11 +979,13 @@ command! -nargs=* Tree call Tree(<f-args>)
 nmap <Leader>e <Plug>(dirvish_up)
 augroup my_dirvish
 	au!
-	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | mark L
+	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | mark L | setlocal foldcolumn=1
+	autocmd BufLeave dirvish mark L
 	autocmd FileType dirvish nmap <buffer> <LocalLeader>m :let b:vifm_mappings = (b:vifm_mappings ? 0 : 1)<CR>
 	autocmd FileType dirvish nmap <buffer> <expr> l b:vifm_mappings ? 'i' : 'l'
 	autocmd FileType dirvish nmap <buffer> <expr> h b:vifm_mappings ? "\<Leader>e" : 'h'
 	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>q :Shdo  {} {}<Left><Left><Left><Left><Left><Left>
+	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>t ggdG:Tree -df --noreport<CR>
 augroup end
 "---------------------------------------}}}2
 
@@ -1133,10 +1146,10 @@ endif
 	setlocal errorformat=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
 	setlocal errorformat+=%-G%.%#
 	setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true\ /clp:NoSummary
-	call LcdToSlnOrCsproj()
+	let g:lcd_qf = getcwd()
 	silent make
 
-	if QuickFixWindowIsOpen()
+	if IsQuickFixWindowOpen()
 		set cmdheight=1
 		return
 	endif
@@ -1151,7 +1164,7 @@ endif
 	setlocal errorformat+=%C\ %#%m
 	setlocal errorformat+=%-G%.%#
 	setlocal makeprg=dotnet\ test\ --no-build\ --nologo
-	call LcdToSlnOrCsproj()
+	let g:lcd_qf = getcwd()
 	silent make
 	set cmdheight=1
 endfunction
