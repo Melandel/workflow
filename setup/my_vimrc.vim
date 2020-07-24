@@ -3,6 +3,7 @@ let $desktop = $HOME . '/Desktop'
 let $v = $desktop . '/tools/vim/_vimrc'
 let $p = $desktop . '/tools/vim/pack/plugins/start/'
 let $c = $desktop . '/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim'
+let $w = $desktop . '/tmp/cleanarchitecturepractice/'
 " ---------------------------------------}}}1
 
 " Desktop Integration:
@@ -16,6 +17,7 @@ function! MinpacInit()
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
 	call minpac#add('OmniSharp/omnisharp-vim')
+	call minpac#add('Melandel/omnisharp-vim')
 	call minpac#add('nickspoons/vim-sharpenup')
 
 	call minpac#add('SirVer/ultisnips')
@@ -111,7 +113,7 @@ let maplocalleader = 'q'
 " Local Current Directories" ------------{{{
 
 let g:lcd_qf = getcwd()
-function! UpdateLocalCurrentDirectory()
+function! GetInterestingParentDirectory()
 	let dir = expand('%:h:p')
 
 	if IsOmniSharpRelated()
@@ -122,8 +124,17 @@ function! UpdateLocalCurrentDirectory()
 		let dir = g:lcd_qf
 	endif
 
-	execute('lcd '.dir)
 	return dir
+endfunction
+function! UpdateLocalCurrentDirectory()
+	let dir = GetInterestingParentDirectory()
+	let current_wd = getcwd()
+
+	if current_wd != dir
+		redraw
+		echo printf('[%s] -> [%s]', current_wd, dir)
+		execute('lcd '.dir)
+	endif	
 endfunction
 
 command! -bar Lcd call UpdateLocalCurrentDirectory()
@@ -208,12 +219,13 @@ nnoremap <LocalLeader>H :OmniSharpHighlightEchoKind<CR>
 set hidden
 set splitbelow
 set splitright
+set noequalalways " keep windows viewport when splitting
 set previewheight=25
 set showtabline=0
 
 " List/Open Buffers
-nnoremap <Leader>b :History<CR>
-nnoremap <Leader>B :Buffers<CR>
+nnoremap <Leader>b :Buffers<CR>
+nnoremap <Leader>B :History<CR>
 
 " Close Buffers
 function! DeleteHiddenBuffers()" --------{{{2
@@ -409,7 +421,7 @@ function! BrowseLayoutDown()" -----------{{{2
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cnext
 	else
-		keepjumps execute 'silent! normal! }}{j'
+		silent! normal! g;
 	endif
 
 	silent! normal! zv
@@ -424,11 +436,7 @@ function! BrowseLayoutUp()" -------------{{{2
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cprev
 	else
-		let original_pos = line('.')
-		normal! {j
-		if line('.') == original_pos
-			keepjumps normal! {{j
-		endif
+		silent! normal! g,
 	endif
 
 	silent! normal! zv
@@ -626,10 +634,10 @@ augroup end
 set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-column\ \"$*\"
 set switchbuf+=uselast
 
-nnoremap <Leader>f :Files<CR>
-nnoremap <Leader>F :Files <C-R>=fnamemodify('.', ':p')<CR>
+nnoremap <Leader>f :Lines<CR>
+nnoremap <Leader>F :Files <C-R>=GetInterestingParentDirectory()<CR><CR>
 nnoremap <Leader>g :let g:lcd_qf = getcwd()<CR>:Agrep 
-vnoremap <Leader>g "vy:let g:lcd_qf = getcwd()<CR>:let cmd = printf('lcd %s \| Agrep %s',getcwd(),substitute(@v,'#', '\\\\#', 'g'))\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
+vnoremap <Leader>g "vy:let g:lcd_qf = getcwd()<CR>:let cmd = printf('lcd %s \| Agrep %s',getcwd(),@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
 "----------------------------------------}}}1
 " Registers" ----------------------------{{{1
 command! ClearRegisters for i in range(34,122) | silent! call setreg(nr2char(i), []) | endfor
@@ -744,7 +752,7 @@ set ignorecase
 set shortmess=filnxtToO
 nnoremap ! /
 vnoremap ! "vy/<C-R>v
-nnoremap <Leader>! :BLines<CR>
+nnoremap / :Lines<CR>
 
 nnoremap q! q/
 nnoremap z! :BLines {{{<CR>
@@ -798,9 +806,41 @@ augroup quickfix
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | pclose | endif
 
 	autocmd QuickFixCmdPost	l* nested lwindow
+
+	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
+	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
 augroup end
 
 "----------------------------------------}}}1
+" Marks"--------------------------------{{{
+nnoremap <silent> ma mA| nnoremap <silent> mA ma| nnoremap <silent> 'a 'A| nnoremap <silent> `a `A| nnoremap <silent> 'A 'a| nnoremap <silent> `A `a
+nnoremap <silent> mb mB| nnoremap <silent> mB mb| nnoremap <silent> 'b 'B| nnoremap <silent> `b `B| nnoremap <silent> 'B 'b|
+nnoremap <silent> mc mC| nnoremap <silent> mC mc| nnoremap <silent> 'c 'C| nnoremap <silent> `c `C| nnoremap <silent> 'C 'c|
+nnoremap <silent> md mD| nnoremap <silent> mD md| nnoremap <silent> 'd 'D| nnoremap <silent> `d `D| nnoremap <silent> 'D 'd|
+nnoremap <silent> me mE| nnoremap <silent> mE me| nnoremap <silent> 'e 'E| nnoremap <silent> `e `E| nnoremap <silent> 'E 'e|
+nnoremap <silent> mf mF| nnoremap <silent> mF mf| nnoremap <silent> 'f 'F| nnoremap <silent> `f `F| nnoremap <silent> 'F 'f|
+nnoremap <silent> mg mG| nnoremap <silent> mG mg| nnoremap <silent> 'g 'G| nnoremap <silent> `g `G| nnoremap <silent> 'G 'g|
+nnoremap <silent> mh mH| nnoremap <silent> mH mh| nnoremap <silent> 'h 'H| nnoremap <silent> `h `H| nnoremap <silent> 'H 'h|
+nnoremap <silent> mi mI| nnoremap <silent> mI mi| nnoremap <silent> 'i 'I| nnoremap <silent> `i `I| nnoremap <silent> 'I 'i|
+nnoremap <silent> mj mJ| nnoremap <silent> mJ mj| nnoremap <silent> 'j 'J| nnoremap <silent> `j `J| nnoremap <silent> 'J 'j|
+nnoremap <silent> mk mK| nnoremap <silent> mK mk| nnoremap <silent> 'k 'K| nnoremap <silent> `k `K| nnoremap <silent> 'K 'k|
+nnoremap <silent> ml mL| nnoremap <silent> mL ml| nnoremap <silent> 'l 'L| nnoremap <silent> `l `L| nnoremap <silent> 'L 'l|
+nnoremap <silent> mm mM| nnoremap <silent> mM mm| nnoremap <silent> 'm 'M| nnoremap <silent> `m `M| nnoremap <silent> 'M 'm|
+nnoremap <silent> mn mN| nnoremap <silent> mN mn| nnoremap <silent> 'n 'N| nnoremap <silent> `n `N| nnoremap <silent> 'N 'n|
+nnoremap <silent> mo mO| nnoremap <silent> mO mo| nnoremap <silent> 'o 'O| nnoremap <silent> `o `O| nnoremap <silent> 'O 'o|
+nnoremap <silent> mp mP| nnoremap <silent> mP mp| nnoremap <silent> 'p 'P| nnoremap <silent> `p `P| nnoremap <silent> 'P 'p|
+nnoremap <silent> mq mQ| nnoremap <silent> mQ mq| nnoremap <silent> 'q 'Q| nnoremap <silent> `q `Q| nnoremap <silent> 'Q 'q|
+nnoremap <silent> mr mR| nnoremap <silent> mR mr| nnoremap <silent> 'r 'R| nnoremap <silent> `r `R| nnoremap <silent> 'R 'r|
+nnoremap <silent> ms mS| nnoremap <silent> mS ms| nnoremap <silent> 's 'S| nnoremap <silent> `s `S| nnoremap <silent> 'S 's|
+nnoremap <silent> mt mT| nnoremap <silent> mT mt| nnoremap <silent> 't 'T| nnoremap <silent> `t `T| nnoremap <silent> 'T 't|
+nnoremap <silent> mu mU| nnoremap <silent> mU mu| nnoremap <silent> 'u 'U| nnoremap <silent> `u `U| nnoremap <silent> 'U 'u|
+nnoremap <silent> mv mV| nnoremap <silent> mV mv| nnoremap <silent> 'v 'V| nnoremap <silent> `v `V| nnoremap <silent> 'V 'v|
+nnoremap <silent> mw mW| nnoremap <silent> mW mw| nnoremap <silent> 'w 'W| nnoremap <silent> `w `W| nnoremap <silent> 'W 'w|
+nnoremap <silent> mx mX| nnoremap <silent> mX mx| nnoremap <silent> 'x 'X| nnoremap <silent> `x `X| nnoremap <silent> 'X 'x|
+nnoremap <silent> my mY| nnoremap <silent> mY my| nnoremap <silent> 'y 'Y| nnoremap <silent> `y `Y| nnoremap <silent> 'Y 'y|
+nnoremap <silent> mz mZ| nnoremap <silent> mZ mz| nnoremap <silent> 'z 'Z| nnoremap <silent> `z `Z| nnoremap <silent> 'Z 'z|
+"---------------------------------------}}}
+
 
 " Additional Functionalities:
 " My Files" -----------------------------{{{1
@@ -964,27 +1004,140 @@ command! Quote echomsg GetQuote()
 nnoremap <Leader>Q :Quote<CR>
 " ---------------------------------------}}}1
 " File explorer (graphical)" ------------{{{1
-" Tree"---------------------------------{{{2
-function Tree(...)
-	execute('read !tree.exe '.join(a:000, ' '))
+" functions"----------------------------{{{2
+function! IsPreviouslyYankedItemValid()
+	return @d != ''
 endfunction
-command! -nargs=* Tree call Tree(<f-args>)
+function! PromptUserForRenameOrSkip(filename)
+
+	let rename_or_skip = input(a:filename.' already exists. Rename it or skip operation?(r/S) ')
+	if rename_or_skip != 'r'
+		return ''
+	endif
+	return input('Rename into:', a:filename)
+endfunction
+function! CopyPreviouslyYankedItemToCurrentDirectory()
+	if !IsPreviouslyYankedItemValid()
+		echomsg 'Select a path first!'
+		return
+	endif
+
+	let cwd = getcwd()
+	let item = trim(@d, '/\')
+	let item_folder= fnamemodify(item, ':h')
+	let item_filename= fnamemodify(item, ':t')
+
+	let item_finalname = item_filename
+	if !empty(glob(item_filename))
+		let item_finalname = PromptUserForRenameOrSkip(item_filename)
+		if item_finalname == ''
+			return
+		endif
+	endif
+
+	let cmd = 'robocopy '
+	if isdirectory(item)
+		let cmd .= printf('/e "%s" "%s\%s"', item, cwd, item_finalname)
+	else
+		let cmd .= printf('"%s" "%s" "%s"', item_folder, cwd, item_filename)
+	endif
+echomsg cmd
+	silent execute(printf(':!start /b %s', cmd))
+endfunction
+function! DeleteItemUnderCursor()
+	let target = trim(getline('.'), '/\')
+	let filename = fnamemodify(target, ':t')
+	let cmd = (isdirectory(target)) ?  printf('rmdir "%s" /s /q',target) : printf('del "%s"', target)
+	silent execute(printf(':!start /b %s', cmd))
+	normal R
+endfunction
+function! MovePreviouslyYankedItemToCurrentDirectory(source)
+	if !IsPreviouslyYankedItemValid()
+		echomsg 'Select a path first!'
+		return
+	endif
+
+	let cwd = getcwd()
+	let item = trim(@d, '/\')
+	let item_folder= fnamemodify(item, ':h')
+	let item_filename= fnamemodify(item, ':t')
+
+	let item_finalname = item_filename
+	if !empty(glob(item_finalname))
+		let item_finalname = PromptUserForRenameOrSkip(item_filename)
+		if item_finalname == ''
+			return
+		endif
+	endif
+
+	let cmd = printf('move "%s" "%s\%s"', item, cwd, item_finalname)
+
+	silent execute(printf(':!start /b %s', cmd))
+endfunction
+function! RenameItemUnderCursor()
+	let target = trim(getline('.'), '/\')
+	let filename = fnamemodify(target, ':t')
+	let newname = input('Rename into:', filename)
+	silent execute(printf(':!start /b rename "%s" "%s"',target,newname))
+	normal R
+endfunction
+function! OpenTree(flags)
+	let flags = ( a:flags != '' ? ('-'.a:flags) : '' )
+	let target = trim(getline('.'), '\') " Remove the ending separator or tree won't work with double quotes
+	let filename = fnamemodify(target,':t')
+	vnew | set buftype=nofile nowrap
+	set conceallevel=3 concealcursor=n | syn match Todo /\v(\a|\:|\\|\/|\.)*(\/|\\)/ conceal
+	nnoremap <buffer> yy $"by$
+
+	let cmd = printf('silent read !tree.exe --noreport -I "bin|obj" "%s" %s', target, flags)
+	exec(cmd)
+	%s,\\,/,ge
+	normal! gg"_dd
+endfunction
+function! CreateDirectory()
+	let dirname = input('Directory name:')
+	if trim(dirname) == '' || isdirectory(glob(dirname))
+		redraw
+		echomsg printf('"%s" already exists.', dirname)
+		return
+	endif
+	let cmd = printf(':!start /b mkdir %s', dirname)
+	silent execute(cmd)
+	normal R
+endf
+function! CreateFile()
+	let filename = input('File name:')
+	if trim(filename) == '' || !empty(glob(filename))
+		redraw
+		echomsg printf('"%s" already exists.', filename)
+		return
+	endif
+	let cmd = printf(':!start /b copy /y NUL %s >NUL', filename)
+	silent execute(cmd)
+	normal R
+endf
 "---------------------------------------}}}2
-" Dirvish"------------------------------{{{2
-nmap <Leader>e <Plug>(dirvish_up)
 augroup my_dirvish
 	au!
-	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | mark L | setlocal foldcolumn=1
+	autocmd FileType dirvish nmap <buffer> , <Plug>(dirvish_K)
+	autocmd FileType dirvish nmap <buffer> <silent> K gq:let @d=''<CR>
+	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | setlocal foldcolumn=1
 	autocmd BufLeave dirvish mark L
-	autocmd FileType dirvish nmap <buffer> <LocalLeader>m :let b:vifm_mappings = (b:vifm_mappings ? 0 : 1)<CR>
-	autocmd FileType dirvish nmap <buffer> <expr> l b:vifm_mappings ? 'i' : 'l'
-	autocmd FileType dirvish nmap <buffer> <expr> h b:vifm_mappings ? "\<Leader>e" : 'h'
-	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>q :Shdo  {} {}<Left><Left><Left><Left><Left><Left>
-	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>t :vnew<CR>:Tree -df --noreport -I "bin\|obj"<Home><Right><Right><Right><Right><Right><Right><Right><Right>
+	autocmd FileType dirvish nnoremap <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
+	autocmd FileType dirvish nnoremap <buffer> i :call CreateDirectory()<CR>
+	autocmd FileType dirvish nnoremap <buffer> I :call CreateFile()<CR>
+	autocmd FileType dirvish nmap <buffer> h -
+	autocmd FileType dirvish unmap <buffer> p
+	autocmd FileType dirvish nnoremap <buffer> yy ^"dy$
+	autocmd FileType dirvish nnoremap <buffer> dd :call DeleteItemUnderCursor()<CR>
+	autocmd FileType dirvish nmap <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
+	autocmd FileType dirvish nmap <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
+	autocmd FileType dirvish nmap <buffer> cc :call RenameItemUnderCursor()<CR>
+	autocmd FileType dirvish nnoremap <buffer> t :call OpenTree('df')<CR>
+	autocmd FileType dirvish nnoremap <buffer> T :call OpenTree('df')<left><left><left>
+	autocmd FileType dirvish nnoremap <buffer> <space> :Lcd \| e .<CR>
 augroup end
-"---------------------------------------}}}2
-
-" ---------------------------------------}}}1
+"---------------------------------------}}}1
 " Web Browsing" -------------------------{{{1
 function! WeatherInNewTab()" ------------{{{2
 	tabnew
@@ -1051,6 +1204,12 @@ nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 " ---------------------------------------}}}1
 " Git" ----------------------------------{{{1
 nnoremap <silent> <Leader>G :tab G<CR>
+augroup my_fugitive
+	au!
+	autocmd FileType fugitive nmap <buffer> <space> =
+	autocmd FileType fugitive nnoremap <buffer> qq :q<CR>
+	autocmd FileType fugitive nnoremap <buffer> qm :Git push --force-with-lease<CR>
+augroup end
 " ---------------------------------------}}}1
 " Diagrams"-----------------------------{{{1
 function! InitNewDiagram(filename)"-------------{{{2
@@ -1137,11 +1296,15 @@ function! CSharpBuild()
 		return
 endif
 
+let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, ':h:p')
+
 	set cmdheight=4
-	setlocal errorformat=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
+	setlocal errorformat=%f(%l\\,%c):\ error\ MSB%n:\ %m\ [%.%#
+	setlocal errorformat+=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
 	setlocal errorformat+=%-G%.%#
 	setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true\ /clp:NoSummary
-	let g:lcd_qf = getcwd()
+	execute('lcd '.sln_dir)
+	let g:lcd_qf = sln_dir
 	make
 
 	if IsQuickFixWindowOpen()
@@ -1159,7 +1322,6 @@ endif
 	setlocal errorformat+=%C\ %#%m
 	setlocal errorformat+=%-G%.%#
 	setlocal makeprg=dotnet\ test\ --no-build\ --nologo
-	let g:lcd_qf = getcwd()
 	make
 	set cmdheight=1
 endfunction
@@ -1216,7 +1378,7 @@ let g:OmniSharp_highlight_groups = {
 	\ 'Punctuation': 'Identifier', 	
 	\ 'VerbatimStringLiteral': 'String', 	
 	\ 'StringEscapeCharacter': 'Special', 	
-	\ 'ClassName': 'Pmenu',
+	\ 'ClassName': 'Float',
 	\ 'DelegateName': 'Identifier',
 	\ 'EnumName': 'Structure',
 	\ 'InterfaceName': 'Character',
@@ -1263,3 +1425,12 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 \ '\<AssemblyInfo\.cs\>'
 \]
 " 	"---------------------------------------}}}1
+
+function! DiffWithSaved()
+  let filetype=&ft
+  diffthis
+  vnew | r # | normal! 1Gdd
+  diffthis
+  exe "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
+endfunction
+com! DiffSaved call s:DiffWithSaved()
