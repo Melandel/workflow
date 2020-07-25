@@ -1207,8 +1207,10 @@ nnoremap <silent> <Leader>G :tab G<CR>
 augroup my_fugitive
 	au!
 	autocmd FileType fugitive nmap <buffer> <space> =
-	autocmd FileType fugitive nnoremap <buffer> qq :q<CR>
+	autocmd FileType fugitive nnoremap <buffer> qq :tabclose<CR>
+	autocmd FileType git nnoremap <buffer> qq :q<CR>
 	autocmd FileType fugitive nnoremap <buffer> qm :Git push --force-with-lease<CR>
+	autocmd FileType fugitive nnoremap <buffer> ql :silent! Glog<CR>
 augroup end
 " ---------------------------------------}}}1
 " Diagrams"-----------------------------{{{1
@@ -1252,7 +1254,7 @@ function! SmartBracketPowerActivate()
 	let brackets = [['(', ')'], ['{', '}'], ['[', ']'], ["'", "'"], ['"', '"'], ["'", "'"], ['`', '`'], ['<', '>']]
 
 	let last2chars = substitute(getline('.')[:col('.')-1], '\s', '', 'g')[-2:]
-	let pairindex = index(map(copy(brackets), {_,itm -> itm[0].itm[1]}), last2chars)
+let pairindex = index(map(copy(brackets), {_,itm -> itm[0].itm[1]}), last2chars)
 	if pairindex >= 0
 		return "\<Left>\<CR>\<CR>\<Up>\<Tab>"
 	endif
