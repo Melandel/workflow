@@ -1103,7 +1103,7 @@ function! CreateDirectory()
 		echomsg printf('"%s" already exists.', dirname)
 		return
 	endif
-	let cmd = printf(':!start /b mkdir %s', dirname)
+	let cmd = printf(':!start /b mkdir "%s"', dirname)
 	silent execute(cmd)
 	normal R
 endf
@@ -1116,7 +1116,7 @@ function! CreateFile()
 		echomsg printf('"%s" already exists.', filename)
 		return
 	endif
-	let cmd = printf(':!start /b copy /y NUL %s >NUL', filename)
+	let cmd = printf(':!start /b copy /y NUL "%s" >NUL', filename)
 	silent execute(cmd)
 	normal R
 endf
