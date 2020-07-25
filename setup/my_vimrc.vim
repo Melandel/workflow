@@ -1096,7 +1096,9 @@ function! OpenTree(flags)
 endfunction
 function! CreateDirectory()
 	let dirname = input('Directory name:')
-	if trim(dirname) == '' || isdirectory(glob(dirname))
+	if trim(dirname) == ''
+		return
+	elseif isdirectory(glob(dirname))
 		redraw
 		echomsg printf('"%s" already exists.', dirname)
 		return
@@ -1107,7 +1109,9 @@ function! CreateDirectory()
 endf
 function! CreateFile()
 	let filename = input('File name:')
-	if trim(filename) == '' || !empty(glob(filename))
+	if trim(filename) == ''
+		return
+	elseif !empty(glob(filename))
 		redraw
 		echomsg printf('"%s" already exists.', filename)
 		return
@@ -1120,22 +1124,22 @@ endf
 augroup my_dirvish
 	au!
 	autocmd FileType dirvish nmap <buffer> , <Plug>(dirvish_K)
-	autocmd FileType dirvish nmap <buffer> <silent> K gq:let @d=''<CR>
+	autocmd FileType dirvish nmap <silent> <buffer> <silent> K gq:let @d=''<CR>
 	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | setlocal foldcolumn=1
 	autocmd BufLeave dirvish mark L
-	autocmd FileType dirvish nnoremap <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
-	autocmd FileType dirvish nnoremap <buffer> i :call CreateDirectory()<CR>
-	autocmd FileType dirvish nnoremap <buffer> I :call CreateFile()<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> i :call CreateDirectory()<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> I :call CreateFile()<CR>
 	autocmd FileType dirvish nmap <buffer> h -
 	autocmd FileType dirvish unmap <buffer> p
 	autocmd FileType dirvish nnoremap <buffer> yy ^"dy$
-	autocmd FileType dirvish nnoremap <buffer> dd :call DeleteItemUnderCursor()<CR>
-	autocmd FileType dirvish nmap <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
-	autocmd FileType dirvish nmap <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
-	autocmd FileType dirvish nmap <buffer> cc :call RenameItemUnderCursor()<CR>
-	autocmd FileType dirvish nnoremap <buffer> t :call OpenTree('df')<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> dd :call DeleteItemUnderCursor()<CR>
+	autocmd FileType dirvish nmap <silent> <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
+	autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
+	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> t :call OpenTree('df')<CR>
 	autocmd FileType dirvish nnoremap <buffer> T :call OpenTree('df')<left><left><left>
-	autocmd FileType dirvish nnoremap <buffer> <space> :Lcd \| e .<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :Lcd \| e .<CR>
 augroup end
 "---------------------------------------}}}1
 " Web Browsing" -------------------------{{{1
