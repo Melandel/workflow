@@ -3,7 +3,7 @@ let $desktop = $HOME . '/Desktop'
 let $v = $desktop . '/tools/vim/_vimrc'
 let $p = $desktop . '/tools/vim/pack/plugins/start/'
 let $c = $desktop . '/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim'
-let $w = $desktop . '/tmp/cleanarchitecturepractice/'
+let $w = $desktop . '/tmp/cleanarchitecturepractice/src'
 " ---------------------------------------}}}1
 
 " Desktop Integration:
@@ -347,6 +347,16 @@ nnoremap SL <silent> :SwapWindows l<CR> | nnoremap <silent> SLJ :SwapWindows lj<
 " Status bar" ---------------------------{{{1
 set laststatus=2
 
+function! TabInfo()
+	let maxtab = tabpagenr('$')
+	if maxtab == 1
+		return ''
+	else
+		let currenttab = tabpagenr()
+		return join(map(range(1, tabpagenr('$')), {_,itm -> (itm == currenttab ? '['.itm.']' : string(itm))}), ' ')
+	endif
+endfunction
+
 function! WinNr()
 	return printf('[Window #%s]', winnr())
 endfunction
@@ -370,7 +380,8 @@ let g:lightline = {
 	\ 'colorscheme': 'empower',
 	\ 'component_function': {
 	\    'filesize_and_rows': 'FileSizeAndRows',
-	\    'winnr': 'WinNr'
+	\    'winnr': 'WinNr',
+	\    'tabinfo': 'TabInfo'
 	\ },
 	\ 'component': {
 	\   'sharpenup': sharpenup#statusline#Build(),
@@ -385,7 +396,7 @@ let g:lightline = {
 	\ 'active':   {
 	\    'left':  [
 	\        [ 'mode', 'winnr2', 'paste', 'readonly', 'modified' ],
-	\        [ 'time' ]
+	\        [ 'tabinfo', 'time' ]
 	\    ],
 	\    'right': [
 	\        ['sharpenup', 'filename', 'readonly', 'modified' ],
@@ -560,9 +571,6 @@ vnoremap if ggoGV| onoremap if :normal vif<CR>
 " select until end of line
 nnoremap vv ^vg_
 
-" Last inserted text
-nnoremap vI `[v`]h
-
 " ---------------------------------------}}}1
 " Copy & Paste" -------------------------{{{1
 
@@ -613,6 +621,7 @@ set wildmode=full
 
 " Folder of current file
 cnoremap µ <C-R>=expand('%:p:h')<CR>\
+cnoremap <C-F> %:p:h
 
 "----------------------------------------}}1
 " Sourcing" -----------------------------{{{1
@@ -634,8 +643,7 @@ augroup end
 set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-column\ \"$*\"
 set switchbuf+=uselast
 
-nnoremap <Leader>f :Lines<CR>
-nnoremap <Leader>F :Files <C-R>=GetInterestingParentDirectory()<CR><CR>
+nnoremap <Leader>f :Files <C-R>=GetInterestingParentDirectory()<CR><CR>
 nnoremap <Leader>g :let g:lcd_qf = getcwd()<CR>:Agrep 
 vnoremap <Leader>g "vy:let g:lcd_qf = getcwd()<CR>:let cmd = printf('lcd %s \| Agrep %s',getcwd(),@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
 "----------------------------------------}}}1
@@ -1137,7 +1145,7 @@ augroup my_dirvish
 	autocmd FileType dirvish nmap <silent> <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
-	autocmd FileType dirvish nnoremap <silent> <buffer> t :call OpenTree('df')<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> t :call OpenTree('')<CR>
 	autocmd FileType dirvish nnoremap <buffer> T :call OpenTree('df')<left><left><left>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :Lcd \| e .<CR>
 augroup end
@@ -1335,6 +1343,7 @@ endfunction
 augroup csharpfiles
 	au!
 	autocmd FileType cs nnoremap <silent> <LocalLeader>m :call CSharpBuild()<CR>
+	autocmd FileType cs nnoremap <silent> <LocalLeader>M :!dotnet run -p Startup<CR>
 	autocmd FileType cs nmap <buffer> zk <Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
 	autocmd FileType cs nmap <buffer> z! :BLines public\\|private\\|protected<CR>
