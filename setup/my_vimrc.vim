@@ -323,11 +323,11 @@ endfunction
 "---------------------------------------}}}2
 command! -range -nargs=? -bar FocusLinesSplit <line1>,<line2>call FocusLines('split', <f-args>)
 command! -range -nargs=? -bar FocusLinesNew <line1>,<line2>call FocusLines('New', <f-args>)
-nnoremap <Leader>r :FocusLines 
-vnoremap <Leader>r :FocusLines<CR>
+nnoremap <Leader>r :FocusLinesSplit 
+vnoremap <Leader>r :FocusLinesSplit<CR>
 
-nnoremap <Leader>R :FocusLines 
-vnoremap <Leader>R :FocusLines<CR>
+nnoremap <Leader>R :FocusLinesNew 
+vnoremap <Leader>R :FocusLinesNew<CR>
 " Alternate file fast switching
 noremap <Leader>d <C-^>
 
