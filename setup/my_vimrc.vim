@@ -858,44 +858,59 @@ augroup my_fzf
 augroup end
 "---------------------------------------}}}1
 " My Files" -----------------------------{{{1
-function! GetMyFilesBuffers()
-	return filter(tabpagebuflist(), {idx, itm -> bufname(itm) =~ 'my\.day\|my\.happyplace\|my\.todo\|my\.notabene'})
-endfunction
+let g:myfiles = [
+	\{
+		\'file': $desktop."/my.notabene", 
+	\},
+	\{
+		\'file': $desktop."/my.todo", 
+		\'normal': 'gg',
+		\'focus': 1
+	\},
+	\{
+		\'file': $desktop."/my.day", 
+		\'normal': 'Gzx[zkzt'
+	\},
+	\{
+		\'file': $desktop."/my.happyplace", 
+		\'normal': 'Gzx[zkzt'
+	\}
+\]
+function! ShowMyFiles()"----------------{{{2
+	let focuswindowid = win_getid()
+	for i in range(len(g:myfiles))
+		let myfile = g:myfiles[i]
+		if i == 0 | exec('bo 50vnew '.myfile.file) | else | exec('new '.myfile.file) | endif
+		if has_key(myfile, 'normal') | silent! exec('normal! '.myfile.normal) | endif
+		if get(myfile, 'focus',0) | let focuswindowid = win_getid() | endif
+		call setbufvar(bufnr('%'), 'isMyFile', 1)
+		setlocal nowrap
+	endfor
+	new | setlocal buftype=nofile bufhidden=hide noswapfile | call setbufvar(bufnr('%'), 'isMyFile', 1) |put=trim(execute('echo GetQuote()')) | normal! ggdd
+	if focuswindowid != -1 | call win_gotoid(focuswindowid) | endif
+endfunc
+"---------------------------------------}}}2
 function! ToggleMyFiles()" --------------{{{2
-	let mybuffers = GetMyFilesBuffers()
-if len(mybuffers) > 0 && len(mybuffers) % 4 == 0
-		call HideMyFiles(mybuffers)
-	else
-		call ShowMyFiles()
-	endif
+	let nbwindows = winnr('$') | call HideMyFiles()
+	if winnr('$') == nbwindows | call ShowMyFiles() | endif
 endfunction
 " ---------------------------------------}}}2
-function! ShowMyFiles()"----------------{{{2
-		windo setlocal winfixheight winfixwidth
-
-		let botright_winid =win_getid(winnr('$')) 
-		call win_gotoid(botright_winid)
-		setlocal nowinfixheight nowinfixwidth
-
-		vnew $desktop/my.day | normal! Gzx[zkzt
-		wincmd L
-		new $desktop/my.happyplace |normal! Gzx[zkzt 
-		new $desktop/my.todo
-		new $desktop/my.notabene
-		vertical resize 50
-		wincmd k
-endfunction
-"---------------------------------------}}}2
-function! HideMyFiles(...)"-------------{{{2
+function! HideMyFiles()"-------------{{{2
 	let original_winid = win_getid(winnr())
-	let mybuffers = (a:0 > 0) ? a:1 :filter(copy(tabpagebuflist()), {idx, itm -> bufname(itm) =~ 'my\.'}) 
-
-	for bufid in mybuffers
-		call win_gotoid(bufwinid(bufid)) | write | quit
+	let deletedids = []
+	for buffer in filter(copy(getbufinfo()), {x, itm -> getbufvar(itm.bufnr, 'isMyFile', 0)})
+		let winid = bufwinid(buffer.bufnr)
+		if winid != -1
+			call add(deletedids, winid)
+			call win_gotoid(winid)
+			if buffer.name != '' | write | endif
+			quit!
+		endif
 	endfor
 
-	call win_gotoid(original_winid)
-	windo setlocal nowinfixheight nowinfixwidth
+	if index(deletedids, original_winid) == -1
+		call win_gotoid(original_winid)
+	endif
 endfunction
 "---------------------------------------}}}2
 command! ShowMyFiles silent call ShowMyFiles()
