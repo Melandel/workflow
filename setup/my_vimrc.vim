@@ -244,8 +244,14 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-nnoremap <Leader>s :split<CR>
-nnoremap <Leader>v :vsplit<CR>
+command! -bar Enew exec('enew | set buftype=nofile bufhidden=hide noswapfile')
+command! -bar New exec('new | set buftype=nofile bufhidden=hide noswapfile')
+command! -bar Vnew exec('vnew | set buftype=nofile bufhidden=hide noswapfile')
+command! -bar Split exec('new | set buftype=nofile bufhidden=hide noswapfile')
+command! -bar Vsplit exec('vnew | set buftype=nofile bufhidden=hide noswapfile')
+command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile')
+nnoremap <Leader>s :if bufname() != '' \| split \| else \| Split \| endif<CR>
+nnoremap <Leader>v :if bufname() != '' \| vsplit \| else \| Vsplit \| endif<CR>
 nnoremap K :q<CR>
 nnoremap <Leader>o mW:tabnew<CR>`W
 nnoremap <silent> <Leader>x :tabclose<CR> | nnoremap <C-s>x :tabclose<CR>
@@ -291,13 +297,14 @@ nnoremap <silent> <Leader>\| <C-W>\|
 nnoremap <silent> <Leader>_ <C-W>_
 
 " Resize a window for some text
-function! FocusLines(...) range"--------{{{2
+function! FocusLines(splitcmd, ...) range"--------{{{2
 	let nblines_minus_one = (a:0 == 1) ? a:1 : (a:lastline - a:firstline)
 	if getline(a:lastline) =~ '^\s*$'
 		let nblines_minus_one -=1
 	endif
 
-	split
+	exec(a:splitcmd)
+
 	wincmd k
  setlocal nowrap
 
@@ -314,10 +321,13 @@ function! FocusLines(...) range"--------{{{2
 	normal! kztj
 endfunction
 "---------------------------------------}}}2
-command! -range -nargs=? -bar FocusLines <line1>,<line2>call FocusLines(<f-args>)
+command! -range -nargs=? -bar FocusLinesSplit <line1>,<line2>call FocusLines('split', <f-args>)
+command! -range -nargs=? -bar FocusLinesNew <line1>,<line2>call FocusLines('New', <f-args>)
 nnoremap <Leader>r :FocusLines 
 vnoremap <Leader>r :FocusLines<CR>
 
+nnoremap <Leader>R :FocusLines 
+vnoremap <Leader>R :FocusLines<CR>
 " Alternate file fast switching
 noremap <Leader>d <C-^>
 
