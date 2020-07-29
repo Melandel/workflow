@@ -851,6 +851,12 @@ nnoremap <silent> mz mZ| nnoremap <silent> mZ mz| nnoremap <silent> 'z 'Z| nnore
 
 
 " Additional Functionalities:
+" Fuzzy Finder"-------------------------{{{1
+augroup my_fzf
+	au!
+	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
+augroup end
+"---------------------------------------}}}1
 " My Files" -----------------------------{{{1
 function! GetMyFilesBuffers()
 	return filter(tabpagebuflist(), {idx, itm -> bufname(itm) =~ 'my\.day\|my\.happyplace\|my\.todo\|my\.notabene'})
@@ -1128,22 +1134,52 @@ function! CreateFile()
 	silent execute(cmd)
 	normal R
 endf
+
+function! PreviewFile(splitcmd, giveFocus)
+	let path=trim(getline('.'))
+	let bufnr=bufnr()
+
+	let previewwinid = getbufvar(bufnr, 'preview'.a:splitcmd, 0)
+	if previewwinid == 0
+		exec(a:splitcmd. ' ' .path)
+		call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
+	else
+		call win_gotoid(previewwinid)
+		if win_getid() == previewwinid
+			exec("edit ".path)
+		else
+			exec(a:splitcmd. ' ' .path)
+			call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
+		endif
+	endif
+
+	if !a:giveFocus
+		exec(printf('wincmd %s', (a:splitcmd == 'vsplit' ? 'h' : 'k')))
+	endif
+endfunction
 "---------------------------------------}}}2
 augroup my_dirvish
 	au!
+	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
+	autocmd BufLeave if &ft == 'dirvish' | mark L | endif
+	autocmd FileType dirvish unmap <buffer> o
+	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit', 0)<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> O :call PreviewFile('vsplit', 1)<CR>
+	autocmd FileType dirvish unmap <buffer> a
+	autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split', 0)<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> A :call PreviewFile('split', 1)<CR>
 	autocmd FileType dirvish nmap <buffer> , <Plug>(dirvish_K)
 	autocmd FileType dirvish nmap <silent> <buffer> <silent> K gq:let @d=''<CR>
 	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | setlocal foldcolumn=1
-	autocmd BufLeave dirvish mark L
 	autocmd FileType dirvish nnoremap <silent> <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> i :call CreateDirectory()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> I :call CreateFile()<CR>
 	autocmd FileType dirvish nmap <buffer> h -
-	autocmd FileType dirvish unmap <buffer> p
+	"autocmd FileType dirvish unmap <buffer> p
 	autocmd FileType dirvish nnoremap <buffer> yy ^"dy$
 	autocmd FileType dirvish nnoremap <silent> <buffer> dd :call DeleteItemUnderCursor()<CR>
-	autocmd FileType dirvish nmap <silent> <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
-	autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
+	"autocmd FileType dirvish nmap <silent> <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
+	"autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> t :call OpenTree('')<CR>
 	autocmd FileType dirvish nnoremap <buffer> T :call OpenTree('df')<left><left><left>
