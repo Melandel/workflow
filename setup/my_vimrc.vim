@@ -244,12 +244,12 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-command! -bar Enew exec('enew | set buftype=nofile bufhidden=hide noswapfile')
-command! -bar New exec('new | set buftype=nofile bufhidden=hide noswapfile')
-command! -bar Vnew exec('vnew | set buftype=nofile bufhidden=hide noswapfile')
-command! -bar Split exec('new | set buftype=nofile bufhidden=hide noswapfile')
-command! -bar Vsplit exec('vnew | set buftype=nofile bufhidden=hide noswapfile')
-command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile')
+command! -bar Enew exec('enew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar New exec('new | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar Vnew exec('vnew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar Split exec('new | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar Vsplit exec('vnew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
 nnoremap <Leader>s :if bufname() != '' \| split \| else \| Split \| endif<CR>
 nnoremap <Leader>v :if bufname() != '' \| vsplit \| else \| Vsplit \| endif<CR>
 nnoremap K :q<CR>
@@ -1284,6 +1284,14 @@ augroup my_fugitive
 	autocmd FileType git nnoremap <buffer> qq :q<CR>
 	autocmd FileType fugitive nnoremap <buffer> qm :Git push --force-with-lease<CR>
 	autocmd FileType fugitive nnoremap <buffer> ql :silent! Glog<CR>
+	autocmd FileType fugitive nmap <buffer> ss s
+	autocmd FileType fugitive nnoremap <buffer> <Leader>l <C-W>l
+	autocmd FileType fugitive nnoremap <buffer> <Leader>h <C-W>h
+	autocmd FileType fugitive nnoremap <buffer> <Leader>j <C-W>j
+	autocmd FileType fugitive nnoremap <buffer> <Leader>k <C-W>k
+	autocmd FileType fugitive nnoremap <buffer> <Leader>n gt
+	autocmd FileType fugitive nnoremap <buffer> <Leader>p gT
+	autocmd FileType fugitive nnoremap <buffer> <Leader>o :only<CR>
 augroup end
 " ---------------------------------------}}}1
 " Diagrams"-----------------------------{{{1
