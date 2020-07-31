@@ -431,8 +431,8 @@ endfunction
 
 " Motions:
 " hjkl"----------------------------------{{{
-nnoremap j gj
-nnoremap k gk
+"nnoremap j gj
+"nnoremap k gk
 ""---------------------------------------}}}
 " Browsing File Architecture" -----------{{{1
 "
@@ -1183,6 +1183,7 @@ function! PreviewFile(splitcmd, giveFocus)
 	endif
 endfunction
 "---------------------------------------}}}2
+nmap <leader>e <Plug>(dirvish_up)
 augroup my_dirvish
 	au!
 	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
@@ -1199,7 +1200,7 @@ augroup my_dirvish
 	autocmd FileType dirvish nnoremap <silent> <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> i :call CreateDirectory()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> I :call CreateFile()<CR>
-	autocmd FileType dirvish nmap <buffer> h -
+	autocmd FileType dirvish nmap <buffer> h <Plug>(dirvish_up)
 	"autocmd FileType dirvish unmap <buffer> p
 	autocmd FileType dirvish nnoremap <buffer> yy ^"dy$
 	autocmd FileType dirvish nnoremap <silent> <buffer> dd :call DeleteItemUnderCursor()<CR>
