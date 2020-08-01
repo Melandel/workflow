@@ -1201,11 +1201,11 @@ augroup my_dirvish
 	autocmd FileType dirvish nnoremap <silent> <buffer> i :call CreateDirectory()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> I :call CreateFile()<CR>
 	autocmd FileType dirvish nmap <buffer> h <Plug>(dirvish_up)
-	"autocmd FileType dirvish unmap <buffer> p
+	autocmd FileType dirvish unmap <buffer> p
 	autocmd FileType dirvish nnoremap <buffer> yy ^"dy$
 	autocmd FileType dirvish nnoremap <silent> <buffer> dd :call DeleteItemUnderCursor()<CR>
-	"autocmd FileType dirvish nmap <silent> <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
-	"autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
+	autocmd FileType dirvish nmap <silent> <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
+	autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> t :call OpenTree('')<CR>
 	autocmd FileType dirvish nnoremap <buffer> T :call OpenTree('df')<left><left><left>
@@ -1282,7 +1282,6 @@ augroup my_fugitive
 	au!
 	autocmd FileType fugitive nmap <buffer> <space> =
 	autocmd FileType fugitive nnoremap <buffer> qq :tabclose<CR>
-	autocmd FileType git nnoremap <buffer> qq :q<CR>
 	autocmd FileType fugitive nnoremap <buffer> qm :Git push --force-with-lease<CR>
 	autocmd FileType fugitive nnoremap <buffer> ql :silent! Glog<CR>
 	autocmd FileType fugitive nmap <buffer> ss s
@@ -1293,6 +1292,9 @@ augroup my_fugitive
 	autocmd FileType fugitive nnoremap <buffer> <Leader>n gt
 	autocmd FileType fugitive nnoremap <buffer> <Leader>p gT
 	autocmd FileType fugitive nnoremap <buffer> <Leader>o :only<CR>
+	autocmd FileType git nnoremap <buffer> qq :q<CR>
+	autocmd FileType git nmap <buffer> l <CR>
+	autocmd FileType git nnoremap <buffer> h <C-O>
 augroup end
 " ---------------------------------------}}}1
 " Diagrams"-----------------------------{{{1
