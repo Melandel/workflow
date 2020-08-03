@@ -1,0 +1,14 @@
+{
+  "author": "Minh-Tâm Tran",
+  "classifications": [ "classlib" ], 
+  "name": "impl",
+  "identity": "impl",         
+  "shortName": "impl",
+  "tags": {
+    "language": "C#",
+    "type":"project"
+  },
+  "sourceName": "ProjectName",
+  "preferNameDirectory": true
+}
+

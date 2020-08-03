@@ -1,0 +1,14 @@
+{
+  "author": "Minh-Tâm Tran",
+  "classifications": [ "classlib" ], 
+  "name": "specs",
+  "identity": "specs",         
+  "shortName": "specs",
+  "tags": {
+    "language": "C#",
+    "type":"project"
+  },
+  "sourceName": "ProjectName",
+  "preferNameDirectory": true
+}
+

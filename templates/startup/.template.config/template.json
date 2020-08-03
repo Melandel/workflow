@@ -1,0 +1,13 @@
+{
+  "author": "Minh-Tâm Tran",
+  "classifications": [ "classlib" ], 
+  "name": "startup",
+  "identity": "startup",         
+  "shortName": "startup",
+  "tags": {
+    "language": "C#",
+    "type":"project"
+  },
+  "preferNameDirectory": true
+}
+
