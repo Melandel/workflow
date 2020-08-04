@@ -250,12 +250,11 @@ command! -bar Vnew exec('vnew | set buftype=nofile bufhidden=hide noswapfile | l
 command! -bar Split exec('new | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
 command! -bar Vsplit exec('vnew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
 command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
-nnoremap <Leader>s :if bufname() != '' \| split \| else \| Split \| endif<CR>
-nnoremap <Leader>v :if bufname() != '' \| vsplit \| else \| Vsplit \| endif<CR>
-nnoremap K :q<CR>
-nnoremap <Leader>o mW:tabnew<CR>`W
+nnoremap <silent> <Leader>s :if bufname() != '' \| split \| else \| Split \| endif<CR>
+nnoremap <silent> <Leader>v :if bufname() != '' \| vsplit \| else \| Vsplit \| endif<CR>
+nnoremap <silent> K :q<CR>
+nnoremap <silent> <Leader>o mW:tabnew<CR>`W
 nnoremap <silent> <Leader>x :tabclose<CR> | nnoremap <C-s>x :tabclose<CR>
-nnoremap <Leader>X :tabonly<CR>:sp<CR>:q<CR>:let g:zindex+=1<CR>:call DisplayPopupTime()<CR>
 
 " Browse to Window or Tab
 nnoremap <silent> <Leader>h <C-W>h| nnoremap <silent> <C-s>h <C-W>h| tnoremap <silent> <C-s>h <C-W>h
@@ -442,7 +441,7 @@ function! BrowseLayoutDown()" -----------{{{2
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cnext
 	else
-		silent! normal! g;
+		call CycleWindowBuffersHistoryBackwards()
 	endif
 
 	silent! normal! zv
@@ -457,7 +456,7 @@ function! BrowseLayoutUp()" -------------{{{2
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cprev
 	else
-		silent! normal! g,
+		call CycleWindowBuffersHistoryForward()
 	endif
 
 	silent! normal! zv
@@ -619,6 +618,9 @@ nmap ga <Plug>(EasyAlign)
 " ---------------------------------------}}}1
 
 " Vim Core Functionalities:
+" Command line"-------------------------{{{
+nnoremap :! :silent !
+"---------------------------------------}}}
 " Wild Menu" ----------------------------{{{1
 
 set wildmenu
@@ -654,8 +656,8 @@ set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-
 set switchbuf+=uselast
 
 nnoremap <Leader>f :Files <C-R>=GetInterestingParentDirectory()<CR><CR>
-nnoremap <Leader>g :let g:lcd_qf = getcwd()<CR>:Agrep 
-vnoremap <Leader>g "vy:let g:lcd_qf = getcwd()<CR>:let cmd = printf('lcd %s \| Agrep %s',getcwd(),@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
+nnoremap <Leader>g :let g:lcd_qf = getcwd()<CR>:Agrep! 
+vnoremap <Leader>g "vy:let g:lcd_qf = getcwd()<CR>:let cmd = printf('lcd %s \| Agrep! %s',getcwd(),@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
 "----------------------------------------}}}1
 " Registers" ----------------------------{{{1
 command! ClearRegisters for i in range(34,122) | silent! call setreg(nr2char(i), []) | endfor
@@ -867,6 +869,41 @@ augroup my_fzf
 	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
 augroup end
 "---------------------------------------}}}1
+" Window buffer navigation"-------------{{{
+let g:buffer_history = get(g:, 'buffer_history', [])
+function! AddToWindowBuffersHistory()
+	let w:buffer_history = get(w:, 'buffer_history', [])
+	let bufnr = bufnr('%')
+	for scope in [g:, w:]
+		let idx = index(get(scope, 'buffer_history'), bufnr)
+		if idx != -1 | call remove(get(scope, 'buffer_history'), idx) | endif
+		call add(get(scope, 'buffer_history'), bufnr)
+	endfor
+endfunction
+
+function! GetWindowBuffersHistoryScope()
+	return len(get(w:, 'buffer_history', [])) < 2 ? g: : w:
+endfunction
+
+function! CycleWindowBuffersHistoryBackwards()
+	let scope = GetWindowBuffersHistoryScope()
+	let buffer_history = get(scope, 'buffer_history')
+	let counter = min([get(scope, 'buffer_history_counter', 0)+1, len(buffer_history)-1])
+	let scope.buffer_history_counter = counter
+	exec('b '.string(buffer_history[-1-counter]))
+endfunction
+function! CycleWindowBuffersHistoryForward()
+	let scope = GetWindowBuffersHistoryScope()
+	let buffer_history = get(scope, 'buffer_history')
+	let counter = max([get(scope, 'buffer_history_counter', 0)-1, 0])
+	let scope.buffer_history_counter = counter
+	exec('b '.string(buffer_history[counter]))
+endfunction
+
+augroup my_buffer_browsing
+autocmd BufWinEnter * call AddToWindowBuffersHistory()
+augroup end
+"---------------------------------------}}}
 " My Files" -----------------------------{{{1
 let g:myfiles = [
 	\{
@@ -1048,7 +1085,6 @@ function! IsPreviouslyYankedItemValid()
 	return @d != ''
 endfunction
 function! PromptUserForRenameOrSkip(filename)
-
 	let rename_or_skip = input(a:filename.' already exists. Rename it or skip operation?(r/S) ')
 	if rename_or_skip != 'r'
 		return ''
@@ -1069,6 +1105,8 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 	let item_finalname = item_filename
 	if !empty(glob(item_filename))
 		let item_finalname = PromptUserForRenameOrSkip(item_filename)
+		redraw
+		echomsg 'a:'.item_finalname
 		if item_finalname == ''
 			return
 		endif
@@ -1078,7 +1116,7 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 	if isdirectory(item)
 		let cmd .= printf('/e "%s" "%s\%s"', item, cwd, item_finalname)
 	else
-		let cmd .= printf('"%s" "%s" "%s"', item_folder, cwd, item_filename)
+		let cmd .= printf('"%s" "%s" "%s"', item_folder, cwd, item_finalname)
 	endif
 echomsg cmd
 	silent execute(printf(':!start /b %s', cmd))
@@ -1295,6 +1333,8 @@ augroup my_fugitive
 	autocmd FileType git nnoremap <buffer> qq :q<CR>
 	autocmd FileType git nmap <buffer> l <CR>
 	autocmd FileType git nnoremap <buffer> h <C-O>
+	autocmd FileType git nnoremap <buffer> qm :Git push --force-with-lease<CR>
+	autocmd FileType git nnoremap <buffer> ql :silent! Glog<CR>
 augroup end
 " ---------------------------------------}}}1
 " Diagrams"-----------------------------{{{1
@@ -1361,6 +1401,8 @@ inoremap <expr><silent> <C-O> SmartBracketPowerActivate()
 
 " Specific Workflows:
 " cs(c#)" -------------------------------{{{1
+let g:OmniSharp_server_path = $desktop . '/tools/omnisharp/OmniSharp.exe'
+let $DOTNET_NEW_LOCAL_SEARCH_FILE_ONLY=1
 let g:OmniSharp_start_server = 0
 let g:OmniSharp_server_stdio = 1
 let g:ale_linters = { 'cs': ['OmniSharp'] }
@@ -1391,7 +1433,7 @@ let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, ':h:p')
 	setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true\ /clp:NoSummary
 	execute('lcd '.sln_dir)
 	let g:lcd_qf = sln_dir
-	make
+	make!
 
 	if IsQuickFixWindowOpen()
 		set cmdheight=1
@@ -1408,7 +1450,7 @@ let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, ':h:p')
 	setlocal errorformat+=%C\ %#%m
 	setlocal errorformat+=%-G%.%#
 	setlocal makeprg=dotnet\ test\ --no-build\ --nologo
-	make
+	make!
 	set cmdheight=1
 endfunction
 
