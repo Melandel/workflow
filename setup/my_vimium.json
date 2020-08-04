@@ -6,17 +6,21 @@
       "passKeys": ""
     },
     {
-      "pattern": "https?://www.youtube.com/*",
-      "passKeys": "fkmNP"
+      "pattern": "https?://www.youtube.com/watch?*",
+      "passKeys": "fjklmNP"
+    },
+    {
+      "pattern": "https?://keycode.info/*",
+      "passKeys": ""
     }
   ],
   "filterLinkHints": false,
   "waitForEnterForFilteredHints": true,
   "hideHud": false,
-  "keyMappings": "# Insert your preferred key mappings here.\nmap ! enterFindMode",
-  "linkHintCharacters": "sadfjklewcmpgh",
+  "keyMappings": "# Insert your preferred key mappings here.\nmap ! enterFindMode\nunmap /\nmap g<home> firstTab\nunmap g0\nmap g<end> lastTab\nunmap g$\nmap sd visitPreviousTab\nunmap ^\nmap q Vomnibar.activateTabSelection\nunmap T\nmap gf LinkHints.activateModeToOpenInNewForegroundTab\nmap s LinkHints.activateMode\nmap f LinkHints.activateModeWithQueue\nmap F LinkHints.activateModeToDownloadLink\nunmap <a-f>\nmap zy LinkHints.activateModeToCopyLinkUrl\nunmap yf\nmap zj nextFrame\nmap zR mainFrame\nunmap gF\nmap zh goPrevious\nunmap [[\nmap zl goNext\nunmap ]]\nmap Y duplicateTab\nunmap yt\nmap < moveTabLeft\nunmap <<\nmap > moveTabRight\nunmap >>\nmap M toggleMuteTab\nunmap <a-m>\nmap X closeTabsOnRight\nmap T restoreTab\nunmap gt\nunmap gT\nunmap W\nunmap <c-e>\nunmap <c-y>\nunmap gu\nunmap gU",
+  "linkHintCharacters": "qsdfjklmzeio",
   "linkHintNumbers": "0123456789",
-  "newTabUrl": "about:newtab",
+  "newTabUrl": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/e65e21bd-dc77-499e-962a-fa13cab37fc2/daoc3nx-27ae039a-61f0-40ae-bb8b-a504c5ff5da4.jpg/v1/fill/w_1024,h_1024,q_75,strp/lark_by_kuvshinov_ilya_daoc3nx-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOiIsImlzcyI6InVybjphcHA6Iiwib2JqIjpbW3siaGVpZ2h0IjoiPD0xMDI0IiwicGF0aCI6IlwvZlwvZTY1ZTIxYmQtZGM3Ny00OTllLTk2MmEtZmExM2NhYjM3ZmMyXC9kYW9jM254LTI3YWUwMzlhLTYxZjAtNDBhZS1iYjhiLWE1MDRjNWZmNWRhNC5qcGciLCJ3aWR0aCI6Ijw9MTAyNCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.qflBnqUqpz4qT1xqfU0y6VXuDUJyNsZqDbkIAuNDjAQ",
   "nextPatterns": "next,more,newer,>,›,→,»,≫,>>",
   "previousPatterns": "prev,previous,back,older,<,‹,←,«,≪,<<",
   "regexFindMode": false,
