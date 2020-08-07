@@ -3,7 +3,8 @@ let $desktop = $HOME . '/Desktop'
 let $v = $desktop . '/tools/vim/_vimrc'
 let $p = $desktop . '/tools/vim/pack/plugins/start/'
 let $c = $desktop . '/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim'
-let $w = $desktop . '/tmp/cleanarchitecturepractice/src'
+let $w = $desktop . '/tmp/cleanarchitecturepractice'
+set path+=$desktop,$VIM,$p
 " ---------------------------------------}}}1
 
 " Desktop Integration:
@@ -24,6 +25,7 @@ function! MinpacInit()
 	call minpac#add('honza/vim-snippets')
 
 	call minpac#add('justinmk/vim-dirvish')
+	call minpac#add('gyim/vim-boxdraw')
 
 	call minpac#add('tpope/vim-dadbod')
 	call minpac#add('tpope/vim-surround')
@@ -114,18 +116,17 @@ let maplocalleader = 'q'
 
 let g:lcd_qf = getcwd()
 function! GetInterestingParentDirectory()
-	let dir = expand('%:h:p')
-
 	if IsOmniSharpRelated()
-		let dir = fnamemodify(b:OmniSharp_host.sln_or_dir, ':p:h')
-	elseif IsInsideGitClone()
-		let dir = fnamemodify(gitbranch#dir(expand('%:p')), ':h')
+		return fnamemodify(b:OmniSharp_host.sln_or_dir, ':p:h')
 	elseif &ft == 'qf'
-		let dir = g:lcd_qf
+		return g:lcd_qf
+	elseif IsInsideGitClone()
+		return fnamemodify(gitbranch#dir(expand('%:p')), ':h')
+	else
+		return getcwd()
 	endif
-
-	return dir
 endfunction
+
 function! UpdateLocalCurrentDirectory()
 	let dir = GetInterestingParentDirectory()
 	let current_wd = getcwd()
@@ -141,7 +142,8 @@ command! -bar Lcd call UpdateLocalCurrentDirectory()
 
 augroup lcd
 	au!
-	autocmd BufRead * Lcd
+	autocmd BufEnter * Lcd
+	autocmd QuickFixCmdPre * let g:lcd_qf = getcwd()
 augroup end
 " ---------------------------------------}}}
 " Utils"--------------------------------{{{
@@ -244,25 +246,27 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-command! -bar Enew exec('enew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
-command! -bar New exec('new | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
-command! -bar Vnew exec('vnew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
-command! -bar Split exec('new | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
-command! -bar Vsplit exec('vnew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar Enew    exec('enew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar New     exec('new | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar Vnew    exec('vnew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar Split   exec('new | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar Vsplit  exec('vnew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
 command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
 nnoremap <silent> <Leader>s :if bufname() != '' \| split \| else \| Split \| endif<CR>
 nnoremap <silent> <Leader>v :if bufname() != '' \| vsplit \| else \| Vsplit \| endif<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o mW:tabnew<CR>`W
-nnoremap <silent> <Leader>x :tabclose<CR> | nnoremap <C-s>x :tabclose<CR>
+nnoremap <silent> <Leader>x :tabclose<CR>
 
 " Browse to Window or Tab
-nnoremap <silent> <Leader>h <C-W>h| nnoremap <silent> <C-s>h <C-W>h| tnoremap <silent> <C-s>h <C-W>h
-nnoremap <silent> <Leader>j <C-W>j| nnoremap <silent> <C-s>l <C-W>l| tnoremap <silent> <C-s>l <C-W>l 
-nnoremap <silent> <Leader>k <C-W>k| nnoremap <silent> <C-s>j <C-W>j| tnoremap <silent> <C-s>j <C-W>j
-nnoremap <silent> <Leader>l <C-W>l| nnoremap <silent> <C-s>k <C-W>k| tnoremap <silent> <C-s>k <C-W>k
-nnoremap <silent> <Leader>n gt|     nnoremap <silent> <C-s>n gt
-nnoremap <silent> <Leader>p gT|     nnoremap <silent> <C-s>p gT
+nnoremap <silent> <Leader>h <C-W>h
+nnoremap <silent> <Leader>j <C-W>j
+nnoremap <silent> <Leader>k <C-W>k
+nnoremap <silent> <Leader>l <C-W>l
+nnoremap <silent> <Leader><home> 1<C-W>W
+nnoremap <silent> <Leader><end> 99<C-W>W
+nnoremap <silent> <Leader>n gt
+nnoremap <silent> <Leader>p gT
 
 augroup windows
 	autocmd!
@@ -618,9 +622,6 @@ nmap ga <Plug>(EasyAlign)
 " ---------------------------------------}}}1
 
 " Vim Core Functionalities:
-" Command line"-------------------------{{{
-nnoremap :! :silent !
-"---------------------------------------}}}
 " Wild Menu" ----------------------------{{{1
 
 set wildmenu
@@ -632,8 +633,8 @@ set wildmode=full
 " Expanded characters" ------------------{{{1
 
 " Folder of current file
-cnoremap µ <C-R>=expand('%:p:h')<CR>\
-cnoremap <C-F> %:p:h
+cnoremap <expr> <C-F> (stridx(getcmdline()[-1-len(expand('%:p:h')):], expand('%:p:h')) == 0 ? '**\*' : expand('%:p:h').'\')
+cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory()):], GetInterestingParentDirectory()) == 0 ? '**\*' : GetInterestingParentDirectory().'\')
 
 "----------------------------------------}}1
 " Sourcing" -----------------------------{{{1
@@ -656,11 +657,8 @@ set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-
 set switchbuf+=uselast
 
 nnoremap <Leader>f :Files <C-R>=GetInterestingParentDirectory()<CR><CR>
-nnoremap <Leader>g :let g:lcd_qf = getcwd()<CR>:Agrep! 
-vnoremap <Leader>g "vy:let g:lcd_qf = getcwd()<CR>:let cmd = printf('lcd %s \| Agrep! %s',getcwd(),@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
-"----------------------------------------}}}1
-" Registers" ----------------------------{{{1
-command! ClearRegisters for i in range(34,122) | silent! call setreg(nr2char(i), []) | endfor
+nnoremap <Leader>g :Agrep! 
+vnoremap <Leader>g "vy:let cmd = printf('Agrep! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
 "----------------------------------------}}}1
 " Terminal" -----------------------------{{{1
 set termwinsize=12*0
@@ -860,9 +858,28 @@ nnoremap <silent> mx mX| nnoremap <silent> mX mx| nnoremap <silent> 'x 'X| nnore
 nnoremap <silent> my mY| nnoremap <silent> mY my| nnoremap <silent> 'y 'Y| nnoremap <silent> `y `Y| nnoremap <silent> 'Y 'y|
 nnoremap <silent> mz mZ| nnoremap <silent> mZ mz| nnoremap <silent> 'z 'Z| nnoremap <silent> `z `Z| nnoremap <silent> 'Z 'z|
 "---------------------------------------}}}
+" Changelist"---------------------------{{{1
+nnoremap g; g;zv
+nnoremap g, g,zv
+"---------------------------------------}}}1
+
 
 
 " Additional Functionalities:
+" Brackets"-----------------------------{{{1
+
+inoremap ( ()<left>
+inoremap [ []<left>
+inoremap { {}<left>
+inoremap <expr> ) getline('.')[col('.')-1]==')' ? '<c-g>U<right>' : ')'
+inoremap <expr> ] getline('.')[col('.')-1]==']' ? '<c-g>U<right>' : ']'
+inoremap <expr> } getline('.')[col('.')-1]=='}' ? '<c-g>U<right>' : '}'
+inoremap <expr> " getline('.')[col('.')-1]=='"' ? '<c-g>U<right>' : '""<left>'
+inoremap <expr> ' getline('.')[col('.')-1]=="'" ? '<c-g>U<right>' : "''<left>"
+inoremap <expr> ` getline('.')[col('.')-1]=='`' ? '<c-g>U<right>' : '``<left>'
+inoremap <expr> <cr> getline('.')[max([0,col('.')-2]):max([col('.')-1,0])]=='{}' ? '<cr><esc>O' : '<cr>'
+
+"---------------------------------------}}}1
 " Fuzzy Finder"-------------------------{{{1
 augroup my_fzf
 	au!
@@ -870,8 +887,8 @@ augroup my_fzf
 augroup end
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
-let g:buffer_history = get(g:, 'buffer_history', [])
 function! AddToWindowBuffersHistory()
+	let g:buffer_history = get(g:, 'buffer_history', map(copy(getbufinfo({'bufloaded':0})), {_,x->x.bufnr}))
 	let w:buffer_history = get(w:, 'buffer_history', [])
 	let bufnr = bufnr('%')
 	for scope in [g:, w:]
@@ -889,91 +906,33 @@ function! CycleWindowBuffersHistoryBackwards()
 	let scope = GetWindowBuffersHistoryScope()
 	let buffer_history = get(scope, 'buffer_history')
 	let counter = min([get(scope, 'buffer_history_counter', 0)+1, len(buffer_history)-1])
+	let bufnr_to_load = buffer_history[-1-counter]
+	while (!bufexists(bufnr_to_load))
+		call remove(buffer_history, -1-counter)
+		let counter -= 1
+		let bufnr_to_load = buffer_history[-1-counter]
+	endwhile
 	let scope.buffer_history_counter = counter
-	exec('b '.string(buffer_history[-1-counter]))
+	exec('b '.bufnr_to_load)
 endfunction
 function! CycleWindowBuffersHistoryForward()
 	let scope = GetWindowBuffersHistoryScope()
 	let buffer_history = get(scope, 'buffer_history')
 	let counter = max([get(scope, 'buffer_history_counter', 0)-1, 0])
+	let bufnr_to_load = buffer_history[counter]
+	while (!bufexists(bufnr_to_load))
+		call remove(buffer_history, counter)
+		let counter += 1
+		let bufnr_to_load = buffer_history[counter]
+	endwhile
 	let scope.buffer_history_counter = counter
-	exec('b '.string(buffer_history[counter]))
+	exec('b '.bufnr_to_load)
 endfunction
 
 augroup my_buffer_browsing
 autocmd BufWinEnter * call AddToWindowBuffersHistory()
 augroup end
 "---------------------------------------}}}
-" My Files" -----------------------------{{{1
-let g:myfiles = [
-	\{
-		\'file': $desktop."/my.notabene", 
-	\},
-	\{
-		\'file': $desktop."/my.todo", 
-		\'normal': 'gg',
-		\'focus': 1
-	\},
-	\{
-		\'file': $desktop."/my.day", 
-		\'normal': 'Gzx[zkzt'
-	\},
-	\{
-		\'file': $desktop."/my.happyplace", 
-		\'normal': 'Gzx[zkzt'
-	\}
-\]
-function! ShowMyFiles()"----------------{{{2
-	let focuswindowid = win_getid()
-	for i in range(len(g:myfiles))
-		let myfile = g:myfiles[i]
-		if i == 0 | exec('bo 50vnew '.myfile.file) | else | exec('new '.myfile.file) | endif
-		if has_key(myfile, 'normal') | silent! exec('normal! '.myfile.normal) | endif
-		if get(myfile, 'focus',0) | let focuswindowid = win_getid() | endif
-		call setbufvar(bufnr('%'), 'isMyFile', 1)
-		setlocal nowrap
-	endfor
-	new | setlocal buftype=nofile bufhidden=hide noswapfile | call setbufvar(bufnr('%'), 'isMyFile', 1) |put=trim(execute('echo GetQuote()')) | normal! ggdd
-	if focuswindowid != -1 | call win_gotoid(focuswindowid) | endif
-endfunc
-"---------------------------------------}}}2
-function! ToggleMyFiles()" --------------{{{2
-	let nbwindows = winnr('$') | call HideMyFiles()
-	if winnr('$') == nbwindows | call ShowMyFiles() | endif
-endfunction
-" ---------------------------------------}}}2
-function! HideMyFiles()"-------------{{{2
-	let original_winid = win_getid(winnr())
-	let deletedids = []
-	for buffer in filter(copy(getbufinfo()), {x, itm -> getbufvar(itm.bufnr, 'isMyFile', 0)})
-		let winid = bufwinid(buffer.bufnr)
-		if winid != -1
-			call add(deletedids, winid)
-			call win_gotoid(winid)
-			if buffer.name != '' | write | endif
-			quit!
-		endif
-	endfor
-
-	if index(deletedids, original_winid) == -1
-		call win_gotoid(original_winid)
-	endif
-endfunction
-"---------------------------------------}}}2
-command! ShowMyFiles silent call ShowMyFiles()
-command! HideMyFiles silent call HideMyFiles()
-command! ToggleMyFiles silent call ToggleMyFiles()
-
-nnoremap <Leader>m :ToggleMyFiles<CR> | nnoremap <C-W>m :ToggleMyFiles<CR> | tmap <C-S>m <C-W>N:ToggleMyFiles<CR>i
-
-augroup myfiles
-	au!
-	autocmd BufEnter my.* set filetype=my
-	autocmd FileType my setlocal nolist
-	autocmd FileType my setlocal commentstring=
-augroup end
-
-" ---------------------------------------}}}1
 " Full screen" --------------------------{{{
 let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
 let g:gvimtweak#enable_alpha_at_startup=1
@@ -984,101 +943,6 @@ nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
 nnoremap <silent> <A-n> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-n> <C-W>N:GvimTweakSetAlpha 10<CR>i
 nnoremap <silent> <A-p> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-p> <C-W>N:GvimTweakSetAlpha i-10<CR>i
 " ---------------------------------------}}}
-" " Time & Tab Info" ----------------------{{{1
-" 
-" let g:zindex = 50
-" function! DisplayPopupTime(...)" --------{{{2
-" 	if empty(prop_type_get('time'))
-" 		call prop_type_add('time', #{highlight: 'PopupTime'})
-" 	endif
-" 
-" 	let text = printf('%s  %s  %s', printf('[Tab%s(%s)]', tabpagenr(), tabpagenr('$')), strftime('%A %d %B'), strftime('[%Hh%M]'))
-" 	let text_length = len(text)
-" 	call popup_create([#{text: text, props:[#{type: 'time', col:1, end_col:1+text_length}]}], #{time:20000, line:&lines+2, col:&columns + 1 - text_length, zindex:g:zindex})
-" endfunction
-" " ---------------------------------------}}}2
-" augroup timedisplay
-" 	au!
-" 	autocmd VimEnter * call DisplayPopupTime() | let t = timer_start(20000, 'DisplayPopupTime', {'repeat':-1})
-" 	autocmd TabLeave,TabEnter * let g:zindex+=1 | call DisplayPopupTime()
-" augroup end
-" 
-" " ---------------------------------------}}}1
-" " Pomodoro" -----------------------------{{{1
-" function! DisplayTimer(t, hi, ...)"-----{{{2
-" 	let milliseconds=eval(a:t)
-" 	let seconds = milliseconds / 1000
-" 	let minutes = seconds / 60
-" 	let seconds = seconds % 60
-" 	let minutes = minutes > 9 ? string(minutes) : '0'.string(minutes)
-" 	let seconds = seconds > 9 ? string(seconds) : '0'.string(seconds)
-" 	let content = printf('%sm%ss [%s]', minutes, seconds, g:cyclecount)
-" 	let highlight_group = eval(a:hi)
-" 	let g:zindex += 1
-" 
-" 	call popup_create( content, {  'time': 1000, 'highlight':highlight_group, 'border':[0,0,0,1], 'borderhighlight':repeat([highlight_group], 4), 'line': &lines-2, 'col': &columns - 11, 'zindex':g:zindex })
-" 
-" 	execute('let '.a:t.' -= 1000')
-" endfunction
-" "---------------------------------------}}}2
-" function! StartCycles(...)"----------------{{{2
-" 	let session_time_in_minutes = 25
-" 	let break_time_in_minutes = 5
-" 	let cycle_time_in_minutes = session_time_in_minutes + break_time_in_minutes
-" 	let g:cyclecount = 0
-" 
-" 	call StartCycle(session_time_in_minutes, break_time_in_minutes)
-" 	let l:timer = timer_start(cycle_time_in_minutes*60*1000, function('StartCycle', [session_time_in_minutes, break_time_in_minutes]), {'repeat': -1})
-" endfunction
-" "---------------------------------------}}}2
-" function! StartCycle(dur1,dur2,...)"----{{{
-" 	call StartSession(a:dur1)
-" 	let l:timer = timer_start(a:dur1*60*1000, function('StartBreak', [a:dur2]))
-" endfunction
-" "---------------------------------------}}}
-" function! StartSession(minutes, ...)"---{{{
-" 	let mybuffers = GetMyFilesBuffers()
-" 	if len(mybuffers) > 0 && len(mybuffers) %4 == 0
-" 		call HideMyFiles(mybuffers)
-" 	endif
-" 	call ShowMyFiles()
-" 
-" 	let g:cyclecount += 1
-" 	let g:pomodoro_session_timer_ms = a:minutes*60*1000 - 1000
-"  " we repeat with 10 seconds margin; justification: we can only specify the <minimum> time before the function starts, so each second is potentially delayed
-" 	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_session_timer_ms', "'csharpInterfaceName'"]), {'repeat': a:minutes * 60 - 1 - 10})
-" 	call popup_create(printf('[%s]   ( `ω´)   Pomodoro session %d started!', strftime('%Hh%M'), g:cyclecount), { 'time': 60*1000, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpString'], 4), 'close': 'button' })
-" 
-" endfunction
-" "---------------------------------------}}}
-" function! StartBreak(minutes, ...)"-----{{{
-" 	let mybuffers = GetMyFilesBuffers()
-" 	if len(mybuffers) > 0 && len(mybuffers) %4 == 0
-" 		call HideMyFiles(mybuffers)
-" 	endif
-" 	call ShowMyFiles()
-" 	let g:pomodoro_break_timer_ms = a:minutes*60*1000 - 1000
-" 	" we repeat with 10 seconds margin; justification: we can only specify the <minimum> time before the function starts, so each second is potentially delayed
-" 	let l:timer = timer_start(1000, function('DisplayTimer', ['g:pomodoro_break_timer_ms', "'csharpKeyword'"]), {'repeat': a:minutes * 60 - 1 - 10})
-" 	call popup_create(printf('[%s]   (*´∀`*)   Well done! End of the pomodoro session %d!', strftime('%Hh%M'), g:cyclecount), { 'time': 60*1000, 'highlight':'Normal', 'border':[], 'borderhighlight':repeat(['csharpClassName'], 4), 'close': 'button' })
-" endfunction
-" "---------------------------------------}}}
-" augroup pomodoro
-" 	au!
-" 	autocmd VimEnter * call timer_start(2000, 'StartCycles')
-" augroup end
-" " ---------------------------------------}}}1
-" Quotes" -------------------------------{{{1
-function! GetQuote()
-	let allquotes = readfile($desktop.'/my.quotes')
-	let random_index =str2nr(matchstr(reltimestr(reltime()), '\v\.@<=\d+')[1:]) % len(allquotes)-1 
-	return allquotes[random_index]
-endfunction
-
-command! Quote echomsg GetQuote()
-
-nnoremap <Leader>Q :Quote<CR>
-" ---------------------------------------}}}1
 " File explorer (graphical)" ------------{{{1
 " functions"----------------------------{{{2
 function! IsPreviouslyYankedItemValid()
@@ -1251,13 +1115,6 @@ augroup my_dirvish
 augroup end
 "---------------------------------------}}}1
 " Web Browsing" -------------------------{{{1
-function! WeatherInNewTab()" ------------{{{2
-	tabnew
-	let buf = term_start([&shell, '/k', 'chcp 65001 | start /wait /b curl http://wttr.in'], {'exit_cb': {... -> execute('tabclose')}, 'curwin':1})
-endfunction
-" ---------------------------------------}}}2
-command! Weather :call WeatherInNewTab()
-
 function! OpenWebUrl(firstPartOfUrl,...)" ----{{{2
 	let visualSelection = getpos('.') == getpos("'<") ? getline("'<")[getpos("'<")[2] - 1:getpos("'>")[2] - 1] : ''
 
@@ -1265,7 +1122,7 @@ function! OpenWebUrl(firstPartOfUrl,...)" ----{{{2
 
 	let nbDoubleQuotes = len(substitute(finalPartOfUrl, '[^"]', '', 'g'))
 	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0
-		finalPartOfUrl.= ' "'
+		let finalPartOfUrl.= ' "'
 	endif
 
 	let finalPartOfUrl = substitute(finalPartOfUrl, '^\s*\(.\{-}\)\s*$', '\1', '')
@@ -1314,27 +1171,51 @@ let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 
 nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 " ---------------------------------------}}}1
-" Git" ----------------------------------{{{1
-nnoremap <silent> <Leader>G :tab G<CR>
-augroup my_fugitive
+" Dashboard" ----------------------------{{{1
+function! OpenDashboard()
+	silent tab G
+	normal gu
+	silent! Glog!
+	wincmd j
+	exec('silent vnew ' . $desktop.'/achievements')
+	exec('silent new ' . $desktop.'/todo')
+	exec('silent vnew ' . $desktop.'/done')
+	2wincmd k
+	GvimTweakSetAlpha 180
+	echo 'You are doing great <3'
+endfunction
+
+nnoremap <silent> <Leader>G :call OpenDashboard()<CR>
+
+augroup dashboard
 	au!
-	autocmd FileType fugitive nmap <buffer> <space> =
-	autocmd FileType fugitive nnoremap <buffer> qq :tabclose<CR>
-	autocmd FileType fugitive nnoremap <buffer> qm :Git push --force-with-lease<CR>
-	autocmd FileType fugitive nnoremap <buffer> ql :silent! Glog<CR>
-	autocmd FileType fugitive nmap <buffer> ss s
-	autocmd FileType fugitive nnoremap <buffer> <Leader>l <C-W>l
-	autocmd FileType fugitive nnoremap <buffer> <Leader>h <C-W>h
-	autocmd FileType fugitive nnoremap <buffer> <Leader>j <C-W>j
-	autocmd FileType fugitive nnoremap <buffer> <Leader>k <C-W>k
-	autocmd FileType fugitive nnoremap <buffer> <Leader>n gt
-	autocmd FileType fugitive nnoremap <buffer> <Leader>p gT
-	autocmd FileType fugitive nnoremap <buffer> <Leader>o :only<CR>
-	autocmd FileType git nnoremap <buffer> qq :q<CR>
-	autocmd FileType git nmap <buffer> l <CR>
-	autocmd FileType git nnoremap <buffer> h <C-O>
-	autocmd FileType git nnoremap <buffer> qm :Git push --force-with-lease<CR>
-	autocmd FileType git nnoremap <buffer> ql :silent! Glog<CR>
+	autocmd TabLeave index GvimTweakSetAlpha 255 | redraw | echo 'Back to work already? Alright!'
+	autocmd TabEnter index GvimTweakSetAlpha 140
+	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>m :Git push --force-with-lease<CR>
+	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>l :silent! Glog! 
+	autocmd FileType fugitive     nmap <silent> <buffer> <space> =
+	autocmd FileType fugitive     nmap <silent> <buffer> <leader>s s
+	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>l <C-W>l
+	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>h <C-W>h
+	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>j <C-W>j
+	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>k <C-W>k
+	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>n gt
+	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>p gT
+	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>o :only<CR>
+	autocmd FileType          git nmap <silent> <buffer> l <CR>
+	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
+	autocmd BufEnter     todo,done,achievements set buftype=nofile nowrap
+	autocmd BufEnter     todo,done,achievements cnoremap <buffer> w set buftype=<CR>:w
+	autocmd BufWritePost todo,done,achievements set buftype=nofile
+	autocmd BufEnter     todo,done,achievements normal! gg
+	autocmd BufLeave     todo,done,achievements normal! gg
+	autocmd BufEnter     todo,done,achievements redraw | echo 'You are doing great <3'
+	autocmd BufWritePost todo                   redraw | echo 'Nice :)'
+	autocmd BufWritePost      done              redraw | echo 'Good job! :D'
+	autocmd BufWritePost           achievements redraw | echo 'You did great ;)'
+	autocmd BufEnter     todo,done,achievements nmap <buffer> <leader>n 1<C-W>W<leader>n
+	autocmd BufEnter     todo,done,achievements nmap <buffer> <leader>p 1<C-W>W<leader>p
+	autocmd BufEnter     todo,done,achievements nmap <buffer> <leader>x 1<C-W>W<leader>x
 augroup end
 " ---------------------------------------}}}1
 " Diagrams"-----------------------------{{{1
@@ -1373,31 +1254,6 @@ augroup mydiagrams
 	autocmd TextYankPost *.bob call RegisterBoxLineTypes()
 augroup END
 "---------------------------------------}}}1
-" Brackets"-----------------------------{{{1
-function! SmartBracketPowerActivate()
-	let brackets = [['(', ')'], ['{', '}'], ['[', ']'], ["'", "'"], ['"', '"'], ["'", "'"], ['`', '`'], ['<', '>']]
-
-	let last2chars = substitute(getline('.')[:col('.')-1], '\s', '', 'g')[-2:]
-let pairindex = index(map(copy(brackets), {_,itm -> itm[0].itm[1]}), last2chars)
-	if pairindex >= 0
-		return "\<Left>\<CR>\<CR>\<Up>\<Tab>"
-	endif
-
-	let lastchar = last2chars[1]
-	let charindex = index(map(copy(brackets), {_,itm -> itm[0]}), lastchar)
-	if charindex >= 0
-		let matchingbracket = brackets[charindex][1] 
-		if matchingbracket == '}'
-			let matchingbracket = "\<Space>\<Space>}\<Left>"
-		endif
-
-		return matchingbracket . "\<Left>"
-	endif
-endfunction
-inoremap <expr><silent> <C-O> SmartBracketPowerActivate()
-"---------------------------------------}}}1
-
-
 
 " Specific Workflows:
 " cs(c#)" -------------------------------{{{1
@@ -1424,19 +1280,20 @@ function! CSharpBuild()
 		return
 endif
 
-let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, ':h:p')
+let originalwinid = win_getid()
 
-	set cmdheight=4
+let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, isdirectory(omnisharp_host.sln_or_dir) ? ':p' : ':h:p')
+
 	setlocal errorformat=%f(%l\\,%c):\ error\ MSB%n:\ %m\ [%.%#
 	setlocal errorformat+=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
 	setlocal errorformat+=%-G%.%#
 	setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true\ /clp:NoSummary
-	execute('lcd '.sln_dir)
-	let g:lcd_qf = sln_dir
-	make!
+	echomsg 'Building...'
+	execute(printf('lcd %s | silent make!',sln_dir))
+	redraw
 
 	if IsQuickFixWindowOpen()
-		set cmdheight=1
+		call win_gotoid(originalwinid)
 		return
 	endif
 
@@ -1449,9 +1306,11 @@ let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, ':h:p')
 	setlocal errorformat+=%C\ %#%m\ Failure
 	setlocal errorformat+=%C\ %#%m
 	setlocal errorformat+=%-G%.%#
-	setlocal makeprg=dotnet\ test\ --no-build\ --nologo
-	make!
-	set cmdheight=1
+	setlocal makeprg=dotnet\ test\ --nologo
+	echomsg '           Testing...'
+	execute(printf('lcd %s | silent make!',sln_dir))
+	redraw
+	call win_gotoid(originalwinid)
 endfunction
 
 augroup csharpfiles
