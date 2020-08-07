@@ -444,8 +444,6 @@ function! BrowseLayoutDown()" -----------{{{2
 		keepjumps execute 'silent! normal! ]czx'
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cnext
-	else
-		call CycleWindowBuffersHistoryBackwards()
 	endif
 
 	silent! normal! zv
@@ -459,8 +457,6 @@ function! BrowseLayoutUp()" -------------{{{2
 		keepjumps execute 'silent! normal! [czx'
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cprev
-	else
-		call CycleWindowBuffersHistoryForward()
 	endif
 
 	silent! normal! zv
@@ -880,6 +876,10 @@ inoremap <expr> ` getline('.')[col('.')-1]=='`' ? '<c-g>U<right>' : '``<left>'
 inoremap <expr> <cr> getline('.')[max([0,col('.')-2]):max([col('.')-1,0])]=='{}' ? '<cr><esc>O' : '<cr>'
 
 "---------------------------------------}}}1
+" Buffer navigation"--------------------{{{
+nnoremap <silent> H :call CycleWindowBuffersHistoryBackwards()<CR>
+nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
+"---------------------------------------}}}
 " Fuzzy Finder"-------------------------{{{1
 augroup my_fzf
 	au!
