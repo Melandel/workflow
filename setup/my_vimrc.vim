@@ -1104,7 +1104,7 @@ augroup my_dirvish
 	autocmd BufLeave if &ft == 'dirvish' | mark L | endif
 	autocmd FileType dirvish silent! unmap <buffer> q!
 	autocmd FileType dirvish nmap <silent> <buffer> <nowait> q gq
-	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish unmap <buffer> o
 	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit', 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> O :call PreviewFile('vsplit', 1)<CR>
