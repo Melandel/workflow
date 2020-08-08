@@ -4,7 +4,7 @@ let $v = $desktop . '/tools/vim/_vimrc'
 let $p = $desktop . '/tools/vim/pack/plugins/start/'
 let $c = $desktop . '/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim'
 let $w = $desktop . '/tmp/cleanarchitecturepractice'
-set path+=$desktop,$VIM,$p
+set path+=$HOME/Desktop,$VIM,$VIM/pack/plugins/start/,$HOME/Downloads
 " ---------------------------------------}}}1
 
 " Desktop Integration:
@@ -214,8 +214,8 @@ inoremap <C-L> <Del>|   cnoremap <C-L> <Del>
 " Graphical Layout:
 " Colorscheme, Highlight groups" --------{{{1
 colorscheme empower
-nnoremap <LocalLeader>h :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<CR>
-nnoremap <LocalLeader>H :OmniSharpHighlightEchoKind<CR>
+"nnoremap <LocalLeader>h :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<CR>
+"nnoremap <LocalLeader>H :OmniSharpHighlightEchoKind<CR>
 " ---------------------------------------}}}1
 " Buffers, Windows & Tabs" --------------{{{1
 set hidden
@@ -246,12 +246,12 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-command! -bar Enew    exec('enew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
-command! -bar New     exec('new | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
-command! -bar Vnew    exec('vnew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
-command! -bar Split   exec('new | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
-command! -bar Vsplit  exec('vnew | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
-command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile | lcd '.$desktop.'/tmp')
+command! -bar Enew    exec('enew | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
+command! -bar New     exec('new | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
+command! -bar Vnew    exec('vnew | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
+command! -bar Split   exec('new | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
+command! -bar Vsplit  exec('vnew | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
+command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile | silient lcd '.$desktop.'/tmp')
 nnoremap <silent> <Leader>s :if bufname() != '' \| split \| else \| Split \| endif<CR>
 nnoremap <silent> <Leader>v :if bufname() != '' \| vsplit \| else \| Vsplit \| endif<CR>
 nnoremap <silent> K :q<CR>
@@ -658,7 +658,8 @@ vnoremap <Leader>g "vy:let cmd = printf('Agrep! %s',@v)\|echo cmd\|call histadd(
 "----------------------------------------}}}1
 " Terminal" -----------------------------{{{1
 set termwinsize=12*0
-tnoremap <C-W>N <C-W>N:setlocal norelativenumber nonumber foldcolumn=0 nowrap<CR>zb
+tnoremap <Esc> <C-W>N:setlocal norelativenumber number foldcolumn=0 nowrap<CR>zb
+tnoremap <C-O> <Esc>
 "----------------------------------------}}}1
 " Folding" ------------------------------{{{1
 function! MyFoldExpr()" ----------------{{{2
@@ -764,17 +765,20 @@ set ignorecase
 
 " Display '1 out of 23 matches' when searching
 set shortmess=filnxtToO
-nnoremap ! /
-vnoremap ! "vy/<C-R>v
-nnoremap / :Lines<CR>
+nnoremap ! mG/
+vnoremap ! <Esc>mGgv"vy/<C-R>v
+nnoremap / mG:Lines<CR>
 
-nnoremap q! q/
+augroup search
+	au!
+	autocmd BufEnter * nnoremap <buffer> q! q/
+augroup end
 nnoremap z! :BLines {{{<CR>
 
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
 
-nnoremap <silent> n n:UnderlineCurrentSearchItem<CR>
-nnoremap <silent> N N:UnderlineCurrentSearchItem<CR>
+nnoremap <silent> n :keepjumps normal! n<CR>UnderlineCurrentSearchItem<CR>
+nnoremap <silent> N :keepjumps normal! N<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> * *<C-O>:UnderlineCurrentSearchItem<CR>
 vnoremap * "vy/\V<C-R>v\C<cr>:UnderlineCurrentSearchItem<CR>
 
@@ -884,6 +888,7 @@ nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
 augroup my_fzf
 	au!
 	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
+	autocmd FileType fzf tnoremap <buffer> <Esc> <Esc>
 augroup end
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
@@ -905,7 +910,9 @@ endfunction
 function! CycleWindowBuffersHistoryBackwards()
 	let scope = GetWindowBuffersHistoryScope()
 	let buffer_history = get(scope, 'buffer_history')
-	let counter = min([get(scope, 'buffer_history_counter', 0)+1, len(buffer_history)-1])
+	let counter = get(scope, 'buffer_history_counter', 0)
+	if counter == len(buffer_history) | return | endif
+	let counter += 1
 	let bufnr_to_load = buffer_history[-1-counter]
 	while (!bufexists(bufnr_to_load))
 		call remove(buffer_history, -1-counter)
@@ -918,7 +925,9 @@ endfunction
 function! CycleWindowBuffersHistoryForward()
 	let scope = GetWindowBuffersHistoryScope()
 	let buffer_history = get(scope, 'buffer_history')
-	let counter = max([get(scope, 'buffer_history_counter', 0)-1, 0])
+	let counter = get(scope, 'buffer_history_counter', 0)
+	if counter == 0 | return | endif
+	let counter -= 1
 	let bufnr_to_load = buffer_history[counter]
 	while (!bufexists(bufnr_to_load))
 		call remove(buffer_history, counter)
@@ -1090,6 +1099,8 @@ augroup my_dirvish
 	au!
 	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
 	autocmd BufLeave if &ft == 'dirvish' | mark L | endif
+	autocmd FileType dirvish nmap <silent> <buffer> <nowait> q gq
+	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose<CR>
 	autocmd FileType dirvish unmap <buffer> o
 	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit', 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> O :call PreviewFile('vsplit', 1)<CR>
@@ -1185,7 +1196,7 @@ function! OpenDashboard()
 	echo 'You are doing great <3'
 endfunction
 
-nnoremap <silent> <Leader>G :call OpenDashboard()<CR>
+nnoremap <silent> <Leader>m :call OpenDashboard()<CR>
 
 augroup dashboard
 	au!
@@ -1216,6 +1227,11 @@ augroup dashboard
 	autocmd BufEnter     todo,done,achievements nmap <buffer> <leader>n 1<C-W>W<leader>n
 	autocmd BufEnter     todo,done,achievements nmap <buffer> <leader>p 1<C-W>W<leader>p
 	autocmd BufEnter     todo,done,achievements nmap <buffer> <leader>x 1<C-W>W<leader>x
+	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w<CR>
+	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w<CR> 
+	autocmd BufEnter     todo,done,achievements nnoremap <buffer> dd dd:set buftype=<CR>:w<CR> 
+	autocmd BufEnter     todo,done,achievements nnoremap <buffer> p p:set buftype=<CR>:w<CR> 
+	autocmd BufEnter     todo,done,achievements nnoremap <buffer> P P:set buftype=<CR>:w<CR> 
 augroup end
 " ---------------------------------------}}}1
 " Diagrams"-----------------------------{{{1
@@ -1240,6 +1256,8 @@ endfunction
 "---------------------------------------}}}2
 augroup mydiagrams
 	autocmd!
+	autocmd BufEnter *.dot nnoremap <buffer> <silent> <Leader>w :Vnew | 0read !graph-easy #<CR>
+	autocmd BufEnter *.dot nnoremap <buffer> <silent> <Leader>W :Vnew | 0read !graph-easy #<CR>
 	autocmd BufRead,BufWinEnter *.bob silent setlocal filetype=bob fileformat=unix 
  autocmd BufRead,BufWinEnter *.bob silent set virtualedit=all
 	autocmd BufLeave *.bob silent set virtualedit=
