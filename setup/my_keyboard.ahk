@@ -83,14 +83,34 @@ CapsLock & q::Send {esc}
 
 #If not WinActive("GVIM")
 ; Enter, Arrows, Backspace / Del
-CapsLock & n::Send {Down}
-CapsLock & p::Send {Up}
 CapsLock & m::Send {Enter}
 CapsLock & h::Send {Backspace}
 CapsLock & x::Send {Del}
 CapsLock & l::Send {Del}
-CapsLock & j::Send {Left}
-CapsLock & k::Send {Right}
+CapsLock & n::
+If GetKeyState("Shift", "P")
+ Send ^+{Down}
+Else
+	Send {Down}
+Return
+CapsLock & p::
+If GetKeyState("Shift", "P")
+ Send ^+{Up}
+Else
+	Send {Up}
+Return
+CapsLock & j::
+If GetKeyState("Shift", "P")
+ Send ^+{Left}
+Else
+	Send {Left}
+Return
+CapsLock & k::
+If GetKeyState("Shift", "P")
+ Send ^+{Right}
+Else
+	Send {Right}
+Return
 
 CapsLock & f::Send !{Esc} ; Next window
 CapsLock & d::Send !+{Esc} ; Previous window
