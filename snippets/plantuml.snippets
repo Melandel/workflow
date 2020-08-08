@@ -1,0 +1,21 @@
+snippet new "new diagram" b
+'https://plantuml.com/fr/
+@startuml
+$0
+@enduml
+endsnippet
+snippet n "note" b
+note ${1:left} ${2:of ${3:node}}: ${4:This is a note}
+$0
+endsnippet
+
+snippet fn "floating note" b
+floating note ${1:left} ${2:of ${3:node}}: ${4:This is a note}
+$0
+endsnippet
+
+snippet N "multi-line note" b
+note ${1:left} ${2:of ${3:node}}: ${4:This is a note}
+	$0
+endnote
+endsnippet

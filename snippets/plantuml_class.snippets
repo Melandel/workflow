@@ -1,0 +1,34 @@
+snippet class "class diagram" b
+@startuml
+'https://plantuml.com/fr/class-diagram
+left to right direction
+class Dummy {
+	{static} String id
+	{abstract} void methods()
+}
+
+package net.sourceforge.plantuml {
+	class Flight {
+		-field1
+		#field2
+		~method1()
+		+method2()
+	}
+}
+Dummy --|> Flight
+$0
+@enduml
+endsnippet
+
+snippet cls "class" b
+class ${1:Class}{
+	+${2:method()}
+}
+endsnippet
+
+snippet pack "package" b
+package ${1:Package} {
+	${2:Class1} *- ${3:Class2}
+}
+endsnippet
+

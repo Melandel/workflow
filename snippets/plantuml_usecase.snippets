@@ -1,0 +1,24 @@
+snippet usecase "use case diagram" b
+@startuml
+'https://plantuml.com/fr/use-case-diagram
+left to right direction
+actor ${1:customer}
+actor ${2:clerk}
+rectangle ${3:restaurant} {
+	$1 --> (${4:checkout})
+	($4) ---> $2
+}
+$0
+@enduml
+endsnippet
+
+snippet uc "use case" b
+(${1:UC})
+$0
+endsnippet
+
+snippet a "actor" b
+actor ${1:A}
+$0
+endsnippet
+

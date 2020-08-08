@@ -1,0 +1,116 @@
+snippet activity "activity diagram" b
+@startuml
+'https://plantuml.com/fr/activity-diagram-beta
+start
+:ClickServlet.handleRequest();
+:new page;
+if (Page.onSecurityCheck) then (true)
+	:Page.onInit();
+	if (isForward?) then (no)
+		:Process controls;
+		if (continue processing?) then (no)
+			stop
+		endif
+
+		if (isPost?) then (yes)
+			:Page.onPost();
+		else (no)
+			:Page.onGet();
+		endif
+		:Page.onRender();
+	endif
+else (false)
+endif
+
+if (do redirect?) then (yes)
+	:redirect process;
+else
+	if (do forward?) then (yes)
+		:Forward request;
+	else (no)
+		:Render page template;
+	endif
+endif
+
+stop
+@enduml
+endsnippet
+
+snippet act "activity" b
+:${1:Do this};
+$0
+endsnippet
+
+snippet if "ifthenelse" b
+if (${1:graphviz installed?}) then (${2:yes})
+	:${3:process all\ndiagrams};
+elseif (${4:maybe})
+	:${5:process stuff};
+else (${4:no})
+	:${4:process only __sequence__ and __activity__ diagrams};
+endif
+$0
+endsnippet
+
+snippet vif "vertical ifthenelse" b
+!pragma useVerticalIf on
+if (${1:graphviz installed?}) then (${2:yes})
+	:${3:process all\ndiagrams};
+elseif (${4:maybe})
+	:${5:process stuff};
+else (${4:no})
+	:${4:process only __sequence__ and __activity__ diagrams};
+endif
+$0
+endsnippet
+
+snippet dowhile "dowhile" b
+repeat :${1:foo as starting label};
+	:${2:read data};
+backward:${3:This is backward};
+repeat while (${4:more data?})
+$0
+endsnippet
+
+snippet while "while" b
+while (${1:check filesize ?}) is (${2:not empty})
+	:${3:read file};
+endwhile (${4:empty})
+:${5:close file};
+$0
+endsnippet
+
+snippet fork "parallel fork" b
+fork
+	:${1:Treatment 1};
+fork again
+	:${2:Treatment 2};
+end fork
+$0
+endsnippet
+
+snippet con "connector" b
+(${1:I})
+detach
+(${2:O})
+$0
+endsnippet
+
+snippet part "partition" b
+partition ${0:Partition} {
+		:${1:read config file};
+}
+$0
+endsnippet
+
+snippet lane "swimlane" b
+|${1:Swimlane1}|
+:${2:do this};
+$0
+endsnippet
+
+snippet d "detach" b
+detach
+$0
+endsnippet
+
