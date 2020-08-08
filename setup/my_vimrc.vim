@@ -4,7 +4,7 @@ let $v = $desktop . '/tools/vim/_vimrc'
 let $p = $desktop . '/tools/vim/pack/plugins/start/'
 let $c = $desktop . '/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim'
 let $w = $desktop . '/tmp/cleanarchitecturepractice'
-set path+=$HOME/Desktop,$VIM,$VIM/pack/plugins/start/,$HOME/Downloads
+set path=.,,$HOME/Desktop,$VIM,$VIM/pack/plugins/start/,$HOME/Downloads
 " ---------------------------------------}}}1
 
 " Desktop Integration:
@@ -142,7 +142,7 @@ command! -bar Lcd call UpdateLocalCurrentDirectory()
 
 augroup lcd
 	au!
-	autocmd BufEnter * Lcd
+	autocmd BufEnter * if &ft!='dirvish' | Lcd | else | lcd %:p:h | endif
 	autocmd QuickFixCmdPre * let g:lcd_qf = getcwd()
 augroup end
 " ---------------------------------------}}}
@@ -226,8 +226,7 @@ set previewheight=25
 set showtabline=0
 
 " List/Open Buffers
-nnoremap <Leader>b :Buffers<CR>
-nnoremap <Leader>B :History<CR>
+nnoremap <Leader>e :Buffers<CR>
 
 " Close Buffers
 function! DeleteHiddenBuffers()" --------{{{2
@@ -653,8 +652,8 @@ set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-
 set switchbuf+=uselast
 
 nnoremap <Leader>f :Files <C-R>=GetInterestingParentDirectory()<CR><CR>
-nnoremap <Leader>g :Agrep! 
-vnoremap <Leader>g "vy:let cmd = printf('Agrep! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
+nnoremap <Leader>g :Rg 
+vnoremap <Leader>g "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
 "----------------------------------------}}}1
 " Terminal" -----------------------------{{{1
 set termwinsize=12*0
@@ -777,7 +776,7 @@ nnoremap z! :BLines {{{<CR>
 
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
 
-nnoremap <silent> n :keepjumps normal! n<CR>UnderlineCurrentSearchItem<CR>
+nnoremap <silent> n :keepjumps normal! n<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> N :keepjumps normal! N<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> * *<C-O>:UnderlineCurrentSearchItem<CR>
 vnoremap * "vy/\V<C-R>v\C<cr>:UnderlineCurrentSearchItem<CR>
@@ -890,6 +889,11 @@ augroup my_fzf
 	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
 	autocmd FileType fzf tnoremap <buffer> <Esc> <Esc>
 augroup end
+function! GetBookmarkFolders()
+	return uniq(sort(map(split(&path, ','), {_,x-> substitute(x=='.' ? getcwd() : x=='' ? expand('%:p:h') : x, '/', '\', 'g')}) + filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})))
+endfunction
+command! Bookmarks call fzf#run({'source': GetBookmarkFolders(), 'sink': 'Files'})
+nnoremap <leader>b :Bookmarks<CR>
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
 function! AddToWindowBuffersHistory()
@@ -1094,11 +1098,11 @@ function! PreviewFile(splitcmd, giveFocus)
 	endif
 endfunction
 "---------------------------------------}}}2
-nmap <leader>e <Plug>(dirvish_up)
 augroup my_dirvish
 	au!
 	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
 	autocmd BufLeave if &ft == 'dirvish' | mark L | endif
+	autocmd FileType dirvish silent! unmap <buffer> q!
 	autocmd FileType dirvish nmap <silent> <buffer> <nowait> q gq
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose<CR>
 	autocmd FileType dirvish unmap <buffer> o
@@ -1197,11 +1201,12 @@ function! OpenDashboard()
 endfunction
 
 nnoremap <silent> <Leader>m :call OpenDashboard()<CR>
+let g:alpha = get(g:, 'g:alpha', gvimtweak#window_alpha)
 
 augroup dashboard
 	au!
-	autocmd TabLeave index GvimTweakSetAlpha 255 | redraw | echo 'Back to work already? Alright!'
-	autocmd TabEnter index GvimTweakSetAlpha 140
+	autocmd TabLeave index GvimTweakSetAlpha g:alpha | redraw | echo 'Back to work already? Alright!'
+	autocmd TabEnter index let g:alpha = gvimtweak#window_alpha | GvimTweakSetAlpha 140
 	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>m :Git push --force-with-lease<CR>
 	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>l :silent! Glog! 
 	autocmd FileType fugitive     nmap <silent> <buffer> <space> =
@@ -1256,8 +1261,12 @@ endfunction
 "---------------------------------------}}}2
 augroup mydiagrams
 	autocmd!
-	autocmd BufEnter *.dot nnoremap <buffer> <silent> <Leader>w :Vnew | 0read !graph-easy #<CR>
-	autocmd BufEnter *.dot nnoremap <buffer> <silent> <Leader>W :Vnew | 0read !graph-easy #<CR>
+	autocmd BufRead,BufWinEnter *.dot set ft=dot
+	autocmd BufRead,BufWinEnter *.puml set ft=plantuml
+	autocmd FileType dot nnoremap <buffer> <silent> <Leader>w :New \| 0read !graph-easy #<CR>
+	autocmd FileType plantuml silent nnoremap <buffer> <silent> <Leader>w :silent !plantuml -ttxt "%:p"<CR>:New<CR>:0read <C-R>=expand('#:p:r').'.atxt'<CR><CR>
+	autocmd FileType plantuml silent nnoremap <buffer> <silent> <Leader>W :silent !plantuml -tsvg "%:p"<CR>:New<CR>:call OpenWebUrl('',<C-R>=expand('#:p:r').'.svg'<CR>)<CR>
+	autocmd FileType plantuml silent nnoremap <buffer> <silent> <Leader>W :exec('silent !plantuml -tsvg "%:p"') \| call OpenWebUrl('', printf('%s.svg', expand('%:p:r')))<CR>
 	autocmd BufRead,BufWinEnter *.bob silent setlocal filetype=bob fileformat=unix 
  autocmd BufRead,BufWinEnter *.bob silent set virtualedit=all
 	autocmd BufLeave *.bob silent set virtualedit=
@@ -1439,4 +1448,4 @@ function! DiffWithSaved()
   diffthis
   exe "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
 endfunction
-com! DiffSaved call s:DiffWithSaved()
+com! DiffSaved call DiffWithSaved()
