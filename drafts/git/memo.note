@@ -1,0 +1,9 @@
+git update-index --assume-unchanged FILE_NAME
+	+ Keeps a file in the repo
+	+ Hides it from git status
+	+ git update-index --no-assume-unchanged FILE_NAME
+	+ assumes that a developer shouldn’t change a file. This flag is meant for improving performance for not-changing folders like SDKs. 
+
+git update-index --skip-worktree FILE_NAME
+	+ instruct git not to touch a specific file ever because developers should change it
+	+ git update-index --no-skip-worktree FILE_NAME
