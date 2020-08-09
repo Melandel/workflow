@@ -5,3 +5,10 @@
 # Except...
 !/setup/
 !/snippets/
+!/templates/
+!/drafts/git/
+!/drafts/clean_architecture/
+!/drafts/ddd/
+!/drafts/vim/
+!/drafts/living_documentation/
+

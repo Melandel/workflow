@@ -1,3 +1,6 @@
+fix gitignore
+fix cyclebufferhistory (hlhlhl)
+update desktop/README
 D for creating new diagram in Dirvish
 map plantuml ft to extensions
 sD for Draft

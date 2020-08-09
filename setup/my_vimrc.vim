@@ -917,55 +917,38 @@ nnoremap <silent> <leader>e :call fzf#run({'source': GetBookmarkFolders(), 'sink
 nnoremap <silent> <leader>E :call fzf#run({'source': GetBookmarkFolders(), 'sink': 'tabedit\|Dirvish'})<CR>
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
-function! AddToWindowBuffersHistory()
-	let g:buffer_history = get(g:, 'buffer_history', map(copy(getbufinfo({'bufloaded':0})), {_,x->x.bufnr}))
-	let w:buffer_history = get(w:, 'buffer_history', [])
-	let bufnr = bufnr('%')
-	for scope in [g:, w:]
-		let idx = index(get(scope, 'buffer_history'), bufnr)
-		if idx != -1 | call remove(get(scope, 'buffer_history'), idx) | endif
-		call add(get(scope, 'buffer_history'), bufnr)
-	endfor
-endfunction
-
-function! GetWindowBuffersHistoryScope()
-	return len(get(w:, 'buffer_history', [])) < 2 ? g: : w:
-endfunction
-
 function! CycleWindowBuffersHistoryBackwards()
-	let scope = GetWindowBuffersHistoryScope()
-	let buffer_history = get(scope, 'buffer_history')
-	let counter = get(scope, 'buffer_history_counter', 0)
-	if counter == len(buffer_history)-1 | return | endif
-	let counter += 1
-	let bufnr_to_load = buffer_history[-1-counter]
-	while (!bufexists(bufnr_to_load))
-		call remove(buffer_history, -1-counter)
-		let counter -= 1
-		let bufnr_to_load = buffer_history[-1-counter]
-	endwhile
-	let scope.buffer_history_counter = counter
-	exec('b '.bufnr_to_load)
+	let jumplist = getjumplist()
+	let currentbufnr = bufnr('%')
+	let newbuffer = currentbufnr
+	let currentpos = get(w:, 'pos', jumplist[1]-1)
+
+	for i in range(currentpos, 0, -1)
+		if jumplist[0][i].bufnr != currentbufnr
+			let newbuffer = jumplist[0][i].bufnr
+			let w:pos = i
+			break
+		endif
+	endfor
+
+	exec(printf('silent keepjumps b %d',newbuffer))
 endfunction
 function! CycleWindowBuffersHistoryForward()
-	let scope = GetWindowBuffersHistoryScope()
-	let buffer_history = get(scope, 'buffer_history')
-	let counter = get(scope, 'buffer_history_counter', 0)
-	if counter == 0 | return | endif
-	let counter -= 1
-	let bufnr_to_load = buffer_history[counter]
-	while (!bufexists(bufnr_to_load))
-		call remove(buffer_history, counter)
-		let counter += 1
-		let bufnr_to_load = buffer_history[counter]
-	endwhile
-	let scope.buffer_history_counter = counter
-	exec('b '.bufnr_to_load)
-endfunction
+	let jumplist = getjumplist()
+	let currentbufnr = bufnr('%')
+	let newbuffer = currentbufnr
+	let currentpos = get(w:, 'pos', jumplist[1]-1)
 
-augroup my_buffer_browsing
-autocmd BufWinEnter * call AddToWindowBuffersHistory()
-augroup end
+	for i in range(currentpos, len(jumplist[0])-1)
+		if jumplist[0][i].bufnr != currentbufnr
+			let newbuffer = jumplist[0][i].bufnr
+			let w:pos = i
+			break
+		endif
+	endfor
+
+	exec(printf('silent keepjumps b %d',newbuffer))
+endfunction
 "---------------------------------------}}}
 " Full screen" --------------------------{{{
 let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
