@@ -4,7 +4,24 @@ let $v = $desktop . '/tools/vim/_vimrc'
 let $p = $desktop . '/tools/vim/pack/plugins/start/'
 let $c = $desktop . '/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim'
 let $w = $desktop . '/tmp/cleanarchitecturepractice'
-set path=.,,$HOME/Desktop,$VIM,$VIM/pack/plugins/start/,$HOME/Downloads
+set path=.,,
+set path+=$VIM
+set path+=$VIM/pack/plugins/start/
+set path+=$VIM/pack/plugins/start/vim-empower/colors
+set path+=$VIM/pack/plugins/start/vim-empower/autoload/lightline/colorscheme
+set path+=$HOME/Downloads
+set path+=$HOME/Desktop
+set path+=$HOME/Desktop/setup
+set path+=$HOME/Desktop/snippets
+set path+=$HOME/Desktop/templates
+set path+=$HOME/Desktop/tools
+set path+=$HOME/Desktop/tmp
+
+" Current work context"
+set path+=$HOME/Desktop/drafts/plantumltesting
+function! GetDraftFolderForCurrentWork()
+	return split(&path,',')[-1]
+endfunction
 " ---------------------------------------}}}1
 
 " Desktop Integration:
@@ -25,7 +42,6 @@ function! MinpacInit()
 	call minpac#add('honza/vim-snippets')
 
 	call minpac#add('justinmk/vim-dirvish')
-	call minpac#add('gyim/vim-boxdraw')
 
 	call minpac#add('tpope/vim-dadbod')
 	call minpac#add('tpope/vim-surround')
@@ -226,7 +242,7 @@ set previewheight=25
 set showtabline=0
 
 " List/Open Buffers
-nnoremap <Leader>e :Buffers<CR>
+nnoremap <Leader>b :Buffers<CR>
 
 " Close Buffers
 function! DeleteHiddenBuffers()" --------{{{2
@@ -890,10 +906,15 @@ augroup my_fzf
 	autocmd FileType fzf tnoremap <buffer> <Esc> <Esc>
 augroup end
 function! GetBookmarkFolders()
-	return uniq(sort(map(split(&path, ','), {_,x-> substitute(x=='.' ? getcwd() : x=='' ? expand('%:p:h') : x, '/', '\', 'g')}) + filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})))
+	let pathfolders= map(split(&path, ','), {_,x-> substitute(x=='.' ? getcwd() : x=='' ? expand('%:p:h') : x, '/', '\', 'g')})
+	let csharpfolders = filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})
+	let currentfolder=isdirectory(expand('%')) ? expand('%:p') : expand('%:h:p')
+
+	return uniq([currentfolder] + sort(pathfolders + csharpfolders))
 endfunction
-command! Bookmarks call fzf#run({'source': GetBookmarkFolders(), 'sink': 'Files'})
-nnoremap <leader>b :Bookmarks<CR>
+
+nnoremap <silent> <leader>e :call fzf#run({'source': GetBookmarkFolders(), 'sink': 'Dirvish'})<CR>
+nnoremap <silent> <leader>E :call fzf#run({'source': GetBookmarkFolders(), 'sink': 'tabedit\|Dirvish'})<CR>
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
 function! AddToWindowBuffersHistory()
@@ -915,7 +936,7 @@ function! CycleWindowBuffersHistoryBackwards()
 	let scope = GetWindowBuffersHistoryScope()
 	let buffer_history = get(scope, 'buffer_history')
 	let counter = get(scope, 'buffer_history_counter', 0)
-	if counter == len(buffer_history) | return | endif
+	if counter == len(buffer_history)-1 | return | endif
 	let counter += 1
 	let bufnr_to_load = buffer_history[-1-counter]
 	while (!bufexists(bufnr_to_load))
@@ -1005,7 +1026,7 @@ function! DeleteItemUnderCursor()
 	silent execute(printf(':!start /b %s', cmd))
 	normal R
 endfunction
-function! MovePreviouslyYankedItemToCurrentDirectory(source)
+function! MovePreviouslyYankedItemToCurrentDirectory()
 	if !IsPreviouslyYankedItemValid()
 		echomsg 'Select a path first!'
 		return
@@ -1240,45 +1261,79 @@ augroup dashboard
 augroup end
 " ---------------------------------------}}}1
 " Diagrams"-----------------------------{{{1
-function! InitNewDiagram(filename)"-------------{{{2
-	execute(printf('tabedit %s.bob',a:filename))
-	read my.legend
- call feedkeys("ggOnode\<Tab>")
-endfunction
-"---------------------------------------}}}2
-command! -nargs=1 -bar NewDiagram lcd $desktop/diagrams | call InitNewDiagram(<f-args>)
-nnoremap <Leader>D :NewDiagram 
-function! RegisterBoxLineTypes()"-------{{{2
-	"empty box line
-	let @e=@"[0] . repeat(' ', len(@")-2). @"[len(@")-1]
+function! CreateDiagramFile()
+	let extension = 'puml_'
+	let diagramtype = trim(input ('Diagram type? ([s]equence, [a]ctivity, [m]indmap, [c]lass, [C]omponent, [e]ntities, [S]tate, [u]secase, [w]orkbreakdown):'))
+	if diagramtype == ''
+		return
+	elseif trim(diagramtype) == 's'
+		let extension .= 'sequence'
+	elseif trim(diagramtype) == 'a'
+		let extension .= 'activity'
+	elseif trim(diagramtype) == 'm'
+		let extension .= 'mindmap'
+	elseif trim(diagramtype) == 'c'
+		let extension .= 'class'
+	elseif trim(diagramtype) == 'C'
+		let extension .= 'component'
+	elseif trim(diagramtype) == 'e'
+		let extension .= 'entities'
+	elseif trim(diagramtype) == 'S'
+		let extension .= 'state'
+	elseif trim(diagramtype) == 'u'
+		let extension .= 'usecase'
+	elseif trim(diagramtype) == 'w'
+		let extension .= 'workbreakdown'
+	else
+		return
+	endif
 
-	"border box line
-	let @b="'" . repeat('-', len(@")-2). "'"
-
-	"limit box line (second bordere type)
-	let @l="'" . repeat('~', len(@")-2). "'"
+	let filename = input('Title:')
+	if trim(filename) == ''
+		return
+	elseif !empty(glob(filename.'.'.extension))
+		redraw
+		echomsg printf('"%s" already exists.', filename.'.'.extension)
+		return
+	endif
+	let cmd = printf(':!start /b copy /y NUL "%s" >NUL', filename.'.'.extension)
+	silent execute(cmd)
+	normal R
 endfunction
-"---------------------------------------}}}2
+function! CompileDiagramAndShowImage(outputExtension)
+	let cmd = printf('silent !plantuml -t%s "%s"', a:outputExtension, expand('%:p'))
+	echomsg '0:'.cmd
+	exec(cmd)
+
+	if (a:outputExtension == 'txt')
+		New
+		exec('0read '.expand('#:p:r').'.atxt')
+	else
+		let outputFile = expand('%:p:r').'.'.a:outputExtension
+		call OpenWebUrl('',outputFile)
+	endif
+endfunction
+command! -nargs=1 CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
+
+nnoremap <silent> <Leader>D :tabedit \| Dirvish <C-R>=GetDraftFolderForCurrentWork()<CR><CR>
 augroup mydiagrams
 	autocmd!
-	autocmd BufRead,BufWinEnter *.dot set ft=dot
-	autocmd BufRead,BufWinEnter *.puml set ft=plantuml
-	autocmd FileType dot nnoremap <buffer> <silent> <Leader>w :New \| 0read !graph-easy #<CR>
-	autocmd FileType plantuml silent nnoremap <buffer> <silent> <Leader>w :silent !plantuml -ttxt "%:p"<CR>:New<CR>:0read <C-R>=expand('#:p:r').'.atxt'<CR><CR>
-	autocmd FileType plantuml silent nnoremap <buffer> <silent> <Leader>W :silent !plantuml -tsvg "%:p"<CR>:New<CR>:call OpenWebUrl('',<C-R>=expand('#:p:r').'.svg'<CR>)<CR>
-	autocmd FileType plantuml silent nnoremap <buffer> <silent> <Leader>W :exec('silent !plantuml -tsvg "%:p"') \| call OpenWebUrl('', printf('%s.svg', expand('%:p:r')))<CR>
-	autocmd BufRead,BufWinEnter *.bob silent setlocal filetype=bob fileformat=unix 
- autocmd BufRead,BufWinEnter *.bob silent set virtualedit=all
-	autocmd BufLeave *.bob silent set virtualedit=
-	autocmd BufRead,BufWinEnter *.bob silent vnoremap <buffer> p p 
-	autocmd BufRead,BufWinEnter *.bob silent vnoremap <buffer> vv F\|<C-v>,
-	autocmd BufRead,BufWinEnter *.bob silent vnoremap <buffer> vV F\!<C-v>,
-	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> H r-h
-	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> J r\|j
-	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> K r\|k
-	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> L r-l
-	autocmd BufRead,BufWinEnter *.bob silent nnoremap <buffer> <silent> <Leader>w :exec('silent !svgbob "%:p" -o "%:p:r.svg" --background \#575b61 --fill-color transparent') \| call OpenWebUrl('', printf('%s.svg', expand('%:p:r')))<CR>
-	autocmd TextYankPost *.bob call RegisterBoxLineTypes()
+	autocmd BufRead *.puml               set ft=plantuml
+	autocmd BufRead *.puml_activity      set ft=plantuml_activity
+	autocmd BufRead *.puml_class         set ft=plantuml_class
+	autocmd BufRead *.puml_component     set ft=plantuml_component
+	autocmd BufRead *.puml_entities      set ft=plantuml_entities
+	autocmd BufRead *.puml_mindmap       set ft=plantuml_mindmap
+	autocmd BufRead *.puml_sequence      set ft=plantuml_sequence
+	autocmd BufRead *.puml_state         set ft=plantuml_state
+	autocmd BufRead *.puml_usecase       set ft=plantuml_usecase
+	autocmd BufRead *.puml_workbreakdown set ft=plantuml_workbreakdown
+	autocmd FileType plantuml_sequence silent nnoremap <buffer> <silent> <Leader>w :CompileDiagramAndShowImage txt<CR>
+	autocmd FileType plantuml_sequence silent nnoremap <buffer> <silent> <Leader>W :CompileDiagramAndShowImage png<CR>
+	autocmd FileType plantuml_activity,plantuml_component,plantuml_component,plantuml_entities,plantuml_mindmap,plantuml_sequence,plantuml_state,plantuml_usecase,plantuml_workbreakdown
+	                                  \silent nnoremap <buffer> <silent> <Leader>w :CompileDiagramAndShowImage png<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
+
 augroup END
 "---------------------------------------}}}1
 

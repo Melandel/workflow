@@ -24,19 +24,20 @@ I want an environment that allows a certain workflow where I can remain focused 
 
 ### Root Folder ###
 
-The `$HOME/Desktop` folder is the root folder for my desktop environment. The main point is that accessing it doesn't require a file explorer
+The `$HOME/Desktop` folder is the root folder for my desktop environment. The main point is that accessing its files and folders doesn't require a window
 
 The desktop environment consists of:
 * a `tools` folder for programs integrated in the workflow
-* a `my.pomodoro` file to use for tracking daily activity and celebrate progress. Also a todolist.
-* a `my.notes` file to use for writing drafts, taking notes, storing resource links, basically aknowledge database
-* a `tmp` folder for backup files, logs, archived diffs and other sandbox projects
-* a `setup` folder for backup files, logs, archived diffs and other sandbox projects
-* a `snippets` folder 
+* 3 files, `todo`, `done` and `achievements` to use for taking stock of my activity: tracking what I'm done, what I wanted to do, and celebrating progress
+* a `drafts` folder to use for thinking: writing drafts, taking notes, storing resources, writing diagrams
+* a `tmp` folder for pretty much anything, including source code clones, sandbox projects and silly things
+* a `setup` folder to use for storing tool configuration artefacts: bookmarks, config file, icons, etc.
+* a `snippets` folder to host ultisnips snippets
+* a `templates` folder to store basically "folder" snippets, ie project templates for example
 
 ### Tools ###
 
-These tools go in the `tools` folder if possible, as well as in the environment variable `$PATH`
+These tools go in the `tools` folder if possible, and their binaries should be available through the environment variable `$PATH`
 
 
 | Functionality          | Program/Script                                                                                               | Notes                                                                                      |
@@ -49,14 +50,15 @@ These tools go in the `tools` folder if possible, as well as in the environment 
 | Text editor            | [Vim](https://github.com/vim/vim-win32-installer/releases)                                                   | Pick x64 or x86. Set `gvim.exe` to run as Administrator                                    |
 |                        |                                                                                                              | The plugins are automatically installed when `:source ~/Desktop/setup/my_vimrc.vim` in vim |
 | g/re/p                 | [ripgrep](https://github.com/BurntSushi/ripgrep/releases)                                                    |                                                                                            |
-| Text Previewer         | [bat](https://github.com/sharkdp/bat/releases)                                                               |                                                                                            |
 | Fuzzy finder           | [fzf](https://github.com/junegunn/fzf-bin/releases)                                                          |                                                                                            |
 | Terminal Pager         | [less](https://github.com/Pscx/Pscx/blob/81b76cfdb1343f84880e0e2cd647db5c56cf354b/Imports/Less-394/less.exe) |                                                                                            |
 | Filesystem Tree Viewer | [tree](http://gnuwin32.sourceforge.net/packages/tree.htm)                                                    |                                                                                            |
 | Nuget explorer/fetcher | [nuget](https://www.nuget.org/downloads)                                                                     |                                                                                            |
 | Scripting language     | [python (needed by vim's plugin UltiSnips)](https://www.python.org/downloads/windows/)                       | Be sure you install the same version (x64 or x86) as vim                                   |
 | C# REPL                | [dotnet-script](https://github.com/filipw/dotnet-script)                                                     | Install as a dotnet tool (`dotnet tool install`)                                           |
+| C# Intellisense        | [omnisharp-roslyn](https://github.com/OmniSharp/omnisharp-roslyn/releases)                                   |                                                                                            |
 | Zip Utility            | [7-zip](https://www.7-zip.org/download.html)                                                                 |                                                                                            |
+| Thinking assistant/UML | [PlantUML](https://sourceforge.net/projects/plantuml/files/plantuml.jar/download)+[Java](https://www.java.com/ES/download/)+[GraphViz](https://www2.graphviz.org/Packages/stable/windows/)|               |
 
 ### Config files ###
 
@@ -67,6 +69,8 @@ These tools go in the `tools` folder if possible, as well as in the environment 
 | setup/my_vimrc.vim      | vim config file. Create a symbolic link `$HOME/Desktop/tools/vim/_vimrc` referring to it                    |
 | setup/my_vimium.json    | Firefox web-extension Vimium's config file. In the extension panel, import this file                        |
 | setup/my_omnisharp.json | omnisharp server config file. Copy it to `$HOME/.omnisharp/omnisharp.json`                                  |
+| setup/my_omnisharp.ico  | omnisharp icon                                                                                              |
+| setup/my_bookmarks.json | Bookmarks for firefox                                                                                       |
 
 ### Startup programs ###
 
