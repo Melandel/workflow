@@ -217,7 +217,7 @@ set previewheight=25
 set showtabline=0
 
 " List/Open Buffers
-nnoremap <Leader>b :Buffers<CR>
+nnoremap <Leader>b :Buffers!<CR>
 
 " Close Buffers
 function! DeleteHiddenBuffers()" --------{{{2
