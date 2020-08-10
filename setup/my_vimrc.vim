@@ -1,27 +1,4 @@
-" Most used files and directories" ------{{{1
 let $desktop = $HOME . '/Desktop'
-let $v = $desktop . '/tools/vim/_vimrc'
-let $p = $desktop . '/tools/vim/pack/plugins/start/'
-let $c = $desktop . '/tools/vim/pack/plugins/start/vim-empower/colors/empower.vim'
-let $w = $desktop . '/tmp/cleanarchitecturepractice'
-set path=.,,
-set path+=$VIM
-set path+=$VIM/pack/plugins/start/vim-empower/colors
-set path+=$VIM/pack/plugins/start/vim-empower/autoload/lightline/colorscheme
-set path+=$HOME/Downloads
-set path+=$HOME/Desktop
-set path+=$HOME/Desktop/setup
-set path+=$HOME/Desktop/snippets
-set path+=$HOME/Desktop/templates
-set path+=$HOME/Desktop/tools
-set path+=$HOME/Desktop/tmp
-
-" Current work context"
-set path+=$HOME/Desktop/drafts/vim*
-function! GetDraftFolderForCurrentWork()
-	return split(&path,',')[-1]
-endfunction
-" ---------------------------------------}}}1
 
 " Desktop Integration:
 " Plugins" ------------------------------{{{1
@@ -33,7 +10,6 @@ function! MinpacInit()
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
-	call minpac#add('OmniSharp/omnisharp-vim')
 	call minpac#add('Melandel/omnisharp-vim')
 	call minpac#add('nickspoons/vim-sharpenup')
 
@@ -400,7 +376,7 @@ function! FolderRelativePathFromGit()
 	return './' . substitute(foldergitpath, '\', '/', 'g')
 endfunction
 
-exec("source $p/vim-sharpenup/autoload/sharpenup/statusline.vim")
+exec("source $VIM/pack/plugins/start/vim-sharpenup/autoload/sharpenup/statusline.vim")
 let g:sharpenup_statusline_opts = { 'TextLoading': '%s…', 'TextReady': '%s', 'TextDead': '_', 'Highlight': 0 }
 
 let g:lightline = {
@@ -934,14 +910,16 @@ augroup my_fzf
 	autocmd FileType fzf tnoremap <buffer> <C-K> <C-K>
 augroup end
 function! GetBookmarkFolders()
+	let vimrc = expand($VIM.'\_vimrc')
 	let plugins = expand($VIM.'\pack\plugins\start\*', 0, 1)
 	let csharpfolders = filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})
 	let downloads = expand($HOME.'\Downloads\')
 	let desktop = expand($HOME.'\Desktop')
 	let drafts = expand($HOME.'\Desktop\drafts\*', 0, 1)
-	let currentfolder=isdirectory(expand('%')) ? expand('%:p') : expand('%:h:p')
-	let bookmarks = flatten([plugins, downloads, desktop, drafts, currentfolder])
+	let colorfiles = [expand($VIM.'\plugin\start\vim-empower\colors\empower.vim'), expand($VIM.'\plugin\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
+	let bookmarks = flatten([vimrc, plugins, downloads, desktop, drafts, colorfiles])
 
+	let currentfolder=isdirectory(expand('%')) ? expand('%:p') : expand('%:h:p')
 	return uniq([currentfolder] + sort(bookmarks))
 endfunction
 
