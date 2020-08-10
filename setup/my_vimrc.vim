@@ -6,7 +6,6 @@ let $c = $desktop . '/tools/vim/pack/plugins/start/vim-empower/colors/empower.vi
 let $w = $desktop . '/tmp/cleanarchitecturepractice'
 set path=.,,
 set path+=$VIM
-set path+=$VIM/pack/plugins/start/
 set path+=$VIM/pack/plugins/start/vim-empower/colors
 set path+=$VIM/pack/plugins/start/vim-empower/autoload/lightline/colorscheme
 set path+=$HOME/Downloads
@@ -18,7 +17,7 @@ set path+=$HOME/Desktop/tools
 set path+=$HOME/Desktop/tmp
 
 " Current work context"
-set path+=$HOME/Desktop/drafts/vim
+set path+=$HOME/Desktop/drafts/vim*
 function! GetDraftFolderForCurrentWork()
 	return split(&path,',')[-1]
 endfunction
@@ -901,32 +900,54 @@ nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
 "---------------------------------------}}}
 " Fuzzy Finder"-------------------------{{{1
 let g:fzf_preview_window = 'right:60%'
+let g:fzf_colors =
+\ { 'fg':      ['fg', 'Normal'],
+  \ 'bg':      ['bg', 'Normal'],
+  \ 'hl':      ['fg', 'Constant'],
+  \ 'fg+':     ['fg', 'Constant', 'CursorColumn', 'Normal'],
+  \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+  \ 'hl+':     ['fg', 'Ignore'],
+  \ 'gutter':  ['fg', 'Comment'],
+  \ 'info':    ['fg', 'PreProc'],
+  \ 'border':  ['fg', 'Normal'],
+  \ 'prompt':  ['fg', 'Normal'],
+  \ 'pointer': ['fg', 'Constant'],
+  \ 'marker':  ['fg', 'Keyword'],
+  \ 'spinner': ['fg', 'Label'],
+  \ 'header':  ['fg', 'Comment'] }
+
 function! Edit(lines)
 	if len(a:lines) < 2 | return | endif
-	let cmd = get({'ctrl-x': 'split | Dirvish',
-              \ 'ctrl-v': 'vertical split | Dirvish',
-              \ 'ctrl-t': 'tabe | Dirvish'}, a:lines[0], 'Dirvish')
+	let file_or_dir = a:lines[1]
 
-	let file_of_dir = a:lines[1]
-		execute cmd file_of_dir
+	let cmd = isdirectory(file_or_dir) ?
+		\get({'ctrl-x': 'split | Dirvish', 'ctrl-v': 'vertical split | Dirvish', 'ctrl-t': 'tabe | Dirvish'}, a:lines[0], 'Dirvish') :
+		\get({'ctrl-x': 'split', 'ctrl-v': 'vertical split', 'ctrl-t': 'tabe'}, a:lines[0], 'e')
+	execute cmd file_or_dir
 endfunction
 
 augroup my_fzf
 	au!
 	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
 	autocmd FileType fzf tnoremap <buffer> <Esc> <Esc>
+	autocmd FileType fzf tnoremap <buffer> <C-J> <C-J>
+	autocmd FileType fzf tnoremap <buffer> <C-K> <C-K>
 augroup end
 function! GetBookmarkFolders()
-	let pathfolders= map(split(&path, ','), {_,x-> substitute(x=='.' ? getcwd() : x=='' ? expand('%:p:h') : x, '/', '\', 'g')})
+	let plugins = expand($VIM.'\pack\plugins\start\*', 0, 1)
 	let csharpfolders = filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})
+	let downloads = expand($HOME.'\Downloads\')
+	let desktop = expand($HOME.'\Desktop')
+	let drafts = expand($HOME.'\Desktop\drafts\*', 0, 1)
 	let currentfolder=isdirectory(expand('%')) ? expand('%:p') : expand('%:h:p')
+	let bookmarks = flatten([plugins, downloads, desktop, drafts, currentfolder])
 
-	return uniq([currentfolder] + sort(pathfolders + csharpfolders))
+	return uniq([currentfolder] + sort(bookmarks))
 endfunction
 
 command! Directories call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetBookmarkFolders(),
 			\'sink*': function('Edit'),
-			\'options': '--expect=ctrl-t,ctrl-v,ctrl-x'
+			\'options': '--expect=ctrl-t,ctrl-v,ctrl-x --bind ctrl-k:preview-up,ctrl-j:preview-down'
 \})))
 nnoremap <silent> <leader>e :Directories<CR>
 "---------------------------------------}}}1
