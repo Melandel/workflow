@@ -1119,7 +1119,7 @@ augroup my_dirvish
 	au!
 	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
 	autocmd BufLeave if &ft == 'dirvish' | mark L | endif
-	autocmd FileType dirvish silent! unmap <buffer> q!
+	autocmd FileType dirvish silent! nunmap <buffer> q!
 	autocmd FileType dirvish nmap <silent> <buffer> <nowait> q gq
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish unmap <buffer> o
