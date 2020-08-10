@@ -793,7 +793,7 @@ inoremap <expr> <C-N> (&omnifunc == '') ? '<C-N>' : '<C-X><C-O>'
 "----------------------------------------}}}1
 " Diff" ---------------------------------{{{1
 
-set diffopt+=algorithm:histogram,indent-heuristic
+set diffopt+=algorithm:histogram,indent-heuristic,vertical
 
 augroup diff
 	au!
