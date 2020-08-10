@@ -1122,6 +1122,7 @@ augroup my_dirvish
 	autocmd FileType dirvish silent! nunmap <buffer> q!
 	autocmd FileType dirvish nmap <silent> <buffer> <nowait> q gq
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose powershell -NoLogo<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish unmap <buffer> o
 	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit', 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> O :call PreviewFile('vsplit', 1)<CR>
