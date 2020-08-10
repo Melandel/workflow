@@ -1312,7 +1312,6 @@ function! CompileDiagramAndShowImage(outputExtension)
 endfunction
 command! -nargs=1 CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
 
-nnoremap <silent> <Leader>D :tabedit \| Dirvish <C-R>=GetDraftFolderForCurrentWork()<CR><CR>
 augroup mydiagrams
 	autocmd!
 	autocmd BufRead *.puml               set ft=plantuml
