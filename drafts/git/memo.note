@@ -7,3 +7,10 @@ git update-index --assume-unchanged FILE_NAME
 git update-index --skip-worktree FILE_NAME
 	+ instruct git not to touch a specific file ever because developers should change it
 	+ git update-index --no-skip-worktree FILE_NAME
+
+
+git remote add upstream https://github.com/original-repo/goes-here.git
+	+ for forked project, add the original project as the remote called 'upstream'
+	+ git fetch upstream
+	+ git rebase upstream/master
+	+ git push --force-with-lease
