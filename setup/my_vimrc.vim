@@ -18,7 +18,7 @@ set path+=$HOME/Desktop/tools
 set path+=$HOME/Desktop/tmp
 
 " Current work context"
-set path+=$HOME/Desktop/drafts/plantumltesting
+set path+=$HOME/Desktop/drafts/vim
 function! GetDraftFolderForCurrentWork()
 	return split(&path,',')[-1]
 endfunction
@@ -900,6 +900,17 @@ nnoremap <silent> H :call CycleWindowBuffersHistoryBackwards()<CR>
 nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
 "---------------------------------------}}}
 " Fuzzy Finder"-------------------------{{{1
+let g:fzf_preview_window = 'right:60%'
+function! Edit(lines)
+	if len(a:lines) < 2 | return | endif
+	let cmd = get({'ctrl-x': 'split | Dirvish',
+              \ 'ctrl-v': 'vertical split | Dirvish',
+              \ 'ctrl-t': 'tabe | Dirvish'}, a:lines[0], 'Dirvish')
+
+	let file_of_dir = a:lines[1]
+		execute cmd file_of_dir
+endfunction
+
 augroup my_fzf
 	au!
 	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
@@ -913,8 +924,11 @@ function! GetBookmarkFolders()
 	return uniq([currentfolder] + sort(pathfolders + csharpfolders))
 endfunction
 
-nnoremap <silent> <leader>e :call fzf#run({'source': GetBookmarkFolders(), 'sink': 'Dirvish'})<CR>
-nnoremap <silent> <leader>E :call fzf#run({'source': GetBookmarkFolders(), 'sink': 'tabedit\|Dirvish'})<CR>
+command! Directories call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetBookmarkFolders(),
+			\'sink*': function('Edit'),
+			\'options': '--expect=ctrl-t,ctrl-v,ctrl-x'
+\})))
+nnoremap <silent> <leader>e :Directories<CR>
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
 function! CycleWindowBuffersHistoryBackwards()
