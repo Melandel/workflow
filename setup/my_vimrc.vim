@@ -218,6 +218,7 @@ set showtabline=0
 
 " List/Open Buffers
 nnoremap <Leader>b :Buffers!<CR>
+nnoremap <Leader>B :History!<CR>
 
 " Close Buffers
 function! DeleteHiddenBuffers()" --------{{{2
@@ -481,7 +482,7 @@ function! ExtendedEnd()" ----------------{{{2
 endfunction
 " ---------------------------------------}}}2
 nnoremap <silent> <End> :call ExtendedEnd()<CR>
-vnoremap <silent> <End> <Esc>:call ExtendedEnd()<CR>mvgv`v
+vnoremap <silent> <End> $
 onoremap <silent> <End> :call ExtendedEnd()<CR>
 
 function! MoveCursorToNext(pattern)" ----{{{2
@@ -584,7 +585,7 @@ vnoremap zy "+y
 " Paste from system clipboard
 nnoremap zp :set paste<CR>o<Esc>"+p:set nopaste<CR>
 nnoremap zP :set paste<CR>O<Esc>"+P:set nopaste<CR>
-inoremap <C-V> <C-R>+| inoremap <C-C> <C-V>
+inoremap <C-V> <C-O>:set paste<CR><C-R>+<C-O>:set nopaste<CR>| inoremap <C-C> <C-V>
 cnoremap <C-V> <C-R>=escape(@+,'\%#')<CR>| cnoremap <C-C> <C-V>
 tnoremap <C-V> <C-W>"+
 
@@ -648,7 +649,7 @@ vnoremap <Leader>g "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cm
 "----------------------------------------}}}1
 " Terminal" -----------------------------{{{1
 set termwinsize=12*0
-tnoremap <Esc> <C-W>N:setlocal norelativenumber number foldcolumn=0 nowrap<CR>zb
+noremap <Esc> <C-W>N:setlocal norelativenumber number foldcolumn=0 nowrap<CR>zb
 tnoremap <C-O> <Esc>
 "----------------------------------------}}}1
 " Folding" ------------------------------{{{1
@@ -858,15 +859,9 @@ nnoremap g, g,zv
 " Additional Functionalities:
 " Brackets"-----------------------------{{{1
 
-inoremap ( ()<left>
-inoremap [ []<left>
-inoremap { {}<left>
-inoremap <expr> ) getline('.')[col('.')-1]==')' ? '<c-g>U<right>' : ')'
-inoremap <expr> ] getline('.')[col('.')-1]==']' ? '<c-g>U<right>' : ']'
-inoremap <expr> } getline('.')[col('.')-1]=='}' ? '<c-g>U<right>' : '}'
-inoremap <expr> " getline('.')[col('.')-1]=='"' ? '<c-g>U<right>' : '""<left>'
-inoremap <expr> ' getline('.')[col('.')-1]=="'" ? '<c-g>U<right>' : "''<left>"
-inoremap <expr> ` getline('.')[col('.')-1]=='`' ? '<c-g>U<right>' : '``<left>'
+inoremap <expr> ( (col('.') == col('$')) ? "()\<left>" : '('
+inoremap <expr> [ (col('.') == col('$')) ? "[]\<left>" : '['
+inoremap <expr> { (col('.') == col('$')) ? "{}\<left>" : '{'
 inoremap <expr> <cr> getline('.')[max([0,col('.')-2]):max([col('.')-1,0])]=='{}' ? '<cr><esc>O' : '<cr>'
 
 "---------------------------------------}}}1
@@ -897,8 +892,18 @@ function! Edit(lines)
 	let file_or_dir = a:lines[1]
 
 	let cmd = isdirectory(file_or_dir) ?
-		\get({'ctrl-x': 'split | Dirvish', 'ctrl-v': 'vertical split | Dirvish', 'ctrl-t': 'tabe | Dirvish'}, a:lines[0], 'Dirvish') :
-		\get({'ctrl-x': 'split', 'ctrl-v': 'vertical split', 'ctrl-t': 'tabe'}, a:lines[0], 'e')
+		\get({'ctrl-x': 'split | Dirvish',
+		     \'ctrl-j': 'split | Dirvish',
+		     \'ctrl-v': 'vertical split | Dirvish',
+		     \'ctrl-k': 'vertical split | Dirvish',
+							\'ctrl-t': 'tabe | Dirvish',
+							\'ctrl-o': 'tabe | Dirvish'}, a:lines[0], 'Dirvish') :
+		\get({'ctrl-x': 'split',
+		     \'ctrl-j': 'split',
+		     \'ctrl-v': 'vertical split',
+		     \'ctrl-k': 'vertical split',
+							\'ctrl-t': 'tabe',
+							\'ctrl-o': 'tabe'}, a:lines[0], 'e')
 	execute cmd file_or_dir
 endfunction
 
@@ -915,19 +920,24 @@ function! GetBookmarkFolders()
 	let csharpfolders = filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})
 	let downloads = expand($HOME.'\Downloads\')
 	let desktop = expand($HOME.'\Desktop')
-	let drafts = expand($HOME.'\Desktop\drafts\*', 0, 1)
-	let colorfiles = [expand($VIM.'\plugin\start\vim-empower\colors\empower.vim'), expand($VIM.'\plugin\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
-	let bookmarks = flatten([vimrc, plugins, downloads, desktop, drafts, colorfiles])
+	let tmp = expand($HOME.'\Desktop\tmp')
+	let colorfiles = [expand($VIM.'\pack\plugins\start\vim-empower\colors\empower.vim'), expand($VIM.'\pack\plugins\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
+	let bookmarks = flatten([vimrc, plugins, downloads, desktop, tmp, colorfiles])
 
 	let currentfolder=isdirectory(expand('%')) ? expand('%:p') : expand('%:h:p')
 	return uniq([currentfolder] + sort(bookmarks))
 endfunction
-
-command! Directories call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetBookmarkFolders(),
-			\'sink*': function('Edit'),
-			\'options': '--expect=ctrl-t,ctrl-v,ctrl-x --bind ctrl-k:preview-up,ctrl-j:preview-down'
-\})))
+function! GetNotes()
+	let root = expand($HOME.'\Desktop\notes\')
+	let folders = expand($HOME.'\Desktop\notes\**\', 0, 1)
+	let files = expand($HOME.'\Desktop\notes\**\*', 0, 1)
+	return [root] + folders + files
+endfunction
+let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o"
+command! Directories call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetBookmarkFolders(),'sink*': function('Edit')})))
+command! Notes call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetNotes(),'sink*': function('Edit')})))
 nnoremap <silent> <leader>e :Directories<CR>
+nnoremap <silent> <leader>D :Notes<CR>
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
 function! CycleWindowBuffersHistoryBackwards()
@@ -1077,6 +1087,8 @@ function! CreateDirectory()
 	let cmd = printf(':!start /b mkdir "%s"', dirname)
 	silent execute(cmd)
 	normal R
+	silent exec(printf('/\<%s\>', dirname))
+	nohlsearch
 endf
 function! CreateFile()
 	let filename = input('File name:')
@@ -1090,6 +1102,8 @@ function! CreateFile()
 	let cmd = printf(':!start /b copy /y NUL "%s" >NUL', filename)
 	silent execute(cmd)
 	normal R
+	silent exec(printf('/\<%s\>', filename))
+	nohlsearch
 endf
 
 function! PreviewFile(splitcmd, giveFocus)
@@ -1119,6 +1133,7 @@ augroup my_dirvish
 	au!
 	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
 	autocmd BufLeave if &ft == 'dirvish' | mark L | endif
+	autocmd BufEnter if &ft == 'dirvish' | silent normal R
 	autocmd FileType dirvish silent! nunmap <buffer> q!
 	autocmd FileType dirvish nmap <silent> <buffer> <nowait> q gq
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose powershell -NoLogo<CR>
@@ -1162,7 +1177,7 @@ function! OpenWebUrl(firstPartOfUrl,...)" ----{{{2
 	let finalPartOfUrl = substitute(finalPartOfUrl, '"', '\\"', 'g')
 
 	let url = a:firstPartOfUrl . finalPartOfUrl
-	let url = escape(url, '%')
+	let url = escape(url, '%#')
 	silent! execute '! start firefox "" "' . url . '"'
 endfun
 " ---------------------------------------}}}2
@@ -1207,6 +1222,7 @@ nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 " Dashboard" ----------------------------{{{1
 function! OpenDashboard()
 	silent tab G
+	call settabvar(tabpagenr(),'is_dashboard',1)
 	normal gu
 	silent! Glog!
 	wincmd j
@@ -1223,8 +1239,8 @@ let g:alpha = get(g:, 'g:alpha', gvimtweak#window_alpha)
 
 augroup dashboard
 	au!
-	autocmd TabLeave index GvimTweakSetAlpha g:alpha | redraw | echo 'Back to work already? Alright!'
-	autocmd TabEnter index let g:alpha = gvimtweak#window_alpha | GvimTweakSetAlpha 140
+	autocmd TabLeave * if get(t:,'is_dashboard', 0) | GvimTweakSetAlpha g:alpha | redraw | echo 'Back to work already? Alright!' | endif
+	autocmd TabEnter * if get(t:,'is_dashboard', 0) | let g:alpha = gvimtweak#window_alpha | GvimTweakSetAlpha 140 | endif
 	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>m :Git push --force-with-lease<CR>
 	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>l :silent! Glog! 
 	autocmd FileType fugitive     nmap <silent> <buffer> <space> =
@@ -1247,9 +1263,6 @@ augroup dashboard
 	autocmd BufWritePost todo                   redraw | echo 'Nice :)'
 	autocmd BufWritePost      done              redraw | echo 'Good job! :D'
 	autocmd BufWritePost           achievements redraw | echo 'You did great ;)'
-	autocmd BufEnter     todo,done,achievements nmap <buffer> <leader>n 1<C-W>W<leader>n
-	autocmd BufEnter     todo,done,achievements nmap <buffer> <leader>p 1<C-W>W<leader>p
-	autocmd BufEnter     todo,done,achievements nmap <buffer> <leader>x 1<C-W>W<leader>x
 	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w<CR>
 	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w<CR> 
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> dd dd:set buftype=<CR>:w<CR> 
@@ -1260,9 +1273,11 @@ augroup end
 " Diagrams"-----------------------------{{{1
 function! CreateDiagramFile()
 	let extension = 'puml_'
-	let diagramtype = trim(input ('Diagram type? ([s]equence, [a]ctivity, [m]indmap, [c]lass, [C]omponent, [e]ntities, [S]tate, [u]secase, [w]orkbreakdown):'))
+	let diagramtype = trim(input ('Diagram type? ([g]raph, [s]equence, [a]ctivity, [m]indmap, [c]lass, [C]omponent, [e]ntities, [S]tate, [u]secase, [w]orkbreakdown):'))
 	if diagramtype == ''
 		return
+	elseif trim(diagramtype) == 'g'
+		let extension = 'dot'
 	elseif trim(diagramtype) == 's'
 		let extension .= 'sequence'
 	elseif trim(diagramtype) == 'a'
@@ -1296,24 +1311,40 @@ function! CreateDiagramFile()
 	let cmd = printf(':!start /b copy /y NUL "%s" >NUL', filename.'.'.extension)
 	silent execute(cmd)
 	normal R
+	silent exec(printf('/\<%s\>', filename))
+	nohlsearch
 endfunction
+
 function! CompileDiagramAndShowImage(outputExtension)
-	let cmd = printf('silent !plantuml -t%s "%s"', a:outputExtension, expand('%:p'))
-	echomsg '0:'.cmd
-	exec(cmd)
+	let input=expand('%:p')
+	let output=fnamemodify(input, ':r').'.'.a:outputExtension
+
+	let cmd=''
+	if expand('%:e') != 'dot'
+		let cmd = printf('!plantuml -t%s -o "%s" "%s"', a:outputExtension, output, input)
+	else ".dot file
+		if a:outputExtension == 'txt'
+			let output=fnamemodify(input, ':r').'.atxt'
+			let cmd = printf('!graph-easy --from=graphviz --as=ascii --output %s %s',output,input)
+		else
+			let cmd = printf('!dot -T%s "%s" -o "%s"', a:outputExtension, input, output)
+		endif
+	endif
+
+	exec cmd
+	redraw
 
 	if (a:outputExtension == 'txt')
-		New
-		exec('0read '.expand('#:p:r').'.atxt')
+		exec('split '.output)
 	else
-		let outputFile = expand('%:p:r').'.'.a:outputExtension
-		call OpenWebUrl('',outputFile)
+		call OpenWebUrl('',output)
 	endif
 endfunction
 command! -nargs=1 CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
 
 augroup mydiagrams
 	autocmd!
+	autocmd BufRead *.dot                set ft=dot
 	autocmd BufRead *.puml               set ft=plantuml
 	autocmd BufRead *.puml_activity      set ft=plantuml_activity
 	autocmd BufRead *.puml_class         set ft=plantuml_class
@@ -1324,10 +1355,10 @@ augroup mydiagrams
 	autocmd BufRead *.puml_state         set ft=plantuml_state
 	autocmd BufRead *.puml_usecase       set ft=plantuml_usecase
 	autocmd BufRead *.puml_workbreakdown set ft=plantuml_workbreakdown
-	autocmd FileType plantuml_sequence silent nnoremap <buffer> <silent> <Leader>w :CompileDiagramAndShowImage txt<CR>
-	autocmd FileType plantuml_sequence silent nnoremap <buffer> <silent> <Leader>W :CompileDiagramAndShowImage png<CR>
+	autocmd FileType dot,plantuml_sequence silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage txt<CR>
+	autocmd FileType dot,plantuml_sequence silent nnoremap <buffer> <Leader>W :silent w \| CompileDiagramAndShowImage png<CR>
 	autocmd FileType plantuml_activity,plantuml_component,plantuml_component,plantuml_entities,plantuml_mindmap,plantuml_sequence,plantuml_state,plantuml_usecase,plantuml_workbreakdown
-	                                  \silent nnoremap <buffer> <silent> <Leader>w :CompileDiagramAndShowImage png<CR>
+	                                  \silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage png<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 
 augroup END

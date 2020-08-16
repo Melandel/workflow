@@ -1,0 +1,31 @@
+snippet graph "Graph" b
+graph G {
+	label=<<u>${1:Ceci est un<br/>titre qui en jette}</u>>
+	graph [fontsize=50,colorscheme=set311];
+	edge  [fontsize=24,colorscheme=set311];
+	node  [fontsize=24,style=filled,colorscheme=set311];
+	bgcolor="#2C2C29"; fontcolor="#729fcf";
+A
+B
+{
+	rank=source;
+	5 [color=5]
+	7 [color=7]
+	6 [color=6]
+	4 [color=4]
+	1 [color=1]
+	3 [color=3]
+	9 [color=9]
+	11 [color=11]
+	2 [color=2,shape=box]
+	8 [color=8,shape=box]
+	10 [color=10,shape=box]
+}
+$0
+}
+endsnippet
+
+snippet n "Node" b
+${1:A} [${2:label}="${3:Label}";${4}];
+$0
+endsnippet
