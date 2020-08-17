@@ -1,16 +1,10 @@
-# Ignore everything
+.desktop.ini
+Session.vim
 *.exe
-/*
-
-# Except...
-!/setup/
-!/snippets/
-!/templates/
-!/drafts/git/
-!/drafts/clean_architecture/
-!/drafts/ddd/
-!/drafts/vim/
-!/drafts/living_documentation/
-!/drafts/katas/
-!/drafts/fzf/
-
+/tmp
+/games
+/tools
+todo
+done
+achievements
+notes
