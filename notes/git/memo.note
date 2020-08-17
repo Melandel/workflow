@@ -1,0 +1,28 @@
+https://dev.to/nishina555/how-to-ignore-files-already-managed-with-git-locally-19oo
+
+	.gitignore
+		> Asks git to NOT manage certain files
+		> However, if the files are already tracked (added) to the repo, they will keep being managed
+		> Good solution for never having a file in a repo, not adapted for having a file in a repo but hiding it from git status
+
+	.git/info/exclude
+		> Same thing as .gitignore, but is not tracked by git and will not end up in the git repository
+		> Good solution for hiding IDE(or any local-only)-related files from git status without polluting the repo for other contributors
+
+	git update-index --assume-unchanged FILE_NAME
+		> Locally ignore files that should NOT changed
+		> For performance issues(fewer files to process, e.g. SDK folders)
+		> git reset -- hard will delete any change
+		> Can be reverted with: git update-index --no-assume-unchanged FILE_NAME
+		> Can be listed with: git update-index --really-refresh
+
+	git update-index --skip-worktree FILE_NAME
+		> Locally ignore files that SHOULD be changed
+		> Can be reverted with: git update-index --no-skip-worktree FILE_NAME
+		> Can be listed with: git ls-files -v | rg ^S
+
+git remote add upstream https://github.com/original-repo/goes-here.git
+	> for forked project, add the original project as the remote called 'upstream'
+	> git fetch upstream
+	> git rebase upstream/master
+	> git push --force-with-lease

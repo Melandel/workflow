@@ -1,0 +1,8 @@
+http://www.graphviz.org/doc/info/colors.html#brewer
+set311 color scheme
+
+Usage:
+https://www.graphviz.org/doc/info/attrs.html#d:colorscheme
+
+Example:
+https://forum.graphviz.org/t/how-to-use-brewer-color-schemes-on-nodes-in-graph/61/2

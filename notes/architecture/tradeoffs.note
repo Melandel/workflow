@@ -1,0 +1,6 @@
+https://www.quora.com/What-are-the-most-important-trade-offs-of-software-architecture
+	> Flexibility vs Simplicity
+	> Memory space vs Computation time
+	> Latency(time for first result) vs Throughput(Number of responses under a given time)
+	> Features[Behavior] vs Structure[Complexity](Ability to modify the codebase with ease)
+	> Fast answer vs Correct answer
