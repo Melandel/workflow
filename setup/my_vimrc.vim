@@ -1054,6 +1054,9 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 	let cmd = printf('move "%s" "%s\%s"', item, cwd, item_finalname)
 
 	silent execute(printf(':!start /b %s', cmd))
+	normal R
+	silent exec(printf('/\<%s\>', item_finalname))
+	nohlsearch
 endfunction
 function! RenameItemUnderCursor()
 	let target = trim(getline('.'), '/\')
