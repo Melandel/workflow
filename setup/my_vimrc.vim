@@ -217,7 +217,6 @@ set previewheight=25
 set showtabline=0
 
 " List/Open Buffers
-nnoremap <Leader>b :Buffers!<CR>
 nnoremap <Leader>B :History!<CR>
 
 " Close Buffers
@@ -290,38 +289,6 @@ nnoremap <silent> <Leader>= <C-W>=
 nnoremap <silent> <Leader>\| <C-W>\|
 nnoremap <silent> <Leader>_ <C-W>_
 
-" Resize a window for some text
-function! FocusLines(splitcmd, ...) range"--------{{{2
-	let nblines_minus_one = (a:0 == 1) ? a:1 : (a:lastline - a:firstline)
-	if getline(a:lastline) =~ '^\s*$'
-		let nblines_minus_one -=1
-	endif
-
-	exec(a:splitcmd)
-
-	wincmd k
- setlocal nowrap
-
-	let winid = win_getid()
-	wincmd h
-	let is_leftmost_win = win_getid() == winid
-	if is_leftmost_win
-		setlocal winfixwidth
-	else
-		call win_gotoid(winid)
-	endif
-
- execute('resize '.(nblines_minus_one+2+1))
-	normal! kztj
-endfunction
-"---------------------------------------}}}2
-command! -range -nargs=? -bar FocusLinesSplit <line1>,<line2>call FocusLines('split', <f-args>)
-command! -range -nargs=? -bar FocusLinesNew <line1>,<line2>call FocusLines('New', <f-args>)
-nnoremap <Leader>r :FocusLinesSplit 
-vnoremap <Leader>r :FocusLinesSplit<CR>
-
-nnoremap <Leader>R :FocusLinesNew 
-vnoremap <Leader>R :FocusLinesNew<CR>
 " Alternate file fast switching
 noremap <Leader>d <C-^>
 
@@ -935,10 +902,8 @@ function! GetBookmarkFolders()
 	let desktop = expand($HOME.'\Desktop')
 	let tmp = expand($HOME.'\Desktop\tmp')
 	let colorfiles = [expand($VIM.'\pack\plugins\start\vim-empower\colors\empower.vim'), expand($VIM.'\pack\plugins\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
-	let bookmarks = flatten([vimrc, plugins, downloads, desktop, tmp, colorfiles])
 
-	let currentfolder=isdirectory(expand('%')) ? expand('%:p') : expand('%:h:p')
-	return uniq([currentfolder] + sort(bookmarks))
+	return uniq(sort(flatten([vimrc, plugins, downloads, desktop, tmp, colorfiles])))
 endfunction
 function! GetNotes()
 	let root = expand($HOME.'\Desktop\notes\')
@@ -947,10 +912,11 @@ function! GetNotes()
 	return [root] + folders + files
 endfunction
 let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o"
-command! Directories call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetBookmarkFolders(),'sink*': function('Edit')})))
+command! Bookmarks call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetBookmarkFolders(),'sink*': function('Edit')})))
 command! Notes call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetNotes(),'sink*': function('Edit')})))
-nnoremap <silent> <leader>e :Directories<CR>
-nnoremap <silent> <leader>D :Notes<CR>
+nnoremap <silent> <leader>b :Bookmarks<CR>
+nnoremap <silent> <leader>e :Dirvish<CR>
+nnoremap <silent> <leader>E :Notes<CR>
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
 function! CycleWindowBuffersHistoryBackwards()
@@ -1160,7 +1126,6 @@ augroup my_dirvish
 	autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split', 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> A :call PreviewFile('split', 1)<CR>
 	autocmd FileType dirvish nmap <buffer> , <Plug>(dirvish_K)
-	autocmd FileType dirvish nmap <silent> <buffer> <silent> K gq:let @d=''<CR>
 	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | setlocal foldcolumn=1
 	autocmd FileType dirvish nnoremap <silent> <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> i :call CreateDirectory()<CR>
@@ -1213,11 +1178,6 @@ vnoremap <Leader>T :GoogleTranslateEnFr<CR>
 command! -nargs=* -range Google :call OpenWebUrl('http://google.com/search?q=', <f-args>)
 nnoremap <Leader>q :Google 
 vnoremap <Leader>q :Google<CR>
-
-command! -nargs=* -range Youtube :call OpenWebUrl('https://www.youtube.com/results?search_query=', <f-args>)
-command! -nargs=* -range YoutubePlaylist :call OpenWebUrl('https://www.youtube.com/results?sp=EgIQAw%253D%253D&search_query=', <f-args>)
-nnoremap <Leader>y :Youtube 
-nnoremap <Leader>Y :YoutubePlaylist 
 
 " ---------------------------------------}}}1
 " Snippets" -----------------------------{{{1
