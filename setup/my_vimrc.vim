@@ -900,10 +900,11 @@ function! GetBookmarkFolders()
 	let csharpfolders = filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})
 	let downloads = expand($HOME.'\Downloads\')
 	let desktop = expand($HOME.'\Desktop')
+	let projects = expand($HOME.'\Desktop\projects')
 	let tmp = expand($HOME.'\Desktop\tmp')
 	let colorfiles = [expand($VIM.'\pack\plugins\start\vim-empower\colors\empower.vim'), expand($VIM.'\pack\plugins\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
 
-	return uniq(sort(flatten([vimrc, plugins, downloads, desktop, tmp, colorfiles])))
+	return uniq(sort(flatten([vimrc, plugins, downloads, desktop, projects, tmp, colorfiles])))
 endfunction
 function! GetNotes()
 	let root = expand($HOME.'\Desktop\notes\')
@@ -915,7 +916,7 @@ let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o"
 command! Bookmarks call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetBookmarkFolders(),'sink*': function('Edit')})))
 command! Notes call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetNotes(),'sink*': function('Edit')})))
 nnoremap <silent> <leader>b :Bookmarks<CR>
-nnoremap <silent> <leader>e :Dirvish<CR>
+nnoremap <silent> <leader>e :Dirvish %<CR>
 nnoremap <silent> <leader>E :Notes<CR>
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
