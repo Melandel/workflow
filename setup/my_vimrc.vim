@@ -775,7 +775,7 @@ nnoremap / mG:Lines<CR>
 
 augroup search
 	au!
-	autocmd BufEnter * nnoremap <buffer> q! q/
+	autocmd FileType * if &ft != 'dirvish' | silent nnoremap <buffer> q! q/ | endif
 augroup end
 nnoremap z! :BLines {{{<CR>
 
@@ -1150,7 +1150,6 @@ augroup my_dirvish
 	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
 	autocmd BufLeave if &ft == 'dirvish' | mark L | endif
 	autocmd BufEnter if &ft == 'dirvish' | silent normal R
-	autocmd FileType dirvish silent! nunmap <buffer> q!
 	autocmd FileType dirvish nmap <silent> <buffer> <nowait> q gq
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose powershell -NoLogo<CR>
@@ -1245,9 +1244,9 @@ function! OpenDashboard()
 	exec('silent vnew ' . $desktop.'/achievements')
 	exec('silent new ' . $desktop.'/todo')
 	exec('silent vnew ' . $desktop.'/done')
-	2wincmd k
+	wincmd h
 	GvimTweakSetAlpha 180
-	echo 'You are doing great <3'
+	redraw | echo 'You are doing great <3'
 endfunction
 
 nnoremap <silent> <Leader>m :call OpenDashboard()<CR>
