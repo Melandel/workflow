@@ -649,7 +649,7 @@ vnoremap <Leader>g "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cm
 "----------------------------------------}}}1
 " Terminal" -----------------------------{{{1
 set termwinsize=12*0
-noremap <Esc> <C-W>N:setlocal norelativenumber number foldcolumn=0 nowrap<CR>zb
+tnoremap <Esc> <C-W>N:setlocal norelativenumber number foldcolumn=0 nowrap<CR>zb
 tnoremap <C-O> <Esc>
 "----------------------------------------}}}1
 " Folding" ------------------------------{{{1
