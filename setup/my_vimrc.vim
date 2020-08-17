@@ -424,12 +424,25 @@ endfunction
 " ---------------------------------------}}}1
 
 " Motions:
-" hjkl"----------------------------------{{{
-"nnoremap j gj
-"nnoremap k gk
-""---------------------------------------}}}
 " Browsing File Architecture" -----------{{{1
-"
+
+function! BrowseLastParagraph()"--------{{{2
+	let oldpos = line('.')
+	normal! {
+	if line('.') == oldpos-1
+		normal! {
+	endif
+	if line('.') != 1
+		normal! j
+	endif
+	if oldpos != 1 && line('.') == oldpos
+		normal! k
+	endif
+endfunction
+"---------------------------------------}}}2
+nnoremap <silent> <C-N> }j
+nnoremap <silent> <C-P> :call BrowseLastParagraph()<CR>
+
 function! BrowseLayoutDown()" -----------{{{2 
 	if &diff
 		keepjumps execute 'silent! normal! ]czx'
