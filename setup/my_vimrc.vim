@@ -393,7 +393,17 @@ endfunction
 " Motions:
 " Browsing File Architecture" -----------{{{1
 
-function! BrowseLastParagraph()"--------{{{2
+function! BrowseToNextParagraph()"--------{{{2
+	let oldpos = line('.')
+	if oldpos != line('$')
+		normal! }
+	endif
+	if line('.') != line('$')
+		normal! j
+	endif
+endfunction
+"---------------------------------------}}}2
+function! BrowseToLastParagraph()"--------{{{2
 	let oldpos = line('.')
 	normal! {
 	if line('.') == oldpos-1
@@ -407,8 +417,8 @@ function! BrowseLastParagraph()"--------{{{2
 	endif
 endfunction
 "---------------------------------------}}}2
-nnoremap <silent> <C-N> }j
-nnoremap <silent> <C-P> :call BrowseLastParagraph()<CR>
+nnoremap <silent> <C-N> :call BrowseToNextParagraph()<CR>
+nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>
 
 function! BrowseLayoutDown()" -----------{{{2 
 	if &diff
@@ -572,10 +582,6 @@ tnoremap <C-V> <C-W>"+
 " Cursor position after yanking in Visual mode
 vnoremap gy y`]
 
-" Allow pasting several times when replacing visual selection
-vnoremap p "0p
-vnoremap P "0P
-
 " Select the text that was pasted
 nnoremap <expr> vp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
@@ -589,6 +595,9 @@ nmap ga <Plug>(EasyAlign)
 " ---------------------------------------}}}1
 
 " Vim Core Functionalities:
+" Command Line"-------------------------{{{1
+cnoremap µ **/*$<left>
+"---------------------------------------}}}1
 " Wild Menu" ----------------------------{{{1
 
 set wildmenu
@@ -917,7 +926,7 @@ let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o"
 command! Bookmarks call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetBookmarkFolders(),'sink*': function('Edit')})))
 command! Notes call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetNotes(),'sink*': function('Edit')})))
 nnoremap <silent> <leader>b :Bookmarks<CR>
-nnoremap <silent> <leader>e :Dirvish %<CR>
+nmap <silent> <leader>e <Plug>(dirvish_up)
 nnoremap <silent> <leader>E :Notes<CR>
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
@@ -1321,21 +1330,23 @@ command! -nargs=1 CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-
 
 augroup mydiagrams
 	autocmd!
-	autocmd BufRead *.dot                set ft=dot
-	autocmd BufRead *.puml               set ft=plantuml
-	autocmd BufRead *.puml_activity      set ft=plantuml_activity
-	autocmd BufRead *.puml_class         set ft=plantuml_class
-	autocmd BufRead *.puml_component     set ft=plantuml_component
-	autocmd BufRead *.puml_entities      set ft=plantuml_entities
-	autocmd BufRead *.puml_mindmap       set ft=plantuml_mindmap
-	autocmd BufRead *.puml_sequence      set ft=plantuml_sequence
-	autocmd BufRead *.puml_state         set ft=plantuml_state
-	autocmd BufRead *.puml_usecase       set ft=plantuml_usecase
-	autocmd BufRead *.puml_workbreakdown set ft=plantuml_workbreakdown
-	autocmd FileType dot,plantuml_sequence silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage txt<CR>
-	autocmd FileType dot,plantuml_sequence silent nnoremap <buffer> <Leader>W :silent w \| CompileDiagramAndShowImage png<CR>
-	autocmd FileType plantuml_activity,plantuml_component,plantuml_component,plantuml_entities,plantuml_mindmap,plantuml_sequence,plantuml_state,plantuml_usecase,plantuml_workbreakdown
-	                                  \silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage png<CR>
+	autocmd BufRead *.dot                  set ft=dot
+	autocmd BufRead *.puml                 set ft=plantuml
+	autocmd BufRead *.puml_activity        set ft=plantuml_activity
+	autocmd BufRead *.puml_class           set ft=plantuml_class
+	autocmd BufRead *.puml_component       set ft=plantuml_component
+	autocmd BufRead *.puml_entities        set ft=plantuml_entities
+	autocmd BufRead *.puml_mindmap         set ft=plantuml_mindmap
+	autocmd BufRead *.puml_sequence        set ft=plantuml_sequence
+	autocmd BufRead *.puml_state           set ft=plantuml_state
+	autocmd BufRead *.puml_usecase         set ft=plantuml_usecase
+	autocmd BufRead *.puml_workbreakdown   set ft=plantuml_workbreakdown
+	autocmd FileType dot,plantuml_sequence,
+                  \plantuml_activity,plantuml_component,plantuml_component,
+                  \plantuml_entities,plantuml_mindmap,plantuml_sequence,
+                  \plantuml_state,plantuml_usecase,plantuml_workbreakdown
+	                                      \silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage png<CR>
+	autocmd FileType dot,plantuml_sequence silent nnoremap <buffer> <Leader>W :silent w \| CompileDiagramAndShowImage txt<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 
 augroup END
