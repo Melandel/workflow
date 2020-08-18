@@ -900,11 +900,12 @@ function! GetBookmarkFolders()
 	let csharpfolders = filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})
 	let downloads = expand($HOME.'\Downloads\')
 	let desktop = expand($HOME.'\Desktop')
+	let todofiles = map(['todo', 'done', 'achievements'], {_,x -> expand($HOME.'\Desktop\'.x)})
 	let projects = expand($HOME.'\Desktop\projects')
 	let tmp = expand($HOME.'\Desktop\tmp')
 	let colorfiles = [expand($VIM.'\pack\plugins\start\vim-empower\colors\empower.vim'), expand($VIM.'\pack\plugins\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
 
-	return uniq(sort(flatten([vimrc, plugins, downloads, desktop, projects, tmp, colorfiles])))
+	return uniq(sort(flatten([vimrc, plugins, downloads, desktop, todofiles, projects, tmp, colorfiles])))
 endfunction
 function! GetNotes()
 	let root = expand($HOME.'\Desktop\notes\')
