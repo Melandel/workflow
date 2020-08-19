@@ -1,10 +1,11 @@
-desktop.ini
-Session.vim
+/desktop.ini
+/Session.vim
 *.exe
 /tmp
 /games
 /tools
 /projects
-todo
-done
-achievements
+/todo
+/done
+/achievements
+/today.png
