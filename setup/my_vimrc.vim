@@ -38,6 +38,7 @@ command! -bar MinPacInit call MinpacInit()
 command! -bar MinPacUpdate call MinpacInit()| call minpac#clean()| call minpac#update()
 
 packadd! matchit
+let loaded_netrwPlugin = 1 " do not load netrw
 " ---------------------------------------}}}1
 " First time" ---------------------------{{{1
 if !isdirectory($VIM.'/pack/plugins')
@@ -218,7 +219,7 @@ set previewheight=25
 set showtabline=0
 
 " List/Open Buffers
-nnoremap <Leader>B :History!<CR>
+nnoremap <Leader>b :Buffers<CR>
 
 " Close Buffers
 function! DeleteHiddenBuffers()" --------{{{2
@@ -634,10 +635,10 @@ set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-
 set switchbuf+=uselast
 set errorformat=%m
 
-nnoremap <Leader>f :Files <C-R>=GetInterestingParentDirectory()<CR><CR>
-nnoremap <Leader>g :Rg 
-vnoremap <Leader>g "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
-nnoremap <LocalLeader>m :make<CR>
+nnoremap <Leader>f :GFiles?<CR>
+nnoremap <Leader>r :Rg!  
+vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
+nnoremap <LocalLeader>m :silent make<CR>
 "----------------------------------------}}}1
 " Terminal" -----------------------------{{{1
 set termwinsize=12*0
@@ -809,7 +810,6 @@ augroup quickfix
 	autocmd QuickFixCmdPost	l* nested lwindow
 
 	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
-	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
 augroup end
 
 "----------------------------------------}}}1
@@ -862,7 +862,16 @@ nnoremap <silent> H :call CycleWindowBuffersHistoryBackwards()<CR>
 nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
 "---------------------------------------}}}
 " Fuzzy Finder"-------------------------{{{1
+let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o"
 let g:fzf_preview_window = 'right:60%'
+let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
+augroup my_fzf"-------------------------{{{2
+	au!
+	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
+	autocmd FileType fzf tnoremap <buffer> <Esc> <Esc>
+	autocmd FileType fzf tnoremap <buffer> <C-J> <C-J>
+	autocmd FileType fzf tnoremap <buffer> <C-K> <C-K>
+augroup end
 let g:fzf_colors =
 \ { 'fg':      ['fg', 'Normal'],
   \ 'bg':      ['bg', 'Normal'],
@@ -878,8 +887,8 @@ let g:fzf_colors =
   \ 'marker':  ['fg', 'Keyword'],
   \ 'spinner': ['fg', 'Label'],
   \ 'header':  ['fg', 'Comment'] }
-
-function! Edit(lines)
+"---------------------------------------}}}2
+function! Edit(lines)"------------------{{{2
 	if len(a:lines) < 2 | return | endif
 	let file_or_dir = a:lines[1]
 
@@ -898,39 +907,27 @@ function! Edit(lines)
 							\'ctrl-o': 'tabe'}, a:lines[0], 'e')
 	execute cmd file_or_dir
 endfunction
-
-augroup my_fzf
-	au!
-	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
-	autocmd FileType fzf tnoremap <buffer> <Esc> <Esc>
-	autocmd FileType fzf tnoremap <buffer> <C-J> <C-J>
-	autocmd FileType fzf tnoremap <buffer> <C-K> <C-K>
-augroup end
-function! GetBookmarkFolders()
+"---------------------------------------}}}2
+function! Explore()"-----------------{{{2
 	let vimrc = expand($VIM.'\_vimrc')
 	let plugins = expand($VIM.'\pack\plugins\start\*', 0, 1)
 	let csharpfolders = filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})
+	let gitfiles = filter(systemlist('git ls-files'), {_,x->x !~ 'my_vimrc.vim'})
 	let downloads = expand($HOME.'\Downloads\')
 	let desktop = expand($HOME.'\Desktop')
 	let todofiles = map(['todo', 'done', 'achievements'], {_,x -> expand($HOME.'\Desktop\'.x)})
 	let projects = expand($HOME.'\Desktop\projects')
-	let tmp = expand($HOME.'\Desktop\tmp')
+	let tmp = [expand($HOME.'\Desktop\tmp')] + expand($HOME.'\Desktop\tmp\*', 0, 1) 
 	let colorfiles = [expand($VIM.'\pack\plugins\start\vim-empower\colors\empower.vim'), expand($VIM.'\pack\plugins\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
+	let notes = [expand($HOME.'\Desktop\notes\')] + expand($HOME.'\Desktop\notes\**', 0, 1)
+	
+	let source = map(uniq([expand('%:r')]+sort(flatten([vimrc,plugins,csharpfolders,downloads,gitfiles,desktop,todofiles,projects,tmp,colorfiles,notes]))), {_,x->fnamemodify(x,':p')})
 
-	return uniq(sort(flatten([vimrc, plugins, downloads, desktop, todofiles, projects, tmp, colorfiles])))
+	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--prompt', 'Edit> ']})))
 endfunction
-function! GetNotes()
-	let root = expand($HOME.'\Desktop\notes\')
-	let folders = expand($HOME.'\Desktop\notes\**\', 0, 1)
-	let files = expand($HOME.'\Desktop\notes\**\*', 0, 1)
-	return [root] + folders + files
-endfunction
-let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o"
-command! Bookmarks call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetBookmarkFolders(),'sink*': function('Edit')})))
-command! Notes call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': GetNotes(),'sink*': function('Edit')})))
-nnoremap <silent> <leader>b :Bookmarks<CR>
-nmap <silent> <leader>e <Plug>(dirvish_up)
-nnoremap <silent> <leader>E :Notes<CR>
+"---------------------------------------}}}2
+command! Explore call Explore()
+nnoremap <leader>e :Explore<CR>
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
 function! CycleWindowBuffersHistoryBackwards()
@@ -1222,7 +1219,7 @@ function! OpenDashboard()
 	redraw | echo 'You are doing great <3'
 endfunction
 
-nnoremap <silent> <Leader>m :call OpenDashboard()<CR>
+nnoremap <silent> <Leader>g :call OpenDashboard()<CR>
 let g:alpha = get(g:, 'g:alpha', gvimtweak#window_alpha)
 
 augroup dashboard
