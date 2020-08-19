@@ -1141,6 +1141,8 @@ augroup my_dirvish
 	autocmd FileType dirvish nnoremap <silent> <buffer> i :call CreateDirectory()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> I :call CreateFile()<CR>
 	autocmd FileType dirvish nmap <buffer> h <Plug>(dirvish_up)
+	autocmd FileType dirvish nmap <buffer> , <Plug>(dirvish_K)
+	autocmd FileType dirvish nnoremap <silent> <buffer> K :q<CR>
 	autocmd FileType dirvish unmap <buffer> p
 	autocmd FileType dirvish nnoremap <buffer> yy ^"dy$
 	autocmd FileType dirvish nnoremap <silent> <buffer> dd :call DeleteItemUnderCursor()<CR>
