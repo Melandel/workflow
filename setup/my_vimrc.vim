@@ -7,6 +7,7 @@ function! MinpacInit()
 	call minpac#init( #{dir:$VIM, package_name: 'plugins' } )
 
 	call minpac#add('dense-analysis/ale')
+	call minpac#add('zigford/vim-powershell')
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
@@ -631,10 +632,12 @@ augroup end
 " Find, Grep, Make, Equal" --------------{{{1
 set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-column\ \"$*\"
 set switchbuf+=uselast
+set errorformat=%m
 
 nnoremap <Leader>f :Files <C-R>=GetInterestingParentDirectory()<CR><CR>
 nnoremap <Leader>g :Rg 
 vnoremap <Leader>g "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
+nnoremap <LocalLeader>m :make<CR>
 "----------------------------------------}}}1
 " Terminal" -----------------------------{{{1
 set termwinsize=12*0
