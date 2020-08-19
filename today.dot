@@ -5,6 +5,7 @@ digraph G {
 subgraph IDEAS { node [fillcolor=8 width=7.5]; label=""; IDEAS [label="? IDEAS ?" fillcolor="" color=2];
 
 	3[label="Improve workflow"]
+
 	IDEAS -> 3
 }
 subgraph TODO { node [fillcolor=5 width=7.5]; label=""; TODO [label="! TODO !" fillcolor="" color=6];
