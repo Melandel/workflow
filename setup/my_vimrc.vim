@@ -1136,7 +1136,6 @@ augroup my_dirvish
 	autocmd FileType dirvish unmap <buffer> a
 	autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split', 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> A :call PreviewFile('split', 1)<CR>
-	autocmd FileType dirvish nmap <buffer> , <Plug>(dirvish_K)
 	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | setlocal foldcolumn=1
 	autocmd FileType dirvish nnoremap <silent> <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> i :call CreateDirectory()<CR>
