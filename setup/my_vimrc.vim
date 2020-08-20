@@ -921,7 +921,7 @@ function! Explore()"-----------------{{{2
 	let colorfiles = [expand($VIM.'\pack\plugins\start\vim-empower\colors\empower.vim'), expand($VIM.'\pack\plugins\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
 	let notes = [expand($HOME.'\Desktop\notes\')] + expand($HOME.'\Desktop\notes\**', 0, 1)
 	
-	let source = map(uniq([expand('%:r')]+sort(flatten([vimrc,plugins,csharpfolders,downloads,gitfiles,desktop,todofiles,projects,tmp,colorfiles,notes]))), {_,x->fnamemodify(x,':p')})
+	let source = map(uniq([expand('%:h')]+sort(flatten([vimrc,plugins,csharpfolders,downloads,gitfiles,desktop,todofiles,projects,tmp,colorfiles,notes]))), {_,x->fnamemodify(x,':p')})
 
 	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--prompt', 'Edit> ']})))
 endfunction
