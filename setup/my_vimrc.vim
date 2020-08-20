@@ -848,8 +848,9 @@ function! CycleWindowBuffersHistoryBackwards()
 	let currentpos = get(w:, 'pos', jumplist[1]-1)
 
 	for i in range(currentpos, 0, -1)
-		if jumplist[0][i].bufnr != currentbufnr
-			let newbuffer = jumplist[0][i].bufnr
+		let bufnr = jumplist[0][i].bufnr
+		if bufnr != currentbufnr && bufnr > 0
+			let newbuffer = bufnr
 			let w:pos = i
 			break
 		endif
@@ -864,8 +865,9 @@ function! CycleWindowBuffersHistoryForward()
 	let currentpos = get(w:, 'pos', jumplist[1]-1)
 
 	for i in range(currentpos, len(jumplist[0])-1)
-		if jumplist[0][i].bufnr != currentbufnr
-			let newbuffer = jumplist[0][i].bufnr
+		let bufnr = jumplist[0][i].bufnr
+		if bufnr != currentbufnr && bufnr > 0
+			let newbuffer = bufnr
 			let w:pos = i
 			break
 		endif
