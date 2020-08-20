@@ -722,32 +722,8 @@ augroup end
 
 "----------------------------------------}}}1
 " Marks"--------------------------------{{{
-nnoremap <silent> ma mA| nnoremap <silent> mA ma| nnoremap <silent> 'a 'A| nnoremap <silent> `a `A| nnoremap <silent> 'A 'a| nnoremap <silent> `A `a
-nnoremap <silent> mb mB| nnoremap <silent> mB mb| nnoremap <silent> 'b 'B| nnoremap <silent> `b `B| nnoremap <silent> 'B 'b|
-nnoremap <silent> mc mC| nnoremap <silent> mC mc| nnoremap <silent> 'c 'C| nnoremap <silent> `c `C| nnoremap <silent> 'C 'c|
-nnoremap <silent> md mD| nnoremap <silent> mD md| nnoremap <silent> 'd 'D| nnoremap <silent> `d `D| nnoremap <silent> 'D 'd|
-nnoremap <silent> me mE| nnoremap <silent> mE me| nnoremap <silent> 'e 'E| nnoremap <silent> `e `E| nnoremap <silent> 'E 'e|
-nnoremap <silent> mf mF| nnoremap <silent> mF mf| nnoremap <silent> 'f 'F| nnoremap <silent> `f `F| nnoremap <silent> 'F 'f|
-nnoremap <silent> mg mG| nnoremap <silent> mG mg| nnoremap <silent> 'g 'G| nnoremap <silent> `g `G| nnoremap <silent> 'G 'g|
-nnoremap <silent> mh mH| nnoremap <silent> mH mh| nnoremap <silent> 'h 'H| nnoremap <silent> `h `H| nnoremap <silent> 'H 'h|
-nnoremap <silent> mi mI| nnoremap <silent> mI mi| nnoremap <silent> 'i 'I| nnoremap <silent> `i `I| nnoremap <silent> 'I 'i|
-nnoremap <silent> mj mJ| nnoremap <silent> mJ mj| nnoremap <silent> 'j 'J| nnoremap <silent> `j `J| nnoremap <silent> 'J 'j|
-nnoremap <silent> mk mK| nnoremap <silent> mK mk| nnoremap <silent> 'k 'K| nnoremap <silent> `k `K| nnoremap <silent> 'K 'k|
-nnoremap <silent> ml mL| nnoremap <silent> mL ml| nnoremap <silent> 'l 'L| nnoremap <silent> `l `L| nnoremap <silent> 'L 'l|
-nnoremap <silent> mm mM| nnoremap <silent> mM mm| nnoremap <silent> 'm 'M| nnoremap <silent> `m `M| nnoremap <silent> 'M 'm|
-nnoremap <silent> mn mN| nnoremap <silent> mN mn| nnoremap <silent> 'n 'N| nnoremap <silent> `n `N| nnoremap <silent> 'N 'n|
-nnoremap <silent> mo mO| nnoremap <silent> mO mo| nnoremap <silent> 'o 'O| nnoremap <silent> `o `O| nnoremap <silent> 'O 'o|
-nnoremap <silent> mp mP| nnoremap <silent> mP mp| nnoremap <silent> 'p 'P| nnoremap <silent> `p `P| nnoremap <silent> 'P 'p|
-nnoremap <silent> mq mQ| nnoremap <silent> mQ mq| nnoremap <silent> 'q 'Q| nnoremap <silent> `q `Q| nnoremap <silent> 'Q 'q|
-nnoremap <silent> mr mR| nnoremap <silent> mR mr| nnoremap <silent> 'r 'R| nnoremap <silent> `r `R| nnoremap <silent> 'R 'r|
-nnoremap <silent> ms mS| nnoremap <silent> mS ms| nnoremap <silent> 's 'S| nnoremap <silent> `s `S| nnoremap <silent> 'S 's|
-nnoremap <silent> mt mT| nnoremap <silent> mT mt| nnoremap <silent> 't 'T| nnoremap <silent> `t `T| nnoremap <silent> 'T 't|
-nnoremap <silent> mu mU| nnoremap <silent> mU mu| nnoremap <silent> 'u 'U| nnoremap <silent> `u `U| nnoremap <silent> 'U 'u|
-nnoremap <silent> mv mV| nnoremap <silent> mV mv| nnoremap <silent> 'v 'V| nnoremap <silent> `v `V| nnoremap <silent> 'V 'v|
-nnoremap <silent> mw mW| nnoremap <silent> mW mw| nnoremap <silent> 'w 'W| nnoremap <silent> `w `W| nnoremap <silent> 'W 'w|
-nnoremap <silent> mx mX| nnoremap <silent> mX mx| nnoremap <silent> 'x 'X| nnoremap <silent> `x `X| nnoremap <silent> 'X 'x|
-nnoremap <silent> my mY| nnoremap <silent> mY my| nnoremap <silent> 'y 'Y| nnoremap <silent> `y `Y| nnoremap <silent> 'Y 'y|
-nnoremap <silent> mz mZ| nnoremap <silent> mZ mz| nnoremap <silent> 'z 'Z| nnoremap <silent> `z `Z| nnoremap <silent> 'Z 'z|
+" H and L are used for cycling between buffers and `A is a pain to type
+nnoremap M `
 "---------------------------------------}}}
 " Changelist"---------------------------{{{1
 nnoremap g; g;zv
