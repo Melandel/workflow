@@ -871,6 +871,7 @@ augroup my_fzf"-------------------------{{{2
 	autocmd FileType fzf tnoremap <buffer> <Esc> <Esc>
 	autocmd FileType fzf tnoremap <buffer> <C-J> <C-J>
 	autocmd FileType fzf tnoremap <buffer> <C-K> <C-K>
+	autocmd FileType fzf tnoremap <buffer> <C-O> <C-T>
 augroup end
 let g:fzf_colors =
 \ { 'fg':      ['fg', 'Normal'],
@@ -928,6 +929,8 @@ endfunction
 "---------------------------------------}}}2
 command! Explore call Explore()
 nnoremap <leader>e :Explore<CR>
+nnoremap <leader>g :Commits<CR>
+nnoremap <leader>G :BCommits<CR>
 "---------------------------------------}}}1
 " Window buffer navigation"-------------{{{
 function! CycleWindowBuffersHistoryBackwards()
@@ -1221,7 +1224,7 @@ function! OpenDashboard()
 	redraw | echo 'You are doing great <3'
 endfunction
 
-nnoremap <silent> <Leader>g :call OpenDashboard()<CR>
+nnoremap <silent> <Leader>m :call OpenDashboard()<CR>
 let g:alpha = get(g:, 'g:alpha', gvimtweak#window_alpha)
 
 augroup dashboard
