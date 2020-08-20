@@ -1188,7 +1188,7 @@ nnoremap <Leader>T :WordreferenceEnFr
 vnoremap <Leader>T :GoogleTranslateEnFr<CR>
 
 command! -nargs=* -range Google :call OpenWebUrl('http://google.com/search?q=', <f-args>)
-nnoremap <Leader>q :Google 
+nnoremap <Leader>q :Google <C-R>=&ft<CR> 
 vnoremap <Leader>q :Google<CR>
 
 " ---------------------------------------}}}1
