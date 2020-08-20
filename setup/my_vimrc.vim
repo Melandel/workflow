@@ -828,7 +828,7 @@ function! Explore()"-----------------{{{2
 	let projects = expand($HOME.'\Desktop\projects')
 	let tmp = [expand($HOME.'\Desktop\tmp')] + expand($HOME.'\Desktop\tmp\*', 0, 1) 
 	let colorfiles = [expand($VIM.'\pack\plugins\start\vim-empower\colors\empower.vim'), expand($VIM.'\pack\plugins\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
-	let notes = [expand($HOME.'\Desktop\notes\')] + expand($HOME.'\Desktop\notes\**', 0, 1)
+	let notes = [expand($HOME.'\Desktop\notes\')] + expand($HOME.'\Desktop\notes\*', 0, 1)
 	
 	let source = map(uniq([expand('%:h')]+sort(flatten([vimrc,plugins,csharpfolders,downloads,gitfiles,desktop,todofiles,projects,tmp,colorfiles,notes]))), {_,x->fnamemodify(x,':p')})
 
