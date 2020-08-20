@@ -636,7 +636,7 @@ set switchbuf+=uselast
 set errorformat=%m
 
 nnoremap <Leader>f :GFiles?<CR>
-nnoremap <Leader>r :Rg!  
+nnoremap <Leader>r :Rg! 
 vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
 nnoremap <LocalLeader>m :silent make<CR>
 "----------------------------------------}}}1
