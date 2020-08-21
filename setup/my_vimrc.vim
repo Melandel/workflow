@@ -688,11 +688,15 @@ function! Explore()
 	let downloads = expand($HOME.'\Downloads\')
 	let desktop = expand($HOME.'\Desktop')
 	let todofiles = map(['todo', 'done', 'achievements'], {_,x -> expand($HOME.'\Desktop\'.x)})
-	let projects = expand($HOME.'\Desktop\projects')
+	let projects = [expand($HOME.'\Desktop\projects'), expand($HOME.'\Desktop\projects\*',0,1)]
+	let setup = [expand($HOME.'\Desktop\setup'), expand($HOME.'\Desktop\setup\*',0,1)]
+	let snippets = [expand($HOME.'\Desktop\snippets'), expand($HOME.'\Desktop\snippets\*',0,1)]
+	let templates = [expand($HOME.'\Desktop\templates'), expand($HOME.'\Desktop\templates\*',0,1)]
+	let tools = [expand($HOME.'\Desktop\tools'), expand($HOME.'\Desktop\tools\*',0,1)]
 	let tmp = [expand($HOME.'\Desktop\tmp')] + expand($HOME.'\Desktop\tmp\*', 0, 1) 
 	let colorfiles = [expand($VIM.'\pack\plugins\start\vim-empower\colors\empower.vim'), expand($VIM.'\pack\plugins\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
-	let notes = [expand($HOME.'\Desktop\notes\')] + expand($HOME.'\Desktop\notes\*', 0, 1)
-	let source = map(uniq([expand('%:h')]+sort(flatten([vimrc,plugins,csharpfolders,downloads,gitfiles,desktop,todofiles,projects,tmp,colorfiles,notes]))), {_,x->fnamemodify(x,':p')})
+	let notes = [expand($HOME.'\Desktop\notes\'), expand($HOME.'\Desktop\notes\*', 0, 1)]
+	let source = uniq([expand('%:h:p')]+sort(flatten([vimrc,plugins,csharpfolders,downloads,gitfiles,desktop,todofiles,projects,setup,snippets,templates,tools,tmp,colorfiles,notes])))
 	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--prompt', 'Edit> ']})))
 endfunction
 command! Explore call Explore()
@@ -1061,7 +1065,7 @@ function! CompileDiagramAndShowImage(outputExtension)
 	let output=fnamemodify(input, ':r').'.'.a:outputExtension
 	let cmd=''
 	if expand('%:e') != 'dot'
-		let cmd = printf('!plantuml -t%s -o "%s" "%s"', a:outputExtension, output, input)
+		let cmd = printf('!plantuml -t%s -config "%s" "%s"', a:outputExtension, $HOME.'/Desktop/setup/my_skinparam.txt',input)
 	else ".dot file
 		if a:outputExtension == 'txt'
 			let output=fnamemodify(input, ':r').'.atxt'
