@@ -1,20 +1,41 @@
-skinparam backgroundColor #EEEBDC
-skinparam handwritten true
+skinparam BackgroundColor #2C2C29
+skinparam NoteBackgroundColor #abb2bf
+skinparam NoteBorderColor black
+skinparam NoteFontColor black
+skinparam DefaultFontColor #bebebe
+skinparam BoundaryBorderColor #729fcf
+skinparam ControlBorderColor #729fcf
+skinparam EntityBorderColor #729fcf
+skinparam DatabaseBorderColor #729fcf
+
+skinparam BoundaryBackgroundColor #455561
+skinparam ControlBackgroundColor #455561
+skinparam EntityBackgroundColor #455561
+skinparam DatabaseBackgroundColor #455561
 
 skinparam sequence {
-ArrowColor DeepSkyBlue
-ActorBorderColor DeepSkyBlue
-LifeLineBorderColor blue
-LifeLineBackgroundColor #A9DCDF
+ArrowColor #f5ab35
 
-ParticipantBorderColor DeepSkyBlue
-ParticipantBackgroundColor DodgerBlue
-ParticipantFontName Impact
-ParticipantFontSize 17
-ParticipantFontColor #A9DCDF
-
-ActorBackgroundColor aqua
-ActorFontColor DeepSkyBlue
+ActorBorderColor #8cb369
 ActorFontSize 17
-ActorFontName Aapex
+ActorFontName Constantia
+ActorBackgroundColor #2C2C29
+
+
+BoxBackgroundColor #7e7f7c
+BoxBorderColor #7e7f7c
+BoxFontColor #2e343b
+
+LifeLineBorderColor #f5ab35
+LifeLineBackgroundColor #989898
+
+GroupBackgroundColor #5F605C
+GroupBodyBackgroundColor #5F605C
+
+ParticipantBorderColor #729fcf
+ParticipantBackgroundColor #729fcf
+ParticipantFontName Constantia
+ParticipantFontSize 17
+ParticipantFontColor #2e343b
+
 }
