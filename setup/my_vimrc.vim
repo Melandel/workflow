@@ -1,11 +1,10 @@
 let $desktop = $HOME . '/Desktop'
 
-" Desktop Integration:
-" Plugins" ------------------------------{{{1
+" Desktop Integration:-----------------{{{
+" Plugins" ----------------------------{{{
 function! MinpacInit()
 	packadd minpac
 	call minpac#init( #{dir:$VIM, package_name: 'plugins' } )
-
 	call minpac#add('dense-analysis/ale')
 	call minpac#add('zigford/vim-powershell')
 	call minpac#add('junegunn/fzf.vim')
@@ -13,12 +12,9 @@ function! MinpacInit()
 	call minpac#add('itchyny/vim-gitbranch')
 	call minpac#add('Melandel/omnisharp-vim')
 	call minpac#add('nickspoons/vim-sharpenup')
-
 	call minpac#add('SirVer/ultisnips')
 	call minpac#add('honza/vim-snippets')
-
 	call minpac#add('justinmk/vim-dirvish')
-
 	call minpac#add('tpope/vim-dadbod')
 	call minpac#add('tpope/vim-surround')
 	call minpac#add('tpope/vim-repeat')
@@ -26,9 +22,7 @@ function! MinpacInit()
 	call minpac#add('tpope/vim-fugitive')
 	call minpac#add('tpope/vim-obsession')
 	call minpac#add('ap/vim-css-color')
-
 	call minpac#add('wellle/targets.vim')
-
 	call minpac#add('Melandel/vim-empower')
 	call minpac#add('Melandel/fzfcore.vim')
 	call minpac#add('Melandel/gvimtweak')
@@ -36,27 +30,25 @@ function! MinpacInit()
 endfunction
 command! -bar MinPacInit call MinpacInit()
 command! -bar MinPacUpdate call MinpacInit()| call minpac#clean()| call minpac#update()
-
 packadd! matchit
 let loaded_netrwPlugin = 1 " do not load netrw
-" ---------------------------------------}}}1
-" First time" ---------------------------{{{1
+
+" First time" -------------------------{{{
 if !isdirectory($VIM.'/pack/plugins')
 	call system('git clone https://github.com/k-takata/minpac.git ' . $VIM . '/pack/packmanager/opt/minpac')
 	call MinpacInit()
 	call minpac#update()
 	packloadall
 endif
-" ---------------------------------------}}}1
-" Duplicated/Generated files" -----------{{{1
+
+" Duplicated/Generated files" ---------{{{
 augroup duplicatefiles
 	au!
 	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($HOME . '/Desktop/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
 augroup end
-" ---------------------------------------}}}1
 
-" General:
-" Settings" -----------------------------{{{1
+" General:-----------------------------{{{
+" Settings" ---------------------------{{{
 syntax on
 filetype plugin indent on
 language messages English_United states
@@ -78,7 +70,6 @@ set backupdir=$HOME/Desktop/tmp/vim
 set undofile
 set undodir=$HOME/Desktop/tmp/vim
 set viewdir=$HOME/Desktop/tmp/vim
-
 " GVim specific
 if has("gui_running")
 	set guioptions-=m  "menu bar
@@ -90,24 +81,22 @@ if has("gui_running")
 	set guifont=consolas:h11
 	set termwintype=conpty
 endif
-" ---------------------------------------}}}1
-" Tabs and Indentation" -----------------{{{
+
+" Tabs and Indentation" ---------------{{{
 set smartindent
 set tabstop=1
 set shiftwidth=1
-
 nnoremap > >>
 nnoremap < <<
-
 command! -bar Spaces2Tabs set noet ts=4 |%retab!|set ts=1
-" ---------------------------------------}}}
-" Leader keys" --------------------------{{{
+
+" Leader keys" ------------------------{{{
 let mapleader = 's'
 let maplocalleader = 'q'
-" ---------------------------------------}}}
-" Local Current Directories" ------------{{{
 
+" Local Current Directories" ----------{{{
 let g:lcd_qf = getcwd()
+
 function! GetInterestingParentDirectory()
 	if IsOmniSharpRelated()
 		return fnamemodify(b:OmniSharp_host.sln_or_dir, ':p:h')
@@ -123,14 +112,12 @@ endfunction
 function! UpdateLocalCurrentDirectory()
 	let dir = GetInterestingParentDirectory()
 	let current_wd = getcwd()
-
 	if current_wd != dir
 		redraw
 		echo printf('[%s] -> [%s]', current_wd, dir)
 		execute('lcd '.dir)
 	endif	
 endfunction
-
 command! -bar Lcd call UpdateLocalCurrentDirectory()
 
 augroup lcd
@@ -138,8 +125,8 @@ augroup lcd
 	autocmd BufEnter * if &ft!='dirvish' | Lcd | else | lcd %:p:h | endif
 	autocmd QuickFixCmdPre * let g:lcd_qf = getcwd()
 augroup end
-" ---------------------------------------}}}
-" Utils"--------------------------------{{{
+
+" Utils"-------------------------------{{{
 function! IsQuickFixWindowOpen()
 	return len(filter(range(1, winnr('$')), {_,x -> getwinvar(x, '&syntax') == 'qf'}))
 endfunction
@@ -180,10 +167,8 @@ function! ClearTrailingWhiteSpaces()
 endfunction
 command ClearTrailingWhiteSpaces call ClearTrailingWhiteSpaces()
 
-"---------------------------------------}}}
-
-" AZERTY Keyboard:
-" AltGr keys" ---------------------------{{{1
+" AZERTY Keyboard:---------------------{{{
+" AltGr keys" -------------------------{{{
 inoremap ^q {|		cnoremap ^q {
 inoremap ^s [|		cnoremap ^d [
 inoremap ^d ]|		cnoremap ^f ]
@@ -196,27 +181,26 @@ inoremap ^b \
 inoremap ^n @|		cnoremap ^n @
 inoremap ^g `|		cnoremap ^g `
 inoremap ^h +|		cnoremap ^h +
-" ---------------------------------------}}}1
-" Arrows" -------------------------------{{{1
+
+" Arrows" -----------------------------{{{
 inoremap <C-J> <Left>|  cnoremap <C-J> <Left>|  tnoremap <C-J> <Left>
 inoremap <C-K> <Right>| cnoremap <C-K> <Right>| tnoremap <C-K> <Right>
-" ---------------------------------------}}}1
-" Home,End" -----------------------------{{{1
+
+" Home,End" ---------------------------{{{
 inoremap ^j <Home>| cnoremap ^j <Home>| tnoremap ^j <Home>
 inoremap ^k <End>|  cnoremap ^k <End>|  tnoremap ^k <End>
-" ---------------------------------------}}}1
-" Backspace,Delete" ---------------------{{{1
+
+" Backspace,Delete" -------------------{{{
 tnoremap <C-L> <Del>
 inoremap <C-L> <Del>|   cnoremap <C-L> <Del>
-" ---------------------------------------}}}1
 
-" Graphical Layout:
-" Colorscheme, Highlight groups" --------{{{1
+" Graphical Layout:--------------------{{{
+" Colorscheme, Highlight groups" ------{{{
 colorscheme empower
 "nnoremap <LocalLeader>h :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<CR>
 "nnoremap <LocalLeader>H :OmniSharpHighlightEchoKind<CR>
-" ---------------------------------------}}}1
-" Buffers, Windows & Tabs" --------------{{{1
+
+" Buffers, Windows & Tabs" ------------{{{
 set hidden
 set splitbelow
 set splitright
@@ -228,7 +212,7 @@ set showtabline=0
 nnoremap <Leader>b :Buffers<CR>
 
 " Close Buffers
-function! DeleteHiddenBuffers()" --------{{{2
+function! DeleteHiddenBuffers()" ------{{{
   let tpbl=[]
   let closed = 0
   call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
@@ -240,7 +224,6 @@ function! DeleteHiddenBuffers()" --------{{{2
   endfor
   echo "Closed ".closed." hidden buffers"
 endfunction
-" ---------------------------------------}}}2
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
@@ -270,15 +253,11 @@ augroup windows
 	" Use foldcolumn to give a visual clue for the current window
 	autocmd WinLeave * if !pumvisible() | setlocal norelativenumber foldcolumn=0 | endif
 	autocmd WinEnter * if !pumvisible() | setlocal relativenumber   foldcolumn=1 | endif
-
 	" Safety net if I close a window accidentally
 	autocmd QuitPre * mark K
-
 	" Make sure Vim returns to the same line when you reopen a file.
  autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute 'normal! g`"zvzz' | endif
 augroup end
-
-
 
 " Position Window
 nnoremap <silent> <Leader>H <C-W>H
@@ -297,8 +276,8 @@ nnoremap <silent> <Leader>_ <C-W>_
 
 " Alternate file fast switching
 noremap <Leader>d <C-^>
-" ---------------------------------------}}}1
-" Status bar" ---------------------------{{{1
+
+" Status bar" -------------------------{{{
 set laststatus=2
 
 function! TabInfo()
@@ -326,7 +305,6 @@ function! FolderRelativePathFromGit()
 	let foldergitpath = folderpath[len(gitrootfolder)+1:]
 	return './' . substitute(foldergitpath, '\', '/', 'g')
 endfunction
-
 exec("source $VIM/pack/plugins/start/vim-sharpenup/autoload/sharpenup/statusline.vim")
 let g:sharpenup_statusline_opts = { 'TextLoading': '%s…', 'TextReady': '%s', 'TextDead': '_', 'Highlight': 0 }
 
@@ -368,15 +346,14 @@ let g:lightline = {
 	\ }
 	\}
 let timer = timer_start(20000, 'UpdateStatusBar',{'repeat':-1})
+
 function! UpdateStatusBar(timer)
   execute 'let &ro = &ro'
 endfunction
-" ---------------------------------------}}}1
 
-" Motions:
-" Browsing File Architecture" -----------{{{1
-
-function! BrowseToNextParagraph()"--------{{{2
+" Motions:-----------------------------{{{
+" Browsing File Architecture" ---------{{{
+function! BrowseToNextParagraph()
 	let oldpos = line('.')
 	if oldpos != line('$')
 		normal! }
@@ -385,8 +362,8 @@ function! BrowseToNextParagraph()"--------{{{2
 		normal! j
 	endif
 endfunction
-"---------------------------------------}}}2
-function! BrowseToLastParagraph()"--------{{{2
+
+function! BrowseToLastParagraph()
 	let oldpos = line('.')
 	normal! {
 	if line('.') == oldpos-1
@@ -399,242 +376,196 @@ function! BrowseToLastParagraph()"--------{{{2
 		normal! k
 	endif
 endfunction
-"---------------------------------------}}}2
 nnoremap <silent> <C-N> :call BrowseToNextParagraph()<CR>
 nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>
 
-function! BrowseLayoutDown()" -----------{{{2 
+function! BrowseLayoutDown()
 	if &diff
 		keepjumps execute 'silent! normal! ]czx'
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cnext
 	endif
-
 	silent! normal! zv
 	normal! m'
 endfunction
-" ---------------------------------------}}}2
 nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 
-function! BrowseLayoutUp()" -------------{{{2
+function! BrowseLayoutUp()
 	if &diff
 		keepjumps execute 'silent! normal! [czx'
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cprev
 	endif
-
 	silent! normal! zv
 	normal! m'
 endfunction
-" ---------------------------------------}}}2
 nnoremap <silent> <C-K> :call BrowseLayoutUp()<CR>
 
-" ---------------------------------------}}}1
-" Current Line" -------------------------{{{1
-
+" Current Line" -----------------------{{{
 nnoremap <silent> . :let c= strcharpart(getline('.')[col('.') - 1:], 0, 1)\|exec "normal! f".c<CR>
 
-function! ExtendedHome()" ---------------{{{2
+function! ExtendedHome()
     let column = col('.')
     normal! ^
     if column == col('.')
         normal! 0
     endif
 endfunction
-" ---------------------------------------}}}2
 nnoremap <silent> <Home> :call ExtendedHome()<CR>
 vnoremap <silent> <Home> <Esc>:call ExtendedHome()<CR>mvgv`v
 onoremap <silent> <Home> :call ExtendedHome()<CR>
 
-function! ExtendedEnd()" ----------------{{{2
+function! ExtendedEnd()
     let column = col('.')
     normal! g_
     if column == col('.') || column == col('.')+1
         normal! $
     endif
 endfunction
-" ---------------------------------------}}}2
 nnoremap <silent> <End> :call ExtendedEnd()<CR>
 vnoremap <silent> <End> $
 onoremap <silent> <End> :call ExtendedEnd()<CR>
 
-function! MoveCursorToNext(pattern)" ----{{{2
+function! MoveCursorToNext(pattern)
 	mark '
 	let match =	 searchpos(a:pattern, '', line('.'))
 endfunction
-" ---------------------------------------}}}2
-function! MoveCursorToLast(pattern)" ----{{{2
+
+function! MoveCursorToLast(pattern)
 	mark '
 	let match = searchpos(a:pattern, 'b', line('.'))
 endfunction
-" ---------------------------------------}}}2
-function! MoveToLastMatch()"------------{{{2
-	let lastcmd = histget('cmd', -1)
 
+function! MoveToLastMatch()
+	let lastcmd = histget('cmd', -1)
 	if lastcmd =~ 'MoveCursorTo'
 		execute substitute(lastcmd, 'Next', 'Last', 'g')
 	else
 		normal! ,
 	endif
 endfunction
-"---------------------------------------}}}2
-function! MoveToNextMatch()"------------{{{2
-	let lastcmd = histget('cmd', -1)
 
+function! MoveToNextMatch()
+	let lastcmd = histget('cmd', -1)
 	if lastcmd =~ 'MoveCursorTo'
 		execute substitute(lastcmd, 'Last', 'Next', 'g')
 	else
 		normal! ;
 	endif
 endfunction
-"---------------------------------------}}}2
 nnoremap <silent> <Leader>, :call ExecuteAndAddIntoHistory("call MoveCursorToNext('[A-Z_]\\C')")<CR>
 nnoremap <silent> <Leader>; :call ExecuteAndAddIntoHistory("call MoveCursorToNext('[^A-Za-z_ \\t]\\C')")<CR>
 nnoremap <silent> , :call MoveToLastMatch()<CR>
 nnoremap <silent> ; :call MoveToNextMatch()<CR>
 
-function! VMoveToLastMatch()"------------{{{2
+function! VMoveToLastMatch()
 	normal! gv
 	let lastcmd = histget('cmd', -1)
-
 	if lastcmd =~ 'MoveCursorTo'
 		execute substitute(lastcmd, 'Next', 'Last', 'g')
 	else
 		normal! ,
 	endif
 endfunction
-"---------------------------------------}}}2
-function! VMoveToNextMatch()"------------{{{2
+
+function! VMoveToNextMatch()
 	normal! gv
 	let lastcmd = histget('cmd', -1)
-
 	if lastcmd =~ 'MoveCursorTo'
 		execute substitute(lastcmd, 'Last', 'Next', 'g')
 	else
 		normal! ;
 	endif
 endfunction
-"---------------------------------------}}}2
 vnoremap <silent> <Leader>, :<C-U>call ExecuteAndAddIntoHistory("call MoveCursorToNext('[A-Z_]\\C')") \| normal! v`<o<CR>
 vnoremap <silent> <Leader>; :<C-U>call ExecuteAndAddIntoHistory("call MoveCursorToNext('[^A-Za-z_ \\t]\\C')") \| normal! v`<o<CR>
 vnoremap <silent> , :<C-U>call VMoveToLastMatch()<CR>
 vnoremap <silent> ; :<C-U>call VMoveToNextMatch()<CR>
-" ---------------------------------------}}}1
-" Text objects" -------------------------{{{1
 
+" Text objects" -----------------------{{{
+vnoremap il ^og_| onoremap il :normal vil<CR>
+vnoremap al 0o$h| onoremap al :normal val<CR>
+vnoremap if ggoGV| onoremap if :normal vif<CR>
 " Always add cursor position to jumplist
 let g:targets_jumpRanges = 'cr cb cB lc ac Ac lr rr ll lb ar ab lB Ar aB Ab AB rb al rB Al bb aa bB Aa BB AA'
 
-" Lines
-vnoremap il ^og_| onoremap il :normal vil<CR>
-vnoremap al 0o$h| onoremap al :normal val<CR>
-
-" Entire file
-vnoremap if ggoGV| onoremap if :normal vif<CR>
-
-" ---------------------------------------}}}1
-
-" Text Operations:
-" Visualization" ------------------------{{{1
-
+" Text Operations:---------------------{{{
+" Visualization" ----------------------{{{
 " select until end of line
 nnoremap vv ^vg_
-
 " remove or add a line to visualization
 vnoremap <C-J> V<esc>ojo
 vnoremap <C-K> V<esc>oko
-" ---------------------------------------}}}1
-" Copy & Paste" -------------------------{{{1
 
-" Yank current line, trimmed
+" Copy & Paste" -----------------------{{{
 nnoremap Y y$
-
-" Yank into system clipboard
 nnoremap zy "+y
 nnoremap zY "+Y
 vnoremap zy "+y
-
-" Paste from system clipboard
 nnoremap zp :set paste<CR>o<Esc>"+p:set nopaste<CR>
 nnoremap zP :set paste<CR>O<Esc>"+P:set nopaste<CR>
 inoremap <C-V> <C-O>:set paste<CR><C-R>+<C-O>:set nopaste<CR>| inoremap <C-C> <C-V>
 cnoremap <C-V> <C-R>=@+<CR>| cnoremap <C-C> <C-V>
 tnoremap <C-V> <C-W>"+
-
-" Cursor position after yanking in Visual mode
 vnoremap gy y`]
-
-" Select the text that was pasted
 nnoremap <expr> vp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
-" ---------------------------------------}}}1
-" Repeat-Last-Action" -------------{{{1
+" Repeat-Last-Action" -----------------{{{
 nnoremap ù .
-" ---------------------------------------}}}1
-" Vertical Alignment" -------------------{{{1
+
+" Vertical Alignment" -----------------{{{
 xmap ga <Plug>(EasyAlign)
 nmap ga <Plug>(EasyAlign)
-" ---------------------------------------}}}1
 
-" Vim Core Functionalities:
-" Command Line"-------------------------{{{1
+" Vim Core Functionalities:------------{{{
+" Command Line"------------------------{{{
 cnoremap µ **/*$<left>
-"---------------------------------------}}}1
-" Wild Menu" ----------------------------{{{1
 
+" Wild Menu" --------------------------{{{
 set wildmenu
 set wildcharm=<Tab>
 set wildignorecase
 set wildmode=full
 
-"----------------------------------------}}}1
-" Expanded characters" ------------------{{{1
-
+" Expanded characters" ----------------{{{
 " Folder of current file
 cnoremap <expr> <C-F> (stridx(getcmdline()[-1-len(expand('%:p:h')):], expand('%:p:h')) == 0 ? '**\*' : expand('%:p:h').'\')
 cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory()):], GetInterestingParentDirectory()) == 0 ? '**\*' : GetInterestingParentDirectory().'\')
 
-"----------------------------------------}}1
-" Sourcing" -----------------------------{{{1
-
+" Sourcing" ---------------------------{{{
 " Run a line/selected text composed of vim script
 vnoremap <silent> <Leader>S y:execute @@<CR>
 nnoremap <silent> <Leader>S ^vg_y:execute @@<CR>
-
 " Write output of a vim command in a buffer
 nnoremap ç :let script=''\|call histadd('cmd',script)\|put=execute(script)<Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
-
 augroup vimsourcing
 	au!
 	autocmd BufWritePost _vimrc GvimTweakToggleFullScreen | so % | GvimTweakToggleFullScreen
 	autocmd FileType vim nnoremap <buffer> z! :BLines function!\\|{{{<CR>
 augroup end
 
-"----------------------------------------}}}1
-" Find, Grep, Make, Equal" --------------{{{1
+" Find, Grep, Make, Equal" ------------{{{
 set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-column\ \"$*\"
 set switchbuf+=uselast
 set errorformat=%m
-
 nnoremap <Leader>f :GFiles?<CR>
 nnoremap <Leader>r :Rg! 
 vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
 nnoremap <LocalLeader>m :silent make<CR>
-"----------------------------------------}}}1
-" Terminal" -----------------------------{{{1
+
+" Terminal" ---------------------------{{{
 set termwinsize=12*0
 tnoremap <Esc> <C-W>N:setlocal norelativenumber number foldcolumn=0 nowrap<CR>zb
 tnoremap <C-O> <Esc>
-"----------------------------------------}}}1
-" Folding" ------------------------------{{{1
+
+" Folding" ----------------------------{{{
 vnoremap <silent> <space> <Esc>zE:let b:focus_mode=1 \| setlocal foldmethod=manual<CR>`<kzfgg`>jzfG`<
 nnoremap <silent> <space> :exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode<CR>
-"----------------------------------------}}}1
-" Search" -------------------------------{{{1
+
+" Search" -----------------------------{{{
 set hlsearch
 set incsearch
 set ignorecase
-
 " Display '1 out of 23 matches' when searching
 set shortmess=filnxtToO
 nnoremap ! mG/
@@ -646,9 +577,7 @@ augroup search
 	autocmd FileType * if &ft != 'dirvish' | silent nnoremap <buffer> q! q/ | endif
 augroup end
 nnoremap z! :BLines<CR>
-
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
-
 nnoremap <silent> n :keepjumps normal! n<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> N :keepjumps normal! N<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> * :call ExecuteAndAddIntoSearchHistory('<C-R>='\<'.expand('<cword>').'\>\C'<CR>')<CR>
@@ -661,12 +590,11 @@ function! CopyAllMatches(...)
   execute 'let @'.reg.' = join(hits, "\n") . "\n"'
 endfunction
 command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
-"----------------------------------------}}}1
-" Autocompletion (Insert Mode)" ---------{{{1
-inoremap ù <C-X><C-O>
-"----------------------------------------}}}1
-" Diff" ---------------------------------{{{1
 
+" Autocompletion (Insert Mode)" -------{{{
+inoremap ù <C-X><C-O>
+
+" Diff" -------------------------------{{{
 set diffopt+=algorithm:histogram,indent-heuristic,vertical
 
 augroup diff
@@ -675,53 +603,41 @@ augroup diff
 	autocmd OptionSet diff normal! gg]c
 augroup end
 
-"----------------------------------------}}}1
-" QuickFix, Preview, Location window" ---{{{1
-
+" QuickFix, Preview, Location window" -{{{
 " Always show at the bottom of other windows
 augroup quickfix
 	au!
 " Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
 	autocmd QuickFixCmdPost [^l]* nested cwindow
 	autocmd FileType qf wincmd J
-
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | pclose | endif
-
 	autocmd QuickFixCmdPost	l* nested lwindow
-
 	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
 augroup end
 
-"----------------------------------------}}}1
-" Marks"--------------------------------{{{
+" Marks"-------------------------------{{{
 " H and L are used for cycling between buffers and `A is a pain to type
 nnoremap M `
-"---------------------------------------}}}
-" Changelist"---------------------------{{{1
+" Changelist"--------------------------{{{
 nnoremap g; g;zv
 nnoremap g, g,zv
-"---------------------------------------}}}1
 
-
-
-" Additional Functionalities:
-" Brackets"-----------------------------{{{1
-
+" Additional Functionalities:----------{{{
+" Brackets"----------------------------{{{
 inoremap <expr> ( (col('.') == col('$')) ? "()\<left>" : '('
 inoremap <expr> [ (col('.') == col('$')) ? "[]\<left>" : '['
 inoremap <expr> { (col('.') == col('$')) ? "{}\<left>" : '{'
 inoremap <expr> <cr> getline('.')[max([0,col('.')-2]):max([col('.')-1,0])]=='{}' ? '<cr><esc>O' : '<cr>'
 
-"---------------------------------------}}}1
-" Buffer navigation"--------------------{{{
+" Buffer navigation"-------------------{{{
 nnoremap <silent> H :call CycleWindowBuffersHistoryBackwards()<CR>
 nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
-"---------------------------------------}}}
-" Fuzzy Finder"-------------------------{{{1
+
+" Fuzzy Finder"------------------------{{{
 let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o --bind up:preview-up,down:preview-down"
 let g:fzf_preview_window = 'right:60%'
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
-augroup my_fzf"-------------------------{{{2
+augroup my_fzf"------------------------{{{
 	au!
 	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
 	autocmd FileType fzf tnoremap <buffer> <Esc> <Esc>
@@ -744,11 +660,10 @@ let g:fzf_colors =
   \ 'marker':  ['fg', 'Keyword'],
   \ 'spinner': ['fg', 'Label'],
   \ 'header':  ['fg', 'Comment'] }
-"---------------------------------------}}}2
-function! Edit(lines)"------------------{{{2
+
+function! Edit(lines)"-----------------{{{
 	if len(a:lines) < 2 | return | endif
 	let file_or_dir = a:lines[1]
-
 	let cmd = isdirectory(file_or_dir) ?
 		\get({'ctrl-x': 'split | Dirvish',
 		     \'ctrl-j': 'split | Dirvish',
@@ -764,8 +679,8 @@ function! Edit(lines)"------------------{{{2
 							\'ctrl-o': 'tabe'}, a:lines[0], 'e')
 	execute cmd file_or_dir
 endfunction
-"---------------------------------------}}}2
-function! Explore()"-----------------{{{2
+
+function! Explore()
 	let vimrc = expand($VIM.'\_vimrc')
 	let plugins = expand($VIM.'\pack\plugins\start\*', 0, 1)
 	let csharpfolders = filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})
@@ -777,24 +692,20 @@ function! Explore()"-----------------{{{2
 	let tmp = [expand($HOME.'\Desktop\tmp')] + expand($HOME.'\Desktop\tmp\*', 0, 1) 
 	let colorfiles = [expand($VIM.'\pack\plugins\start\vim-empower\colors\empower.vim'), expand($VIM.'\pack\plugins\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
 	let notes = [expand($HOME.'\Desktop\notes\')] + expand($HOME.'\Desktop\notes\*', 0, 1)
-	
 	let source = map(uniq([expand('%:h')]+sort(flatten([vimrc,plugins,csharpfolders,downloads,gitfiles,desktop,todofiles,projects,tmp,colorfiles,notes]))), {_,x->fnamemodify(x,':p')})
-
 	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--prompt', 'Edit> ']})))
 endfunction
-"---------------------------------------}}}2
 command! Explore call Explore()
 nnoremap <leader>e :Explore<CR>
 nnoremap <leader>g :Commits<CR>
 nnoremap <leader>G :BCommits<CR>
-"---------------------------------------}}}1
-" Window buffer navigation"-------------{{{
+
+" Window buffer navigation"------------{{{
 function! CycleWindowBuffersHistoryBackwards()
 	let jumplist = getjumplist()
 	let currentbufnr = bufnr('%')
 	let newbuffer = currentbufnr
 	let currentpos = get(w:, 'pos', jumplist[1]-1)
-
 	for i in range(currentpos, 0, -1)
 		let bufnr = jumplist[0][i].bufnr
 		if bufnr != currentbufnr && bufnr > 0
@@ -803,15 +714,14 @@ function! CycleWindowBuffersHistoryBackwards()
 			break
 		endif
 	endfor
-
 	exec(printf('silent keepjumps b %d',newbuffer))
 endfunction
+
 function! CycleWindowBuffersHistoryForward()
 	let jumplist = getjumplist()
 	let currentbufnr = bufnr('%')
 	let newbuffer = currentbufnr
 	let currentpos = get(w:, 'pos', jumplist[1]-1)
-
 	for i in range(currentpos, len(jumplist[0])-1)
 		let bufnr = jumplist[0][i].bufnr
 		if bufnr != currentbufnr && bufnr > 0
@@ -820,11 +730,10 @@ function! CycleWindowBuffersHistoryForward()
 			break
 		endif
 	endfor
-
 	exec(printf('silent keepjumps b %d',newbuffer))
 endfunction
-"---------------------------------------}}}
-" Full screen" --------------------------{{{
+
+" Full screen" ------------------------{{{
 let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
 let g:gvimtweak#enable_alpha_at_startup=1
 let g:gvimtweak#enable_topmost_at_startup=0
@@ -833,12 +742,12 @@ let g:gvimtweak#enable_fullscreen_at_startup=1
 nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
 nnoremap <silent> <A-n> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-n> <C-W>N:GvimTweakSetAlpha 10<CR>i
 nnoremap <silent> <A-p> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-p> <C-W>N:GvimTweakSetAlpha i-10<CR>i
-" ---------------------------------------}}}
-" File explorer (graphical)" ------------{{{1
-" functions"----------------------------{{{2
+
+" File explorer (graphical)" ----------{{{
 function! IsPreviouslyYankedItemValid()
 	return @d != ''
 endfunction
+
 function! PromptUserForRenameOrSkip(filename)
 	let rename_or_skip = input(a:filename.' already exists. Rename it or skip operation?(r/S) ')
 	if rename_or_skip != 'r'
@@ -846,17 +755,16 @@ function! PromptUserForRenameOrSkip(filename)
 	endif
 	return input('Rename into:', a:filename)
 endfunction
+
 function! CopyPreviouslyYankedItemToCurrentDirectory()
 	if !IsPreviouslyYankedItemValid()
 		echomsg 'Select a path first!'
 		return
 	endif
-
 	let cwd = getcwd()
 	let item = trim(@d, '/\')
 	let item_folder= fnamemodify(item, ':h')
 	let item_filename= fnamemodify(item, ':t')
-
 	let item_finalname = item_filename
 	if !empty(glob(item_filename))
 		let item_finalname = PromptUserForRenameOrSkip(item_filename)
@@ -866,7 +774,6 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 			return
 		endif
 	endif
-
 	let cmd = 'robocopy '
 	if isdirectory(item)
 		let cmd .= printf('/e "%s" "%s\%s"', item, cwd, item_finalname)
@@ -876,6 +783,7 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 echomsg cmd
 	silent execute(printf(':!start /b %s', cmd))
 endfunction
+
 function! DeleteItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
@@ -883,17 +791,16 @@ function! DeleteItemUnderCursor()
 	silent execute(printf(':!start /b %s', cmd))
 	normal R
 endfunction
+
 function! MovePreviouslyYankedItemToCurrentDirectory()
 	if !IsPreviouslyYankedItemValid()
 		echomsg 'Select a path first!'
 		return
 	endif
-
 	let cwd = getcwd()
 	let item = trim(@d, '/\')
 	let item_folder= fnamemodify(item, ':h')
 	let item_filename= fnamemodify(item, ':t')
-
 	let item_finalname = item_filename
 	if !empty(glob(item_finalname))
 		let item_finalname = PromptUserForRenameOrSkip(item_filename)
@@ -901,14 +808,13 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 			return
 		endif
 	endif
-
 	let cmd = printf('move "%s" "%s\%s"', item, cwd, item_finalname)
-
 	silent execute(printf(':!start /b %s', cmd))
 	normal R
 	silent exec(printf('/\<%s\>', item_finalname))
 	nohlsearch
 endfunction
+
 function! RenameItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
@@ -916,6 +822,7 @@ function! RenameItemUnderCursor()
 	silent execute(printf(':!start /b rename "%s" "%s"',target,newname))
 	normal R
 endfunction
+
 function! OpenTree(flags)
 	let flags = ( a:flags != '' ? ('-'.a:flags) : '' )
 	let target = trim(getline('.'), '\') " Remove the ending separator or tree won't work with double quotes
@@ -923,12 +830,12 @@ function! OpenTree(flags)
 	vnew | set buftype=nofile nowrap
 	set conceallevel=3 concealcursor=n | syn match Todo /\v(\a|\:|\\|\/|\.)*(\/|\\)/ conceal
 	nnoremap <buffer> yy $"by$
-
 	let cmd = printf('silent read !tree.exe --noreport -I "bin|obj" "%s" %s', target, flags)
 	exec(cmd)
 	%s,\\,/,ge
 	normal! gg"_dd
 endfunction
+
 function! CreateDirectory()
 	let dirname = input('Directory name:')
 	if trim(dirname) == ''
@@ -944,6 +851,7 @@ function! CreateDirectory()
 	silent exec(printf('/\<%s\>', dirname))
 	nohlsearch
 endf
+
 function! CreateFile()
 	let filename = input('File name:')
 	if trim(filename) == ''
@@ -963,7 +871,6 @@ endf
 function! PreviewFile(splitcmd, giveFocus)
 	let path=trim(getline('.'))
 	let bufnr=bufnr()
-
 	let previewwinid = getbufvar(bufnr, 'preview'.a:splitcmd, 0)
 	if previewwinid == 0
 		exec(a:splitcmd. ' ' .path)
@@ -977,12 +884,11 @@ function! PreviewFile(splitcmd, giveFocus)
 			call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
 		endif
 	endif
-
 	if !a:giveFocus
 		exec(printf('wincmd %s', (a:splitcmd == 'vsplit' ? 'h' : 'k')))
 	endif
 endfunction
-"---------------------------------------}}}2
+
 augroup my_dirvish
 	au!
 	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
@@ -1014,60 +920,49 @@ augroup my_dirvish
 	autocmd FileType dirvish nnoremap <buffer> T :call OpenTree('df')<left><left><left>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :Lcd \| e .<CR>
 augroup end
-"---------------------------------------}}}1
-" Web Browsing" -------------------------{{{1
-function! OpenWebUrl(firstPartOfUrl,...)" ----{{{2
+
+" Web Browsing" -----------------------{{{
+function! OpenWebUrl(firstPartOfUrl,...)
 	let visualSelection = getpos('.') == getpos("'<") ? getline("'<")[getpos("'<")[2] - 1:getpos("'>")[2] - 1] : ''
-
 	let finalPartOfUrl = ((a:0 == 0) ? visualSelection : join(a:000))
-
 	let nbDoubleQuotes = len(substitute(finalPartOfUrl, '[^"]', '', 'g'))
 	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0
 		let finalPartOfUrl.= ' "'
 	endif
-
 	let finalPartOfUrl = substitute(finalPartOfUrl, '^\s*\(.\{-}\)\s*$', '\1', '')
 	let finalPartOfUrl = substitute(finalPartOfUrl, '"', '\\"', 'g')
-
 	let url = a:firstPartOfUrl . finalPartOfUrl
 	let url = escape(url, '%#')
 	silent! execute '! start firefox "" "' . url . '"'
 endfun
-" ---------------------------------------}}}2
 command! -nargs=* -range Web :call OpenWebUrl('', <f-args>)
 nnoremap <Leader>w :Web <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 vnoremap <Leader>w :Web<CR>
-
 command! -nargs=* -range WordreferenceFrEn :call OpenWebUrl('https://www.wordreference.com/fren/', <f-args>)
 command! -nargs=* -range GoogleTranslateFrEn :call OpenWebUrl('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
 nnoremap <Leader>t :WordreferenceFrEn 
 vnoremap <Leader>t :GoogleTranslateFrEn<CR>
-
 command! -nargs=* -range WordreferenceEnFr :call OpenWebUrl('https://www.wordreference.com/enfr/', <f-args>)
 command! -nargs=* -range GoogleTranslateEnFr :call OpenWebUrl('https://translate.google.com/?hl=fr#view=home&op=translate&sl=en&tl=fr&text=', <f-args>)
 nnoremap <Leader>T :WordreferenceEnFr 
 vnoremap <Leader>T :GoogleTranslateEnFr<CR>
-
 command! -nargs=* -range Google :call OpenWebUrl('http://google.com/search?q=', <f-args>)
 nnoremap <Leader>q :Google <C-R>=&ft<CR> 
 vnoremap <Leader>q :Google<CR>
 
-" ---------------------------------------}}}1
-" Snippets" -----------------------------{{{1
+" Snippets" ---------------------------{{{
 augroup ultisnips
 	au!
 	autocmd User UltiSnipsEnterFirstSnippet mark '
 augroup end
-
 let g:UltiSnipsEditSplit="vertical"
 let g:UltiSnipsSnippetDirectories=[$desktop . "/tools/vim/pack/plugins/start/vim-snippets/ultisnips", $desktop.'/snippets']
 let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger="<tab>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
-
 nnoremap <Leader>u :UltiSnipsEdit!<CR>G
-" ---------------------------------------}}}1
-" Dashboard" ----------------------------{{{1
+
+" Dashboard" --------------------------{{{
 function! OpenDashboard()
 	silent tab G
 	call settabvar(tabpagenr(),'is_dashboard',1)
@@ -1081,7 +976,6 @@ function! OpenDashboard()
 	GvimTweakSetAlpha 180
 	redraw | echo 'You are doing great <3'
 endfunction
-
 nnoremap <silent> <Leader>m :call OpenDashboard()<CR>
 let g:alpha = get(g:, 'g:alpha', gvimtweak#window_alpha)
 
@@ -1117,8 +1011,8 @@ augroup dashboard
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> p p:set buftype=<CR>:w<CR> 
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> P P:set buftype=<CR>:w<CR> 
 augroup end
-" ---------------------------------------}}}1
-" Diagrams"-----------------------------{{{1
+
+" Diagrams"----------------------------{{{
 function! CreateDiagramFile()
 	let extension = 'puml_'
 	let diagramtype = trim(input ('Diagram type? ([g]raph, [s]equence, [a]ctivity, [m]indmap, [c]lass, [C]omponent, [e]ntities, [S]tate, [u]secase, [w]orkbreakdown):'))
@@ -1147,7 +1041,6 @@ function! CreateDiagramFile()
 	else
 		return
 	endif
-
 	let filename = input('Title:')
 	if trim(filename) == ''
 		return
@@ -1166,7 +1059,6 @@ endfunction
 function! CompileDiagramAndShowImage(outputExtension)
 	let input=expand('%:p')
 	let output=fnamemodify(input, ':r').'.'.a:outputExtension
-
 	let cmd=''
 	if expand('%:e') != 'dot'
 		let cmd = printf('!plantuml -t%s -o "%s" "%s"', a:outputExtension, output, input)
@@ -1178,10 +1070,8 @@ function! CompileDiagramAndShowImage(outputExtension)
 			let cmd = printf('!dot -T%s "%s" -o "%s"', a:outputExtension, input, output)
 		endif
 	endif
-
 	exec cmd
 	redraw
-
 	if (a:outputExtension == 'txt')
 		exec('split '.output)
 	else
@@ -1210,12 +1100,10 @@ augroup mydiagrams
 	                                      \silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage png<CR>
 	autocmd FileType dot,plantuml_sequence silent nnoremap <buffer> <Leader>W :silent w \| CompileDiagramAndShowImage txt<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
-
 augroup END
-"---------------------------------------}}}1
 
-" Specific Workflows:
-" cs(c#)" -------------------------------{{{1
+" Specific Workflows:------------------{{{
+" cs(c#)" -----------------------------{{{
 let g:OmniSharp_server_path = $desktop . '/tools/omnisharp/OmniSharp.exe'
 let $DOTNET_NEW_LOCAL_SEARCH_FILE_ONLY=1
 let g:OmniSharp_start_server = 0
@@ -1238,11 +1126,8 @@ function! CSharpBuild()
 		echomsg "Omnisharp server isn't loaded. Please load Omnisharp server with :OmniSharpStartServer."
 		return
 endif
-
 let originalwinid = win_getid()
-
 let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, isdirectory(omnisharp_host.sln_or_dir) ? ':p' : ':h:p')
-
 	setlocal errorformat=%f(%l\\,%c):\ error\ MSB%n:\ %m\ [%.%#
 	setlocal errorformat+=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
 	setlocal errorformat+=%-G%.%#
@@ -1250,12 +1135,10 @@ let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, isdirectory(omnisharp_host.
 	echomsg 'Building...'
 	execute(printf('lcd %s | silent make!',sln_dir))
 	redraw
-
 	if IsQuickFixWindowOpen()
 		call win_gotoid(originalwinid)
 		return
 	endif
-
 	setlocal errorformat=%A\ %#X\ %.%#
 	setlocal errorformat+=%Z\ %#X\ %.%#
 	setlocal errorformat+=%-C\ %#Arborescence%.%#
@@ -1271,7 +1154,6 @@ let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, isdirectory(omnisharp_host.
 	redraw
 	call win_gotoid(originalwinid)
 endfunction
-
 augroup csharpfiles
 	au!
 	autocmd FileType cs nnoremap <silent> <LocalLeader>m :call CSharpBuild()<CR>
@@ -1296,23 +1178,6 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 augroup end
-
-"
-"	\ 'ExcludedCode': '', 	
-"	\ 'ModuleName': '', 	
-"	\ 'WhiteSpace': '', 	
-"	\ 'Text': '', 	
-"	\ 'RegexAnchor': '', 	
-"	\ 'RegexQuantifier': '', 	
-"	\ 'RegexGrouping': '', 	
-"	\ 'RegexAlternation': '', 	
-"	\ 'RegexText': '', 	
-"	\ 'RegexSelfEscapedCharacter': '',
-"	\ 'RegexOtherEscape': ''
-"	\ 'RegexCharacterClass': '' 	
-"	\ 'OperatorOverloaded': '', 	
-"	\ 'PreprocessorKeyword': '', 	
-"	\ 'PreprocessorText': '', 	
 let g:OmniSharp_highlight_groups = {
 	\ 'Comment': 'Comment', 	
 	\ 'Identifier': 'Identifier',
@@ -1371,7 +1236,6 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 \ '\.nuget\\',
 \ '\<AssemblyInfo\.cs\>'
 \]
-" 	"---------------------------------------}}}1
 
 function! DiffWithSaved()
   let filetype=&ft
