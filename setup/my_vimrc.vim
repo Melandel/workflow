@@ -169,6 +169,12 @@ function! ExecuteAndAddIntoHistory(script)
 	execute(a:script)
 endfunction
 
+function! ExecuteAndAddIntoSearchHistory(searched)
+	call histadd('search', a:searched)
+	let @/=a:searched
+	set hls
+endfunction
+
 function! ClearTrailingWhiteSpaces()
 	%s/\s\+$//e
 endfunction
@@ -238,14 +244,12 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-command! -bar Enew    exec('enew | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
-command! -bar New     exec('new | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
-command! -bar Vnew    exec('vnew | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
-command! -bar Split   exec('new | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
-command! -bar Vsplit  exec('vnew | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
+command! -bar Enew    exec('enew    | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
+command! -bar New     exec('new     | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
+command! -bar Vnew    exec('vnew    | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
 command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile | silient lcd '.$desktop.'/tmp')
-nnoremap <silent> <Leader>s :if bufname() != '' \| split \| else \| Split \| endif<CR>
-nnoremap <silent> <Leader>v :if bufname() != '' \| vsplit \| else \| Vsplit \| endif<CR>
+nnoremap <silent> <Leader>s :if bufname() != '' \| split  \| else \| New  \| endif<CR>
+nnoremap <silent> <Leader>v :if bufname() != '' \| vsplit \| else \| Vnew \| endif<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o mW:tabnew<CR>`W
 nnoremap <silent> <Leader>x :tabclose<CR>
@@ -263,9 +267,9 @@ nnoremap <silent> <Leader>p gT
 augroup windows
 	autocmd!
 	"
-	" foldcolumn serves here to give a visual clue for the current window
+	" Use foldcolumn to give a visual clue for the current window
 	autocmd WinLeave * if !pumvisible() | setlocal norelativenumber foldcolumn=0 | endif
-	autocmd WinEnter * if !pumvisible() | setlocal relativenumber foldcolumn=1 | endif
+	autocmd WinEnter * if !pumvisible() | setlocal relativenumber   foldcolumn=1 | endif
 
 	" Safety net if I close a window accidentally
 	autocmd QuitPre * mark K
@@ -293,29 +297,6 @@ nnoremap <silent> <Leader>_ <C-W>_
 
 " Alternate file fast switching
 noremap <Leader>d <C-^>
-
-function! SwapWindowContents(hjkl_keys)"-{{{2
-	mark V
-	let originalWinNr = winnr()
-
-	for hjkl_key in split(a:hjkl_keys, '\zs') | silent! execute('wincmd ' . hjkl_key) | endfor
-	let targetWinNr = winnr()
-	mark W
-	normal! `V
-
-	execute(originalWinNr.'wincmd w')
- normal! `W
-
-	execute(targetWinNr.'wincmd w')
-
-	delmarks VW
-endfunction
-"----------------------------------------}}}2
-command! -nargs=1 -bar SwapWindows call SwapWindowContents(<f-args>)
-nnoremap SJ <silent> :SwapWindows j<CR> | nnoremap <silent> SJJ :SwapWindows jj<CR> | nnoremap <silent> SJK :SwapWindows jk<CR> | nnoremap <silent> SJH :SwapWindows jh<CR> | nnoremap <silent> SJL :SwapWindows jl<CR> 
-nnoremap SK <silent> :SwapWindows k<CR> | nnoremap <silent> SKJ :SwapWindows kj<CR> | nnoremap <silent> SKK :SwapWindows kk<CR> | nnoremap <silent> SKH :SwapWindows kh<CR> | nnoremap <silent> SKL :SwapWindows kl<CR>
-nnoremap SH <silent> :SwapWindows h<CR> | nnoremap <silent> SHJ :SwapWindows hj<CR> | nnoremap <silent> SHK :SwapWindows hk<CR> | nnoremap <silent> SHH :SwapWindows hh<CR> | nnoremap <silent> SHL :SwapWindows hl<CR>
-nnoremap SL <silent> :SwapWindows l<CR> | nnoremap <silent> SLJ :SwapWindows lj<CR> | nnoremap <silent> SLK :SwapWindows lk<CR> | nnoremap <silent> SLH :SwapWindows lh<CR> | nnoremap <silent> SLL :SwapWindows ll<CR>
 " ---------------------------------------}}}1
 " Status bar" ---------------------------{{{1
 set laststatus=2
@@ -665,33 +646,24 @@ augroup search
 	autocmd FileType * if &ft != 'dirvish' | silent nnoremap <buffer> q! q/ | endif
 augroup end
 nnoremap z! :BLines<CR>
-nnoremap z! :BLines<CR>
 
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
 
 nnoremap <silent> n :keepjumps normal! n<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> N :keepjumps normal! N<CR>:UnderlineCurrentSearchItem<CR>
-nnoremap <silent> * *<C-O>:UnderlineCurrentSearchItem<CR>
-vnoremap * "vy/\V<C-R>v\C<cr>:UnderlineCurrentSearchItem<CR>
+nnoremap <silent> * :call ExecuteAndAddIntoSearchHistory('<C-R>='\<'.expand('<cword>').'\>\C'<CR>')<CR>
+vnoremap <silent> * "vy:call ExecuteAndAddIntoSearchHistory('<C-R>='\<'.@v.'\>\C'<CR>')<CR>
 
-function! CopyMatches(reg)
+function! CopyAllMatches(...)
+  let reg= a:0 ? a:1 : '+'
   let hits = []
   %s//\=len(add(hits, submatch(0))) ? submatch(0) : ''/gne
-  let reg = empty(a:reg) ? '+' : a:reg
   execute 'let @'.reg.' = join(hits, "\n") . "\n"'
 endfunction
-command! -nargs=? CopyMatches :call CopyMatches(<f-args>)
+command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
 "----------------------------------------}}}1
 " Autocompletion (Insert Mode)" ---------{{{1
-
-" <Enter> confirms selection
-"inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
-
-" <Esc> cancels popup menu
-"inoremap <expr> <Esc> pumvisible() ? "\<C-E>" : "\<Esc>"
-
-" <C-N> for omnicompletion, <C-P> for context completion
-inoremap <expr> <C-N> (&omnifunc == '') ? '<C-N>' : '<C-X><C-O>'
+inoremap ù <C-X><C-O>
 "----------------------------------------}}}1
 " Diff" ---------------------------------{{{1
 
