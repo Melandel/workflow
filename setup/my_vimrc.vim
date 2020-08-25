@@ -972,12 +972,10 @@ function! OpenDashboard()
 	silent tab G
 	call settabvar(tabpagenr(),'is_dashboard',1)
 	normal gu
-	silent! Glog!
-	wincmd j
-	exec('silent vnew ' . $desktop.'/achievements')
-	exec('silent new ' . $desktop.'/todo')
+	exec('silent '.winheight(0)/4.'split ' . $desktop.'/todo')
 	exec('silent vnew ' . $desktop.'/done')
-	wincmd h
+	exec('silent vnew ' . $desktop.'/achievements')
+	wincmd k
 	GvimTweakSetAlpha 180
 	redraw | echo 'You are doing great <3'
 endfunction
