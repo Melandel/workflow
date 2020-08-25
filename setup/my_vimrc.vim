@@ -1,4 +1,5 @@
 let $desktop = $HOME . '/Desktop'
+set path+=$desktop/notes
 
 " Desktop Integration:-----------------{{{
 " Plugins" ----------------------------{{{
