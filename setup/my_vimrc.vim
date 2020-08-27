@@ -711,6 +711,7 @@ function! Explore()
 endfunction
 command! Explore call Explore()
 nnoremap <leader>e :Explore<CR>
+nnoremap <leader>E :History<CR>
 nnoremap <leader>g :Commits<CR>
 nnoremap <leader>G :BCommits<CR>
 
