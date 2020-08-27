@@ -1010,6 +1010,7 @@ augroup dashboard
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>o :only<CR>
 	autocmd FileType          git nmap <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
+	autocmd FileType fugitive,git nnoremap <buffer> <Leader>w :Todo<CR>
 	autocmd BufEnter     todo,done,achievements set buftype=nofile nowrap
 	autocmd BufEnter     todo,done,achievements cnoremap <buffer> w set buftype=<CR>:w
 	autocmd BufWritePost todo,done,achievements set buftype=nofile
@@ -1025,6 +1026,7 @@ augroup dashboard
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> p p:set buftype=<CR>:w<CR> 
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> P P:set buftype=<CR>:w<CR> 
 	autocmd BufEnter     todo,done,achievements setlocal omnifunc=TodoTags 
+	autocmd BufEnter     todo,done,achievements nnoremap <buffer> <Leader>w :Todo<CR> 
 augroup end
 
 function! TodoTags(findstart, base)
