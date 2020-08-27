@@ -486,6 +486,8 @@ vnoremap <silent> ; :<C-U>call VMoveToNextMatch()<CR>
 " Text objects" -----------------------{{{
 vnoremap il ^og_| onoremap il :normal vil<CR>
 vnoremap al 0o$h| onoremap al :normal val<CR>
+vnoremap iz [zjo]zkVg_| onoremap iz :normal viz<CR>
+vnoremap az [zo]zVg_|   onoremap az :normal vaz<CR>
 vnoremap if ggoGV| onoremap if :normal vif<CR>
 " Always add cursor position to jumplist
 let g:targets_jumpRanges = 'cr cb cB lc ac Ac lr rr ll lb ar ab lB Ar aB Ab AB rb al rB Al bb aa bB Aa BB AA'
@@ -593,7 +595,14 @@ endfunction
 command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
 
 " Autocompletion (Insert Mode)" -------{{{
-inoremap ù <C-X><C-O>
+inoremap <C-O> <C-X><C-O>
+" set completefunc=MyCompletion
+" function! MyCompletion(findstart, base)
+" 	if a:findstart == 1
+" 		return -42
+" 	endif
+" 	return [a:base, 'abc', 'def']
+" endfunction
 
 " Diff" -------------------------------{{{
 set diffopt+=algorithm:histogram,indent-heuristic,vertical
@@ -974,8 +983,9 @@ function! OpenDashboard()
 	normal gu
 	exec('silent '.winheight(0)/4.'split ' . $desktop.'/todo')
 	exec('silent vnew ' . $desktop.'/done')
-	exec('silent vnew ' . $desktop.'/achievements')
-	wincmd k
+	exec('silent  new ' . $desktop.'/achievements')
+	silent resize -2
+	0wincmd w
 	GvimTweakSetAlpha 180
 	redraw | echo 'You are doing great <3'
 endfunction
@@ -1013,8 +1023,152 @@ augroup dashboard
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> dd dd:set buftype=<CR>:w<CR> 
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> p p:set buftype=<CR>:w<CR> 
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> P P:set buftype=<CR>:w<CR> 
+	autocmd BufEnter     todo,done,achievements setlocal omnifunc=TodoTags 
 augroup end
 
+function! TodoTags(findstart, base)
+	if a:findstart
+		return col('.')
+	endif
+
+	let previouschar = strcharpart(getline('.')[col('.')-2:], 0, 1)
+	if previouschar == '@'
+		return ['workflow', 'planned', 'improvement', 'emergency']
+	elseif previouschar == '+'
+  let hits = []
+		call substitute(join(readfile($desktop.'/todo')), '\v\+(\S)+', '\=len(add(hits, submatch(0))) ? submatch(0) : ""', 'gne')
+		call substitute(join(readfile($desktop.'/done')), '\v\+(\S)+', '\=len(add(hits, submatch(0))) ? submatch(0) : ""', 'gne')
+		return sort(map(uniq(hits), {_,x->x[1:]}))
+	endif
+	return ['toto', previouschar]
+endfunction
+
+function! RenderTodoList(todofile, donefile)
+	let todolines = readfile(a:todofile)
+	let donelines = readfile(a:donefile)
+	let lines = todolines + donelines
+	let todomaxindex=len(todolines)-1
+	let allitems = []
+	for i in range(len(lines))
+		let line = lines[i]
+		let isDone = (i > todomaxindex)
+		let typeMatchList = matchlist(line, '\v \@(\S+)')
+		let type = (len(typeMatchList) > 0 ? typeMatchList[1] : '')
+		let parentMatchList = matchlist(line, '\v \+(\S+)')
+		let parent = (len(parentMatchList) > 0 ? CapitalizeFirstLetter(parentMatchList[1]) : '')
+		if type=='' && parent==''
+					echoerr 'nononono'
+					return
+		else
+			if type!='' && parent!=''
+				let description = CapitalizeFirstLetter(line[:stridx(line, ' @'.type)-1])
+				let existingparent = {}
+				for i in range(len(allitems))
+					if has_key(allitems[i], 'title') && allitems[i].title == parent
+						let existingparent = allitems[i]
+						break
+					endif
+				endfor
+				if !empty(existingparent)
+					call add(existingparent.items, #{type: type, description: description, done: isDone, parent: parent})
+				else
+					call add(allitems, #{type: type, title: parent, items:[#{type: type, description: description, done: isDone, parent: parent}]})
+				endif
+			elseif type!='' && parent==''
+				call add(allitems, #{type: type, description: CapitalizeFirstLetter(line[:stridx(line, ' @'.type)-1]), done: isDone})
+			elseif type=='' && parent!=''
+				let existingparent = {}
+				for i in range(len(allitems))
+					if has_key(allitems[i], 'title') && allitems[i].title == parent
+						let existingparent = allitems[i]
+						break
+					endif
+				endfor
+				call add(existingparent.items, #{type: type, description: CapitalizeFirstLetter(line[:stridx(line, ' +'.type)-1]), done: isDone, parent: parent})
+			endif
+		endif
+	endfor
+
+	let todoHtml = []
+	let doneHtml = []
+	let ideasHtml = []
+	let doneParentsAlreadyProcessed = []
+
+	for itm in allitems
+		if has_key(itm, 'title') && index(doneParentsAlreadyProcessed, itm.title) == -1
+			for item in itm.items
+				let item.type = itm.type
+			endfor
+			if len(filter(copy(itm.items), {_,x->!x.done})) == 0
+				call add(doneHtml, BuildDoneTodoParentItemHtml(itm))
+				call add(doneParentsAlreadyProcessed, itm.title)
+			else
+				call add((itm.type == 'planned' ? todoHtml : ideasHtml), BuildUnfinishedTodoParentItemHtml(itm))
+				for i in filter(copy(itm.items), {_,x->x.done})
+					call add(doneHtml, BuildTodoItemHtml(i))
+				endfor
+			endif
+		else
+			if itm.done
+					call add(doneHtml, BuildTodoItemHtml(itm))
+			else
+					call add((itm.type == 'planned' ? todoHtml : ideasHtml), BuildTodoItemHtml(itm))
+			endif
+		endif
+	endfor
+	let html = BuildHtml(join(todoHtml,''), join(doneHtml,''), join(ideasHtml,''))
+	call writefile([html], $desktop.'/tmp/today.html')
+	call OpenWebUrl('',expand($desktop.'/tmp/today.html', ':p'))
+endfunction
+
+function! CapitalizeFirstLetter(string)
+	if a:string==''
+		return ''
+	endif
+	return toupper(a:string[0]) . a:string[1:]
+endfunction
+
+function! HtmlEncode(string)
+	let string = a:string
+	let string = substitute(string, '<', '\&lt;', 'g')
+	let string = substitute(string, '>', '\&gt;', 'g')
+	return string
+endfunction
+
+function! BuildHtml(todoHtml, doneHtml, ideasHtml)
+	return join(['<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><style type="text/css" media="screen">.planned{background:#b2d0e4!important}.emergency{background:#fb8072!important}.improvement{background:#8dd3c7!important}.workflow{background:#ffffb3!important}body{margin: 0px; height: 100%; font-family: georgia}#main{display: flex; flex-direction: column; background:#2C2C29; min-height:100%;}#legend{padding: 5px; background: #bebada; display: flex; justify-content: space-around;}#legend>span{padding: 5px; border-radius:25px; font-weight:bold;}#content{flex-grow: 1; font-size:x-large;}#todoHeader{text-align: center; background:#fabd2f;}#doneHeader{text-align: center; background:#b3de69;}#ideasHeader{text-align: center; background:#fdb462;}#content>table>tbody>tr>th{padding:0px 10px 1px 10px; margin:2px; height:42px;}.columncontent{height:100%;}.item{background:lightgrey; border-radius:5px; padding:0px 10px 1px 10px; margin:4px; display: flex;}.item>div{overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}.item>div:first-child{max-width: 25%; width: 25%; font-weight: bold;}.item>div:last-child{max-width:75%; width:75%; font-style: italic;}.item>div:only-child{max-width:100%; width:100%; font-weight: normal; font-style:normal;}.itemparent{background:lightgrey; border-radius:5px; padding:0px 10px 1px 10px; margin:4px;}.itemparent>div:first-child{font-weight:bold; margin:2px; padding:2px; display:inline-block; text-decoration:underline;}.striked{text-decoration:line-through;}ul{margin:0px 0px 5px 0px;}li>div{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}</style><title>TODO</title></head><body><div id="main"><div id="legend"><span class="planned">PLANNED</span><span class="emergency">EMERGENCY</span><span class="improvement">IMPROVEMENT</span><span class="workflow">WORKFLOW</span></div><div id="content" height="100%"><table width="100%" height="100%" style="table-layout:fixed;"><tr><th id="todoHeader">! TODO !</td><th id="doneHeader"><u>DONE</u></td><th id="ideasHeader">? IDEAS ?</td></tr><tr><td><div class="columncontent">', a:todoHtml, '</div></td><td><div class="columncontent">', a:doneHtml, '</div></td><td><div class="columncontent">', a:ideasHtml, '</div></td></tr></table></div></div></body></html>'], '')
+endfunction
+
+function! BuildTodoItemHtml(todoItem)
+	if get(a:todoItem, 'parent', '') != ''
+		return printf('<div class="item %s"><div title="%s">%s</div><div title="%s">%s</div></div>', a:todoItem.type, HtmlEncode(a:todoItem.parent), HtmlEncode(a:todoItem.parent), HtmlEncode(a:todoItem.description), HtmlEncode(a:todoItem.description))
+	else
+		return printf('<div class="item %s"><div title="%s">%s</div></div>', a:todoItem.type, HtmlEncode(a:todoItem.description), HtmlEncode(a:todoItem.description))
+	endif
+endfunction
+
+function! BuildUnfinishedTodoParentItemHtml(parentItem)
+	return printf('<div class="itemparent %s"><div>%s</div><ul>%s</ul></div>', HtmlEncode(a:parentItem.type), HtmlEncode(a:parentItem.title), BuildListOfUnfinishedTodoItemsHtml(a:parentItem.items))
+endfunction
+
+function! BuildListOfUnfinishedTodoItemsHtml(todoItems)
+	return join(map(copy(a:todoItems), {_,x -> printf('<li%s title="%s">%s</li>', GetHtmlClassAttributeByDoneState(x.done), HtmlEncode(x.description), HtmlEncode(x.description))}), '')
+endfunction
+
+function! GetHtmlClassAttributeByDoneState(isDone)
+	return a:isDone ? ' class="striked"' : ''
+endfunction
+
+function! BuildDoneTodoParentItemHtml(parentItem)
+	return printf('<div class="itemparent %s"><div>%s</div><ul>%s</ul></div>', HtmlEncode(a:parentItem.type), HtmlEncode(a:parentItem.title), BuildListOfDoneTodoItemsHtml(a:parentItem.items))
+endfunction
+
+function! BuildListOfDoneTodoItemsHtml(doneItems)
+	return join(map(copy(a:doneItems), {_,x -> printf('<li title="%s">%s</li>', HtmlEncode(x.description), HtmlEncode(x.description))}))
+endfunction
+
+command! RenderTodoList call RenderTodoList($desktop.'/todo', $desktop.'/done')
+command! Todo call RenderTodoList($desktop.'/todo', $desktop.'/done')
 " Diagrams"----------------------------{{{
 function! CreateDiagramFile()
 	let extension = 'puml_'
