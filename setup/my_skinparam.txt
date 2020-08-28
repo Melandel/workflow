@@ -1,41 +1,44 @@
 skinparam BackgroundColor #2C2C29
-skinparam NoteBackgroundColor #abb2bf
-skinparam NoteBorderColor black
-skinparam NoteFontColor black
-skinparam DefaultFontColor #bebebe
-skinparam BoundaryBorderColor #729fcf
-skinparam ControlBorderColor #729fcf
-skinparam EntityBorderColor #729fcf
-skinparam DatabaseBorderColor #729fcf
+skinparam	DefaultFontColor #bebebe
+skinparam NoteBackgroundColor #E1E1E1
+skinparam NoteFontColor Black
+skinparam TitleBorderColor #b2d0e4
+skinparam TitleBackgroundColor #b2d0e4
+skinparam TitleBorderRoundCorner 50
+skinparam TitleFontColor Black
+skinparam TitleFontStyle Bold
+skinparam TitleFontSize 24
+skinparam	ActorBackgroundColor #414C53
+skinparam	ActorBorderColor #fdb462
+skinparam	ActorFontColor #fdb462
+skinparam	ActorFontStyle Bold
 
-skinparam BoundaryBackgroundColor #455561
-skinparam ControlBackgroundColor #455561
-skinparam EntityBackgroundColor #455561
-skinparam DatabaseBackgroundColor #455561
+skinparam State {
+	ArrowColor #fdb462
+	StartColor #fdb462
+	EndColor #fdb462
+	FontColor Black
+	FontStyle Bold
+	AttributeFontColor Black
+	BackgroundColor #729B79
+	BorderColor #fdb462
+}
 
-skinparam sequence {
-ArrowColor #f5ab35
+skinparam PackageBackgroundColor #bebebe
+skinparam RectangleBackgroundColor #414C53
+skinparam RectangleFontColor #C8C8C8
+skinparam RectangleBorderColor Black
+skinparam ComponentStereotypeFontColor Black
+skinparam	ComponentBackgroundColor #fdb462
+skinparam	ComponentFontColor Black
+skinparam UseCase {
+	BackgroundColor #b2d0e4
+	FontColor Black
+}
 
-ActorBorderColor #8cb369
-ActorFontSize 17
-ActorFontName Constantia
-ActorBackgroundColor #2C2C29
-
-
-BoxBackgroundColor #7e7f7c
-BoxBorderColor #7e7f7c
-BoxFontColor #2e343b
-
-LifeLineBorderColor #f5ab35
-LifeLineBackgroundColor #989898
-
-GroupBackgroundColor #5F605C
-GroupBodyBackgroundColor #5F605C
-
-ParticipantBorderColor #729fcf
-ParticipantBackgroundColor #729fcf
-ParticipantFontName Constantia
-ParticipantFontSize 17
-ParticipantFontColor #2e343b
-
+skinparam Class {
+	RectangleBackgroundColor White
+	InterfaceBackgroundColor White
+}
+skinparam Component {
 }

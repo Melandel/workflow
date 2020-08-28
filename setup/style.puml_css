@@ -1,0 +1,131 @@
+' usecase, class & component css unsupported yet
+' Observations made on the 2020-08-28
+' sequence diagram:  nothing
+' activity diagram:  nothing
+' class diagram:     name of a class package
+' component diagram: name of a component package,node,folder
+' state diagram:     all state texts
+' usecase diagram:   rectangle text
+skinparam DefaultFontColor #bebebe
+skinparam BackgroundColor #2C2C29
+skinparam useBetaStyle true
+<style>
+
+	note {
+		BackgroundColor #E1E1E1
+	}
+	title {
+		LineColor #b2d0e4
+		BackgroundColor #b2d0e4
+		RoundCorner 50
+		FontColor Black
+		FontSize 24
+	}
+
+	arrow {
+		FontColor #bebebe
+	}
+
+	sequenceDiagram {
+		FontSize 16
+		LineColor #fabd2f
+		lifeline{
+				BackgroundColor #fb8072
+			}
+		actor {
+			BackgroundColor #414C53
+			LineColor #fdb462
+			FontColor #fdb462
+			FontStyle Bold
+		}
+		boundary {
+			BackgroundColor #414C53
+			LineColor #fabd2f
+			FontColor #9C9FA1
+		}
+		control {
+			BackgroundColor #414C53
+			LineColor #fabd2f
+			FontColor #9C9FA1
+		}
+		entity {
+			BackgroundColor #414C53
+			LineColor #fabd2f
+			FontColor #9C9FA1
+		}
+		database {
+			BackgroundColor #414C53
+			LineColor #fabd2f
+			FontColor #9C9FA1
+		}
+		box {
+			BackgroundColor #414C53
+			FontColor #C8C8C8
+			LineColor Black
+		}
+		group {
+			BackgroundColor #464642
+			FontColor #C8C8C8
+		}
+		participant {
+			FontName Verdana
+			BackgroundColor #b3de69
+			LineColor #b2d0e4
+			FontStyle Bold
+		}
+	}
+
+	activityDiagram {
+		LineColor #fabd2f
+		activity {
+			BackgroundColor #b2d0e4
+			LineColor #b2d0e4
+		}
+		diamond {
+			BackgroundColor #b3de69
+			LineColor Black
+			}
+	}
+
+	mindmapDiagram {
+		LineColor #fabd2f
+		node {
+			BackgroundColor #fdb462
+			LineColor Black
+		}
+		rootnode {
+			BackgroundColor #fabd2f
+			FontStyle Bold
+		}
+		:depth(1) {
+			BackgroundColor #b2d0e4
+		}
+		:depth(2) {
+			BackgroundColor #b3de69
+		}
+	}
+
+	wbsDiagram {
+		LineColor #fabd2f
+		node {
+			BackgroundColor #fdb462
+			LineColor Black
+		}
+		rootnode {
+			BackgroundColor #fabd2f
+			FontStyle Bold
+		}
+		:depth(1) {
+			BackgroundColor #b2d0e4
+		}
+		:depth(2) {
+			BackgroundColor #b3de69
+		}
+		:depth(3) {
+			BackgroundColor #fabd2f
+		}
+		:depth(4) {
+			BackgroundColor #fb8072
+		}
+	}
+</style>

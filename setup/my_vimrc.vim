@@ -1178,25 +1178,25 @@ function! CreateDiagramFile()
 	let diagramtype = trim(input ('Diagram type? ([g]raph, [s]equence, [a]ctivity, [m]indmap, [c]lass, [C]omponent, [e]ntities, [S]tate, [u]secase, [w]orkbreakdown):'))
 	if diagramtype == ''
 		return
-	elseif trim(diagramtype) == 'g'
+	elseif trim(diagramtype) ==# 'g'
 		let extension = 'dot'
-	elseif trim(diagramtype) == 's'
+	elseif trim(diagramtype) ==# 's'
 		let extension .= 'sequence'
-	elseif trim(diagramtype) == 'a'
+	elseif trim(diagramtype) ==# 'a'
 		let extension .= 'activity'
-	elseif trim(diagramtype) == 'm'
+	elseif trim(diagramtype) ==# 'm'
 		let extension .= 'mindmap'
-	elseif trim(diagramtype) == 'c'
+	elseif trim(diagramtype) ==# 'c'
 		let extension .= 'class'
-	elseif trim(diagramtype) == 'C'
+	elseif trim(diagramtype) ==# 'C'
 		let extension .= 'component'
-	elseif trim(diagramtype) == 'e'
+	elseif trim(diagramtype) ==# 'e'
 		let extension .= 'entities'
-	elseif trim(diagramtype) == 'S'
+	elseif trim(diagramtype) ==# 'S'
 		let extension .= 'state'
-	elseif trim(diagramtype) == 'u'
+	elseif trim(diagramtype) ==# 'u'
 		let extension .= 'usecase'
-	elseif trim(diagramtype) == 'w'
+	elseif trim(diagramtype) ==# 'w'
 		let extension .= 'workbreakdown'
 	else
 		return
@@ -1221,7 +1221,8 @@ function! CompileDiagramAndShowImage(outputExtension)
 	let output=fnamemodify(input, ':r').'.'.a:outputExtension
 	let cmd=''
 	if expand('%:e') != 'dot'
-		let cmd = printf('!plantuml -t%s -config "%s" "%s"', a:outputExtension, $HOME.'/Desktop/setup/my_skinparam.txt',input)
+		let isCssStylingSupported = (index(['puml_sequence', 'puml_activity', 'puml_mindmap', 'puml_workbreakdown'], expand('%:e')) != -1)
+		let cmd = printf('!plantuml -t%s -config "%s" "%s"', a:outputExtension, $HOME.'/Desktop/setup/'.(isCssStylingSupported ? 'style.puml_css' : 'my_skinparam.txt'),input)
 	else ".dot file
 		if a:outputExtension == 'txt'
 			let output=fnamemodify(input, ':r').'.atxt'
@@ -1254,10 +1255,10 @@ augroup mydiagrams
 	autocmd BufRead *.puml_usecase         set ft=plantuml_usecase
 	autocmd BufRead *.puml_workbreakdown   set ft=plantuml_workbreakdown
 	autocmd FileType dot,plantuml_sequence,
-                  \plantuml_activity,plantuml_component,plantuml_component,
+                  \plantuml_activity,plantuml_class,plantuml_component,
                   \plantuml_entities,plantuml_mindmap,plantuml_sequence,
                   \plantuml_state,plantuml_usecase,plantuml_workbreakdown
-	                                      \silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage png<CR>
+	                                     \ silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage png<CR>
 	autocmd FileType dot,plantuml_sequence silent nnoremap <buffer> <Leader>W :silent w \| CompileDiagramAndShowImage txt<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
