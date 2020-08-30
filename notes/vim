@@ -4,3 +4,10 @@ http://vimcasts.org/episodes/fugitive-vim-resolving-merge-conflicts-with-vimdiff
 http://vimcasts.org/episodes/fugitive-vim-browsing-the-git-object-database/
 http://vimcasts.org/episodes/fugitive-vim-exploring-the-history-of-a-git-repository/
 
+https://stackoverflow.com/questions/18109625/writing-whole-alphabet-in-vim
+	> set nrformats+=alpha
+	> allows for <C-A> and <C-X> to increment/decrement alphabetically
+
+https://vim.fandom.com/wiki/Making_a_list_of_numbers
+	> g<C-A>
+	> Increments first number of each line of the selection
