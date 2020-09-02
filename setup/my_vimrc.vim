@@ -633,11 +633,6 @@ nnoremap g; g;zv
 nnoremap g, g,zv
 
 " Additional Functionalities:----------{{{
-" Brackets"----------------------------{{{
-inoremap <expr> { (col('.') == col('$')) ? "{}\<left>" : '{'
-inoremap <expr> <cr> getline('.')[max([0,col('.')-2]):max([col('.')-1,0])]=='{}' ? '<cr><C-D><C-O>O' : '<cr>'
-inoremap <expr> <space> getline('.')[max([0,col('.')-2]):max([col('.'),0])]=='{}' ? '<space><space><left>' : '<space>'
-
 " Buffer navigation"-------------------{{{
 nnoremap <silent> H :call CycleWindowBuffersHistoryBackwards()<CR>
 nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
