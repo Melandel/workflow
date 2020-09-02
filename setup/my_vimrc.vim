@@ -1254,6 +1254,7 @@ augroup mydiagrams
                   \plantuml_state,plantuml_usecase,plantuml_workbreakdown
 	                                     \ silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage png<CR>
 	autocmd FileType dot,plantuml_sequence silent nnoremap <buffer> <Leader>W :silent w \| CompileDiagramAndShowImage txt<CR>
+	autocmd FileType dot inoremap <buffer> <expr> <tab> (stridx(getline('.'), '[label') == -1) ? "\<space>[label=\"\"]\<left>\<left>" : "\<tab>"
 	autocmd FileType dirvish nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
 
