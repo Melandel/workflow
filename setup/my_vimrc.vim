@@ -140,15 +140,7 @@ function! IsOmniSharpRelated()
 	return exists('b:OmniSharp_host.sln_or_dir') && b:OmniSharp_host.sln_or_dir =~ '\v\.(sln|csproj)$'
 endfunction
 
-function! LastCharacter()
-	return strcharpart(getline('.')[col('.'):], 0, 1)
-endfunction
-
-function! CurrentCharacter()
-	return strcharpart(getline('.')[col('.') - 1:], 0, 1)
-endfunction
-
-function! NextCharacter()
+function! PreviousCharacter()
 	return strcharpart(getline('.')[col('.') - 2:], 0, 1)
 endfunction
 
@@ -1028,7 +1020,7 @@ function! TodoTags(findstart, base)
 		return col('.')
 	endif
 
-	let previouschar = strcharpart(getline('.')[col('.')-2:], 0, 1)
+	let previouschar = PreviousCharacter()
 	if previouschar == '@'
 		return ['workflow', 'planned', 'improvement', 'emergency']
 	elseif previouschar == '+'
@@ -1254,9 +1246,36 @@ augroup mydiagrams
                   \plantuml_state,plantuml_usecase,plantuml_workbreakdown
 	                                     \ silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage png<CR>
 	autocmd FileType dot,plantuml_sequence silent nnoremap <buffer> <Leader>W :silent w \| CompileDiagramAndShowImage txt<CR>
-	autocmd FileType dot inoremap <buffer> <expr> <tab> (stridx(getline('.'), '[label') == -1) ? "\<space>[label=\"\"]\<left>\<left>" : "\<tab>"
+	autocmd FileType dot inoremap <buffer> <expr> <tab> "\<esc>a" . DotAutocomplete()
 	autocmd FileType dirvish nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
+
+function DotDetectGraphType()
+	return stridx(getline('1'), 'digraph') == -1 ? 'graph' : 'digraph'
+endfunction
+
+function DotDetectNodeOrEdge()
+	let p = PreviousCharacter()
+	if p == ' '
+		return 'edge'
+	elseif p =~'\a'
+		return 'node'
+	else
+		return 'nop'
+	endif
+endfunction
+
+function DotAutocomplete()
+	let nodeOrEdge = DotDetectNodeOrEdge()
+	if (nodeOrEdge == 'node')
+		return (stridx(getline(':'), '[label=') == -1) ? " [label=\"\"]\<left>\<left>" : "\<Tab>"
+	elseif (nodeOrEdge == 'edge')
+		let edgeAutocomplete = DotDetectGraphType() == 'graph' ? '-- ' : '-> '
+		return (stridx(getline('.'), '-') == -1) ? edgeAutocomplete : ((stridx(getline(':'), '[') == -1) ? "[]\<left>" : "\<Tab>")
+	else
+		return "\<Tab>"
+	endif
+endfunction
 
 " Specific Workflows:------------------{{{
 " cs(c#)" -----------------------------{{{
