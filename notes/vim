@@ -11,3 +11,11 @@ https://stackoverflow.com/questions/18109625/writing-whole-alphabet-in-vim
 https://vim.fandom.com/wiki/Making_a_list_of_numbers
 	> g<C-A>
 	> Increments first number of each line of the selection
+
+:help :cexpr
+	> cexpr system('dir')
+	> createse a quickfix list using the result of system('dir')
+
+:help i_CTRL-G_S
+> <C-G>S, <C-S>, <C-S><C-S> for smart bracket completion
+> provided by vim-surround
