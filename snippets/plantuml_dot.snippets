@@ -1,0 +1,42 @@
+snippet new "dot graph" b
+@startuml
+digraph G {
+	fontname="$titlefontname" fontsize="$fontsize" fontcolor="$fontcolor" bgcolor="$bgcolor"
+	node [style=filled color="$blue"]
+	edge [color="$gold" fontcolor="$gray"]
+	rankdir=${1:TD}
+	label="${2:Thoughts}" labelloc="t" 
+
+	${3:subgraph cluster_B {
+		label="" bgcolor="$bgcolor2" fontsize="$fontsize2" fontcolor="$fontcolor2"
+	}
+}
+@enduml
+endsnippet
+
+snippet subgraph "subgraph" b
+subgraph ${1:Subgraph} {
+	label="{2}" bgcolor="$bgcolor2" fontsize="$fontsize2" fontcolor="$fontcolor2"
+	${0}
+}
+endsnippet
+
+snippet cluster "cluster" b
+subgraph cluster_${1:Cluster} {
+	label="{2}" bgcolor="$bgcolor2" fontsize="$fontsize2" fontcolor="$fontcolor2"
+	${0}
+}
+endsnippet
+
+snippet node "Node"
+ [label="${0}"]
+endsnippet
+
+snippet '^((?!new|subgraph|cluster)\S+)' "n" r
+`!p snip.rv= match.group(1)` [label="${0}"]
+endsnippet
+
+snippet "^((?!new|subgraph|cluster)\S+) " "Edge" r
+`!p snip.rv=match.group(1)` -> ${1:Target}${2: [${0}]}
+endsnippet
+

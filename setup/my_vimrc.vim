@@ -1165,7 +1165,7 @@ function! CreateDiagramFile()
 	if diagramtype == ''
 		return
 	elseif trim(diagramtype) ==# 'g'
-		let extension = 'dot'
+		let extension .= 'dot'
 	elseif trim(diagramtype) ==# 's'
 		let extension .= 'sequence'
 	elseif trim(diagramtype) ==# 'a'
@@ -1203,51 +1203,43 @@ function! CreateDiagramFile()
 endfunction
 
 function! CompileDiagramAndShowImage(outputExtension)
-	let input=expand('%:p')
-	let output=fnamemodify(input, ':r').'.'.a:outputExtension
-	let cmd=''
-	if expand('%:e') != 'dot'
-		let isCssStylingSupported = (index(['puml_sequence', 'puml_activity', 'puml_mindmap', 'puml_workbreakdown'], expand('%:e')) != -1)
-		let cmd = printf('!plantuml -t%s -config "%s" "%s"', a:outputExtension, $HOME.'/Desktop/setup/'.(isCssStylingSupported ? 'style.puml_css' : 'my_skinparam.txt'),input)
-	else ".dot file
-		if a:outputExtension == 'txt'
-			let output=fnamemodify(input, ':r').'.atxt'
-			let cmd = printf('!graph-easy --from=graphviz --as=ascii --output %s %s',output,input)
-		else
-			let cmd = printf('!dot -T%s "%s" -o "%s"', a:outputExtension, input, output)
-		endif
-	endif
-	exec cmd
-	redraw
-	if (a:outputExtension == 'txt')
-		exec('split '.output)
-	else
-		call OpenWebUrl('',output)
-	endif
+	exec printf('!plantuml -t%s -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(&ft), expand('%:p'))
+	redraw!
+	call OpenWebUrl('', expand('%:p:r').'.'.a:outputExtension)
+endfunction
+
+function GetPlantumlConfigFile(filetype)
+	let configfilebyft = #{
+		\plantuml_activity:      'styles',
+		\plantuml_mindmap:       'styles',
+		\plantuml_sequence:      'styles',
+		\plantuml_workbreakdown: 'styles',
+		\plantuml_class:         'skinparams',
+		\plantuml_component:     'skinparams',
+		\plantuml_entities:      'skinparams',
+		\plantuml_state:         'skinparams',
+		\plantuml_usecase:       'skinparams',
+		\plantuml_dot:           'graphviz'
+	\}
+	return $HOME.'/Desktop/setup/my_plantuml_'.configfilebyft[a:filetype].'.config'
 endfunction
 command! -nargs=1 CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
 
 augroup mydiagrams
 	autocmd!
-	autocmd BufRead *.dot                  set ft=dot
-	autocmd BufRead *.puml                 set ft=plantuml
-	autocmd BufRead *.puml_activity        set ft=plantuml_activity
-	autocmd BufRead *.puml_class           set ft=plantuml_class
-	autocmd BufRead *.puml_component       set ft=plantuml_component
-	autocmd BufRead *.puml_entities        set ft=plantuml_entities
-	autocmd BufRead *.puml_mindmap         set ft=plantuml_mindmap
-	autocmd BufRead *.puml_sequence        set ft=plantuml_sequence
-	autocmd BufRead *.puml_state           set ft=plantuml_state
-	autocmd BufRead *.puml_usecase         set ft=plantuml_usecase
-	autocmd BufRead *.puml_workbreakdown   set ft=plantuml_workbreakdown
-	autocmd FileType dot,plantuml_sequence,
-                  \plantuml_activity,plantuml_class,plantuml_component,
-                  \plantuml_entities,plantuml_mindmap,plantuml_sequence,
-                  \plantuml_state,plantuml_usecase,plantuml_workbreakdown
-	                                     \ silent nnoremap <buffer> <Leader>w :silent w \| CompileDiagramAndShowImage png<CR>
-	autocmd FileType dot,plantuml_sequence silent nnoremap <buffer> <Leader>W :silent w \| CompileDiagramAndShowImage txt<CR>
-	autocmd FileType dot inoremap <buffer> <expr> <tab> "\<esc>a" . DotAutocomplete()
-	autocmd FileType dirvish nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
+	autocmd BufRead      *.puml_dot             set ft=plantuml_dot
+	autocmd BufRead      *.puml_activity        set ft=plantuml_activity
+	autocmd BufRead      *.puml_class           set ft=plantuml_class
+	autocmd BufRead      *.puml_component       set ft=plantuml_component
+	autocmd BufRead      *.puml_entities        set ft=plantuml_entities
+	autocmd BufRead      *.puml_mindmap         set ft=plantuml_mindmap
+	autocmd BufRead      *.puml_sequence        set ft=plantuml_sequence
+	autocmd BufRead      *.puml_state           set ft=plantuml_state
+	autocmd BufRead      *.puml_usecase         set ft=plantuml_usecase
+	autocmd BufRead      *.puml_workbreakdown   set ft=plantuml_workbreakdown
+	autocmd BufRead      *.puml_*               silent nnoremap <buffer> <Leader>w :CompileDiagramAndShowImage png<CR>
+	autocmd BufWritePost *.puml_*               silent CompileDiagramAndShowImage png
+	autocmd FileType     dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
 
 function DotDetectGraphType()
@@ -1266,15 +1258,17 @@ function DotDetectNodeOrEdge()
 endfunction
 
 function DotAutocomplete()
+	let insert = "\<Esc>a"
 	let nodeOrEdge = DotDetectNodeOrEdge()
 	if (nodeOrEdge == 'node')
-		return (stridx(getline(':'), '[label=') == -1) ? " [label=\"\"]\<left>\<left>" : "\<Tab>"
+		let insert .= (stridx(getline(':'), '[label=') == -1) ? " [label=\"\"]\<left>\<left>" : "\<Tab>"
 	elseif (nodeOrEdge == 'edge')
 		let edgeAutocomplete = DotDetectGraphType() == 'graph' ? '-- ' : '-> '
-		return (stridx(getline('.'), '-') == -1) ? edgeAutocomplete : ((stridx(getline(':'), '[') == -1) ? "[]\<left>" : "\<Tab>")
+		let insert .= (stridx(getline('.'), '-') == -1) ? edgeAutocomplete : ((stridx(getline(':'), '[') == -1) ? "[]\<left>" : "\<Tab>")
 	else
-		return "\<Tab>"
+		let insert .= "\<Tab>"
 	endif
+	return insert
 endfunction
 
 " Specific Workflows:------------------{{{
