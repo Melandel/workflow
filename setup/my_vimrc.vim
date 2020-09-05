@@ -998,7 +998,6 @@ augroup dashboard
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
 	autocmd FileType fugitive,git nnoremap <buffer> <Leader>w :Todo<CR>
 	autocmd BufEnter     todo,done,achievements set buftype=nofile nowrap
-	autocmd BufEnter     todo,done,achievements cnoremap <buffer> w set buftype=<CR>:w
 	autocmd BufWritePost todo,done,achievements set buftype=nofile
 	autocmd BufEnter     todo,done,achievements normal! gg
 	autocmd BufLeave     todo,done,achievements normal! gg
@@ -1006,11 +1005,8 @@ augroup dashboard
 	autocmd BufWritePost todo                   redraw | echo 'Nice :)'
 	autocmd BufWritePost      done              redraw | echo 'Good job! :D'
 	autocmd BufWritePost           achievements redraw | echo 'You did great ;)'
-	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w<CR>
-	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w<CR> 
-	autocmd BufEnter     todo,done,achievements nnoremap <buffer> dd dd:set buftype=<CR>:w<CR> 
-	autocmd BufEnter     todo,done,achievements nnoremap <buffer> p p:set buftype=<CR>:w<CR> 
-	autocmd BufEnter     todo,done,achievements nnoremap <buffer> P P:set buftype=<CR>:w<CR> 
+	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
+	autocmd TextChanged  todo,done,achievements set buftype= | write
 	autocmd BufEnter     todo,done,achievements setlocal omnifunc=TodoTags 
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> <Leader>w :Todo<CR> 
 augroup end
@@ -1019,7 +1015,6 @@ function! TodoTags(findstart, base)
 	if a:findstart
 		return col('.')
 	endif
-
 	let previouschar = PreviousCharacter()
 	if previouschar == '@'
 		return ['workflow', 'planned', 'improvement', 'emergency']
@@ -1037,77 +1032,92 @@ function! RenderTodoList(todofile, donefile)
 	let donelines = readfile(a:donefile)
 	let lines = todolines + donelines
 	let todomaxindex=len(todolines)-1
-	let allitems = []
+	let items = []
 	for i in range(len(lines))
 		let line = lines[i]
-		let isDone = (i > todomaxindex)
-		let typeMatchList = matchlist(line, '\v \@(\S+)')
-		let type = (len(typeMatchList) > 0 ? typeMatchList[1] : '')
-		let parentMatchList = matchlist(line, '\v \+(\S+)')
-		let parent = (len(parentMatchList) > 0 ? CapitalizeFirstLetter(parentMatchList[1]) : '')
-		if type=='' && parent==''
-					echoerr 'nononono'
-					return
-		else
-			if type!='' && parent!=''
-				let description = CapitalizeFirstLetter(line[:stridx(line, ' @'.type)-1])
-				let existingparent = {}
-				for i in range(len(allitems))
-					if has_key(allitems[i], 'title') && allitems[i].title == parent
-						let existingparent = allitems[i]
-						break
-					endif
-				endfor
-				if !empty(existingparent)
-					call add(existingparent.items, #{type: type, description: description, done: isDone, parent: parent})
-				else
-					call add(allitems, #{type: type, title: parent, items:[#{type: type, description: description, done: isDone, parent: parent}]})
-				endif
-			elseif type!='' && parent==''
-				call add(allitems, #{type: type, description: CapitalizeFirstLetter(line[:stridx(line, ' @'.type)-1]), done: isDone})
-			elseif type=='' && parent!=''
-				let existingparent = {}
-				for i in range(len(allitems))
-					if has_key(allitems[i], 'title') && allitems[i].title == parent
-						let existingparent = allitems[i]
-						break
-					endif
-				endfor
-				call add(existingparent.items, #{type: type, description: CapitalizeFirstLetter(line[:stridx(line, ' +'.type)-1]), done: isDone, parent: parent})
+		let item = ParseTodoItem(line)
+		let item.isDone = (i > todomaxindex)
+		call add(items, item)
+	endfor
+	let itemsToRender = []
+	let mantras = []
+	for itm in items
+		if has_key(itm, 'mantra')
+			let existingMantras = filter(copy(mantras), { _,x -> x.title == itm.mantra})
+			if len(existingMantras) == 0
+				call add(mantras, #{ title: itm.mantra, priority: itm.priority, items: [itm] })
+			else
+				call add(existingMantras[0].items, itm)
 			endif
+		elseif has_key(itm, 'group')
+			let existingGroups = filter(copy(itemsToRender), { _,x -> has_key(x, 'title') && x.title == itm.group})
+			if len(existingGroups) == 0
+				call add(itemsToRender, #{ title: itm.group, priority: itm.priority, items: [itm] })
+			else
+				call add(existingGroups[0].items, itm)
+			endif
+		else
+			call add(itemsToRender, itm)
 		endif
 	endfor
-
+	let itemsToRender = mantras + itemsToRender
 	let todoHtml = []
 	let doneHtml = []
 	let ideasHtml = []
 	let doneParentsAlreadyProcessed = []
-
-	for itm in allitems
+	for itm in itemsToRender
 		if has_key(itm, 'title') && index(doneParentsAlreadyProcessed, itm.title) == -1
-			for item in itm.items
-				let item.type = itm.type
-			endfor
-			if len(filter(copy(itm.items), {_,x->!x.done})) == 0
+			if len(filter(copy(itm.items), {_,x->!x.isDone})) == 0
 				call add(doneHtml, BuildDoneTodoParentItemHtml(itm))
 				call add(doneParentsAlreadyProcessed, itm.title)
 			else
-				call add((itm.type == 'planned' ? todoHtml : ideasHtml), BuildUnfinishedTodoParentItemHtml(itm))
-				for i in filter(copy(itm.items), {_,x->x.done})
+				call add((itm.priority >= 1 ? todoHtml : ideasHtml), BuildUnfinishedTodoParentItemHtml(itm))
+				for i in filter(copy(itm.items), {_,x->x.isDone})
 					call add(doneHtml, BuildTodoItemHtml(i))
 				endfor
 			endif
 		else
-			if itm.done
+			if itm.isDone
 					call add(doneHtml, BuildTodoItemHtml(itm))
 			else
-					call add((itm.type == 'planned' ? todoHtml : ideasHtml), BuildTodoItemHtml(itm))
+					call add((itm.priority >= 1 ? todoHtml : ideasHtml), BuildTodoItemHtml(itm))
 			endif
 		endif
 	endfor
 	let html = BuildHtml(join(todoHtml,''), join(doneHtml,''), join(ideasHtml,''))
 	call writefile([html], $desktop.'/tmp/today.html')
 	call OpenWebUrl('',expand($desktop.'/tmp/today.html', ':p'))
+endfunction
+
+function! ParseTodoItem(line)
+	let res = #{ priority: 0 }
+	let descriptionstart = 0
+	let descriptionend = len(a:line)-1
+	if (a:line =~ '^#')
+		if (stridx(a:line, '@ ') != -1)
+			echoerr printf('%s should have either a priority (@), either a mantra (#), but not both', res.description)
+		endif
+		let res.mantra = CapitalizeFirstLetter(matchlist(a:line, '#\(\S\+\)')[1])
+		let res.priority = 9
+		let descriptionstart = len(res.mantra)+1
+	elseif (a:line =~ '^@')
+			let descriptionstart = 1
+		for i in range(1,3)
+			let priorityPattern = '^'.repeat('@',i)
+			if (a:line =~ priorityPattern)
+				let res.priority += 1
+				let descriptionstart += 1
+			else
+				break
+			endif
+		endfor
+	endif
+	if (stridx(a:line, ' #') != -1)
+		let res.group = CapitalizeFirstLetter(a:line[stridx(a:line, ' #')+2:])
+		let descriptionend = stridx(a:line, ' #')-1
+	endif
+	let res.description = CapitalizeFirstLetter(a:line[descriptionstart:descriptionend])
+	return res
 endfunction
 
 function! CapitalizeFirstLetter(string)
@@ -1125,23 +1135,23 @@ function! HtmlEncode(string)
 endfunction
 
 function! BuildHtml(todoHtml, doneHtml, ideasHtml)
-	return join(['<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><style type="text/css" media="screen">.planned{background:#b2d0e4!important}.emergency{background:#fb8072!important}.improvement{background:#8dd3c7!important}.workflow{background:#ffffb3!important}body{margin: 0px; height: 100%; font-family: georgia}#main{display: flex; flex-direction: column; background:#2C2C29; min-height:100%;}#legend{padding: 5px; background: #bebada; display: flex; justify-content: space-around;}#legend>span{padding: 5px; border-radius:25px; font-weight:bold;}#content{flex-grow: 1; font-size:x-large;}#todoHeader{text-align: center; background:#fabd2f;}#doneHeader{text-align: center; background:#b3de69;}#ideasHeader{text-align: center; background:#fdb462;}#content>table>tbody>tr>th{padding:0px 10px 1px 10px; margin:2px; height:42px;}.columncontent{height:100%;}.item{background:lightgrey; border-radius:5px; padding:0px 10px 1px 10px; margin:4px; display: flex;}.item>div{overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}.item>div:first-child{max-width: 25%; width: 25%; font-weight: bold;}.item>div:last-child{max-width:75%; width:75%; font-style: italic;}.item>div:only-child{max-width:100%; width:100%; font-weight: normal; font-style:normal;}.itemparent{background:lightgrey; border-radius:5px; padding:0px 10px 1px 10px; margin:4px;}.itemparent>div:first-child{font-weight:bold; margin:2px; padding:2px; display:inline-block; text-decoration:underline;}.striked{text-decoration:line-through;}ul{margin:0px 0px 5px 0px;}li>div{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}</style><title>TODO</title></head><body><div id="main"><div id="legend"><span class="planned">PLANNED</span><span class="emergency">EMERGENCY</span><span class="improvement">IMPROVEMENT</span><span class="workflow">WORKFLOW</span></div><div id="content" height="100%"><table width="100%" height="100%" style="table-layout:fixed;"><tr><th id="todoHeader">! TODO !</td><th id="doneHeader"><u>DONE</u></td><th id="ideasHeader">? IDEAS ?</td></tr><tr><td><div class="columncontent">', a:todoHtml, '</div></td><td><div class="columncontent">', a:doneHtml, '</div></td><td><div class="columncontent">', a:ideasHtml, '</div></td></tr></table></div></div></body></html>'], '')
+	return join(['<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><style type="text/css" media="screen">.priority-1{background:#b2d0e4!important}.priority-3{background:#fb8072!important}.priority-2{background:#8dd3c7!important}.priority-0{background:#ffffb3!important}.priority-9{background:#d8e7f1!important}body{margin: 0px; height: 100%; font-family: georgia}#main{display: flex; flex-direction: column; background:#2C2C29; min-height:100%;}#content{flex-grow: 1; font-size:x-large;}#todoHeader{text-align: center; background:#fabd2f;}#doneHeader{text-align: center; background:#b3de69;}#ideasHeader{text-align: center; background:#fdb462;}#content>table>tbody>tr>th{padding:0px 10px 1px 10px; margin:2px; height:42px;}.columncontent{height:100%;}.item{background:lightgrey; border-radius:5px; padding:0px 10px 1px 10px; margin:4px; display: flex;}.item>div{overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}.item>div:first-child{max-width: 25%; width: 25%; font-weight: bold;}.item>div:last-child{max-width:75%; width:75%; font-style: italic;}.item>div:only-child{max-width:100%; width:100%; font-weight: normal; font-style:normal;}.itemparent{background:lightgrey; border-radius:5px; padding:0px 10px 1px 10px; margin:4px;}.itemparent>div:first-child{font-weight:bold; margin:2px; padding:2px; display:inline-block; text-decoration:underline;}.striked{text-decoration:line-through;}ul{margin:0px 0px 5px 0px;}li>div{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}</style><title>TODO</title></head><body><div id="main"><div id="content" height="100%"><table width="100%" height="100%" style="table-layout:fixed;"><tr><th id="todoHeader">THE PLAN</td><th id="doneHeader"><u>DONE</u></td><th id="ideasHeader">TODOLIST</td></tr><tr><td><div class="columncontent">', a:todoHtml, '</div></td><td><div class="columncontent">', a:doneHtml, '</div></td><td><div class="columncontent">', a:ideasHtml, '</div></td></tr></table></div></div></body></html>'], '')
 endfunction
 
 function! BuildTodoItemHtml(todoItem)
 	if get(a:todoItem, 'parent', '') != ''
-		return printf('<div class="item %s"><div title="%s">%s</div><div title="%s">%s</div></div>', a:todoItem.type, HtmlEncode(a:todoItem.parent), HtmlEncode(a:todoItem.parent), HtmlEncode(a:todoItem.description), HtmlEncode(a:todoItem.description))
+		return printf('<div class="item priority-%d"><div title="%s">%s</div><div title="%s">%s</div></div>', a:todoItem.priority, HtmlEncode(a:todoItem.parent), HtmlEncode(a:todoItem.parent), HtmlEncode(a:todoItem.description), HtmlEncode(a:todoItem.description))
 	else
-		return printf('<div class="item %s"><div title="%s">%s</div></div>', a:todoItem.type, HtmlEncode(a:todoItem.description), HtmlEncode(a:todoItem.description))
+		return printf('<div class="item priority-%d"><div title="%s">%s</div></div>', a:todoItem.priority, HtmlEncode(a:todoItem.description), HtmlEncode(a:todoItem.description))
 	endif
 endfunction
 
 function! BuildUnfinishedTodoParentItemHtml(parentItem)
-	return printf('<div class="itemparent %s"><div>%s</div><ul>%s</ul></div>', HtmlEncode(a:parentItem.type), HtmlEncode(a:parentItem.title), BuildListOfUnfinishedTodoItemsHtml(a:parentItem.items))
+	return printf('<div class="itemparent priority-%d"><div>%s</div><ul>%s</ul></div>', HtmlEncode(a:parentItem.priority), HtmlEncode(a:parentItem.title), BuildListOfUnfinishedTodoItemsHtml(a:parentItem.items))
 endfunction
 
 function! BuildListOfUnfinishedTodoItemsHtml(todoItems)
-	return join(map(copy(a:todoItems), {_,x -> printf('<li%s title="%s">%s</li>', GetHtmlClassAttributeByDoneState(x.done), HtmlEncode(x.description), HtmlEncode(x.description))}), '')
+	return join(map(copy(a:todoItems), {_,x -> printf('<li%s title="%s">%s</li>', GetHtmlClassAttributeByDoneState(x.isDone), HtmlEncode(x.description), HtmlEncode(x.description))}), '')
 endfunction
 
 function! GetHtmlClassAttributeByDoneState(isDone)
@@ -1149,7 +1159,7 @@ function! GetHtmlClassAttributeByDoneState(isDone)
 endfunction
 
 function! BuildDoneTodoParentItemHtml(parentItem)
-	return printf('<div class="itemparent %s"><div>%s</div><ul>%s</ul></div>', HtmlEncode(a:parentItem.type), HtmlEncode(a:parentItem.title), BuildListOfDoneTodoItemsHtml(a:parentItem.items))
+	return printf('<div class="itemparent priority-%d"><div>%s</div><ul>%s</ul></div>', HtmlEncode(a:parentItem.priority), HtmlEncode(a:parentItem.title), BuildListOfDoneTodoItemsHtml(a:parentItem.items))
 endfunction
 
 function! BuildListOfDoneTodoItemsHtml(doneItems)
@@ -1237,7 +1247,7 @@ augroup mydiagrams
 	autocmd BufRead      *.puml_state           set ft=plantuml_state
 	autocmd BufRead      *.puml_usecase         set ft=plantuml_usecase
 	autocmd BufRead      *.puml_workbreakdown   set ft=plantuml_workbreakdown
-	autocmd BufRead      *.puml_*               silent nnoremap <buffer> <Leader>w :CompileDiagramAndShowImage png<CR>
+	autocmd BufRead      *.puml_*               silent nnoremap <buffer> <Leader>w :w<CR>
 	autocmd BufWritePost *.puml_*               silent CompileDiagramAndShowImage png
 	autocmd FileType     dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
