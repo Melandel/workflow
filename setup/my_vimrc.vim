@@ -917,6 +917,7 @@ augroup my_dirvish
 	autocmd FileType dirvish nnoremap <silent> <buffer> t :call OpenTree('')<CR>
 	autocmd FileType dirvish nnoremap <buffer> T :call OpenTree('df')<left><left><left>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :Lcd \| e .<CR>
+	autocmd FileType dirvish nmap <silent> <buffer> <leader>w vv<leader>w<CR>
 augroup end
 
 " Web Browsing" -----------------------{{{
