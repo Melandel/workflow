@@ -27,7 +27,7 @@ CapsLock & f::Send ^f
 CapsLock & g::Send ^g
 CapsLock & h::Send ^h
 CapsLock & i::Send ^i
-#If WinActive("GVIM")
+#If !WinActive("GVIM")
 CapsLock & i::Send {Tab}
 #If
 CapsLock & j::Send ^j
@@ -36,7 +36,7 @@ CapsLock & l::Send ^l
 CapsLock & m::Send ^m
 CapsLock & n::Send ^n
 CapsLock & o::Send ^o
-#If WinActive("GVIM")
+#If !WinActive("GVIM")
 CapsLock & o::Send +{Tab}
 #If
 CapsLock & p::Send ^p
