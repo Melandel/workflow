@@ -516,6 +516,7 @@ cnoremap µ **/*$<left>
 " Wild Menu" --------------------------{{{
 set wildmenu
 set wildcharm=<Tab>
+cnoremap <C-O> <S-tab> " because <C-I> is <tab>
 set wildignorecase
 set wildmode=full
 
