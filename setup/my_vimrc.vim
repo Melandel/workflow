@@ -267,9 +267,6 @@ nnoremap <silent> <Leader>= <C-W>=
 nnoremap <silent> <Leader>\| <C-W>\|
 nnoremap <silent> <Leader>_ <C-W>_
 
-" Alternate file fast switching
-noremap <Leader>d <C-^>
-
 " Status bar" -------------------------{{{
 set laststatus=2
 
@@ -630,7 +627,7 @@ nnoremap <silent> H :call CycleWindowBuffersHistoryBackwards()<CR>
 nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
 
 " Fuzzy Finder"------------------------{{{
-let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o --bind up:preview-up,down:preview-down"
+let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b --bind up:preview-up,down:preview-down"
 let g:fzf_preview_window = 'right:60%'
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
 augroup my_fzf"------------------------{{{
@@ -934,7 +931,7 @@ function! OpenWebUrl(firstPartOfUrl,...)
 	let finalPartOfUrl = substitute(finalPartOfUrl, '"', '\\"', 'g')
 	let url = a:firstPartOfUrl . finalPartOfUrl
 	let url = escape(url, '%#')
-	silent! execute '! start firefox "" "' . url . '"'
+	let s:job= job_start('firefox "'.url.'"')
 endfun
 command! -nargs=* -range Web :call OpenWebUrl('', <f-args>)
 nnoremap <Leader>w :Web <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
@@ -1169,117 +1166,125 @@ endfunction
 command! RenderTodoList call RenderTodoList($desktop.'/todo', $desktop.'/done')
 command! Todo call RenderTodoList($desktop.'/todo', $desktop.'/done')
 " Diagrams"----------------------------{{{
-function! CreateDiagramFile()
-	let extension = 'puml_'
-	let diagramtype = trim(input ('Diagram type? ([g]raph, [s]equence, [a]ctivity, [m]indmap, [c]lass, [C]omponent, [e]ntities, [S]tate, [u]secase, [w]orkbreakdown):'))
-	if diagramtype == ''
-		return
-	elseif trim(diagramtype) ==# 'g'
-		let extension .= 'dot'
-	elseif trim(diagramtype) ==# 's'
-		let extension .= 'sequence'
-	elseif trim(diagramtype) ==# 'a'
-		let extension .= 'activity'
-	elseif trim(diagramtype) ==# 'm'
-		let extension .= 'mindmap'
-	elseif trim(diagramtype) ==# 'c'
-		let extension .= 'class'
-	elseif trim(diagramtype) ==# 'C'
-		let extension .= 'component'
-	elseif trim(diagramtype) ==# 'e'
-		let extension .= 'entities'
-	elseif trim(diagramtype) ==# 'S'
-		let extension .= 'state'
-	elseif trim(diagramtype) ==# 'u'
-		let extension .= 'usecase'
-	elseif trim(diagramtype) ==# 'w'
-		let extension .= 'workbreakdown'
-	else
-		return
+function! Diagram(lines)"-----------------{{{
+	if len(a:lines) < 2 | return | endif
+	let file_or_diagramtype = a:lines[1]
+	let cmd=''
+		echomsg file_or_diagramtype
+	if glob(file_or_diagramtype) != ''
+		let file = file_or_diagramtype
+		let cmd = get({
+			\'ctrl-x': 'split',
+			\'ctrl-j': 'split',
+			\'ctrl-v': 'vertical split',
+			\'ctrl-k': 'vertical split',
+			\'ctrl-t': 'tabe',
+			\'ctrl-o': 'tabe',
+			\'ctrl-b': 'CompileDiagramAndShowImage png'}, a:lines[0], 'e')
+			execute(cmd . ' ' .file)
+		else
+			let diagramtype = file_or_diagramtype
+			let title = input('Title:')
+			while glob($desktop.'/tmp/'.title.'.puml_'.diagramtype) != ''
+				redraw
+				let title= input('This file already exists! Pick another title:')
+			endwhile
+			let cmd = get({
+				\'ctrl-x': 'split',
+				\'ctrl-j': 'split',
+				\'ctrl-v': 'vertical split',
+				\'ctrl-k': 'vertical split',
+				\'ctrl-t': 'tabe',
+				\'ctrl-o': 'tabe'}, a:lines[0], 'e')
+			execute(cmd . ' ' .$desktop.'/tmp/'.title.'.puml_'.diagramtype)
+			write
 	endif
-	let filename = input('Title:')
-	if trim(filename) == ''
-		return
-	elseif !empty(glob(filename.'.'.extension))
-		redraw
-		echomsg printf('"%s" already exists.', filename.'.'.extension)
-		return
-	endif
-	let cmd = printf(':!start /b copy /y NUL "%s" >NUL', filename.'.'.extension)
-	silent execute(cmd)
-	normal R
-	silent exec(printf('/\<%s\>', filename))
-	nohlsearch
 endfunction
 
-function! CompileDiagramAndShowImage(outputExtension)
-	exec printf('!plantuml -t%s -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(&ft), expand('%:p'))
-	redraw!
-	call OpenWebUrl('', expand('%:p:r').'.'.a:outputExtension)
+function! ExploreDiagrams()
+	let types = ['activity', 'mindmap', 'sequence', 'workbreakdown', 'class', 'component', 'entities', 'state', 'usecase', 'dot']
+	let diagrams = expand($desktop.'/tmp/*.puml*', 0, 1)
+	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': types+diagrams,'sink*': function('Diagram'), 'options': ['--prompt', 'Diagrams> ']})))
+endfunction
+command! ExploreDiagrams call ExploreDiagrams()
+nnoremap <leader>d :ExploreDiagrams<CR>
+nnoremap <leader>D :vs\|Dirvish <C-R>=expand('$HOME/Downloads')<CR><CR>
+
+function! Echo(chan,msg)
+	echomsg '[chann '.a:chan.'] [msg '.a:msg.']'
+endfunc
+
+function! ErrEcho(chan, msg)
+	echomsg 'err'
+	call Echo(a:chan, a:msg)
+endfunc
+
+function! ExitEcho(chan, msg)
+	echomsg 'exit'
+	call Echo(a:chan, a:msg)
+endfunc
+
+function! CallbackEcho(chan, msg)
+	echomsg 'callback'
+	call Echo(a:chan, a:msg)
+endfunc
+
+function! OutEcho(chan, msg)
+	echomsg 'out'
+	call Echo(a:chan, a:msg)
+endfunc
+
+function! CloseEcho(chan)
+	echomsg 'closing channel'.a:chan
+endfunc
+
+function! Exit(outputfile, channelInfos, status)
+	if (a:status != 0)
+		echoerr 'Exit status '.a:status
+	endif
+	call OpenWebUrl('', a:outputfile)
+endfunc
+
+function! CompileDiagramAndShowImage(outputExtension, ...)
+	let inputfile = (a:0 == 2) ? a:2 : expand('%:p')
+	let cmd = printf('plantuml -t%s -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(inputfile,':e')), inputfile)
+	let outputfile = fnamemodify(inputfile, ':r').'.'.a:outputExtension
+	let g:job = job_start('cmd /C '.cmd, { 'callback': 'CallbackEcho', 'out_cb': 'OutEcho', 'err_cb': 'ErrEcho', 'close_cb': 'CloseEcho', 'exit_cb': function('Exit', [outputfile]) })
 endfunction
 
-function GetPlantumlConfigFile(filetype)
+function GetPlantumlConfigFile(fileext)
 	let configfilebyft = #{
-		\plantuml_activity:      'styles',
-		\plantuml_mindmap:       'styles',
-		\plantuml_sequence:      'styles',
-		\plantuml_workbreakdown: 'styles',
-		\plantuml_class:         'skinparams',
-		\plantuml_component:     'skinparams',
-		\plantuml_entities:      'skinparams',
-		\plantuml_state:         'skinparams',
-		\plantuml_usecase:       'skinparams',
-		\plantuml_dot:           'graphviz'
+		\puml_activity:      'styles',
+		\puml_mindmap:       'styles',
+		\puml_sequence:      'styles',
+		\puml_workbreakdown: 'styles',
+		\puml_class:         'skinparams',
+		\puml_component:     'skinparams',
+		\puml_entities:      'skinparams',
+		\puml_state:         'skinparams',
+		\puml_usecase:       'skinparams',
+		\puml_dot:           'graphviz'
 	\}
-	return $HOME.'/Desktop/setup/my_plantuml_'.configfilebyft[a:filetype].'.config'
+	return $HOME.'/Desktop/setup/my_plantuml_'.configfilebyft[a:fileext].'.config'
 endfunction
-command! -nargs=1 CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
+command! -nargs=* -bar CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
 
 augroup mydiagrams
 	autocmd!
-	autocmd BufRead      *.puml_dot             set ft=plantuml_dot
-	autocmd BufRead      *.puml_activity        set ft=plantuml_activity
-	autocmd BufRead      *.puml_class           set ft=plantuml_class
-	autocmd BufRead      *.puml_component       set ft=plantuml_component
-	autocmd BufRead      *.puml_entities        set ft=plantuml_entities
-	autocmd BufRead      *.puml_mindmap         set ft=plantuml_mindmap
-	autocmd BufRead      *.puml_sequence        set ft=plantuml_sequence
-	autocmd BufRead      *.puml_state           set ft=plantuml_state
-	autocmd BufRead      *.puml_usecase         set ft=plantuml_usecase
-	autocmd BufRead      *.puml_workbreakdown   set ft=plantuml_workbreakdown
-	autocmd BufRead      *.puml_*               silent nnoremap <buffer> <Leader>w :w<CR>
-	autocmd BufWritePost *.puml_*               silent CompileDiagramAndShowImage png
-	autocmd FileType     dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
+	autocmd BufRead,BufNewFile *.puml_dot             set ft=plantuml_dot
+	autocmd BufRead,BufNewFile *.puml_activity        set ft=plantuml_activity
+	autocmd BufRead,BufNewFile *.puml_class           set ft=plantuml_class
+	autocmd BufRead,BufNewFile *.puml_component       set ft=plantuml_component
+	autocmd BufRead,BufNewFile *.puml_entities        set ft=plantuml_entities
+	autocmd BufRead,BufNewFile *.puml_mindmap         set ft=plantuml_mindmap
+	autocmd BufRead,BufNewFile *.puml_sequence        set ft=plantuml_sequence
+	autocmd BufRead,BufNewFile *.puml_state           set ft=plantuml_state
+	autocmd BufRead,BufNewFile *.puml_usecase         set ft=plantuml_usecase
+	autocmd BufRead,BufNewFile *.puml_workbreakdown   set ft=plantuml_workbreakdown
+	autocmd BufRead,BufNewFile *.puml_*               silent nnoremap <buffer> <Leader>w :w<CR>
+	autocmd BufWritePost       *.puml_*               if line('$') > 1 | CompileDiagramAndShowImage png | endif
+	autocmd FileType           dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
-
-function DotDetectGraphType()
-	return stridx(getline('1'), 'digraph') == -1 ? 'graph' : 'digraph'
-endfunction
-
-function DotDetectNodeOrEdge()
-	let p = PreviousCharacter()
-	if p == ' '
-		return 'edge'
-	elseif p =~'\a'
-		return 'node'
-	else
-		return 'nop'
-	endif
-endfunction
-
-function DotAutocomplete()
-	let insert = "\<Esc>a"
-	let nodeOrEdge = DotDetectNodeOrEdge()
-	if (nodeOrEdge == 'node')
-		let insert .= (stridx(getline(':'), '[label=') == -1) ? " [label=\"\"]\<left>\<left>" : "\<Tab>"
-	elseif (nodeOrEdge == 'edge')
-		let edgeAutocomplete = DotDetectGraphType() == 'graph' ? '-- ' : '-> '
-		let insert .= (stridx(getline('.'), '-') == -1) ? edgeAutocomplete : ((stridx(getline(':'), '[') == -1) ? "[]\<left>" : "\<Tab>")
-	else
-		let insert .= "\<Tab>"
-	endif
-	return insert
-endfunction
 
 " Specific Workflows:------------------{{{
 " cs(c#)" -----------------------------{{{
