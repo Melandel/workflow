@@ -4,8 +4,19 @@ SetTitleMatchMode, 2
 ; £ -> Remapping:On/Off
 LShift & $::Suspend
 
-; CapsLock -> Escape / Ctrl
+; § <-> Switch in and out of vim
+vkA0 & vkDF::
+If WinActive("GVIM")
+	Send ^z
+Else
+	Send #{vk31}
+return
+
+;;; CAPSLOCK ;;;
+; CapsLock -> Escape
 CapsLock::Send {esc}
+
+; CapsLock + Key -> Ctrl + Key
 CapsLock & $::Send ^$
 CapsLock & a::Send ^a
 CapsLock & b::Send ^b
@@ -16,14 +27,23 @@ CapsLock & f::Send ^f
 CapsLock & g::Send ^g
 CapsLock & h::Send ^h
 CapsLock & i::Send ^i
+#If WinActive("GVIM")
+CapsLock & i::Send {Tab}
+#If
 CapsLock & j::Send ^j
 CapsLock & k::Send ^k
 CapsLock & l::Send ^l
 CapsLock & m::Send ^m
 CapsLock & n::Send ^n
 CapsLock & o::Send ^o
+#If WinActive("GVIM")
+CapsLock & o::Send +{Tab}
+#If
 CapsLock & p::Send ^p
 CapsLock & q::Send ^q
+#If WinActive("Guild Wars")
+CapsLock & q::Send {esc}
+#If
 CapsLock & r::Send ^r
 CapsLock & s::Send ^s
 CapsLock & t::Send ^t
@@ -33,8 +53,14 @@ CapsLock & w::Send ^w
 CapsLock & x::Send ^x
 CapsLock & y::Send ^y
 CapsLock & z::Send ^z
+CapsLock & Tab::
+If  GetKeyState("Shift")
+	Send ^+{Tab}
+Else
+	Send ^{Tab}
+return
 
-; Alphanumeric keys
+; CapsLock + Alphanumeric key <=> Windows + Alphanumeric key
 CapsLock & vk31::Send #{vk31}
 CapsLock & vk32::Send #{vk32}
 CapsLock & vk33::Send #{vk33}
@@ -46,42 +72,22 @@ CapsLock & vk38::Send #{vk38}
 CapsLock & vk39::Send #{vk39}
 CapsLock & vk30::Send #{vk30}
 
-; Others
-; Capslock & ù
+; Capslock & ù <-> Windows
 CapsLock & vkC0::Send {LWin down}{LWin up}
-; CapsLock & ,
+
+; CapsLock + [,/;] <=> Down/Up
 CapsLock & vkBC::Send {Down}
-
-; CapsLock & ;
 CapsLock & vkBE::Send {Up}
-
-
-; § for switching in and out of vim
-vkA0 & vkDF::
-If WinActive("GVIM")
-	Send ^z
-Else
-	Send #{vk31}
-return
-
-CapsLock & Tab::
-If  GetKeyState("Shift")
-	Send ^+{Tab}
-Else
-	Send ^{Tab}
-return
-
 
 ; ² -> Screenshot
 #If !WinActive("Warcraft III")
 vkDE::Send #+S
 #If
 
-#If WinActive("Guild Wars")
-CapsLock & q::Send {esc}
-#If
-
 #If not WinActive("GVIM")
+; Close window
+CapsLock & q::Send !{F4}
+
 ; Enter, Arrows, Backspace / Del
 CapsLock & m::Send {Enter}
 CapsLock & h::Send {Backspace}
@@ -111,17 +117,9 @@ If GetKeyState("Shift", "P")
 Else
 	Send {Right}
 Return
-
-CapsLock & f::Send !{Esc} ; Next window
-CapsLock & d::Send !+{Esc} ; Previous window
-CapsLock & s::Send {RAlt Down}{Tab}{RAlt Up} ; MultiTaskingView
-CapsLock & q::Send !{F4} ; Close window
-CapsLock & g::Send #d ; go to Desktop
-
-CapsLock & o::Send {vk5D} ; Right click
 #If
 
-; caret (^)
+;;; caret (^) ;;;
 $vkDD::
 	if waitingForNextKey
 	{
@@ -224,4 +222,3 @@ v::
 	waitingfornextkey := false
 return
 #If
-
