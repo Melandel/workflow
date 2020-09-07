@@ -28,6 +28,7 @@ function! MinpacInit()
 	call minpac#add('Melandel/fzfcore.vim')
 	call minpac#add('Melandel/gvimtweak')
 	call minpac#add('Melandel/vim-amake')
+	call minpac#add('mhinz/vim-randomtag')
 endfunction
 command! -bar MinPacInit call MinpacInit()
 command! -bar MinPacUpdate call MinpacInit()| call minpac#clean()| call minpac#update()
@@ -877,7 +878,7 @@ function! PreviewFile(splitcmd, giveFocus)
 	else
 		call win_gotoid(previewwinid)
 		if win_getid() == previewwinid
-			exec("edit ".path)
+			exec("silent edit ".path)
 		else
 			exec(a:splitcmd. ' ' .path)
 			call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
@@ -1005,7 +1006,7 @@ augroup dashboard
 	autocmd BufWritePost      done              redraw | echo 'Good job! :D'
 	autocmd BufWritePost           achievements redraw | echo 'You did great ;)'
 	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
-	autocmd TextChanged  todo,done,achievements set buftype= | write
+	autocmd TextChanged  todo,done,achievements set buftype= | silent write
 	autocmd BufEnter     todo,done,achievements setlocal omnifunc=TodoTags 
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> <Leader>w :Todo<CR> 
 augroup end
@@ -1199,7 +1200,7 @@ function! Diagram(lines)"-----------------{{{
 				\'ctrl-t': 'tabe',
 				\'ctrl-o': 'tabe'}, a:lines[0], 'e')
 			execute(cmd . ' ' .$desktop.'/tmp/'.title.'.puml_'.diagramtype)
-			write
+			silent write
 	endif
 endfunction
 
@@ -1212,38 +1213,51 @@ command! ExploreDiagrams call ExploreDiagrams()
 nnoremap <leader>d :ExploreDiagrams<CR>
 nnoremap <leader>D :vs\|Dirvish <C-R>=expand('$HOME/Downloads')<CR><CR>
 
-function! Echo(chan,msg)
-	echomsg '[chann '.a:chan.'] [msg '.a:msg.']'
+function! Echo(channelInfos,msg,...)
+	let type = (a:0==3) ? a:3 : ''
+	let msg = ''
+	if a:msg != ''
+		let msg  = '  '
+		let msg .= (type != '') ? ('['.type.'] ') : ''
+		let msg .= a:msg
+	else
+		let msg  = '['
+		let msg .= (type != '') ? (type.'(') : ''
+		let msg .= a:channelInfos
+		let msg .= (type != '') ? (')') : ''
+		let msg .= '] '
+	endif
+	echomsg msg
 endfunc
 
 function! ErrEcho(chan, msg)
-	echomsg 'err'
-	call Echo(a:chan, a:msg)
+	call Echo(a:chan, a:msg, 'err')
 endfunc
 
 function! ExitEcho(chan, msg)
-	echomsg 'exit'
-	call Echo(a:chan, a:msg)
+	call Echo(a:chan, a:msg, 'exit')
 endfunc
 
 function! CallbackEcho(chan, msg)
-	echomsg 'callback'
-	call Echo(a:chan, a:msg)
+	call Echo(a:chan, a:msg, 'callback')
 endfunc
 
 function! OutEcho(chan, msg)
-	echomsg 'out'
-	call Echo(a:chan, a:msg)
+	call Echo(a:chan, a:msg, 'out')
 endfunc
 
 function! CloseEcho(chan)
-	echomsg 'closing channel'.a:chan
+	let s:closingjobmsg = '['.a:chan
 endfunc
 
 function! Exit(outputfile, channelInfos, status)
-	if (a:status != 0)
-		echoerr 'Exit status '.a:status
+	if a:status != 0
+		let s:closingjobmsg .= (' (status='.a:status.')]')
+		echomsg s:closingjobmsg
+		return
 	endif
+	let s:closingjobmsg .= (']')
+	echomsg s:closingjobmsg
 	call OpenWebUrl('', a:outputfile)
 endfunc
 
@@ -1283,7 +1297,7 @@ augroup mydiagrams
 	autocmd BufRead,BufNewFile *.puml_state           set ft=plantuml_state
 	autocmd BufRead,BufNewFile *.puml_usecase         set ft=plantuml_usecase
 	autocmd BufRead,BufNewFile *.puml_workbreakdown   set ft=plantuml_workbreakdown
-	autocmd BufRead,BufNewFile *.puml_*               silent nnoremap <buffer> <Leader>w :w<CR>
+	autocmd BufRead,BufNewFile *.puml_*               silent nnoremap <buffer> <Leader>w :silent w<CR>
 	autocmd BufWritePost       *.puml_*               if line('$') > 1 | CompileDiagramAndShowImage png | endif
 	autocmd FileType           dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
