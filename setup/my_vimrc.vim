@@ -657,6 +657,7 @@ endfunction
 command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
 
 " Autocompletion (Insert Mode)" -------{{{
+set completeopt+=noinsert
 inoremap <C-O> <C-X><C-O>
 " set completefunc=MyCompletion
 " function! MyCompletion(findstart, base)
