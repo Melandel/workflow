@@ -161,6 +161,77 @@ function! ClearTrailingWhiteSpaces()
 endfunction
 command ClearTrailingWhiteSpaces call ClearTrailingWhiteSpaces()
 
+function! OmnifunctionExample(findstart, base)
+	if a:findstart
+		return col('.')
+	endif
+	let previouschar = PreviousCharacter()
+	if previouschar == '@'
+		return ['workflow', 'planned', 'improvement', 'emergency']
+	elseif previouschar == '+'
+  let hits = []
+		call substitute(join(readfile($desktop.'/todo')), '\v\+(\S)+', '\=len(add(hits, submatch(0))) ? submatch(0) : ""', 'gne')
+		call substitute(join(readfile($desktop.'/done')), '\v\+(\S)+', '\=len(add(hits, submatch(0))) ? submatch(0) : ""', 'gne')
+		return map(uniq(sort(hits)), {_,x->x[1:]})
+	endif
+	return ['toto', previouschar]
+endfunction
+
+function! JobStartExample()
+	let cmd = 'dir'
+	let additionalArgument = 'additional argument right here!'
+	let s:job = job_start(
+		\'cmd /C '.cmd,
+		\{
+		 \'callback': 'JobCallbackEcho',
+			\'out_cb':   'JobOutEcho',
+			\'err_cb':   'JobErrEcho',
+			\'close_cb': 'JobCloseEcho',
+			\'exit_cb':  { chann,msg-> execute('echomsg "foo"', '') }
+		\}
+	\)
+endfunction
+function! JobEcho(channelInfos,msg,...)
+	let type = (a:0==3) ? a:3 : ''
+	let msg = ''
+	if a:msg != ''
+		let msg = (type != '') ? ('['.type.'] ') : ''
+		let msg .= a:msg
+	else
+		let msg  = '['
+		let msg .= (type != '') ? (type.'(') : ''
+		let msg .= a:channelInfos
+		let msg .= (type != '') ? (')') : ''
+		let msg .= '] '
+	endif
+	echomsg msg
+endfunc
+function! JobErrEcho(chan, msg)
+	call JobEcho(a:chan, a:msg, 'err')
+endfunc
+function! JobCallbackEcho(chan, msg)
+	call JobEcho(a:chan, a:msg, 'callback')
+endfunc
+function! JobOutEcho(chan, msg)
+	call JobEcho(a:chan, a:msg, 'out')
+endfunc
+function! JobCloseEcho(chan)
+	let s:closingjobmsg = '['.a:chan
+endfunc
+function! JobExitEcho(channelInfos, status)
+	if a:status != 0
+		let s:closingjobmsg .= (' (status='.a:status.')]')
+		echomsg s:closingjobmsg
+		return
+	endif
+	let s:closingjobmsg .= ('] Success!')
+	echomsg s:closingjobmsg
+endfunc
+function! JobExitEchoWithAdditionalArguments(additionalArgument, channelInfos, status)
+	call JobExitEcho(a:channelInfos, a:status)
+	echomsg a:additionalArgument
+endfunc
+
 " AZERTY Keyboard:---------------------{{{
 " AltGr keys" -------------------------{{{
 inoremap ^q {|		cnoremap ^q {
@@ -1007,25 +1078,9 @@ augroup dashboard
 	autocmd BufWritePost           achievements redraw | echo 'You did great ;)'
 	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
 	autocmd TextChanged  todo,done,achievements set buftype= | silent write
-	autocmd BufEnter     todo,done,achievements setlocal omnifunc=TodoTags 
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> <Leader>w :Todo<CR> 
 augroup end
 
-function! TodoTags(findstart, base)
-	if a:findstart
-		return col('.')
-	endif
-	let previouschar = PreviousCharacter()
-	if previouschar == '@'
-		return ['workflow', 'planned', 'improvement', 'emergency']
-	elseif previouschar == '+'
-  let hits = []
-		call substitute(join(readfile($desktop.'/todo')), '\v\+(\S)+', '\=len(add(hits, submatch(0))) ? submatch(0) : ""', 'gne')
-		call substitute(join(readfile($desktop.'/done')), '\v\+(\S)+', '\=len(add(hits, submatch(0))) ? submatch(0) : ""', 'gne')
-		return sort(map(uniq(hits), {_,x->x[1:]}))
-	endif
-	return ['toto', previouschar]
-endfunction
 
 function! RenderTodoList(todofile, donefile)
 	let todolines = readfile(a:todofile)
@@ -1215,59 +1270,32 @@ command! ExploreDiagrams call ExploreDiagrams()
 nnoremap <leader>d :ExploreDiagrams<CR>
 nnoremap <leader>D :vs\|Dirvish <C-R>=expand('$HOME/Downloads')<CR><CR>
 
-function! Echo(channelInfos,msg,...)
-	let type = (a:0==3) ? a:3 : ''
-	let msg = ''
-	if a:msg != ''
-		let msg  = '  '
-		let msg .= (type != '') ? ('['.type.'] ') : ''
-		let msg .= a:msg
-	else
-		let msg  = '['
-		let msg .= (type != '') ? (type.'(') : ''
-		let msg .= a:channelInfos
-		let msg .= (type != '') ? (')') : ''
-		let msg .= '] '
-	endif
-	echomsg msg
-endfunc
-
-function! ErrEcho(chan, msg)
-	call Echo(a:chan, a:msg, 'err')
-endfunc
-
-function! ExitEcho(chan, msg)
-	call Echo(a:chan, a:msg, 'exit')
-endfunc
-
-function! CallbackEcho(chan, msg)
-	call Echo(a:chan, a:msg, 'callback')
-endfunc
-
-function! OutEcho(chan, msg)
-	call Echo(a:chan, a:msg, 'out')
-endfunc
-
-function! CloseEcho(chan)
-	let s:closingjobmsg = '['.a:chan
-endfunc
-
-function! Exit(outputfile, channelInfos, status)
+function! JobExitDiagramCompilationJob(outputfile, channelInfos, status)
 	if a:status != 0
 		let s:closingjobmsg .= (' (status='.a:status.')]')
 		echomsg s:closingjobmsg
+		10messages
 		return
 	endif
-	let s:closingjobmsg .= (']')
+	let s:closingjobmsg .= ('] Successful compilation!')
 	echomsg s:closingjobmsg
 	call OpenWebUrl('', a:outputfile)
 endfunc
 
 function! CompileDiagramAndShowImage(outputExtension, ...)
 	let inputfile = (a:0 == 2) ? a:2 : expand('%:p')
-	let cmd = printf('plantuml -t%s -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(inputfile,':e')), inputfile)
 	let outputfile = fnamemodify(inputfile, ':r').'.'.a:outputExtension
-	let g:job = job_start('cmd /C '.cmd, { 'callback': 'CallbackEcho', 'out_cb': 'OutEcho', 'err_cb': 'ErrEcho', 'close_cb': 'CloseEcho', 'exit_cb': function('Exit', [outputfile]) })
+	let cmd = printf('plantuml -t%s -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(inputfile,':e')), inputfile)
+	let g:job = job_start(
+		\'cmd /C '.cmd,
+		\{
+			\'callback': 'JobCallbackEcho', 
+			\'out_cb':   'JobOutEcho',
+			\'err_cb':   'JobErrEcho',
+			\'close_cb': 'JobCloseEcho',
+			\'exit_cb':  function('JobExitDiagramCompilationJob', [outputfile])
+		\}
+	\)
 endfunction
 
 function GetPlantumlConfigFile(fileext)
