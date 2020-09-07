@@ -1034,8 +1034,10 @@ function! RenderTodoList(todofile, donefile)
 	let todomaxindex=len(todolines)-1
 	let items = []
 	for i in range(len(lines))
-		let line = lines[i]
-		let item = ParseTodoItem(line)
+		if lines[i] == ''
+			continue
+		endif
+		let item = ParseTodoItem(lines[i])
 		let item.isDone = (i > todomaxindex)
 		call add(items, item)
 	endfor
