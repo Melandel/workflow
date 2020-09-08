@@ -295,7 +295,7 @@ nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 command! -bar Enew    exec('enew    | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
 command! -bar New     exec('new     | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
 command! -bar Vnew    exec('vnew    | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
-command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile | silient lcd '.$desktop.'/tmp')
+command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
 nnoremap <silent> <Leader>s :if bufname() != '' \| split  \| else \| New  \| endif<CR>
 nnoremap <silent> <Leader>v :if bufname() != '' \| vsplit \| else \| Vnew \| endif<CR>
 nnoremap <silent> K :q<CR>
