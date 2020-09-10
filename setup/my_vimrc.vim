@@ -1009,7 +1009,7 @@ function! OpenWebUrl(firstPartOfUrl,...)
 	let s:job= job_start('firefox "'.url.'"')
 endfun
 command! -nargs=* -range Web :call OpenWebUrl('', <f-args>)
-nnoremap <Leader>w :Web <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
+nnoremap <Leader>w :w<CR>:Web <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 vnoremap <Leader>w :Web<CR>
 command! -nargs=* -range WordreferenceFrEn :call OpenWebUrl('https://www.wordreference.com/fren/', <f-args>)
 command! -nargs=* -range GoogleTranslateFrEn :call OpenWebUrl('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
@@ -1069,6 +1069,7 @@ augroup dashboard
 	autocmd FileType          git nmap <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
 	autocmd FileType fugitive,git nnoremap <buffer> <Leader>w :Todo<CR>
+	autocmd BufEnter fugitive,git,todo,done,achievements nnoremap <buffer> <leader>x :unlet t:is_dashboard<CR>:tabclose<CR>
 	autocmd BufEnter     todo,done,achievements set buftype=nofile nowrap
 	autocmd BufWritePost todo,done,achievements set buftype=nofile
 	autocmd BufEnter     todo,done,achievements normal! gg
