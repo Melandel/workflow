@@ -88,8 +88,6 @@ endif
 set smartindent
 set tabstop=1
 set shiftwidth=1
-nnoremap > >>
-nnoremap < <<
 command! -bar Spaces2Tabs set noet ts=4 |%retab!|set ts=1
 
 " Leader keys" ------------------------{{{
@@ -1245,12 +1243,7 @@ function! Diagram(lines)"-----------------{{{
 			\'ctrl-b': 'CompileDiagramAndShowImage png'}, a:lines[0], 'e')
 			execute(cmd . ' ' .file)
 		else
-			let diagramtype = file_or_diagramtype
 			let title = input('Title:')
-			while glob($desktop.'/tmp/'.title.'.puml_'.diagramtype) != ''
-				redraw
-				let title= input('This file already exists! Pick another title:')
-			endwhile
 			let cmd = get({
 				\'ctrl-x': 'split',
 				\'ctrl-j': 'split',
@@ -1258,15 +1251,38 @@ function! Diagram(lines)"-----------------{{{
 				\'ctrl-k': 'vertical split',
 				\'ctrl-t': 'tabe',
 				\'ctrl-o': 'tabe'}, a:lines[0], 'e')
-			execute(cmd . ' ' .$desktop.'/tmp/'.title.'.puml_'.diagramtype)
-			silent write
+			if file_or_diagramtype == 'note'
+				while glob($desktop.'/notes/'.title) != ''
+					redraw
+					let title= input('This file already exists! Pick another title:')
+				endwhile
+				execute(cmd . ' ' .$desktop.'/notes/'.title)
+			elseif file_or_diagramtype == 'adr'
+				while glob($desktop.'/tmp/'.title.'.md') != ''
+					redraw
+					let title= input('This file already exists! Pick another title:')
+				endwhile
+				execute(cmd . ' ' .$desktop.'/tmp/'.title.'.md')
+			else
+				while glob($desktop.'/tmp/'.title.'.puml_'.diagramtype) != ''
+					redraw
+					let title= input('This file already exists! Pick another title:')
+				endwhile
+				let diagramtype = file_or_diagramtype
+				execute(cmd . ' ' .$desktop.'/tmp/'.title.'.puml_'.diagramtype)
+		endif
+		silent write
 	endif
 endfunction
 
 function! ExploreDiagrams()
-	let types = ['activity', 'mindmap', 'sequence', 'workbreakdown', 'class', 'component', 'entities', 'state', 'usecase', 'dot']
+	let diagramtypes = ['activity', 'mindmap', 'sequence', 'workbreakdown', 'class', 'component', 'entities', 'state', 'usecase', 'dot']
 	let diagrams = expand($desktop.'/tmp/*.puml*', 0, 1)
-	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': types+diagrams,'sink*': function('Diagram'), 'options': ['--prompt', 'Diagrams> ']})))
+	let notetypes = ['note']
+	let notes = expand($desktop.'/notes/*', 0, 1)
+	let adrtypes = ['adr']
+	let adrs = expand($desktop.'/tmp/*.md', 0, 1)
+	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': notetypes+adrtypes+diagramtypes+notes+adrs+diagrams,'sink*': function('Diagram'), 'options': ['--prompt', 'Diagrams> ']})))
 endfunction
 command! ExploreDiagrams call ExploreDiagrams()
 nnoremap <leader>d :ExploreDiagrams<CR>
