@@ -175,6 +175,7 @@ function! OmnifunctionExample(findstart, base)
 	return ['toto', previouschar]
 endfunction
 
+let s:closingjobmsg = ''
 function! JobStartExample()
 	let cmd = 'dir'
 	let additionalArgument = 'additional argument right here!'
@@ -185,12 +186,12 @@ function! JobStartExample()
 			\'out_cb':   'JobOutEcho',
 			\'err_cb':   'JobErrEcho',
 			\'close_cb': 'JobCloseEcho',
-			\'exit_cb':  { chann,msg-> execute('echomsg "foo"', '') }
+			\'exit_cb':  { job,status-> execute('echomsg "foo"', '') }
 		\}
 	\)
 endfunction
 function! JobEcho(channelInfos,msg,...)
-	let type = (a:0==3) ? a:3 : ''
+	let type = (a:0>0) ? a:1 : ''
 	let msg = ''
 	if a:msg != ''
 		let msg = (type != '') ? ('['.type.'] ') : ''
@@ -216,7 +217,7 @@ endfunc
 function! JobCloseEcho(chan)
 	let s:closingjobmsg = '['.a:chan
 endfunc
-function! JobExitEcho(channelInfos, status)
+function! JobExitEcho(job, status)
 	if a:status != 0
 		let s:closingjobmsg .= (' (status='.a:status.')]')
 		echomsg s:closingjobmsg
@@ -225,8 +226,8 @@ function! JobExitEcho(channelInfos, status)
 	let s:closingjobmsg .= ('] Success!')
 	echomsg s:closingjobmsg
 endfunc
-function! JobExitEchoWithAdditionalArguments(additionalArgument, channelInfos, status)
-	call JobExitEcho(a:channelInfos, a:status)
+function! JobExitEchoWithAdditionalArguments(additionalArgument, job, status)
+	call JobExitEcho(a:job, a:status)
 	echomsg a:additionalArgument
 endfunc
 
@@ -351,11 +352,11 @@ function! TabInfo()
 endfunction
 
 function! WinNr()
-	return printf('[Window #%s]', winnr())
+	return printf('(#%s)', winnr())
 endfunction
 
 function! GitBranch()
-	return printf('[%s]', gitbranch#name())
+	return printf('[%s:%s]', fnamemodify(gitbranch#dir(expand('%:p')), ':h:t'), gitbranch#name())
 endfunction
 
 function! FolderRelativePathFromGit()
@@ -363,11 +364,10 @@ function! FolderRelativePathFromGit()
 	let folderpath = expand('%:p:h')
 	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
 	let foldergitpath = folderpath[len(gitrootfolder)+1:]
-	return './' . substitute(foldergitpath, '\', '/', 'g')
+	return '/' . substitute(foldergitpath, '\', '/', 'g')
 endfunction
 exec("source $VIM/pack/plugins/start/vim-sharpenup/autoload/sharpenup/statusline.vim")
-let g:sharpenup_statusline_opts = { 'TextLoading': '%s…', 'TextReady': '%s', 'TextDead': '_', 'Highlight': 0 }
-
+let g:sharpenup_statusline_opts = { 'TextLoading': '<%s…>', 'TextReady': '<%s>', 'TextDead': '<>', 'Highlight': 0 }
 let g:lightline = {
 	\ 'colorscheme': 'empower',
 	\ 'component_function': {
@@ -383,16 +383,16 @@ let g:lightline = {
  \ },
 	\ 'component_visible_condition': {
 	\    'sharpenup': 'IsOmniSharpRelated()',
-	\    'winnr2': '0'
+	\    'mode': '0'
 	\  },
 	\ 'active':   {
 	\    'left':  [
-	\        [ 'mode', 'winnr2', 'paste', 'readonly', 'modified' ],
+	\        [ 'mode', 'paste', 'readonly', 'modified' ],
 	\        [ 'tabinfo', 'time' ]
 	\    ],
 	\    'right': [
-	\        ['sharpenup', 'filename', 'readonly', 'modified' ],
-	\        [ 'gitinfo' ]
+	\        ['filename', 'readonly', 'modified' ],
+	\        [ 'gitinfo', 'sharpenup' ]
 	\    ]
 	\ },
 	\ 'inactive': {
@@ -400,8 +400,8 @@ let g:lightline = {
 	\        ['winnr']
 	\    ],
 	\    'right': [
-	\        [ 'sharpenup', 'filename', 'readonly', 'modified' ],
-	\        [ 'gitinfo' ]
+	\        [ 'filename', 'readonly', 'modified' ],
+	\        [ 'gitinfo', 'sharpenup' ]
 	\    ]
 	\ }
 	\}
@@ -556,8 +556,8 @@ let g:targets_jumpRanges = 'cr cb cB lc ac Ac lr rr ll lb ar ab lB Ar aB Ab AB r
 " select until end of line
 nnoremap vv ^vg_
 " remove or add a line to visualization
-vnoremap <C-J> V<esc>ojo
-vnoremap <C-K> V<esc>oko
+vnoremap <silent> <C-J> <C-V><esc>gvVojo
+vnoremap <silent> <C-K> <C-V><esc>gvVoko
 
 " Copy & Paste" -----------------------{{{
 nnoremap Y y$
@@ -635,16 +635,12 @@ nnoremap ! mG/
 vnoremap ! <Esc>mGgv"vy/<C-R>v
 nnoremap / mG:Lines<CR>
 
-augroup search
-	au!
-	autocmd FileType * if &ft != 'dirvish' | silent nnoremap <buffer> q! q/ | endif
-augroup end
 nnoremap z! :BLines<CR>
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
 nnoremap <silent> n :keepjumps normal! n<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> N :keepjumps normal! N<CR>:UnderlineCurrentSearchItem<CR>
-nnoremap <silent> * :call ExecuteAndAddIntoSearchHistory('<C-R>='\<'.expand('<cword>').'\>\C'<CR>')<CR>
-vnoremap <silent> * "vy:call ExecuteAndAddIntoSearchHistory('<C-R>='\<'.@v.'\>\C'<CR>')<CR>
+"nnoremap <silent> * :call ExecuteAndAddIntoSearchHistory('<C-R>='\<'.expand('<cword>').'\>\C'<CR>')<CR>
+"vnoremap <silent> * "vy:call ExecuteAndAddIntoSearchHistory('<C-R>='\<'.@v.'\>\C'<CR>')<CR>
 
 function! CopyAllMatches(...)
   let reg= a:0 ? a:1 : '+'
@@ -655,7 +651,7 @@ endfunction
 command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
 
 " Autocompletion (Insert Mode)" -------{{{
-set completeopt+=noinsert
+"set completeopt+=noinsert
 inoremap <C-O> <C-X><C-O>
 " set completefunc=MyCompletion
 " function! MyCompletion(findstart, base)
@@ -964,7 +960,6 @@ augroup my_dirvish
 	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
 	autocmd BufLeave if &ft == 'dirvish' | mark L | endif
 	autocmd BufEnter if &ft == 'dirvish' | silent normal R
-	autocmd FileType dirvish nmap <silent> <buffer> <nowait> q gq
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish unmap <buffer> o
@@ -1230,7 +1225,6 @@ function! Diagram(lines)"-----------------{{{
 	if len(a:lines) < 2 | return | endif
 	let file_or_diagramtype = a:lines[1]
 	let cmd=''
-		echomsg file_or_diagramtype
 	if glob(file_or_diagramtype) != ''
 		let file = file_or_diagramtype
 		let cmd = get({
@@ -1264,11 +1258,11 @@ function! Diagram(lines)"-----------------{{{
 				endwhile
 				execute(cmd . ' ' .$desktop.'/tmp/'.title.'.md')
 			else
+				let diagramtype = file_or_diagramtype
 				while glob($desktop.'/tmp/'.title.'.puml_'.diagramtype) != ''
 					redraw
 					let title= input('This file already exists! Pick another title:')
 				endwhile
-				let diagramtype = file_or_diagramtype
 				execute(cmd . ' ' .$desktop.'/tmp/'.title.'.puml_'.diagramtype)
 		endif
 		silent write
@@ -1368,44 +1362,107 @@ augroup lightline_integration
   autocmd User OmniSharpStarted,OmniSharpReady,OmniSharpStopped call lightline#update()
 augroup END
 
-function! CSharpBuild()
+function! BuildAndTestCurrentSolution()
 	let omnisharp_host = getbufvar(bufnr('%'), 'OmniSharp_host')
 	if empty(omnisharp_host) || !get(omnisharp_host, 'initialized')
-		echomsg "Omnisharp server isn't loaded. Please load Omnisharp server with :OmniSharpStartServer."
-		return
-endif
-let originalwinid = win_getid()
-let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, isdirectory(omnisharp_host.sln_or_dir) ? ':p' : ':h:p')
-	setlocal errorformat=%f(%l\\,%c):\ error\ MSB%n:\ %m\ [%.%#
-	setlocal errorformat+=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
-	setlocal errorformat+=%-G%.%#
-	setlocal makeprg=dotnet\ build\ /p:GenerateFullPaths=true\ /clp:NoSummary
-	echomsg 'Building...'
-	execute(printf('lcd %s | silent make!',sln_dir))
-	redraw
-	if IsQuickFixWindowOpen()
-		call win_gotoid(originalwinid)
+		echomsg "Omnisharp server isn't loaded. Please load Omnisharp server with :OmniSharpStartServer (qR)."
 		return
 	endif
-	setlocal errorformat=%A\ %#X\ %.%#
-	setlocal errorformat+=%Z\ %#X\ %.%#
-	setlocal errorformat+=%-C\ %#Arborescence%.%#
-	setlocal errorformat+=%C\ %#at%.%#\ in\ %f:line\ %l
-	setlocal errorformat+=%-C%.%#\ Message\ d'erreur%.%#
-	setlocal errorformat+=%-C%.%#\ (pos\ %.%#
-	setlocal errorformat+=%C\ %#%m\ Failure
-	setlocal errorformat+=%C\ %#%m
-	setlocal errorformat+=%-G%.%#
-	setlocal makeprg=dotnet\ test\ --nologo
-	echomsg '           Testing...'
-	execute(printf('lcd %s | silent make!',sln_dir))
-	redraw
-	call win_gotoid(originalwinid)
+	silent execute 'belowright 10split Build'
+	setlocal bufhidden=hide buftype=nofile buflisted nolist
+	setlocal noswapfile nowrap nomodifiable
+	hide
+	let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, isdirectory(omnisharp_host.sln_or_dir) ? ':p' : ':h:p')
+	call StartCSharpBuild(sln_dir)
 endfunction
+command! -bar BuildAndTestCurrentSolution call BuildAndTestCurrentSolution()
+
+function! StartCSharpBuild(sln_or_dir)
+	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
+	silent! exec 'bdelete!' bufnr('Build')
+	let cmd = 'cd "'.folder.'" && dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
+	let s:job = job_start(
+		\'cmd /C '.cmd,
+		\{
+			\'out_io': 'buffer',
+			\'out_name': 'Build',
+			\'out_modifiable': 0,
+			\'err_io': 'buffer',
+			\'err_name': 'Build',
+			\'err_modifiable': 0,
+			\'in_io': 'null',
+		 \'callback': 'JobCallbackEcho',
+			\'out_cb':   'JobOutEcho',
+			\'err_cb':   'JobErrEcho',
+			\'close_cb': 'JobCloseEcho',
+			\'exit_cb':  function('StartCSharpBuildExitCb', [folder])
+		\}
+	\)
+endfunction
+
+function! StartCSharpBuildExitCb(workingdir, job, status)
+	if a:status
+		echomsg 'Compilation failed.'
+		set errorformat=MSBUILD\ :\ error\ MSB%n:\ %m
+		set errorformat+=%f(%l\\,%c):\ error\ MSB%n:\ %m\ [%.%#
+		set errorformat+=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
+		set errorformat+=%-G%.%#
+		exec 'cgetbuffer' bufnr('Build')
+	else
+		exec 'bdelete!' bufnr('Build')
+		silent execute 'belowright 10split Tests'
+		setlocal bufhidden=hide buftype=nofile buflisted nolist
+		setlocal noswapfile nowrap nomodifiable
+		hide
+		call StartCSharpTest(a:workingdir)
+	endif
+endfunction
+
+function! StartCSharpTest(workingdir)
+	let cmd = 'cd "'.a:workingdir.'" && dotnet test --nologo --no-build'
+	silent! exec 'bdelete!' bufnr('Tests')
+	let s:job = job_start(
+		\'cmd /C '.cmd,
+		\{
+			\'out_io': 'buffer',
+			\'out_name': 'Tests',
+			\'out_modifiable': 0,
+			\'err_io': 'buffer',
+			\'err_name': 'Tests',
+			\'err_modifiable': 0,
+			\'in_io': 'null',
+		 \'callback': 'JobCallbackEcho',
+			\'out_cb':   'JobOutEcho',
+			\'err_cb':   'JobErrEcho',
+			\'close_cb': 'JobCloseEcho',
+			\'exit_cb':  'Commit'
+		\}
+	\)
+endfunction
+
+function! Commit(job, status)
+	if a:status
+		echomsg 'Tests failed.'
+		set errorformat=%A\ %#X\ %.%#
+		set errorformat+=%Z\ %#X\ %.%#
+		set errorformat+=%-C\ %#Arborescence%.%#
+		set errorformat+=%C\ %#at%.%#\ in\ %f:line\ %l
+		set errorformat+=%-C%.%#\ Message\ d'erreur%.%#
+		set errorformat+=%-C%.%#\ (pos\ %.%#
+		set errorformat+=%C\ %#%m\ Failure
+		set errorformat+=%C\ %#%m
+		set errorformat+=%-G%.%#
+		exec 'cgetbuffer' bufnr('Tests')
+	else
+		exec 'bdelete!' bufnr('Tests')
+		call OpenDashboard()
+	endif
+endfunction
+
 augroup csharpfiles
 	au!
-	autocmd FileType cs nnoremap <silent> <LocalLeader>m :call CSharpBuild()<CR>
-	autocmd FileType cs nnoremap <silent> <LocalLeader>M :!dotnet run -p Startup<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildAndTestCurrentSolution<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :!dotnet run -p Startup<CR>
 	autocmd FileType cs nmap <buffer> zk <Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
 	autocmd FileType cs nmap <buffer> z! :BLines public\\|private\\|protected<CR>
