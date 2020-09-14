@@ -9,7 +9,7 @@ digraph G {
 
 	${3:subgraph cluster_B {
 		label="" bgcolor="$bgcolor2" fontsize="$fontsize2" fontcolor="$fontcolor2"
-	}
+	}}
 }
 @enduml
 endsnippet
@@ -32,11 +32,11 @@ snippet node "Node"
  [label="${0}"]
 endsnippet
 
-snippet '^((?!new|subgraph|cluster)\S+)' "n" r
-`!p snip.rv= match.group(1)` [label="${0}"]
+snippet '\t((?!new|subgraph|cluster)\S+)' "n" r
+	`!p snip.rv= match.group(1)` [label="${0}"]
 endsnippet
 
-snippet "^((?!new|subgraph|cluster)\S+) " "Edge" r
-`!p snip.rv=match.group(1)` -> ${1:Target}${2: [${0}]}
+snippet "\t((?!new|subgraph|cluster)\S+) " "Edge" r
+	`!p snip.rv=match.group(1)` -> ${1:Target}${2: [${0}]}
 endsnippet
 
