@@ -292,14 +292,44 @@ nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
 command! -bar Enew    exec('enew    | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
-command! -bar New     exec('new     | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
-command! -bar Vnew    exec('vnew    | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
-command! -bar Tabedit exec('tabedit | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
-nnoremap <silent> <Leader>s :if bufname() != '' \| split  \| else \| New  \| endif<CR>
-nnoremap <silent> <Leader>v :if bufname() != '' \| vsplit \| else \| Vnew \| endif<CR>
+command! -bar New     call NewTmpWindow(0)
+command! -bar Vnew    call NewTmpWindow(1)
+nnoremap <silent> <Leader>s :New<CR>
+nnoremap <silent> <Leader>v :Vnew<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o mW:tabnew<CR>`W
 nnoremap <silent> <Leader>x :tabclose<CR>
+
+function! ComputeRemainingHeight()
+	echomsg 'remaining = '.&lines.'-('.min([line('$'), winheight(0)]).'-'.winline().')-'.screenrow().'-'.(&cmdheight+1)
+	return &lines - (min([line('$'), winheight(0)])-winline()) -screenrow() - (&cmdheight+1)
+endfunction
+
+function! NewTmpWindow(isVertical)
+	let useRemainingSpace = 0
+	if a:isVertical
+		exec 'vnew' expand('%')
+	else
+		let minheight = 2
+		let remainingheight = ComputeRemainingHeight()
+		let useRemainingSpace = remainingheight > (minheight+1)
+		if useRemainingSpace
+			mark k
+			normal! H
+		endif
+		exec (useRemainingSpace ? remainingheight : '') 'new' expand('%')
+	endif
+	enew
+	setlocal buftype=nofile bufhidden=hide noswapfile
+	silent lcd $desktop/tmp
+	if useRemainingSpace
+		wincmd k
+		normal! `k
+		delmarks k
+		wincmd j
+	endif
+	mark `
+endfunction
 
 " Browse to Window or Tab
 nnoremap <silent> <Leader>h <C-W>h
