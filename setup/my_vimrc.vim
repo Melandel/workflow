@@ -173,61 +173,19 @@ function! OmnifunctionExample(findstart, base)
 	return ['toto', previouschar]
 endfunction
 
-let s:closingjobmsg = ''
 function! JobStartExample()
 	let cmd = 'dir'
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
-			\'callback': { chan,msg  -> execute('echomsg "[cb] '.msg.'"',  1)      },
-			\'out_cb':   { chan,msg  -> execute('echomsg "[out] '.msg.'"',  1)     },
-			\'err_cb':   { chan,msg  -> execute('echomsg "[err] '.msg.'"',  1)     },
-			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)   },
-			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'"', '') }
+			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
+			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"').'"',  1)                                   },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                       },
+			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'"', '')                                     }
 		\}
 	\)
 endfunction
-function! JobEcho(channelInfos,msg,...)
-	echomsg a:msg
-	let type = (a:0>0) ? a:1 : ''
-	let msg = ''
-	if a:msg != ''
-		let msg = (type != '') ? ('['.type.'] ') : ''
-		let msg .= a:msg
-	else
-		let msg  = '['
-		let msg .= (type != '') ? (type.'(') : ''
-		let msg .= a:channelInfos
-		let msg .= (type != '') ? (')') : ''
-		let msg .= '] '
-	endif
-	echomsg msg
-endfunc
-function! JobErrEcho(chan, msg)
-	call JobEcho(a:chan, a:msg, 'err')
-endfunc
-function! JobCallbackEcho(chan, msg)
-	call JobEcho(a:chan, a:msg, 'callback')
-endfunc
-function! JobOutEcho(chan, msg)
-	call JobEcho(a:chan, a:msg, 'out')
-endfunc
-function! JobCloseEcho(chan)
-	let s:closingjobmsg = '['.a:chan
-endfunc
-function! JobExitEcho(job, status)
-	if a:status != 0
-		let s:closingjobmsg .= (' (status='.a:status.')]')
-		echomsg s:closingjobmsg
-		return
-	endif
-	let s:closingjobmsg .= ('] Success!')
-	echomsg s:closingjobmsg
-endfunc
-function! JobExitEchoWithAdditionalArguments(additionalArgument, job, status)
-	call JobExitEcho(a:job, a:status)
-	echomsg a:additionalArgument
-endfunc
 
 " AZERTY Keyboard:---------------------{{{
 " AltGr keys" -------------------------{{{
@@ -1314,13 +1272,9 @@ nnoremap <leader>D :vs\|Dirvish <C-R>=expand('$HOME/Downloads')<CR><CR>
 
 function! JobExitDiagramCompilationJob(outputfile, channelInfos, status)
 	if a:status != 0
-		let s:closingjobmsg .= (' (status='.a:status.')]')
-		echomsg s:closingjobmsg
 		10messages
 		return
 	endif
-	let s:closingjobmsg .= ('] Successful compilation!')
-	echomsg s:closingjobmsg
 	call OpenWebUrl('', a:outputfile)
 endfunc
 
@@ -1331,10 +1285,10 @@ function! CompileDiagramAndShowImage(outputExtension, ...)
 	let g:job = job_start(
 		\'cmd /C '.cmd,
 		\{
-			\'callback': 'JobCallbackEcho', 
-			\'out_cb':   'JobOutEcho',
-			\'err_cb':   'JobErrEcho',
-			\'close_cb': 'JobCloseEcho',
+			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
+			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"').'"',  1)                                   },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                       },
 			\'exit_cb':  function('JobExitDiagramCompilationJob', [outputfile])
 		\}
 	\)
@@ -1422,10 +1376,10 @@ function! StartCSharpBuild(sln_or_dir)
 			\'err_name': 'Build',
 			\'err_modifiable': 0,
 			\'in_io': 'null',
-		 \'callback': 'JobCallbackEcho',
-			\'out_cb':   'JobOutEcho',
-			\'err_cb':   'JobErrEcho',
-			\'close_cb': 'JobCloseEcho',
+			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
+			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"').'"',  1)                                   },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                       },
 			\'exit_cb':  function('StartCSharpBuildExitCb', [folder])
 		\}
 	\)
@@ -1463,10 +1417,10 @@ function! StartCSharpTest(workingdir)
 			\'err_name': 'Tests',
 			\'err_modifiable': 0,
 			\'in_io': 'null',
-		 \'callback': 'JobCallbackEcho',
-			\'out_cb':   'JobOutEcho',
-			\'err_cb':   'JobErrEcho',
-			\'close_cb': 'JobCloseEcho',
+			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
+			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"').'"',  1)                                   },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                       },
 			\'exit_cb':  'Commit'
 		\}
 	\)
