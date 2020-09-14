@@ -1327,7 +1327,7 @@ endfunc
 function! CompileDiagramAndShowImage(outputExtension, ...)
 	let inputfile = (a:0 == 2) ? a:2 : expand('%:p')
 	let outputfile = fnamemodify(inputfile, ':r').'.'.a:outputExtension
-	let cmd = printf('plantuml -t%s -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(inputfile,':e')), inputfile)
+	let cmd = printf('plantuml -t%s -charset UTF-8 -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(inputfile,':e')), inputfile)
 	let g:job = job_start(
 		\'cmd /C '.cmd,
 		\{
