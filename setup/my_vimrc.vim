@@ -581,7 +581,8 @@ nmap ga <Plug>(EasyAlign)
 
 " Vim Core Functionalities:------------{{{
 " Command Line"------------------------{{{
-cnoremap µ **/*$<left>
+set cmdwinheight=40
+set cedit=<C-S>
 
 " Wild Menu" --------------------------{{{
 set wildmenu
@@ -639,8 +640,8 @@ nnoremap z! :BLines<CR>
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
 nnoremap <silent> n :keepjumps normal! n<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> N :keepjumps normal! N<CR>:UnderlineCurrentSearchItem<CR>
-"nnoremap <silent> * :call ExecuteAndAddIntoSearchHistory('<C-R>='\<'.expand('<cword>').'\>\C'<CR>')<CR>
-"vnoremap <silent> * "vy:call ExecuteAndAddIntoSearchHistory('<C-R>='\<'.@v.'\>\C'<CR>')<CR>
+nnoremap <silent> * :call ExecuteAndAddIntoSearchHistory('<C-R>='\V'.expand('<cword>')<CR>')<CR>
+vnoremap <silent> * "vy:call ExecuteAndAddIntoSearchHistory('<C-R>='\V'.@v<CR>')<CR>
 
 function! CopyAllMatches(...)
   let reg= a:0 ? a:1 : '+'
@@ -651,15 +652,26 @@ endfunction
 command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
 
 " Autocompletion (Insert Mode)" -------{{{
-"set completeopt+=noinsert
 inoremap <C-O> <C-X><C-O>
-" set completefunc=MyCompletion
-" function! MyCompletion(findstart, base)
-" 	if a:findstart == 1
-" 		return -42
-" 	endif
-" 	return [a:base, 'abc', 'def']
-" endfunction
+inoremap <C-I> <C-R>=TabExpand()<CR>
+let g:UltiSnipsExpandTrigger = "<nop>"
+let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
+let g:UltiSnipsEditSplit="vertical"
+let g:UltiSnipsSnippetDirectories=[$desktop . "/tools/vim/pack/plugins/start/vim-snippets/ultisnips", $desktop.'/snippets']
+nnoremap <Leader>u :UltiSnipsEdit!<CR>G
+augroup ultisnips
+	au!
+	autocmd User UltiSnipsEnterFirstSnippet mark '
+augroup end
+
+function! TabExpand()
+	if pumvisible()
+		return "\<C-Y>"
+	endif
+	let g:ulti_expand_or_jump_res = 0
+	call UltiSnips#ExpandSnippetOrJump()
+	return g:ulti_expand_or_jump_res > 0 ? '' : PreviousCharacter() =~ '\S' ? "\<C-N>" : "\<C-I>"
+endfunction
 
 " Diff" -------------------------------{{{
 set diffopt+=algorithm:histogram,indent-heuristic,vertical
@@ -1015,18 +1027,6 @@ vnoremap <Leader>T :GoogleTranslateEnFr<CR>
 command! -nargs=* -range Google :call OpenWebUrl('http://google.com/search?q=', <f-args>)
 nnoremap <Leader>q :Google <C-R>=&ft<CR> 
 vnoremap <Leader>q :Google<CR>
-
-" Snippets" ---------------------------{{{
-augroup ultisnips
-	au!
-	autocmd User UltiSnipsEnterFirstSnippet mark '
-augroup end
-let g:UltiSnipsEditSplit="vertical"
-let g:UltiSnipsSnippetDirectories=[$desktop . "/tools/vim/pack/plugins/start/vim-snippets/ultisnips", $desktop.'/snippets']
-let g:UltiSnipsExpandTrigger="<tab>"
-let g:UltiSnipsJumpForwardTrigger="<tab>"
-let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
-nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 
 " Dashboard" --------------------------{{{
 function! OpenDashboard()
