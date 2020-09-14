@@ -27,8 +27,6 @@ function! MinpacInit()
 	call minpac#add('Melandel/vim-empower')
 	call minpac#add('Melandel/fzfcore.vim')
 	call minpac#add('Melandel/gvimtweak')
-	call minpac#add('Melandel/vim-amake')
-	call minpac#add('mhinz/vim-randomtag')
 endfunction
 command! -bar MinPacInit call MinpacInit()
 command! -bar MinPacUpdate call MinpacInit()| call minpac#clean()| call minpac#update()
@@ -178,19 +176,19 @@ endfunction
 let s:closingjobmsg = ''
 function! JobStartExample()
 	let cmd = 'dir'
-	let additionalArgument = 'additional argument right here!'
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
-		 \'callback': 'JobCallbackEcho',
-			\'out_cb':   'JobOutEcho',
-			\'err_cb':   'JobErrEcho',
-			\'close_cb': 'JobCloseEcho',
-			\'exit_cb':  { job,status-> execute('echomsg "foo"', '') }
+			\'callback': { chan,msg  -> execute('echomsg "[cb] '.msg.'"',  1)      },
+			\'out_cb':   { chan,msg  -> execute('echomsg "[out] '.msg.'"',  1)     },
+			\'err_cb':   { chan,msg  -> execute('echomsg "[err] '.msg.'"',  1)     },
+			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)   },
+			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'"', '') }
 		\}
 	\)
 endfunction
 function! JobEcho(channelInfos,msg,...)
+	echomsg a:msg
 	let type = (a:0>0) ? a:1 : ''
 	let msg = ''
 	if a:msg != ''
@@ -301,8 +299,10 @@ nnoremap <silent> <Leader>o mW:tabnew<CR>`W
 nnoremap <silent> <Leader>x :tabclose<CR>
 
 function! ComputeRemainingHeight()
-	echomsg 'remaining = '.&lines.'-('.min([line('$'), winheight(0)]).'-'.winline().')-'.screenrow().'-'.(&cmdheight+1)
-	return &lines - (min([line('$'), winheight(0)])-winline()) -screenrow() - (&cmdheight+1)
+	let screenrow = screenrow()
+	let res = &lines - screenrow - min([line('$')-line('.'), winheight(0)-winline()]) - (&cmdheight+1)
+	echomsg res
+	return res
 endfunction
 
 function! NewTmpWindow(isVertical)
@@ -1410,10 +1410,11 @@ command! -bar BuildAndTestCurrentSolution call BuildAndTestCurrentSolution()
 function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
 	silent! exec 'bdelete!' bufnr('Build')
-	let cmd = 'cd "'.folder.'" && dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
+	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
+			\'cwd': folder,
 			\'out_io': 'buffer',
 			\'out_name': 'Build',
 			\'out_modifiable': 0,
@@ -1449,11 +1450,12 @@ function! StartCSharpBuildExitCb(workingdir, job, status)
 endfunction
 
 function! StartCSharpTest(workingdir)
-	let cmd = 'cd "'.a:workingdir.'" && dotnet test --nologo --no-build'
+	let cmd = 'dotnet test --nologo --no-build'
 	silent! exec 'bdelete!' bufnr('Tests')
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
+			\'cwd': a:workingdir,
 			\'out_io': 'buffer',
 			\'out_name': 'Tests',
 			\'out_modifiable': 0,
