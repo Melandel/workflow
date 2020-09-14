@@ -689,7 +689,7 @@ augroup quickfix
 " Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
 	autocmd QuickFixCmdPost [^l]* nested cwindow
 	autocmd FileType qf wincmd J
-	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | pclose | endif
+	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | silent! pclose | endif
 	autocmd QuickFixCmdPost	l* nested lwindow
 	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
 augroup end
