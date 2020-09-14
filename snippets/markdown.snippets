@@ -1,48 +1,46 @@
 snippet madr "Description" b
 # ${1:[short title of solved problem and solution]}
 
-* Status: ${2:[proposed | rejected | accepted | deprecated | … | superseded by [ADR-0005](0005-example.md)] <!-- optional -->}
-* Deciders: ${3:[list everyone involved in the decision] <!-- optional -->}
-* Date: ${4:[YYYY-MM-DD when the decision was last updated] <!-- optional -->}
-
-Technical Story: ${5:[description | ticket/issue URL] <!-- optional -->}
+| Technical story             | Status             | Deciders      | Date         |
+| :-------------------------- | :---------         | :---------    | :----------- |
+| ${2:[description or ticket/issue URL]} | ${3:[proposed/rejected/accepted/deprecated/…/superseded by [ADR-0005](0005-example.md)]} | ${4:[list everyone involved in the decision]} | `!v strftime('%Y-%m-%d')` |
 
 ## Context and Problem Statement
 
-${6:[Describe the context and problem statement, e.g., in free form using two to three sentences. You may want to articulate the problem in form of a question.]}
+${5:[Describe the context and problem statement, e.g., in free form using two to three sentences. You may want to articulate the problem in form of a question.]}
 
-## Decision Drivers <!-- optional -->
+## Decision Drivers
 
-* ${7:[driver 1, e.g., a force, facing concern, …]}
-* ${0}[driver 2, e.g., a force, facing concern, …]
-* … <!-- numbers of drivers can vary -->
+* ${7:[driver 1, e.g., a force, facing concern, …]
+* [driver 2, e.g., a force, facing concern, …]
+* … <!-- numbers of drivers can vary -->}
 
 ## Considered Options
 
-* [option 1]
+* ${6:[option 1]
 * [option 2]
 * [option 3]
-* … <!-- numbers of options can vary -->
+* … <!-- numbers of options can vary -->}
 
 ## Decision Outcome
 
-Chosen option: "[option 1]", because [justification. e.g., only option, which meets k.o. criterion decision driver | which resolves force force | … | comes out best (see below)].
+Chosen option: "${8:[option 1]}", because ${9:[justification. e.g., only option, which meets k.o. criterion decision driver | which resolves force force | … | comes out best (see below)].}
+${10:
+### Positive Consequences
 
-### Positive Consequences <!-- optional -->
+${11:* [e.g., improvement of quality attribute satisfaction, follow-up decisions required, …]
+* …}
+}
+${12:### Negative Consequences
 
-* [e.g., improvement of quality attribute satisfaction, follow-up decisions required, …]
-* …
-
-### Negative Consequences <!-- optional -->
-
-* [e.g., compromising quality attribute, follow-up decisions required, …]
-* …
-
-## Pros and Cons of the Options <!-- optional -->
+${13:* [e.g., compromising quality attribute, follow-up decisions required, …]
+* …}
+}
+${14:## Pros and Cons of the Options
 
 ### [option 1]
 
-[example | description | pointer to more information | …] <!-- optional -->
+[example | description | pointer to more information | …]
 
 * Good, because [argument a]
 * Good, because [argument b]
@@ -51,7 +49,7 @@ Chosen option: "[option 1]", because [justification. e.g., only option, which me
 
 ### [option 2]
 
-[example | description | pointer to more information | …] <!-- optional -->
+[example | description | pointer to more information | …]
 
 * Good, because [argument a]
 * Good, because [argument b]
@@ -60,15 +58,15 @@ Chosen option: "[option 1]", because [justification. e.g., only option, which me
 
 ### [option 3]
 
-[example | description | pointer to more information | …] <!-- optional -->
+[example | description | pointer to more information | …]
 
 * Good, because [argument a]
 * Good, because [argument b]
 * Bad, because [argument c]
 * … <!-- numbers of pros and cons can vary -->
+}
+${15:## Links
 
-## Links <!-- optional -->
-
-* [Link type] [Link to ADR] <!-- example: Refined by [ADR-0005](0005-example.md) -->
-* … <!-- numbers of links can vary -->
+* ${16:[Link type] [Link to ADR] <!-- example: Refined by [ADR-0005](0005-example.md) -->
+* … <!-- numbers of links can vary -->}}
 endsnippet
