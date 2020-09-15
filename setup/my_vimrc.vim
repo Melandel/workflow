@@ -606,7 +606,6 @@ vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cm
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
-set termwinsize=12*0
 tnoremap <Esc> <C-W>N:setlocal norelativenumber number foldcolumn=0 nowrap<CR>zb
 tnoremap <C-O> <Esc>
 
