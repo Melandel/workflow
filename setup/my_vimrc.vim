@@ -141,6 +141,10 @@ function! PreviousCharacter()
 	return strcharpart(getline('.')[col('.') - 2:], 0, 1)
 endfunction
 
+function! GetCurrentSelection()
+	return getpos('.') == getpos("'<") ? getline("'<")[getpos("'<")[2]-1 : getpos("'>")[2]-1] : ''
+endfunction
+
 function! ExecuteAndAddIntoHistory(script)
 	call histadd('cmd', a:script)
 	execute(a:script)
@@ -277,9 +281,9 @@ function! NewTmpWindow(isVertical)
 		endif
 		exec (useRemainingSpace ? remainingheight : '') 'new' expand('%')
 	endif
+	lcd $desktop/tmp
 	enew
 	setlocal buftype=nofile bufhidden=hide noswapfile
-	silent lcd $desktop/tmp
 	if useRemainingSpace
 		wincmd k
 		normal! `k
@@ -988,33 +992,49 @@ augroup my_dirvish
 augroup end
 
 " Web Browsing" -----------------------{{{
-function! OpenWebUrl(firstPartOfUrl,...)
-	let visualSelection = getpos('.') == getpos("'<") ? getline("'<")[getpos("'<")[2] - 1:getpos("'>")[2] - 1] : ''
-	let finalPartOfUrl = ((a:0 == 0) ? visualSelection : join(a:000))
-	let nbDoubleQuotes = len(substitute(finalPartOfUrl, '[^"]', '', 'g'))
-	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0
-		let finalPartOfUrl.= ' "'
-	endif
-	let finalPartOfUrl = substitute(finalPartOfUrl, '^\s*\(.\{-}\)\s*$', '\1', '')
-	let finalPartOfUrl = substitute(finalPartOfUrl, '"', '\\"', 'g')
-	let url = a:firstPartOfUrl . finalPartOfUrl
-	let url = escape(url, '%#')
+function! Firefox(...)
+	let url = ((a:0 == 0) ? GetCurrentSelection() : join(a:000))
+	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
+	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0 | let url.= ' "' |	endif
+	let url = substitute(escape(trim(url), '%#'), '"', '\\"', 'g')
 	let s:job= job_start('firefox "'.url.'"')
 endfun
-command! -nargs=* -range Web :call OpenWebUrl('', <f-args>)
-nnoremap <Leader>w :w<CR>:Web <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
-vnoremap <Leader>w :Web<CR>
-command! -nargs=* -range WordreferenceFrEn :call OpenWebUrl('https://www.wordreference.com/fren/', <f-args>)
-command! -nargs=* -range GoogleTranslateFrEn :call OpenWebUrl('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
+command! -nargs=* -range Firefox :call Firefox(<f-args>)
+command! -nargs=* -range Ff :call Firefox(<f-args>)
+nnoremap <Leader>w :w<CR>:Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR>
+vnoremap <Leader>w :Firefox<CR>
+command! -nargs=* -range WordreferenceFrEn :call Firefox('https://www.wordreference.com/fren/', <f-args>)
+command! -nargs=* -range GoogleTranslateFrEn :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
 nnoremap <Leader>t :WordreferenceFrEn 
 vnoremap <Leader>t :GoogleTranslateFrEn<CR>
-command! -nargs=* -range WordreferenceEnFr :call OpenWebUrl('https://www.wordreference.com/enfr/', <f-args>)
-command! -nargs=* -range GoogleTranslateEnFr :call OpenWebUrl('https://translate.google.com/?hl=fr#view=home&op=translate&sl=en&tl=fr&text=', <f-args>)
+command! -nargs=* -range WordreferenceEnFr :call Firefox('https://www.wordreference.com/enfr/', <f-args>)
+command! -nargs=* -range GoogleTranslateEnFr :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=en&tl=fr&text=', <f-args>)
 nnoremap <Leader>T :WordreferenceEnFr 
 vnoremap <Leader>T :GoogleTranslateEnFr<CR>
-command! -nargs=* -range Google :call OpenWebUrl('http://google.com/search?q=', <f-args>)
+command! -nargs=* -range Google :call Firefox('http://google.com/search?q=', <f-args>)
 nnoremap <Leader>q :Google <C-R>=&ft<CR> 
 vnoremap <Leader>q :Google<CR>
+
+function! Lynx(...)
+	let url = ((a:0 == 0) ? GetCurrentSelection() : join(a:000))
+	exec (bufname() =~ '\.lynx$' ? 'edit!' : 'tabedit') printf($desktop.'/tmp/_%s.lynx', substitute(url, '\v(\<|\>|:|"|/|\\|\||\?|\*)', '_', 'g'))
+	exec 'silent 0read !echo '.url.''
+	exec 'silent 1read !lynx -dump -width=9999 -display_charset=utf-8' url
+	normal! gg
+	write
+endfunction
+command! -nargs=* -range Lynx call Lynx(<f-args>)
+nnoremap <Leader>W :Lynx 
+vnoremap <Leader>W :Lynx<CR>
+
+augroup lynx
+	au!
+	autocmd BufEnter *.lynx set filetype=lynx
+	autocmd FileType lynx set nowrap
+	autocmd FileType lynx vnoremap <buffer> <Leader>w :Lynx<CR> 
+	autocmd FileType lynx vnoremap <buffer> <Leader>W :Firefox<CR> 
+	autocmd FileType lynx nnoremap <buffer> <Leader>w :Firefox <C-R>=getline('1')<CR><CR>
+augroup end
 
 " Dashboard" --------------------------{{{
 function! OpenDashboard()
