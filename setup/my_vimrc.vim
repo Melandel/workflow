@@ -113,7 +113,7 @@ function! UpdateLocalCurrentDirectory()
 	if current_wd != dir
 		redraw
 		echo printf('[%s] -> [%s]', current_wd, dir)
-		execute('lcd '.dir)
+		exec 'lcd' dir
 	endif	
 endfunction
 command! -bar Lcd call UpdateLocalCurrentDirectory()
@@ -242,7 +242,7 @@ function! DeleteHiddenBuffers()" ------{{{
   call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
   for buf in filter(range(1, bufnr('$')), 'bufexists(v:val) && index(tpbl, v:val)==-1')
 	if getbufvar(buf, '&mod') == 0
-	  silent execute 'bwipeout' buf
+	  silent exec 'bwipeout' buf
 	  let closed += 1
 	endif
   endfor
@@ -251,7 +251,7 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-command! -bar Enew    exec('enew    | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
+command! -bar Enew    exec('enew | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
 command! -bar New     call NewTmpWindow(0)
 command! -bar Vnew    call NewTmpWindow(1)
 nnoremap <silent> <Leader>s :New<CR>
@@ -312,7 +312,7 @@ augroup windows
 	" Safety net if I close a window accidentally
 	autocmd QuitPre * mark K
 	" Make sure Vim returns to the same line when you reopen a file.
- autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | execute 'normal! g`"zvzz' | endif
+ autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | exec 'normal! g`"zvzz' | endif
 augroup end
 
 " Position Window
@@ -358,7 +358,8 @@ function! FolderRelativePathFromGit()
 	let foldergitpath = folderpath[len(gitrootfolder)+1:]
 	return '/' . substitute(foldergitpath, '\', '/', 'g')
 endfunction
-exec("source $VIM/pack/plugins/start/vim-sharpenup/autoload/sharpenup/statusline.vim")
+let sharpenupStatusLineScript = $VIM.'/pack/plugins/start/vim-sharpenup/autoload/sharpenup/statusline.vim'
+if (glob(sharpenupStatusLineScript) != '') | exec 'source' sharpenupStatusLineScript | endif
 let g:sharpenup_statusline_opts = { 'TextLoading': '<%s…>', 'TextReady': '<%s>', 'TextDead': '<>', 'Highlight': 0 }
 let g:lightline = {
 	\ 'colorscheme': 'empower',
@@ -400,7 +401,7 @@ let g:lightline = {
 let timer = timer_start(20000, 'UpdateStatusBar',{'repeat':-1})
 
 function! UpdateStatusBar(timer)
-  execute 'let &ro = &ro'
+  exec 'let &ro = &ro'
 endfunction
 
 " Motions:-----------------------------{{{
@@ -433,7 +434,7 @@ nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>
 
 function! BrowseLayoutDown()
 	if &diff
-		keepjumps execute 'silent! normal! ]czx'
+		silent! keepjumps normal! ]czx
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cnext
 	endif
@@ -444,7 +445,7 @@ nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 
 function! BrowseLayoutUp()
 	if &diff
-		keepjumps execute 'silent! normal! [czx'
+		silent! keepjumps normal! [czx
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cprev
 	endif
@@ -491,7 +492,7 @@ endfunction
 function! MoveToLastMatch()
 	let lastcmd = histget('cmd', -1)
 	if lastcmd =~ 'MoveCursorTo'
-		execute substitute(lastcmd, 'Next', 'Last', 'g')
+		exec substitute(lastcmd, 'Next', 'Last', 'g')
 	else
 		normal! ,
 	endif
@@ -500,7 +501,7 @@ endfunction
 function! MoveToNextMatch()
 	let lastcmd = histget('cmd', -1)
 	if lastcmd =~ 'MoveCursorTo'
-		execute substitute(lastcmd, 'Last', 'Next', 'g')
+		exec substitute(lastcmd, 'Last', 'Next', 'g')
 	else
 		normal! ;
 	endif
@@ -514,7 +515,7 @@ function! VMoveToLastMatch()
 	normal! gv
 	let lastcmd = histget('cmd', -1)
 	if lastcmd =~ 'MoveCursorTo'
-		execute substitute(lastcmd, 'Next', 'Last', 'g')
+		exec substitute(lastcmd, 'Next', 'Last', 'g')
 	else
 		normal! ,
 	endif
@@ -524,7 +525,7 @@ function! VMoveToNextMatch()
 	normal! gv
 	let lastcmd = histget('cmd', -1)
 	if lastcmd =~ 'MoveCursorTo'
-		execute substitute(lastcmd, 'Last', 'Next', 'g')
+		exec substitute(lastcmd, 'Last', 'Next', 'g')
 	else
 		normal! ;
 	endif
@@ -590,8 +591,8 @@ cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory(
 
 " Sourcing" ---------------------------{{{
 " Run a line/selected text composed of vim script
-vnoremap <silent> <Leader>S y:execute @@<CR>
-nnoremap <silent> <Leader>S ^vg_y:execute @@<CR>
+vnoremap <silent> <Leader>S y:exec @@<CR>
+nnoremap <silent> <Leader>S ^vg_y:exec @@<CR>
 " Write output of a vim command in a buffer
 nnoremap ç :let script=''\|call histadd('cmd',script)\|put=execute(script)<Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
 augroup vimsourcing
@@ -606,7 +607,7 @@ set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :GFiles?<CR>
 nnoremap <Leader>r :Rg! 
-vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|execute cmd<CR>
+vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
@@ -638,7 +639,7 @@ function! CopyAllMatches(...)
   let reg= a:0 ? a:1 : '+'
   let hits = []
   %s//\=len(add(hits, submatch(0))) ? submatch(0) : ''/gne
-  execute 'let @'.reg.' = join(hits, "\n") . "\n"'
+  exec 'let @'.reg.' = join(hits, "\n") . "\n"'
 endfunction
 command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
 
@@ -742,7 +743,7 @@ function! Edit(lines)"-----------------{{{
 		     \'ctrl-k': 'vertical split',
 							\'ctrl-t': 'tabe',
 							\'ctrl-o': 'tabe'}, a:lines[0], 'e')
-	execute cmd file_or_dir
+	exec cmd file_or_dir
 endfunction
 
 function! Explore()
@@ -784,7 +785,7 @@ function! CycleWindowBuffersHistoryBackwards()
 			break
 		endif
 	endfor
-	exec(printf('silent keepjumps b %d',newbuffer))
+	silent! exec 'keepjumps buffer' newbuffer
 endfunction
 
 function! CycleWindowBuffersHistoryForward()
@@ -800,7 +801,7 @@ function! CycleWindowBuffersHistoryForward()
 			break
 		endif
 	endfor
-	exec(printf('silent keepjumps b %d',newbuffer))
+	silent! exec 'keepjumps buffer' newbuffer
 endfunction
 
 " Full screen" ------------------------{{{
@@ -851,14 +852,14 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 		let cmd .= printf('"%s" "%s" "%s"', item_folder, cwd, item_finalname)
 	endif
 echomsg cmd
-	silent execute(printf(':!start /b %s', cmd))
+	silent exec '!start /b' cmd
 endfunction
 
 function! DeleteItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
 	let cmd = (isdirectory(target)) ?  printf('rmdir "%s" /s /q',target) : printf('del "%s"', target)
-	silent execute(printf(':!start /b %s', cmd))
+	silent exec '!start /b' cmd
 	normal R
 endfunction
 
@@ -879,9 +880,9 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 		endif
 	endif
 	let cmd = printf('move "%s" "%s\%s"', item, cwd, item_finalname)
-	silent execute(printf(':!start /b %s', cmd))
+	silent exec '!start /b' cmd
 	normal R
-	silent exec(printf('/\<%s\>', item_finalname))
+	silent exec '/\<'.item_finalname.'\>'
 	nohlsearch
 endfunction
 
@@ -889,7 +890,7 @@ function! RenameItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
 	let newname = input('Rename into:', filename)
-	silent execute(printf(':!start /b rename "%s" "%s"',target,newname))
+	silent exec '!start /b rename' shellescape(target) shellescape(newname)
 	normal R
 endfunction
 
@@ -915,10 +916,9 @@ function! CreateDirectory()
 		echomsg printf('"%s" already exists.', dirname)
 		return
 	endif
-	let cmd = printf(':!start /b mkdir "%s"', dirname)
-	silent execute(cmd)
+	silent exec '!start /b mkdir' shellescape(dirname)
 	normal R
-	silent exec(printf('/\<%s\>', dirname))
+	silent exec '/\<'.dirname.'\>'
 	nohlsearch
 endf
 
@@ -931,10 +931,9 @@ function! CreateFile()
 		echomsg printf('"%s" already exists.', filename)
 		return
 	endif
-	let cmd = printf(':!start /b copy /y NUL "%s" >NUL', filename)
-	silent execute(cmd)
+	exec '!start /b copy /y NUL' shellescape(filename) '>NUL'
 	normal R
-	silent exec(printf('/\<%s\>', filename))
+	exec '/\<'.filename.'\>'
 	nohlsearch
 endf
 
@@ -943,19 +942,19 @@ function! PreviewFile(splitcmd, giveFocus)
 	let bufnr=bufnr()
 	let previewwinid = getbufvar(bufnr, 'preview'.a:splitcmd, 0)
 	if previewwinid == 0
-		exec(a:splitcmd. ' ' .path)
+		exec a:splitcmd path
 		call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
 	else
 		call win_gotoid(previewwinid)
 		if win_getid() == previewwinid
-			exec("silent edit ".path)
+			silent exec 'edit' path
 		else
-			exec(a:splitcmd. ' ' .path)
+			exec a:splitcmd path
 			call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
 		endif
 	endif
 	if !a:giveFocus
-		exec(printf('wincmd %s', (a:splitcmd == 'vsplit' ? 'h' : 'k')))
+		exec 'wincmd' (a:splitcmd == 'vsplit' ? 'h' : 'k')
 	endif
 endfunction
 
@@ -1018,14 +1017,16 @@ vnoremap <Leader>q :Google<CR>
 function! Lynx(...)
 	let url = ((a:0 == 0) ? GetCurrentSelection() : join(a:000))
 	exec (bufname() =~ '\.lynx$' ? 'edit!' : 'tabedit') printf($desktop.'/tmp/_%s.lynx', substitute(url, '\v(\<|\>|:|"|/|\\|\||\?|\*)', '_', 'g'))
-	exec 'silent 0read !echo '.url.''
-	exec 'silent 1read !lynx -dump -width=9999 -display_charset=utf-8' url
+	exec 'silent 0read' '!echo' url
+	exec 'silent 1read' '!lynx -dump -width=9999 -display_charset=utf-8' url
 	normal! gg
 	write
 endfunction
 command! -nargs=* -range Lynx call Lynx(<f-args>)
 nnoremap <Leader>W :Lynx 
 vnoremap <Leader>W :Lynx<CR>
+
+command! -nargs=* -range Wikipedia :call Lynx('https://en.wikipedia.org/wiki/Special:Random')
 
 augroup lynx
 	au!
@@ -1041,9 +1042,9 @@ function! OpenDashboard()
 	silent tab G
 	call settabvar(tabpagenr(),'is_dashboard',1)
 	normal gu
-	exec('silent '.winheight(0)/4.'split ' . $desktop.'/todo')
-	exec('silent vnew ' . $desktop.'/done')
-	exec('silent  new ' . $desktop.'/achievements')
+	silent exec winheight(0)/4.'split $desktop./todo'
+	silent exec 'vnew $desktop/done'
+	silent exec 'new $desktop/achievements'
 	silent resize -2
 	0wincmd w
 	GvimTweakSetAlpha 180
@@ -1146,7 +1147,7 @@ function! RenderTodoList(todofile, donefile)
 	endfor
 	let html = BuildHtml(join(todoHtml,''), join(doneHtml,''), join(ideasHtml,''))
 	call writefile([html], $desktop.'/tmp/today.html')
-	call OpenWebUrl('',expand($desktop.'/tmp/today.html', ':p'))
+	call Firefox('',expand($desktop.'/tmp/today.html', ':p'))
 endfunction
 
 function! ParseTodoItem(line)
@@ -1243,7 +1244,7 @@ function! Diagram(lines)"-----------------{{{
 			\'ctrl-t': 'tabe',
 			\'ctrl-o': 'tabe',
 			\'ctrl-b': 'CompileDiagramAndShowImage png'}, a:lines[0], 'e')
-			execute(cmd . ' ' .file)
+			exec cmd file
 		else
 			let title = input('Title:')
 			let cmd = get({
@@ -1258,20 +1259,20 @@ function! Diagram(lines)"-----------------{{{
 					redraw
 					let title= input('This file already exists! Pick another title:')
 				endwhile
-				execute(cmd . ' ' .$desktop.'/notes/'.title)
+				exec cmd $desktop.'/notes/'.title
 			elseif file_or_diagramtype == 'adr'
 				while glob($desktop.'/tmp/'.title.'.md') != ''
 					redraw
 					let title= input('This file already exists! Pick another title:')
 				endwhile
-				execute(cmd . ' ' .$desktop.'/tmp/'.title.'.md')
+				exec cmd $desktop.'/tmp/'.title.'.md'
 			else
 				let diagramtype = file_or_diagramtype
 				while glob($desktop.'/tmp/'.title.'.puml_'.diagramtype) != ''
 					redraw
 					let title= input('This file already exists! Pick another title:')
 				endwhile
-				execute(cmd . ' ' .$desktop.'/tmp/'.title.'.puml_'.diagramtype)
+				exec cmd $desktop.'/tmp/'.title.'.puml_'.diagramtype
 		endif
 		silent write
 	endif
@@ -1295,7 +1296,7 @@ function! JobExitDiagramCompilationJob(outputfile, channelInfos, status)
 		10messages
 		return
 	endif
-	call OpenWebUrl('', a:outputfile)
+	call Firefox('', a:outputfile)
 endfunc
 
 function! CompileDiagramAndShowImage(outputExtension, ...)
@@ -1372,7 +1373,7 @@ function! BuildAndTestCurrentSolution()
 		echomsg "Omnisharp server isn't loaded. Please load Omnisharp server with :OmniSharpStartServer (qR)."
 		return
 	endif
-	silent execute 'belowright 10split Build'
+	silent belowright 10split Build
 	setlocal bufhidden=hide buftype=nofile buflisted nolist
 	setlocal noswapfile nowrap nomodifiable
 	hide
@@ -1415,7 +1416,7 @@ function! StartCSharpBuildExitCb(workingdir, job, status)
 		exec 'cgetbuffer' bufnr('Build')
 	else
 		exec 'bdelete!' bufnr('Build')
-		silent execute 'belowright 10split Tests'
+		silent belowright 10split Tests
 		setlocal bufhidden=hide buftype=nofile buflisted nolist
 		setlocal noswapfile nowrap nomodifiable
 		hide
