@@ -688,7 +688,11 @@ snoremap <C-I> <esc>:call UltiSnips#ExpandSnippetOrJump()<CR>
 let g:UltiSnipsExpandTrigger = "<nop>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 let g:UltiSnipsEditSplit="vertical"
-let g:UltiSnipsSnippetDirectories=[$desktop . "/tools/vim/pack/plugins/start/vim-snippets/ultisnips", $desktop.'/snippets']
+let g:UltiSnipsSnippetDirectories=[
+	\$VIM.'/pack/plugins/start/vim-snippets/ultisnips',
+	\$VIM.'/pack/plugins/start/vim-snippets/snippets',
+	\$desktop.'/snippets'
+\]
 nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 augroup ultisnips
 	au!
