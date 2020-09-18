@@ -191,6 +191,31 @@ function! JobStartExample()
 	\)
 endfunction
 
+function WinTextWidth()
+    let winwidth = winwidth(0)
+    let winwidth -= (max([len(line('$')), &numberwidth]) * (&number || &relativenumber))
+    let winwidth -= &foldcolumn
+    redir => signs
+    execute 'silent sign place buffer=' . bufnr('%')
+    redir END
+    if signs !~# '^\n---[^\n]*\n$'
+        let winwidth -= 2
+    endif
+    return winwidth
+endfunction
+
+function LineCount(...)
+    let startlnr = get(a:000, 0, 1)
+    let endlnr = get(a:000, 1, line('$'))
+    let numlines = 0
+    let winwidth = WinTextWidth()
+    for lnr in range(startlnr, endlnr)
+        let lwidth = strdisplaywidth(getline(lnr))
+        let numlines += max([(lwidth - 1) / winwidth + 1, 1])
+    endfor
+    return numlines
+endfunction
+
 " AZERTY Keyboard:---------------------{{{
 " AltGr keys" -------------------------{{{
 inoremap ^q {|		cnoremap ^q {
@@ -257,13 +282,13 @@ command! -bar Vnew    call NewTmpWindow(1)
 nnoremap <silent> <Leader>s :New<CR>
 nnoremap <silent> <Leader>v :Vnew<CR>
 nnoremap <silent> K :q<CR>
-nnoremap <silent> <Leader>o mW:tabnew<CR>`W
+nnoremap <silent> <Leader>o <C-W>_<C-W>\|
+nnoremap <silent> <Leader>O mW:tabnew<CR>`W
 nnoremap <silent> <Leader>x :tabclose<CR>
 
 function! ComputeRemainingHeight()
 	let screenrow = screenrow()
 	let res = &lines - screenrow - min([line('$')-line('.'), winheight(0)-winline()]) - (&cmdheight+1)
-	echomsg res
 	return res
 endfunction
 
@@ -274,12 +299,24 @@ function! NewTmpWindow(isVertical)
 	else
 		let minheight = 2
 		let remainingheight = ComputeRemainingHeight()
-		let useRemainingSpace = remainingheight > (minheight+1)
+		let useRemainingSpace = 0
+		let currentwinnr = winnr()
+		wincmd j
+		if winnr() != currentwinnr
+			wincmd k
+		else
+			let useRemainingSpace = 1
+			let remaininglines = getline('.', line('.')+remainingheight)
+			let winwidth = WinTextWidth()
+			let nbRemainingLinesRequiringWrapping = len(filter(remaininglines, { _,x -> len(x) > winwidth }))
+			let remainingheight -= nbRemainingLinesRequiringWrapping
+		endif
+		let useRemainingSpace = useRemainingSpace && remainingheight > (minheight+1)
 		if useRemainingSpace
 			mark k
 			normal! H
 		endif
-		exec (useRemainingSpace ? remainingheight : '') 'new' expand('%')
+		exec (useRemainingSpace ? (remainingheight-1) : '') 'new' expand('%')
 	endif
 	lcd $desktop/tmp
 	enew
@@ -291,6 +328,7 @@ function! NewTmpWindow(isVertical)
 		wincmd j
 	endif
 	mark `
+	buffer#
 endfunction
 
 " Browse to Window or Tab
@@ -730,6 +768,15 @@ let g:fzf_colors =
 function! Edit(lines)"-----------------{{{
 	if len(a:lines) < 2 | return | endif
 	let file_or_dir = a:lines[1]
+	if glob(file_or_dir) == ''
+		if glob($Desktop.'/'.file_or_dir) != ''
+			let file_or_dir = $Desktop.'/'.file_or_dir
+		elseif glob($VIM.'/'.file_or_dir) != ''
+			let file_or_dir = $VIM.'/'.file_or_dir
+		elseif glob($VIM.'/pack/plugins/start/'.file_or_dir) != ''
+			let file_or_dir = $VIM.'/pack/plugins/start/'.file_or_dir
+		endif
+	endif
 	let cmd = isdirectory(file_or_dir) ?
 		\get({'ctrl-x': 'split | Dirvish',
 		     \'ctrl-j': 'split | Dirvish',
@@ -747,23 +794,25 @@ function! Edit(lines)"-----------------{{{
 endfunction
 
 function! Explore()
-	let vimrc = expand($VIM.'\_vimrc')
-	let plugins = expand($VIM.'\pack\plugins\start\*', 0, 1)
-	let csharpfolders = filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)})
-	let gitfiles = filter(systemlist('git ls-files'), {_,x->x !~ 'my_vimrc.vim'})
-	let downloads = expand($HOME.'\Downloads\')
-	let desktop = expand($HOME.'\Desktop')
-	let todofiles = map(['todo', 'done', 'achievements'], {_,x -> expand($HOME.'\Desktop\'.x)})
-	let projects = [expand($HOME.'\Desktop\projects'), expand($HOME.'\Desktop\projects\*',0,1)]
-	let setup = [expand($HOME.'\Desktop\setup'), expand($HOME.'\Desktop\setup\*',0,1)]
-	let snippets = [expand($HOME.'\Desktop\snippets'), expand($HOME.'\Desktop\snippets\*',0,1)]
-	let templates = [expand($HOME.'\Desktop\templates'), expand($HOME.'\Desktop\templates\*',0,1)]
-	let tools = [expand($HOME.'\Desktop\tools'), expand($HOME.'\Desktop\tools\*',0,1)]
-	let tmp = [expand($HOME.'\Desktop\tmp')] + expand($HOME.'\Desktop\tmp\*', 0, 1) 
-	let colorfiles = [expand($VIM.'\pack\plugins\start\vim-empower\colors\empower.vim'), expand($VIM.'\pack\plugins\start\vim-empower\autoload\lightline\colorscheme\empower.vim')]
-	let notes = [expand($HOME.'\Desktop\notes\'), expand($HOME.'\Desktop\notes\*', 0, 1)]
-	let source = uniq([expand('%:h:p')]+sort(flatten([vimrc,plugins,csharpfolders,downloads,gitfiles,desktop,todofiles,projects,setup,snippets,templates,tools,tmp,colorfiles,notes])))
-	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--prompt', 'Edit> ']})))
+	let original_lcd = getcwd()
+	let source = []
+	lcd $HOME/Desktop
+	let source += expand('tmp\*',      0, 1)
+	let source += expand('notes\*',    0, 1)
+	let source += expand('snippets\*', 0, 1)
+	let source += expand('templates\*',0, 1)
+	let source += expand('setup\*',    0, 1)
+	let source += expand('tools\*',    0, 1)
+	let source += expand('projects\*', 0, 1)
+	call add(source, map(filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)}), { _,x -> fnamemodify(x, ':.') }))
+	call add(source, map(filter(systemlist('git ls-files'), {_,x->x !~ 'my_vimrc.vim'}), { _,x -> fnamemodify(x, ':.') }))
+	lcd $VIM/pack/plugins/start
+	call add(source, [expand('*', 0, 1)])
+	let source = uniq(sort(flatten(source)))
+	let source = ['_vimrc', 'Downloads', 'Desktop', 'tmp', 'notes', 'snippets', 'templates', 'setup', 'tools', 'projects'] + source
+	let source = map(source, { _,x -> substitute(x, '\', '/', 'g') })
+	exec 'lcd' shellescape(original_lcd)
+	call fzf#run(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--prompt', 'Edit> ']}))
 endfunction
 command! Explore call Explore()
 nnoremap <leader>e :Explore<CR>
@@ -1000,7 +1049,7 @@ function! Firefox(...)
 endfun
 command! -nargs=* -range Firefox :call Firefox(<f-args>)
 command! -nargs=* -range Ff :call Firefox(<f-args>)
-nnoremap <Leader>w :w<CR>:Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR>
+nnoremap <Leader>w :w<CR>:Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 vnoremap <Leader>w :Firefox<CR>
 command! -nargs=* -range WordreferenceFrEn :call Firefox('https://www.wordreference.com/fren/', <f-args>)
 command! -nargs=* -range GoogleTranslateFrEn :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
@@ -1016,9 +1065,12 @@ vnoremap <Leader>q :Google<CR>
 
 function! Lynx(...)
 	let url = ((a:0 == 0) ? GetCurrentSelection() : join(a:000))
-	exec (bufname() =~ '\.lynx$' ? 'edit!' : 'tabedit') printf($desktop.'/tmp/_%s.lynx', substitute(url, '\v(\<|\>|:|"|/|\\|\||\?|\*)', '_', 'g'))
+	let url = shellescape(url, 1)
+	echomsg url
+	exec (bufname() =~ '\.lynx$' ? 'edit!' : 'tabedit') printf($desktop.'/tmp/_%s.lynx', substitute(url, '\v(\<|\>|:|"|/|\||\?|\*)', '_', 'g'))
+	normal! ggdG
 	exec 'silent 0read' '!echo' url
-	exec 'silent 1read' '!lynx -dump -width=9999 -display_charset=utf-8' url
+	exec 'silent 1read' '!lynx -dump -nonumbers -width=9999 -display_charset=utf-8' url
 	normal! gg
 	write
 endfunction
