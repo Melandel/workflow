@@ -1436,7 +1436,7 @@ command! -bar BuildAndTestCurrentSolution call BuildAndTestCurrentSolution()
 
 function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
-	silent! exec 'bdelete!' bufnr('Build')
+	silent! exec 'bdelete!' bufnr('^Build$')
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
 	let s:job = job_start(
 		\'cmd /C '.cmd,
@@ -1465,9 +1465,9 @@ function! StartCSharpBuildExitCb(workingdir, job, status)
 		set errorformat+=%f(%l\\,%c):\ error\ MSB%n:\ %m\ [%.%#
 		set errorformat+=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
 		set errorformat+=%-G%.%#
-		exec 'cgetbuffer' bufnr('Build')
+		exec 'cgetbuffer' bufnr('^Build$')
 	else
-		exec 'bdelete!' bufnr('Build')
+		exec 'bdelete!' bufnr('^Build$')
 		silent belowright 10split Tests
 		setlocal bufhidden=hide buftype=nofile buflisted nolist
 		setlocal noswapfile nowrap nomodifiable
@@ -1478,7 +1478,7 @@ endfunction
 
 function! StartCSharpTest(workingdir)
 	let cmd = 'dotnet test --nologo --no-build'
-	silent! exec 'bdelete!' bufnr('Tests')
+	silent! exec 'bdelete!' bufnr('^Tests$')
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
@@ -1511,9 +1511,9 @@ function! Commit(job, status)
 		set errorformat+=%C\ %#%m\ Failure
 		set errorformat+=%C\ %#%m
 		set errorformat+=%-G%.%#
-		exec 'cgetbuffer' bufnr('Tests')
+		exec 'cgetbuffer' bufnr('^Tests$')
 	else
-		exec 'bdelete!' bufnr('Tests')
+		exec 'bdelete!' bufnr('^Tests$')
 		call OpenDashboard()
 	endif
 endfunction
