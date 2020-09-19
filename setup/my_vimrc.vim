@@ -5,13 +5,13 @@ set path+=$desktop/notes
 " Plugins" ----------------------------{{{
 function! MinpacInit()
 	packadd minpac
-	call minpac#init( #{dir:$VIM, package_name: 'plugins' } )
+	call minpac#init( #{dir:$VIM, package_name: 'plugins', progress_open: 'none' } )
 	call minpac#add('dense-analysis/ale')
 	call minpac#add('zigford/vim-powershell')
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
-	call minpac#add('Melandel/omnisharp-vim')
+	call minpac#add('OmniSharp/omnisharp-vim')
 	call minpac#add('nickspoons/vim-sharpenup')
 	call minpac#add('SirVer/ultisnips')
 	call minpac#add('honza/vim-snippets')
@@ -690,7 +690,6 @@ let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 let g:UltiSnipsEditSplit="vertical"
 let g:UltiSnipsSnippetDirectories=[
 	\$VIM.'/pack/plugins/start/vim-snippets/ultisnips',
-	\$VIM.'/pack/plugins/start/vim-snippets/snippets',
 	\$desktop.'/snippets'
 \]
 nnoremap <Leader>u :UltiSnipsEdit!<CR>G
@@ -742,7 +741,8 @@ nnoremap <silent> H :call CycleWindowBuffersHistoryBackwards()<CR>
 nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
 
 " Fuzzy Finder"------------------------{{{
-let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b --bind up:preview-up,down:preview-down"
+" Makes Omnishahrp-vim code actions select both two elements
+"let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b --bind up:preview-up,down:preview-down"
 let g:fzf_preview_window = 'right:60%'
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
 augroup my_fzf"------------------------{{{
@@ -816,7 +816,7 @@ function! Explore()
 	let source = ['_vimrc', 'Downloads', 'Desktop', 'tmp', 'notes', 'snippets', 'templates', 'setup', 'tools', 'projects'] + source
 	let source = map(source, { _,x -> substitute(x, '\', '/', 'g') })
 	exec 'lcd' shellescape(original_lcd)
-	call fzf#run(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--prompt', 'Edit> ']}))
+	call fzf#run(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b','--prompt', 'Edit> ']}))
 endfunction
 command! Explore call Explore()
 nnoremap <leader>e :Explore<CR>
@@ -1341,7 +1341,7 @@ function! ExploreDiagrams()
 	let notes = expand($desktop.'/notes/*', 0, 1)
 	let adrtypes = ['adr']
 	let adrs = expand($desktop.'/tmp/*.md', 0, 1)
-	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': notetypes+adrtypes+diagramtypes+notes+adrs+diagrams,'sink*': function('Diagram'), 'options': ['--prompt', 'Diagrams> ']})))
+	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': notetypes+adrtypes+diagramtypes+notes+adrs+diagrams,'sink*': function('Diagram'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b', '--prompt', 'Diagrams> ']})))
 endfunction
 command! ExploreDiagrams call ExploreDiagrams()
 nnoremap <leader>d :ExploreDiagrams<CR>
@@ -1416,6 +1416,7 @@ let g:OmniSharp_popup = 0
 let g:OmniSharp_loglevel = 'debug'
 let g:OmniSharp_highlight_types = 3
 let g:OmniSharp_selector_ui = 'fzf'
+let g:OmniSharp_fzf_options = { 'window': 'botright 7new' }
 let g:OmniSharp_want_snippet=1
 let g:OmniSharp_diagnostic_showid = 1
 augroup lightline_integration
