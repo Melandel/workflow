@@ -6,6 +6,7 @@ set path+=$desktop/notes
 function! MinpacInit()
 	packadd minpac
 	call minpac#init( #{dir:$VIM, package_name: 'plugins', progress_open: 'none' } )
+	call minpac#add('editorconfig/editorconfig-vim')
 	call minpac#add('dense-analysis/ale')
 	call minpac#add('zigford/vim-powershell')
 	call minpac#add('junegunn/fzf.vim')
@@ -97,7 +98,7 @@ let g:lcd_qf = getcwd()
 
 function! GetInterestingParentDirectory()
 	if IsOmniSharpRelated()
-		return fnamemodify(b:OmniSharp_host.sln_or_dir, ':p:h')
+		return fnamemodify(b:OmniSharp_host.sln_or_dir, isdirectory(b:OmniSharp_host.sln_or_dir) ? ':p' : ':p:h')
 	elseif &ft == 'qf'
 		return g:lcd_qf
 	elseif IsInsideGitClone()
@@ -114,7 +115,7 @@ function! UpdateLocalCurrentDirectory()
 		redraw
 		echo printf('[%s] -> [%s]', current_wd, dir)
 		exec 'lcd' dir
-	endif	
+	endif
 endfunction
 command! -bar Lcd call UpdateLocalCurrentDirectory()
 
@@ -134,7 +135,7 @@ function! IsInsideGitClone()
 endfunction
 
 function! IsOmniSharpRelated()
-	return exists('b:OmniSharp_host.sln_or_dir') && b:OmniSharp_host.sln_or_dir =~ '\v\.(sln|csproj)$'
+	return exists('b:OmniSharp_host.sln_or_dir')
 endfunction
 
 function! PreviousCharacter()
@@ -742,7 +743,6 @@ nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
 
 " Fuzzy Finder"------------------------{{{
 " Makes Omnishahrp-vim code actions select both two elements
-"let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b --bind up:preview-up,down:preview-down"
 let g:fzf_preview_window = 'right:60%'
 let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
 augroup my_fzf"------------------------{{{
@@ -775,6 +775,8 @@ function! Edit(lines)"-----------------{{{
 	if glob(file_or_dir) == ''
 		if glob($Desktop.'/'.file_or_dir) != ''
 			let file_or_dir = $Desktop.'/'.file_or_dir
+		elseif glob($HOME.'/'.file_or_dir) != ''
+			let file_or_dir = $HOME.'/'.file_or_dir
 		elseif glob($VIM.'/'.file_or_dir) != ''
 			let file_or_dir = $VIM.'/'.file_or_dir
 		elseif glob($VIM.'/pack/plugins/start/'.file_or_dir) != ''
@@ -830,7 +832,7 @@ function! CycleWindowBuffersHistoryBackwards()
 	let currentbufnr = bufnr('%')
 	let newbuffer = currentbufnr
 	let currentpos = get(w:, 'pos', jumplist[1]-1)
-	for i in range(currentpos, 0, -1)
+	for i in range(max([0,currentpos-1]), 0, -1)
 		let bufnr = jumplist[0][i].bufnr
 		if bufnr != currentbufnr && bufnr > 0
 			let newbuffer = bufnr
@@ -846,7 +848,7 @@ function! CycleWindowBuffersHistoryForward()
 	let currentbufnr = bufnr('%')
 	let newbuffer = currentbufnr
 	let currentpos = get(w:, 'pos', jumplist[1]-1)
-	for i in range(currentpos, len(jumplist[0])-1)
+	for i in range(min([currentpos+1, len(jumplist[0])-1]), len(jumplist[0])-1)
 		let bufnr = jumplist[0][i].bufnr
 		if bufnr != currentbufnr && bufnr > 0
 			let newbuffer = bufnr
@@ -1548,17 +1550,17 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 augroup end
 let g:OmniSharp_highlight_groups = {
-	\ 'Comment': 'Comment', 	
+	\ 'Comment': 'Comment',
 	\ 'Identifier': 'Identifier',
-	\ 'Keyword': 'Keyword', 	
-	\ 'ControlKeyword': 'String', 	
-	\ 'NumericLiteral': 'Number', 	
-	\ 'Operator': 'Identifier', 	
-	\ 'StringLiteral': 'String', 	
+	\ 'Keyword': 'Keyword',
+	\ 'ControlKeyword': 'String',
+	\ 'NumericLiteral': 'Number',
+	\ 'Operator': 'Identifier',
+	\ 'StringLiteral': 'String',
 	\ 'StaticSymbol': 'Identifier',
-	\ 'Punctuation': 'Identifier', 	
-	\ 'VerbatimStringLiteral': 'String', 	
-	\ 'StringEscapeCharacter': 'Special', 	
+	\ 'Punctuation': 'Identifier',
+	\ 'VerbatimStringLiteral': 'String',
+	\ 'StringEscapeCharacter': 'Special',
 	\ 'ClassName': 'Float',
 	\ 'DelegateName': 'Identifier',
 	\ 'EnumName': 'Structure',
@@ -1576,28 +1578,28 @@ let g:OmniSharp_highlight_groups = {
 	\ 'EventName': 'Identifier',
 	\ 'NamespaceName': 'Identifier',
 	\ 'LabelName': 'Label',
-	\ 'XmlDocCommentAttributeName': 'Comment', 	
-	\ 'XmlDocCommentAttributeQuotes': 'Comment', 	
-	\ 'XmlDocCommentAttributeValue': 'Comment', 	
-	\ 'XmlDocCommentCDataSection': 'Comment', 	
-	\ 'XmlDocCommentComment': 'Comment', 	
-	\ 'XmlDocCommentDelimiter': 'Comment', 	
-	\ 'XmlDocCommentEntityReference': 'Comment', 	
-	\ 'XmlDocCommentName': 'Comment', 	
-	\ 'XmlDocCommentProcessingInstruction': 'Comment', 	
-	\ 'XmlDocCommentText': 'Comment', 	
-	\ 'XmlLiteralAttributeName': 'Comment', 	
-	\ 'XmlLiteralAttributeQuotes': 'Comment', 	
-	\ 'XmlLiteralAttributeValue': 'Comment', 	
-	\ 'XmlLiteralCDataSection': 'Comment', 	
-	\ 'XmlLiteralComment': 'Comment', 	
-	\ 'XmlLiteralDelimiter': 'Comment', 	
-	\ 'XmlLiteralEmbeddedExpression': 'Comment', 	
-	\ 'XmlLiteralEntityReference': 'Comment', 	
-	\ 'XmlLiteralName': 'Comment', 	
-	\ 'XmlLiteralProcessingInstruction': 'Comment', 	
-	\ 'XmlLiteralText': 'Comment', 	
-	\ 'RegexComment': 'Comment' 	
+	\ 'XmlDocCommentAttributeName': 'Comment',
+	\ 'XmlDocCommentAttributeQuotes': 'Comment',
+	\ 'XmlDocCommentAttributeValue': 'Comment',
+	\ 'XmlDocCommentCDataSection': 'Comment',
+	\ 'XmlDocCommentComment': 'Comment',
+	\ 'XmlDocCommentDelimiter': 'Comment',
+	\ 'XmlDocCommentEntityReference': 'Comment',
+	\ 'XmlDocCommentName': 'Comment',
+	\ 'XmlDocCommentProcessingInstruction': 'Comment',
+	\ 'XmlDocCommentText': 'Comment',
+	\ 'XmlLiteralAttributeName': 'Comment',
+	\ 'XmlLiteralAttributeQuotes': 'Comment',
+	\ 'XmlLiteralAttributeValue': 'Comment',
+	\ 'XmlLiteralCDataSection': 'Comment',
+	\ 'XmlLiteralComment': 'Comment',
+	\ 'XmlLiteralDelimiter': 'Comment',
+	\ 'XmlLiteralEmbeddedExpression': 'Comment',
+	\ 'XmlLiteralEntityReference': 'Comment',
+	\ 'XmlLiteralName': 'Comment',
+	\ 'XmlLiteralProcessingInstruction': 'Comment',
+	\ 'XmlLiteralText': 'Comment',
+	\ 'RegexComment': 'Comment'
 \}
 let g:OmniSharp_diagnostic_exclude_paths = [
 \ 'obj\\',

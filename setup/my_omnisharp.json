@@ -1,6 +1,6 @@
 {
 	"FormattingOptions": {
-		"UseTabs": true
+		"EnableEditorConfigSupport": true
 	},
 	"MsBuild":
 	{
