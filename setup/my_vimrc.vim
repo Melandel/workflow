@@ -71,6 +71,7 @@ set backupdir=$HOME/Desktop/tmp/vim
 set undofile
 set undodir=$HOME/Desktop/tmp/vim
 set viewdir=$HOME/Desktop/tmp/vim
+set history=200
 " GVim specific
 if has("gui_running")
 	set guioptions-=m  "menu bar
@@ -822,9 +823,13 @@ function! Explore()
 endfunction
 command! Explore call Explore()
 nnoremap <leader>e :Explore<CR>
-nnoremap <leader>E :History<CR>
+nnoremap <leader>E :Files <C-R>=expand('%:h')<CR>
 nnoremap <leader>g :Commits<CR>
 nnoremap <leader>G :BCommits<CR>
+nnoremap q: :History:<CR>
+nnoremap q! :History/<CR>
+nnoremap q, :History<CR>
+nnoremap q; :Commands<CR>
 
 " Window buffer navigation"------------{{{
 function! CycleWindowBuffersHistoryBackwards()
