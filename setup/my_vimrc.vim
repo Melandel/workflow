@@ -773,7 +773,9 @@ let g:fzf_colors =
 function! Edit(lines)"-----------------{{{
 	if len(a:lines) < 2 | return | endif
 	let file_or_dir = a:lines[1]
-	if glob(file_or_dir) == ''
+	if file_or_dir =~ '^(current folder) '
+		let file_or_dir = expand('%:h:p')
+	elseif glob(file_or_dir) == ''
 		if glob($Desktop.'/'.file_or_dir) != ''
 			let file_or_dir = $Desktop.'/'.file_or_dir
 		elseif glob($HOME.'/'.file_or_dir) != ''
@@ -816,18 +818,16 @@ function! Explore()
 	lcd $VIM/pack/plugins/start
 	call add(source, [expand('*', 0, 1)])
 	let source = uniq(sort(flatten(source)))
-	let source = ['_vimrc', 'Downloads', 'Desktop', 'tmp', 'notes', 'snippets', 'templates', 'setup', 'tools', 'projects'] + source
+	let source = ['(current folder) '.expand('%:h:p'), '_vimrc', 'Downloads', 'Desktop', 'tmp', 'notes', 'snippets', 'templates', 'setup', 'tools', 'projects'] + source
 	let source = map(source, { _,x -> substitute(x, '\', '/', 'g') })
 	exec 'lcd' shellescape(original_lcd)
-	call fzf#run(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b','--prompt', 'Edit> ']}))
+	call fzf#run(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b','--prompt', 'Explore> ']}))
 endfunction
 command! Explore call Explore()
 nnoremap <leader>e :Explore<CR>
 nnoremap <leader>E :Files <C-R>=expand('%:h')<CR>
 nnoremap <leader>g :Commits<CR>
 nnoremap <leader>G :BCommits<CR>
-nnoremap q: :History:<CR>
-nnoremap q! :History/<CR>
 nnoremap q, :History<CR>
 nnoremap q; :Commands<CR>
 
@@ -1292,8 +1292,8 @@ endfunction
 
 command! RenderTodoList call RenderTodoList($desktop.'/todo', $desktop.'/done')
 command! Todo call RenderTodoList($desktop.'/todo', $desktop.'/done')
-" Diagrams"----------------------------{{{
-function! Diagram(lines)"-----------------{{{
+" Drafts (Diagrams & Notes)"-----------{{{
+function! Draft(lines)"-----------------{{{
 	if len(a:lines) < 2 | return | endif
 	let file_or_diagramtype = a:lines[1]
 	let cmd=''
@@ -1330,28 +1330,27 @@ function! Diagram(lines)"-----------------{{{
 				endwhile
 				exec cmd $desktop.'/tmp/'.title.'.md'
 			else
-				let diagramtype = file_or_diagramtype
+				let diagramtype = split(file_or_diagramtype, ' ')[0]
 				while glob($desktop.'/tmp/'.title.'.puml_'.diagramtype) != ''
 					redraw
 					let title= input('This file already exists! Pick another title:')
 				endwhile
 				exec cmd $desktop.'/tmp/'.title.'.puml_'.diagramtype
 		endif
-		silent write
 	endif
 endfunction
 
-function! ExploreDiagrams()
-	let diagramtypes = ['activity', 'mindmap', 'sequence', 'workbreakdown', 'class', 'component', 'entities', 'state', 'usecase', 'dot']
+function! ExploreDrafts()
+	let diagramtypes = map(['activity', 'mindmap', 'sequence', 'workbreakdown', 'class', 'component', 'entities', 'state', 'usecase', 'dot'], { _,x -> x. ' diagram' })
 	let diagrams = expand($desktop.'/tmp/*.puml*', 0, 1)
 	let notetypes = ['note']
 	let notes = expand($desktop.'/notes/*', 0, 1)
 	let adrtypes = ['adr']
 	let adrs = expand($desktop.'/tmp/*.md', 0, 1)
-	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': notetypes+adrtypes+diagramtypes+notes+adrs+diagrams,'sink*': function('Diagram'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b', '--prompt', 'Diagrams> ']})))
+	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': notetypes+adrtypes+diagramtypes+notes+adrs+diagrams,'sink*': function('Draft'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b', '--prompt', 'Drafts> ']})))
 endfunction
-command! ExploreDiagrams call ExploreDiagrams()
-nnoremap <leader>d :ExploreDiagrams<CR>
+command! ExploreDrafts call ExploreDrafts()
+nnoremap <leader>d :ExploreDrafts<CR>
 nnoremap <leader>D :vs\|Dirvish <C-R>=expand('$HOME/Downloads')<CR><CR>
 
 function! JobExitDiagramCompilationJob(outputfile, channelInfos, status)
