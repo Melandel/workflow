@@ -305,7 +305,7 @@ function! NewTmpWindow(isVertical)
 		let currentwinnr = winnr()
 		wincmd j
 		if winnr() != currentwinnr
-			wincmd k
+			call win_gotoid(win_getid(currentwinnr))
 		else
 			let useRemainingSpace = 1
 			let remaininglines = getline('.', line('.')+remainingheight)
