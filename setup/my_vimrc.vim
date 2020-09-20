@@ -837,6 +837,9 @@ function! CycleWindowBuffersHistoryBackwards()
 	let currentbufnr = bufnr('%')
 	let newbuffer = currentbufnr
 	let currentpos = get(w:, 'pos', jumplist[1]-1)
+	if currentpos > len(jumplist[0])
+		let currentpos = len(jumplist[0])
+	endif
 	for i in range(max([0,currentpos-1]), 0, -1)
 		let bufnr = jumplist[0][i].bufnr
 		if bufnr != currentbufnr && bufnr > 0
