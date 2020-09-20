@@ -12,7 +12,7 @@ function! MinpacInit()
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
-	call minpac#add('OmniSharp/omnisharp-vim')
+	call minpac#add('Melandel/omnisharp-vim')
 	call minpac#add('nickspoons/vim-sharpenup')
 	call minpac#add('SirVer/ultisnips')
 	call minpac#add('honza/vim-snippets')
@@ -114,7 +114,6 @@ function! UpdateLocalCurrentDirectory()
 	let current_wd = getcwd()
 	if current_wd != dir
 		redraw
-		echo printf('[%s] -> [%s]', current_wd, dir)
 		exec 'lcd' dir
 	endif
 endfunction
@@ -179,19 +178,20 @@ function! OmnifunctionExample(findstart, base)
 	return ['toto', previouschar]
 endfunction
 
-function! JobStartExample()
-	let cmd = 'dir'
+function! JobStartExample(...)
+	let cmd = a:0 ? (a:1 != '' ? a:1 : 'dir') : 'dir'
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
-			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
-			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"').'"',  1)                                   },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
-			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                       },
-			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'"', '')                                     }
+			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"\').'"',  1)                              },
+			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"\').'"',  1)                                   },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "\'.escape(msg,'"\').'" | echohl Normal',  1)},
+			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                        },
+			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'"', '')                                      }
 		\}
 	\)
 endfunction
+command! -nargs=* Start call JobStartExample(<q-args>)
 
 function WinTextWidth()
     let winwidth = winwidth(0)
@@ -216,6 +216,17 @@ function LineCount(...)
         let numlines += max([(lwidth - 1) / winwidth + 1, 1])
     endfor
     return numlines
+endfunction
+
+function ResetScratchBuffer(path)
+	silent! exec 'bdelete!' bufnr(a:path)
+	let bufnr = bufadd(a:path)
+	call setbufvar(bufnr, '&bufhidden', 'hide')
+	call setbufvar(bufnr, '&buftype', 'nofile')
+	call setbufvar(bufnr, '&buflisted', 1)
+	call setbufvar(bufnr, '&list', 0)
+	call setbufvar(bufnr, '&wrap', 0)
+	return bufnr
 endfunction
 
 " AZERTY Keyboard:---------------------{{{
@@ -680,6 +691,16 @@ function! CopyAllMatches(...)
 endfunction
 command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
 
+" Sort" -------------------------------{{{
+function! SortLinesByLength() range
+	let range = a:firstline.','.a:lastline
+	silent exec range 's/.*/\=printf("%03d", len(submatch(0)))."|".submatch(0)/'
+	exec range 'sort n'
+	silent exec range 's/..../'
+	nohlsearch
+endfunction
+command! -range=% SortByLength <line1>,<line2>call SortLinesByLength()
+
 " Autocompletion (Insert Mode)" -------{{{
 inoremap <C-O> <C-X><C-O>
 inoremap <C-I> <C-R>=TabExpand()<CR>
@@ -687,7 +708,7 @@ snoremap <C-I> <esc>:call UltiSnips#ExpandSnippetOrJump()<CR>
 let g:UltiSnipsExpandTrigger = "<nop>"
 let g:UltiSnipsJumpForwardTrigger="<nop>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
-let g:UltiSnipsEditSplit="vertical"
+let g:UltiSnipsEditSplit="horizontal"
 let g:UltiSnipsSnippetDirectories=[
 	\$VIM.'/pack/plugins/start/vim-snippets/ultisnips',
 	\$desktop.'/snippets'
@@ -1413,6 +1434,41 @@ augroup mydiagrams
 augroup END
 
 " Specific Workflows:------------------{{{
+" Nuget" ------------------------------{{{
+function! FindNuget(...)
+	let tokens = flatten(map(copy(a:000), { _,x -> split(x, '\.') }))
+	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Nugets')
+	let cmd = 'nuget list id:'.tokens[0]
+	let s:job = job_start(
+		\'cmd /C '.cmd,
+		\{
+			\'out_io': 'buffer',
+			\'out_buf': scratchbufnr,
+			\'out_modifiable': 1,
+			\'err_io': 'buffer',
+			\'err_buf': scratchbufnr,
+			\'err_modifiable': 1,
+			\'in_io': 'null',
+			\'callback': { chan,msg  -> execute('echo "[cb] '.escape(msg,'"').'"',  1)                              },
+			\'out_cb':   { chan,msg  -> execute('echo "Found: '.escape(msg,'"').'"',  1)                                   },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)},
+			\'exit_cb':  function('FindNugetExitCb', [tokens, scratchbufnr])
+		\}
+	\)
+endfunc
+command! -nargs=+ Nuget call FindNuget(<f-args>)
+
+function! FindNugetExitCb(tokens, scratchbufnr, job, status)
+	echomsg "[exit] ".a:status
+	exec 'sbuffer' a:scratchbufnr
+	for token in a:tokens
+		exec 'v/'.token.'/d'
+	endfor
+	SortByLength
+	normal! gg
+endfunction
+
 " cs(c#)" -----------------------------{{{
 let g:OmniSharp_server_path = $desktop . '/tools/omnisharp/OmniSharp.exe'
 let $DOTNET_NEW_LOCAL_SEARCH_FILE_ONLY=1
@@ -1445,78 +1501,65 @@ command! -bar BuildAndTestCurrentSolution call BuildAndTestCurrentSolution()
 
 function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
-	silent! exec 'bdelete!' bufnr($desktop.'/tmp/Build')
-	let scratch = bufadd($desktop.'/tmp/Build')
-	call setbufvar(scratch, '&bufhidden', 'hide')
-	call setbufvar(scratch, '&buftype', 'nofile')
-	call setbufvar(scratch, '&buflisted', 1)
-	call setbufvar(scratch, '&modifiable', 0)
-	call setbufvar(scratch, '&list', 0)
-	call setbufvar(scratch, '&wrap', 0)
-	call bufload(scratch)
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
 			\'cwd': folder,
 			\'out_io': 'buffer',
-			\'out_name': $desktop.'/tmp/Build',
+			\'out_buf': scratchbufnr,
 			\'out_modifiable': 0,
 			\'err_io': 'buffer',
-			\'err_name': $desktop.'/tmp/Build',
+			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
 			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
 			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"').'"',  1)                                   },
 			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
 			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                       },
-			\'exit_cb':  function('StartCSharpBuildExitCb', [folder])
+			\'exit_cb':  function('StartCSharpBuildExitCb', [folder, scratchbufnr])
 		\}
 	\)
 endfunction
 
-function! StartCSharpBuildExitCb(workingdir, job, status)
+function! StartCSharpBuildExitCb(workingdir, scratchbufnr, job, status)
 	if a:status
 		echomsg 'Compilation failed.'
 		set errorformat=MSBUILD\ :\ error\ MSB%n:\ %m
 		set errorformat+=%f(%l\\,%c):\ error\ MSB%n:\ %m\ [%.%#
 		set errorformat+=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
 		set errorformat+=%-G%.%#
-		exec 'cgetbuffer' bufnr($desktop.'/tmp/Build')
+		exec 'cgetbuffer' a:scratchbufnr
 	else
-		exec 'bdelete!' bufnr($desktop.'/tmp/Build')
-		silent belowright 10split $desktop/tmp/Test
-		setlocal bufhidden=hide buftype=nofile buflisted nolist
-		setlocal noswapfile nowrap nomodifiable
-		hide
 		call StartCSharpTest(a:workingdir)
 	endif
 endfunction
 
 function! StartCSharpTest(workingdir)
 	let cmd = 'dotnet test --nologo --no-build'
-	silent! exec 'bdelete!' bufnr($desktop.'/tmp/Test')
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Test')
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
 			\'cwd': a:workingdir,
 			\'out_io': 'buffer',
-			\'out_name': $desktop.'/tmp/Test',
+			\'out_buf': scratchbufnr,
 			\'out_modifiable': 0,
 			\'err_io': 'buffer',
-			\'err_name': $desktop.'/tmp/Test',
+			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
 			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
 			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"').'"',  1)                                   },
 			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
 			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                       },
-			\'exit_cb':  'Commit'
+			\'exit_cb':  function('Commit', [scratchbufnr])
 		\}
 	\)
 endfunction
 
-function! Commit(job, status)
+function! Commit(scratchbufnr, job, status)
 	if a:status
 		echomsg 'Tests failed.'
 		set errorformat=%A\ %#X\ %.%#
@@ -1528,10 +1571,40 @@ function! Commit(job, status)
 		set errorformat+=%C\ %#%m\ Failure
 		set errorformat+=%C\ %#%m
 		set errorformat+=%-G%.%#
-		exec 'cgetbuffer' bufnr($desktop.'/tmp/Test')
+		exec 'cgetbuffer' a:scratchbufnr
 	else
-		exec 'bdelete!' bufnr($desktop.'/tmp/Test')
+		exec 'bdelete!' a:scratchbufnr
 		call OpenDashboard()
+	endif
+endfunction
+
+function! GetCsprojDir()
+	let dir = expand('%:p:h')
+	let lastfolder = ''
+	let csproj_dir = []
+	while dir !=# lastfolder
+		let csproj_dir += globpath(dir, '*.csproj', 1, 1)
+		call uniq(map(csproj_dir, 'fnamemodify(v:val, ":h")'))
+		if !empty(csproj_dir)
+				return csproj_dir[0]
+		endif
+		let lastfolder = dir
+		let dir = fnamemodify(dir, ':h')
+	endwhile
+endfunction
+
+function! GetDirOrSln()
+	let dir = GetCsprojDir()
+	let sln = has_key(g:, 'csprojs2sln') && has_key(g:csprojs2sln, dir) ? g:csprojs2sln[dir] : dir
+	let cmdline = getcmdline()
+	let dir_len = len(dir)
+	let sln_len = len(sln)
+	if cmdline[-dir_len:] == dir
+		return repeat("\<BS>", dir_len).sln
+	elseif cmdline[-sln_len:] == sln
+		return repeat("\<BS>", sln_len).dir
+	else
+		return dir
 	endif
 endfunction
 
@@ -1559,6 +1632,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nmap <buffer> <LocalLeader>t :OmniSharpRunTest<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>T :OmniSharpRunTestsInFile<CR>
+	autocmd FileType cs cnoremap <buffer> <expr> <C-G> GetDirOrSln()
 augroup end
 let g:OmniSharp_highlight_groups = {
 	\ 'Comment': 'Comment',
