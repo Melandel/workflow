@@ -229,6 +229,27 @@ snippet mb-% "Private abstract method (bool)" b
 	}
 endsnippet
 
+snippet if "Interface" b
+${1:public} interface ${2:`vim_snippets#Filename()`}
+{
+	$0
+}
+endsnippet
+
+snippet if& "Internal Interface" b
+internal interface ${1:`vim_snippets#Filename()`}
+{
+	${0}
+}
+endsnippet
+
+snippet if& "Private interface" b
+private interface ${1:`vim_snippets#Filename()`}
+{
+	${0}
+}
+endsnippet
+
 snippet fact "XUnit Fact" b
 [Fact]
 public void ${9:GIVEN_${10:initial_context}_}WHEN_${8:trigger}_THEN_$2_should_${7:behavior}()
