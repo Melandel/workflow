@@ -688,6 +688,7 @@ inoremap <C-O> <C-X><C-O>
 inoremap <C-I> <C-R>=TabExpand()<CR>
 snoremap <C-I> <esc>:call UltiSnips#ExpandSnippetOrJump()<CR>
 let g:UltiSnipsExpandTrigger = "<nop>"
+let g:UltiSnipsJumpForwardTrigger="<nop>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 let g:UltiSnipsEditSplit="vertical"
 let g:UltiSnipsSnippetDirectories=[
