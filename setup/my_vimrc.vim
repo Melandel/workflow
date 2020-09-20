@@ -1548,7 +1548,6 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>s <Plug>(omnisharp_find_symbol)
 	autocmd FileType cs nmap <buffer> <LocalLeader>u <Plug>(omnisharp_find_usages)
 	autocmd FileType cs nmap <buffer> <LocalLeader>l <Plug>(omnisharp_find_members)
-	autocmd FileType cs nmap <buffer> <LocalLeader>t <Plug>(omnisharp_type_lookup)
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_documentation)
 	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
 	autocmd FileType cs nmap <buffer> <LocalLeader>q <Plug>(omnisharp_code_actions)
@@ -1557,6 +1556,8 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>= <Plug>(omnisharp_code_format)
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
+	autocmd FileType cs nmap <buffer> <LocalLeader>t :OmniSharpRunTest<CR>
+	autocmd FileType cs nmap <buffer> <LocalLeader>T :OmniSharpRunTestsInFile<CR>
 augroup end
 let g:OmniSharp_highlight_groups = {
 	\ 'Comment': 'Comment',
