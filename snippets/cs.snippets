@@ -4,3 +4,242 @@ namespace ${1:MyNameSpace}
 	${0}
 }
 endsnippet
+
+snippet m+^ "Public static method" b
+	public static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet m&^ "Internal static method" b
+	internal static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet m|^ "protected static method" b
+	protected static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet m-^ "Private static method" b
+	public static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mi+^ "Public static method (int)" b
+	public static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mi&^ "Internal static method (int)" b
+	internal static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mi|^ "protected static method (int)" b
+	protected static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mi-^ "Private static method (int)" b
+	public static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet ms+^ "Public static method (string)" b
+	public static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet ms&^ "Internal static method (string)" b
+	internal static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet ms|^ "protected static method (string)" b
+	protected static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet ms-^ "Private static method (string)" b
+	public static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mb+^ "Public static method (bool)" b
+	public static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mb&^ "Internal static method (bool)" b
+	internal static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mb|^ "protected static method (bool)" b
+	protected static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mb-^ "Private static method (bool)" b
+	public static ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet m+% "Public abstract method" b
+	public abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet m&% "Internal abstract method" b
+	internal abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet m|% "protected abstract method" b
+	protected abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet m-% "Private abstract method" b
+	public abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mi+% "Public abstract method (int)" b
+	public abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mi&% "Internal abstract method (int)" b
+	internal abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mi|% "protected abstract method (int)" b
+	protected abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mi-% "Private abstract method (int)" b
+	public abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet ms+% "Public abstract method (string)" b
+	public abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet ms&% "Internal abstract method (string)" b
+	internal abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet ms|% "protected abstract method (string)" b
+	protected abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet ms-% "Private abstract method (string)" b
+	public abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mb+% "Public abstract method (bool)" b
+	public abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mb&% "Internal abstract method (bool)" b
+	internal abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mb|% "protected abstract method (bool)" b
+	protected abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet mb-% "Private abstract method (bool)" b
+	public abstract ${1:void} ${2}(${3})
+	{
+		${0}
+	}
+endsnippet
+
+snippet fact "XUnit Fact" b
+	[Fact]
+	public void Given_${1:INITIAL_CONTEXT}_when_${2:TRIGGER}_${3:SUBJECT}_should_${4:BEHAVIOR}()
+	{
+		// Arrange
+		var input = ${5:new Request();}
+		var expected = ${6:new Response();}
+		var sut = ${7:new SystemUnderTest();}
+		// Act
+		${8:// Do_Something();}
+		// Assert
+		${9:Assert.True(true, "First step when defining a test: The message error");}
+	}
+endsnippet
