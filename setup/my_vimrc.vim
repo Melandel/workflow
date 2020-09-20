@@ -1431,15 +1431,12 @@ augroup lightline_integration
 augroup END
 
 function! BuildAndTestCurrentSolution()
+	cclose
 	let omnisharp_host = getbufvar(bufnr('%'), 'OmniSharp_host')
 	if empty(omnisharp_host) || !get(omnisharp_host, 'initialized')
 		echomsg "Omnisharp server isn't loaded. Please load Omnisharp server with :OmniSharpStartServer (qR)."
 		return
 	endif
-	silent belowright 10split Build
-	setlocal bufhidden=hide buftype=nofile buflisted nolist
-	setlocal noswapfile nowrap nomodifiable
-	hide
 	let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, isdirectory(omnisharp_host.sln_or_dir) ? ':p' : ':h:p')
 	call StartCSharpBuild(sln_dir)
 endfunction
@@ -1447,17 +1444,25 @@ command! -bar BuildAndTestCurrentSolution call BuildAndTestCurrentSolution()
 
 function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
-	silent! exec 'bdelete!' bufnr('^Build$')
+	silent! exec 'bdelete!' bufnr($desktop.'/tmp/Build')
+	let scratch = bufadd($desktop.'/tmp/Build')
+	call setbufvar(scratch, '&bufhidden', 'hide')
+	call setbufvar(scratch, '&buftype', 'nofile')
+	call setbufvar(scratch, '&buflisted', 1)
+	call setbufvar(scratch, '&modifiable', 0)
+	call setbufvar(scratch, '&list', 0)
+	call setbufvar(scratch, '&wrap', 0)
+	call bufload(scratch)
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
 			\'cwd': folder,
 			\'out_io': 'buffer',
-			\'out_name': 'Build',
+			\'out_name': $desktop.'/tmp/Build',
 			\'out_modifiable': 0,
 			\'err_io': 'buffer',
-			\'err_name': 'Build',
+			\'err_name': $desktop.'/tmp/Build',
 			\'err_modifiable': 0,
 			\'in_io': 'null',
 			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
@@ -1476,10 +1481,10 @@ function! StartCSharpBuildExitCb(workingdir, job, status)
 		set errorformat+=%f(%l\\,%c):\ error\ MSB%n:\ %m\ [%.%#
 		set errorformat+=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
 		set errorformat+=%-G%.%#
-		exec 'cgetbuffer' bufnr('^Build$')
+		exec 'cgetbuffer' bufnr($desktop.'/tmp/Build')
 	else
-		exec 'bdelete!' bufnr('^Build$')
-		silent belowright 10split Tests
+		exec 'bdelete!' bufnr($desktop.'/tmp/Build')
+		silent belowright 10split $desktop/tmp/Test
 		setlocal bufhidden=hide buftype=nofile buflisted nolist
 		setlocal noswapfile nowrap nomodifiable
 		hide
@@ -1489,16 +1494,16 @@ endfunction
 
 function! StartCSharpTest(workingdir)
 	let cmd = 'dotnet test --nologo --no-build'
-	silent! exec 'bdelete!' bufnr('^Tests$')
+	silent! exec 'bdelete!' bufnr($desktop.'/tmp/Test')
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
 			\'cwd': a:workingdir,
 			\'out_io': 'buffer',
-			\'out_name': 'Tests',
+			\'out_name': $desktop.'/tmp/Test',
 			\'out_modifiable': 0,
 			\'err_io': 'buffer',
-			\'err_name': 'Tests',
+			\'err_name': $desktop.'/tmp/Test',
 			\'err_modifiable': 0,
 			\'in_io': 'null',
 			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
@@ -1522,9 +1527,9 @@ function! Commit(job, status)
 		set errorformat+=%C\ %#%m\ Failure
 		set errorformat+=%C\ %#%m
 		set errorformat+=%-G%.%#
-		exec 'cgetbuffer' bufnr('^Tests$')
+		exec 'cgetbuffer' bufnr($desktop.'/tmp/Test')
 	else
-		exec 'bdelete!' bufnr('^Tests$')
+		exec 'bdelete!' bufnr($desktop.'/tmp/Test')
 		call OpenDashboard()
 	endif
 endfunction
