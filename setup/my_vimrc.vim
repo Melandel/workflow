@@ -259,9 +259,6 @@ set noequalalways " keep windows viewport when splitting
 set previewheight=25
 set showtabline=0
 
-" List/Open Buffers
-nnoremap <Leader>b :Buffers<CR>
-
 " Close Buffers
 function! DeleteHiddenBuffers()" ------{{{
   let tpbl=[]
@@ -830,7 +827,7 @@ nnoremap <leader>E :Files <C-R>=expand('%:h')<CR>
 nnoremap <leader>g :Commits<CR>
 nnoremap <leader>G :BCommits<CR>
 nnoremap q, :History<CR>
-nnoremap q; :Commands<CR>
+nnoremap q; :Buffers<CR>
 
 " Window buffer navigation"------------{{{
 function! CycleWindowBuffersHistoryBackwards()
