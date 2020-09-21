@@ -20,6 +20,7 @@ function! MinpacInit()
 	call minpac#add('tpope/vim-dadbod')
 	call minpac#add('tpope/vim-surround')
 	call minpac#add('tpope/vim-repeat')
+	call minpac#add('tpope/vim-repeat')
 	call minpac#add('junegunn/vim-easy-align')
 	call minpac#add('tpope/vim-fugitive')
 	call minpac#add('tpope/vim-obsession')
@@ -180,14 +181,21 @@ endfunction
 
 function! JobStartExample(...)
 	let cmd = a:0 ? (a:1 != '' ? a:1 : 'dir') : 'dir'
+	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Job')
+	echomsg "<start> ".cmd
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
-			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"\').'"',  1)                              },
-			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"\').'"',  1)                                   },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "\'.escape(msg,'"\').'" | echohl Normal',  1)},
-			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                        },
-			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'"', '')                                      }
+			\'out_io': 'buffer',
+			\'out_buf': scratchbufnr,
+			\'out_modifiable': 1,
+			\'err_io': 'buffer',
+			\'err_buf': scratchbufnr,
+			\'err_modifiable': 1,
+			\'in_io': 'null',
+			\'callback': { chan,msg  -> execute('echo "[cb] '.escape(msg,'"').'"',  1)},
+			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)},
+			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'" | botright sbuffer '.scratchbufnr, '')}
 		\}
 	\)
 endfunction
@@ -614,7 +622,7 @@ vnoremap gy y`]
 nnoremap <expr> vp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
 " Repeat-Last-Action" -----------------{{{
-nnoremap ù .
+nmap ù .
 
 " Vertical Alignment" -----------------{{{
 xmap ga <Plug>(EasyAlign)
