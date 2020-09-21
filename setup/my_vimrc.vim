@@ -674,6 +674,7 @@ set ignorecase
 set shortmess=filnxtToO
 nnoremap ! mG/
 vnoremap ! <Esc>mGgv"vy/<C-R>v
+nnoremap q! q/
 nnoremap / mG:Lines<CR>
 
 nnoremap z! :BLines<CR>
