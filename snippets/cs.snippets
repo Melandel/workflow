@@ -252,31 +252,56 @@ endsnippet
 
 snippet fact "XUnit Fact" b
 [Fact]
-public void ${9:GIVEN_${10:initial_context}_}WHEN_${8:trigger}_THEN_$2_should_${7:behavior}()
+public void WHEN_${1:happy_path}_EXPECT_${2:target}_TO_${3:DO/BE/NOT}_${4:something}()
 {
 	// Arrange
-	var input = ${6:new Request()};
-	var expected = ${5:new Response()};
-	var sut = ${4:new SystemUnderTest()};
+	var input = ${5:new Request();}
 	// Act
-	var actual = sut.${2:Do_Something}(${3:input});
+	$6
 	// Assert
-	Assert.True(false, "${1:10 years from now, if this test fails, what exactly broke down?}");
+	$7
 }
+
+
 endsnippet
 
 snippet theory "XUnit Theory" b
 [Theory]
-$12
-public void ${9:GIVEN_${10:initial_context}_}WHEN_${8:trigger}_THEN_$2_should_${7:behavior}($11)
+$8
+public void WHEN_${1:happy_path}_EXPECT_${2:target}_TO_${3:DO/BE/NOT}_${4:something}($5)
 {
 	// Arrange
-	var input = ${6:new Request()};
-	var expected = ${5:new Response()};
-	var sut = ${4:new SystemUnderTest()};
+	${6:var input = new Request();}
 	// Act
-	var actual = sut.${2:Do_Something}(${3:input});
+	$7
 	// Assert
-	Assert.True(false, "${1:10 years from now, if this test fails, what exactly broke down?}");
+	$8
+}
+
+
+endsnippet
+
+snippet interactor "Interactor Contract" b
+namespace ${2:MyNameSpace}
+{
+	public interface ${1:`!p snip.rv = snip.basename`}
+	{
+		Response Process(Request req);
+
+		public class Request {
+		${3}
+			public static Request Create() {
+				return new Request();
+			}
+		}
+
+		public class Response {
+			${4}
+			public static Response Create() {
+				return new Response();
+			}
+			$0
+		}
+	}
 }
 endsnippet
