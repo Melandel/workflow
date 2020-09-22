@@ -632,6 +632,7 @@ nmap ga <Plug>(EasyAlign)
 " Command Line"------------------------{{{
 set cmdwinheight=40
 set cedit=<C-S>
+cnoremap !! Start 
 
 " Wild Menu" --------------------------{{{
 set wildmenu
@@ -1054,6 +1055,8 @@ augroup my_dirvish
 	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
 	autocmd BufLeave if &ft == 'dirvish' | mark L | endif
 	autocmd BufEnter if &ft == 'dirvish' | silent normal R
+	autocmd FileType dirvish silent! nunmap <silent> <buffer> q
+	autocmd FileType dirvish nnoremap <silent> <buffer> q: q:
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish unmap <buffer> o
