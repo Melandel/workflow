@@ -259,7 +259,7 @@ public void WHEN_${1:happy_path}_EXPECT_${2:target}_TO_${3:DO/BE/NOT}_${4:someth
 	// Act
 	$6
 	// Assert
-	$7
+	$0
 }
 
 
@@ -267,11 +267,11 @@ endsnippet
 
 snippet theory "XUnit Theory" b
 [Theory]
-$8
+$0
 public void WHEN_${1:happy_path}_EXPECT_${2:target}_TO_${3:DO/BE/NOT}_${4:something}($5)
 {
 	// Arrange
-	${6:var input = new Request();}
+	var input = ${6:new Request();}
 	// Act
 	$7
 	// Assert
@@ -279,6 +279,10 @@ public void WHEN_${1:happy_path}_EXPECT_${2:target}_TO_${3:DO/BE/NOT}_${4:someth
 }
 
 
+endsnippet
+
+snippet id "InlineData" b
+[InlineData($1)]$0
 endsnippet
 
 snippet interactor "Interactor Contract" b
