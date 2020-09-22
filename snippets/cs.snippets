@@ -285,6 +285,16 @@ snippet id "InlineData" b
 [InlineData($1)]$0
 endsnippet
 
+snippet md "MemberData" b
+[MemberData(nameof(${1:Data}))]
+	public static TheoryData<${2:string, int}> $1 =>
+		new TheoryData<$2> {
+			{ ${3:"😀 😃 😄", 2} }, // ${4:Emojis}
+			{ ${5:"     ", 2} }, // ${6:Weird characters}
+			{ ${7:new String('x', 2000 + 1), 2} } // ${0:More than 2000 characters}
+		};
+endsnippet
+
 snippet interactor "Interactor Contract" b
 namespace ${2:MyNameSpace}
 {
