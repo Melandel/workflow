@@ -642,7 +642,7 @@ set wildmode=full
 
 " Expanded characters" ----------------{{{
 " Folder of current file
-cnoremap <expr> <C-F> (stridx(getcmdline()[-1-len(expand('%:p:h')):], expand('%:p:h')) == 0 ? '**\*' : expand('%:p:h').'\')
+cnoremap <expr> <C-F> (stridx(getcmdline()[-1-len(expand('%:h')):], expand('%:h')) == 0 ? '**\*' : expand('%:h').'\')
 cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory()):], GetInterestingParentDirectory()) == 0 ? '**\*' : GetInterestingParentDirectory().'\')
 
 " Sourcing" ---------------------------{{{
@@ -1588,13 +1588,13 @@ function! Commit(scratchbufnr, job, status)
 	endif
 endfunction
 
-function! GetCsprojDir()
+function! GetCsproj()
 	let dir = expand('%:p:h')
 	let lastfolder = ''
 	let csproj_dir = []
 	while dir !=# lastfolder
 		let csproj_dir += globpath(dir, '*.csproj', 1, 1)
-		call uniq(map(csproj_dir, 'fnamemodify(v:val, ":h")'))
+		call uniq(csproj_dir)
 		if !empty(csproj_dir)
 				return csproj_dir[0]
 		endif
@@ -1604,17 +1604,20 @@ function! GetCsprojDir()
 endfunction
 
 function! GetDirOrSln()
-	let dir = GetCsprojDir()
-	let sln = has_key(g:, 'csprojs2sln') && has_key(g:csprojs2sln, dir) ? g:csprojs2sln[dir] : dir
+	let csproj = GetCsproj()
+	let csprojdir = fnamemodify(csproj, ':h')
+	let csproj = fnamemodify(csproj, ':.')
+	let sln = has_key(g:, 'csprojs2sln') && has_key(g:csprojs2sln, csprojdir) ? g:csprojs2sln[csprojdir] : csproj
+	let sln = fnamemodify(sln, ':.')
 	let cmdline = getcmdline()
-	let dir_len = len(dir)
+	let csproj_len = len(csproj)
 	let sln_len = len(sln)
-	if cmdline[-dir_len:] == dir
-		return repeat("\<BS>", dir_len).sln
+	if cmdline[-csproj_len:] == csproj
+		return repeat("\<BS>", csproj_len).sln
 	elseif cmdline[-sln_len:] == sln
-		return repeat("\<BS>", sln_len).dir
+		return repeat("\<BS>", sln_len).csproj
 	else
-		return dir
+		return csproj
 	endif
 endfunction
 
