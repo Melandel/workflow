@@ -592,8 +592,6 @@ vnoremap <silent> , :<C-U>call VMoveToLastMatch()<CR>
 vnoremap <silent> ; :<C-U>call VMoveToNextMatch()<CR>
 
 " Text objects" -----------------------{{{
-vnoremap il ^og_| onoremap il :normal vil<CR>
-vnoremap al 0o$h| onoremap al :normal val<CR>
 vnoremap iz [zjo]zkVg_| onoremap iz :normal viz<CR>
 vnoremap az [zo]zVg_|   onoremap az :normal vaz<CR>
 vnoremap if ggoGV| onoremap if :normal vif<CR>
