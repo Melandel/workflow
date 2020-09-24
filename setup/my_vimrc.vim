@@ -602,6 +602,7 @@ let g:targets_jumpRanges = 'cr cb cB lc ac Ac lr rr ll lb ar ab lB Ar aB Ab AB r
 " Visualization" ----------------------{{{
 " select until end of line
 nnoremap vv ^vg_
+nnoremap <C-V><C-V> ^<C-V>
 " remove or add a line to visualization
 vnoremap <silent> <C-J> <C-V><esc>gvVojo
 vnoremap <silent> <C-K> <C-V><esc>gvVoko
@@ -660,7 +661,8 @@ augroup end
 set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-column\ \"$*\"
 set switchbuf+=uselast
 set errorformat=%m
-nnoremap <Leader>f :GFiles?<CR>
+nnoremap <Leader>f :Files<CR>
+nnoremap <Leader>F :GFiles?<CR>
 nnoremap <Leader>r :Rg! 
 vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <LocalLeader>m :silent make<CR>
@@ -852,7 +854,6 @@ function! Explore()
 endfunction
 command! Explore call Explore()
 nnoremap <leader>e :Explore<CR>
-nnoremap <leader>E :Files <C-R>=expand('%:h')<CR>
 nnoremap <leader>g :Commits<CR>
 nnoremap <leader>G :BCommits<CR>
 nnoremap q, :History<CR>
