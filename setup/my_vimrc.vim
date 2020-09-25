@@ -749,6 +749,9 @@ function! TabExpand()
 	if pumvisible()
 		return "\<C-Y>"
 	endif
+	if col('$') == 1
+		return "\<C-I>"
+	endif
 	let g:ulti_expand_or_jump_res = 0
 	call UltiSnips#ExpandSnippetOrJump()
 	return g:ulti_expand_or_jump_res > 0 ? '' : PreviousCharacter() =~ '\S' ? "\<C-N>" : "\<C-I>"
@@ -918,8 +921,9 @@ let g:gvimtweak#enable_topmost_at_startup=0
 let g:gvimtweak#enable_maximize_at_startup=1
 let g:gvimtweak#enable_fullscreen_at_startup=1
 nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
-nnoremap <silent> <A-n> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-n> <C-W>N:GvimTweakSetAlpha 10<CR>i
-nnoremap <silent> <A-p> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-p> <C-W>N:GvimTweakSetAlpha i-10<CR>i
+nnoremap <silent> <A-n> :GvimTweakToggleTransparency<CR>
+nnoremap <silent> <A-i> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
+nnoremap <silent> <A-o> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-o> <C-W>N:GvimTweakSetAlpha -10<CR>i
 
 " File explorer (graphical)" ----------{{{
 function! IsPreviouslyYankedItemValid()
@@ -1150,23 +1154,18 @@ augroup end
 " Dashboard" --------------------------{{{
 function! OpenDashboard()
 	silent tab G
-	call settabvar(tabpagenr(),'is_dashboard',1)
 	normal gu
 	silent exec winheight(0)/4.'split $desktop./todo'
 	silent exec 'vnew $desktop/done'
 	silent exec 'new $desktop/achievements'
 	silent resize -2
 	0wincmd w
-	GvimTweakSetAlpha 180
 	redraw | echo 'You are doing great <3'
 endfunction
 nnoremap <silent> <Leader>m :call OpenDashboard()<CR>
-let g:alpha = get(g:, 'g:alpha', gvimtweak#window_alpha)
 
 augroup dashboard
 	au!
-	autocmd TabLeave * if get(t:,'is_dashboard', 0) | GvimTweakSetAlpha g:alpha | redraw | echo 'Back to work already? Alright!' | endif
-	autocmd TabEnter * if get(t:,'is_dashboard', 0) | let g:alpha = gvimtweak#window_alpha | GvimTweakSetAlpha 140 | endif
 	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>m :Git push --force-with-lease<CR>
 	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>l :silent! Glog! 
 	autocmd FileType fugitive     nmap <silent> <buffer> <space> =
@@ -1181,7 +1180,6 @@ augroup dashboard
 	autocmd FileType          git nmap <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
 	autocmd FileType fugitive,git nnoremap <buffer> <Leader>w :Todo<CR>
-	autocmd BufEnter fugitive,git,todo,done,achievements nnoremap <buffer> <leader>x :unlet t:is_dashboard<CR>:tabclose<CR>
 	autocmd BufEnter     todo,done,achievements set buftype=nofile nowrap
 	autocmd BufWritePost todo,done,achievements set buftype=nofile
 	autocmd BufEnter     todo,done,achievements normal! gg
