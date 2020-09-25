@@ -186,6 +186,7 @@ function! JobStartExample(...)
 	let s:job = job_start(
 		\'cmd /C '.cmd,
 		\{
+			\'cwd': getcwd(),
 			\'out_io': 'buffer',
 			\'out_buf': scratchbufnr,
 			\'out_modifiable': 1,
@@ -201,7 +202,7 @@ function! JobStartExample(...)
 endfunction
 command! -nargs=* Start call JobStartExample(<q-args>)
 
-function WinTextWidth()
+function! WinTextWidth()
     let winwidth = winwidth(0)
     let winwidth -= (max([len(line('$')), &numberwidth]) * (&number || &relativenumber))
     let winwidth -= &foldcolumn
@@ -214,7 +215,7 @@ function WinTextWidth()
     return winwidth
 endfunction
 
-function LineCount(...)
+function! LineCount(...)
     let startlnr = get(a:000, 0, 1)
     let endlnr = get(a:000, 1, line('$'))
     let numlines = 0
@@ -226,7 +227,7 @@ function LineCount(...)
     return numlines
 endfunction
 
-function ResetScratchBuffer(path)
+function! ResetScratchBuffer(path)
 	silent! exec 'bdelete!' bufnr(a:path)
 	let bufnr = bufadd(a:path)
 	call setbufvar(bufnr, '&bufhidden', 'hide')
@@ -235,6 +236,21 @@ function ResetScratchBuffer(path)
 	call setbufvar(bufnr, '&list', 0)
 	call setbufvar(bufnr, '&wrap', 0)
 	return bufnr
+endfunction
+
+function! PromptUserForFilename(requestToUser, ...)
+	let title = input(a:requestToUser)
+	let ComputeFinalPath = a:0 ? a:1 : { x -> x }
+	let GetRetryMessage = { x -> a:0 > 0 ? a:1 : printf('[%s] already exists. %s', x, a:requestToUser) }
+	while title != '' && len(glob(ComputeFinalPath(title))) > 0
+		redraw | let title= input(GetRetryMessage(title))
+	endwhile
+	redraw
+	return title
+endfunction
+
+function! WindowsPath(path)
+	return shellescape(substitute(a:path, '/', '\', 'g'))
 endfunction
 
 " AZERTY Keyboard:---------------------{{{
@@ -915,7 +931,11 @@ function! PromptUserForRenameOrSkip(filename)
 	if rename_or_skip != 'r'
 		return ''
 	endif
-	return input('Rename into:', a:filename)
+	let newname = input('New name:', a:filename)
+	while glob(newname) != ''
+		redraw | let newname = input(printf('[%s] already exists. %s', newname, 'Rename into:'), a:filename)
+	endwhile
+	return newname
 endfunction
 
 function! CopyPreviouslyYankedItemToCurrentDirectory()
@@ -927,22 +947,24 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 	let item = trim(@d, '/\')
 	let item_folder= fnamemodify(item, ':h')
 	let item_filename= fnamemodify(item, ':t')
-	let item_finalname = item_filename
-	if !empty(glob(item_filename))
-		let item_finalname = PromptUserForRenameOrSkip(item_filename)
-		redraw
-		echomsg 'a:'.item_finalname
-		if item_finalname == ''
-			return
+	let item_finalname = PromptUserForRenameOrSkip(item_filename) | redraw
+	if item_finalname == ''
+		return
+	endif
+	if cwd == item_folder
+		if isdirectory(item)
+			let cmd = printf('xcopy %s %s /E /I', WindowsPath(item), item_finalname)
+		else
+			let cmd = printf('copy %s %s', WindowsPath(item), item_finalname)
+		endif
+	else
+		let cmd = 'robocopy '
+		if isdirectory(item)
+			let cmd .= printf('/e "%s" "%s\%s"', WindowsPath(item), cwd, item_finalname)
+		else
+			let cmd .= printf('"%s" "%s" "%s"', WindowsPath(item_folder), cwd, item_finalname)
 		endif
 	endif
-	let cmd = 'robocopy '
-	if isdirectory(item)
-		let cmd .= printf('/e "%s" "%s\%s"', item, cwd, item_finalname)
-	else
-		let cmd .= printf('"%s" "%s" "%s"', item_folder, cwd, item_finalname)
-	endif
-echomsg cmd
 	silent exec '!start /b' cmd
 endfunction
 
@@ -981,7 +1003,7 @@ function! RenameItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
 	let newname = input('Rename into:', filename)
-	silent exec '!start /b rename' shellescape(target) shellescape(newname)
+	silent exec '!start /b rename' WindowsPath(target) WindowsPath(newname)
 	normal R
 endfunction
 
@@ -999,12 +1021,8 @@ function! OpenTree(flags)
 endfunction
 
 function! CreateDirectory()
-	let dirname = input('Directory name:')
+	let dirname = PromptUserForFilename('Directory name:')
 	if trim(dirname) == ''
-		return
-	elseif isdirectory(glob(dirname))
-		redraw
-		echomsg printf('"%s" already exists.', dirname)
 		return
 	endif
 	silent exec '!start /b mkdir' shellescape(dirname)
@@ -1014,12 +1032,8 @@ function! CreateDirectory()
 endf
 
 function! CreateFile()
-	let filename = input('File name:')
+	let filename = PromptUserForFilename('File name:')
 	if trim(filename) == ''
-		return
-	elseif !empty(glob(filename))
-		redraw
-		echomsg printf('"%s" already exists.', filename)
 		return
 	endif
 	exec '!start /b copy /y NUL' shellescape(filename) '>NUL'
@@ -1340,36 +1354,24 @@ function! Draft(lines)"-----------------{{{
 			\'ctrl-t': 'tabe',
 			\'ctrl-o': 'tabe',
 			\'ctrl-b': 'CompileDiagramAndShowImage png'}, a:lines[0], 'e')
-			exec cmd file
-		else
-			let title = input('Title:')
-			let cmd = get({
-				\'ctrl-x': 'split',
-				\'ctrl-j': 'split',
-				\'ctrl-v': 'vertical split',
-				\'ctrl-k': 'vertical split',
-				\'ctrl-t': 'tabe',
-				\'ctrl-o': 'tabe'}, a:lines[0], 'e')
-			if file_or_diagramtype == 'note'
-				while glob($desktop.'/notes/'.title) != ''
-					redraw
-					let title= input('This file already exists! Pick another title:')
-				endwhile
-				exec cmd $desktop.'/notes/'.title
-			elseif file_or_diagramtype == 'adr'
-				while glob($desktop.'/tmp/'.title.'.md') != ''
-					redraw
-					let title= input('This file already exists! Pick another title:')
-				endwhile
-				exec cmd $desktop.'/tmp/'.title.'.md'
-			else
-				let diagramtype = split(file_or_diagramtype, ' ')[0]
-				while glob($desktop.'/tmp/'.title.'.puml_'.diagramtype) != ''
-					redraw
-					let title= input('This file already exists! Pick another title:')
-				endwhile
-				exec cmd $desktop.'/tmp/'.title.'.puml_'.diagramtype
+	exec cmd file
+	else
+		let cmd = get({
+			\'ctrl-x': 'split',
+			\'ctrl-j': 'split',
+			\'ctrl-v': 'vertical split',
+			\'ctrl-k': 'vertical split',
+			\'ctrl-t': 'tabe',
+			\'ctrl-o': 'tabe'}, a:lines[0], 'e')
+		let ComputePath = { str -> '' }
+		if file_or_diagramtype == 'note'
+			let ComputePath = { x -> $desktop.'/notes/'. x }
+		elseif file_or_diagramtype == 'adr'
+			let ComputePath = { x -> $desktop.'/tmp/'. x.'.md' }
+		else " if is diagramtype
+			let ComputePath = { x -> $desktop.'/tmp/'. x.'.puml_'.split(file_or_diagramtype,' ')[0] }
 		endif
+		let title = PromptUserForFilename('Note title:', ComputePath) | redraw | exec cmd ComputePath(title)
 	endif
 endfunction
 
