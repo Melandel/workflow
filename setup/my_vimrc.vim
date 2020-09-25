@@ -749,7 +749,7 @@ function! TabExpand()
 	if pumvisible()
 		return "\<C-Y>"
 	endif
-	if col('$') == 1
+	if col('.') == 1
 		return "\<C-I>"
 	endif
 	let g:ulti_expand_or_jump_res = 0
