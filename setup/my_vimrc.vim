@@ -1012,17 +1012,55 @@ function! RenameItemUnderCursor()
 	normal R
 endfunction
 
-function! OpenTree(flags)
+function! OpenTree(path, flags)
 	let flags = ( a:flags != '' ? ('-'.a:flags) : '' )
-	let target = trim(getline('.'), '\') " Remove the ending separator or tree won't work with double quotes
-	let filename = fnamemodify(target,':t')
 	vnew | set buftype=nofile nowrap
 	set conceallevel=3 concealcursor=n | syn match Todo /\v(\a|\:|\\|\/|\.)*(\/|\\)/ conceal
 	nnoremap <buffer> yy $"by$
-	let cmd = printf('silent read !tree.exe --noreport -I "bin|obj" "%s" %s', target, flags)
+	let cmd = printf('silent read !tree.exe --noreport -I "bin|obj" "%s" %s', a:path, flags)
 	exec(cmd)
 	%s,\\,/,ge
 	normal! gg"_dd
+	nnoremap <buffer> gf :e <C-R>=GetPathFromTree()<CR><CR>
+	nnoremap <buffer> gF :sp <C-R>=GetPathFromTree()<CR><CR>
+endfunction
+
+function! GetPathFromTree()
+	let line = getline('.')
+	let farthest = FindLastOccurrencePos(line, '|`')
+	let path = line[farthest+3:]
+	for i in range(line('.')-1, 1, -1)
+		let currentline = getline(i)
+		let lastVerticalBarPos = FindLastOccurrencePos(currentline, '|`')
+		if lastVerticalBarPos < farthest
+			let start = lastVerticalBarPos+ (lastVerticalBarPos == -1 ? 1 : 3)
+			let path = currentline[start:] . '/' . path
+			let farthest = lastVerticalBarPos
+		endif
+	endfor
+	return path
+endfunction
+
+function! ReverseString(string)
+	let res = ''
+	let len = len(a:string)
+	for i in range(1, len)
+		let res .= a:string[len-i]
+	endfor
+	return res
+endfunction
+
+function! FindLastOccurrencePos(string, chars)
+	let list = []
+	for i in range(len(a:chars))
+		call add(list, FindLastOccurrencePosSingle(a:string, a:chars[i]))
+	endfor
+	return max(list)
+endfunction
+
+function! FindLastOccurrencePosSingle(string, char)
+	let res = len(a:string) - stridx(ReverseString(a:string), a:char)
+	return res > len(a:string) ? -1 : res
 endfunction
 
 function! CreateDirectory()
@@ -1096,8 +1134,10 @@ augroup my_dirvish
 	autocmd FileType dirvish nmap <silent> <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
-	autocmd FileType dirvish nnoremap <silent> <buffer> t :call OpenTree('')<CR>
-	autocmd FileType dirvish nnoremap <buffer> T :call OpenTree('df')<left><left><left>
+	autocmd FileType dirvish nnoremap <silent> <buffer> t :call OpenTree(trim(getline('.'), '\'), '')<CR>
+	autocmd FileType dirvish nnoremap <buffer> T :call OpenTree(trim(getline('.'), '\'), 'df')<left><left><left>
+	autocmd FileType dirvish nnoremap <silent> <buffer> gt :call OpenTree(fnamemodify(trim(getline('.'), '\'), ':h'), '')<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> gT :call OpenTree(fnamemodify(trim(getline('.'), '\'), ':h'), 'df')<left><left><left>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :Lcd \| e .<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> <leader>w vv<leader>w<CR>
 augroup end
