@@ -1,0 +1,14 @@
+{
+	"configurations": {
+		"MyConfig": {
+			"default": true,
+			"adapter": "netcoredbg",
+			"configuration": {
+				"request": "launch",
+				"program": "${workspaceRoot}/details/startup/bin/Debug/netcoreapp3.1/console.dll"
+			}
+		}
+	}
+}
+
+

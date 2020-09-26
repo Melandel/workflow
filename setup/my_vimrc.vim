@@ -13,6 +13,7 @@ function! MinpacInit()
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
 	call minpac#add('Melandel/omnisharp-vim')
+	call minpac#add('puremourning/vimspector')
 	call minpac#add('nickspoons/vim-sharpenup')
 	call minpac#add('SirVer/ultisnips')
 	call minpac#add('honza/vim-snippets')
@@ -318,7 +319,7 @@ nnoremap <silent> <Leader>v :Vnew<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
 nnoremap <silent> <Leader>O mW:tabnew<CR>`W
-nnoremap <silent> <Leader>x :tabclose<CR>
+nnoremap <silent> <Leader>x :if !IsDebuggingTab() \| tabclose \| else \| call vimspector#Reset() \| endif<CR>
 
 function! ComputeRemainingHeight()
 	let screenrow = screenrow()
@@ -999,7 +1000,7 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 	let cmd = printf('move "%s" "%s\%s"', item, cwd, item_finalname)
 	silent exec '!start /b' cmd
 	normal R
-	silent exec '/\<'.item_finalname.'\>'
+	exec '/'.escape(getcwd(), '\').'\\'.item_finalname.'$'
 	nohlsearch
 endfunction
 
@@ -1031,7 +1032,7 @@ function! CreateDirectory()
 	endif
 	silent exec '!start /b mkdir' shellescape(dirname)
 	normal R
-	silent exec '/\<'.dirname.'\>'
+	exec '/'.escape(getcwd(), '\').'\\'.dirname.'$'
 	nohlsearch
 endf
 
@@ -1042,7 +1043,7 @@ function! CreateFile()
 	endif
 	exec '!start /b copy /y NUL' shellescape(filename) '>NUL'
 	normal R
-	exec '/\<'.filename.'\>'
+	exec '/'.escape(getcwd(), '\').'\\'.filename.'$'
 	nohlsearch
 endf
 
@@ -1337,6 +1338,7 @@ endfunction
 
 command! RenderTodoList call RenderTodoList($desktop.'/todo', $desktop.'/done')
 command! Todo call RenderTodoList($desktop.'/todo', $desktop.'/done')
+
 " Drafts (Diagrams & Notes)"-----------{{{
 function! Draft(lines)"-----------------{{{
 	if len(a:lines) < 2 | return | endif
@@ -1443,6 +1445,17 @@ augroup mydiagrams
 	autocmd BufWritePost       *.puml_*               if line('$') > 1 | CompileDiagramAndShowImage png | endif
 	autocmd FileType           dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
+
+" Debugging"---------------------------{{{
+let g:vimspector_enable_mappings = 'HUMAN'
+
+function! IsDebuggingTab()
+	return tabpagenr() == get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 0)
+endfunction
+
+function! IsDebuggingHappening()
+	return get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 99) <= tabpagenr('$')
+endfunction
 
 " Specific Workflows:------------------{{{
 " Nuget" ------------------------------{{{
@@ -1647,6 +1660,9 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nmap <buffer> <LocalLeader>t :OmniSharpRunTest<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>T :OmniSharpRunTestsInFile<CR>
+	autocmd FileType cs nmap <buffer> <LocalLeader>D :if !IsDebuggingHappening() \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
+	autocmd FileType cs nnoremap <buffer> <LocalLeader>b :call vimspector#ToggleBreakpoint()<CR>
+	autocmd FileType cs nnoremap <buffer> <LocalLeader>B :call vimspector#ToggleBreakpoint(#{ condition: '', hitCondition: 1 })<left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left>
 	autocmd FileType cs cnoremap <buffer> <expr> <C-G> GetDirOrSln()
 augroup end
 let g:OmniSharp_highlight_groups = {
