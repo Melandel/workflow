@@ -319,7 +319,7 @@ nnoremap <silent> <Leader>v :Vnew<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
 nnoremap <silent> <Leader>O mW:tabnew<CR>`W
-nnoremap <silent> <Leader>x :if !IsDebuggingTab() \| tabclose \| else \| call vimspector#Reset() \| endif<CR>
+nnoremap <silent> <Leader>x :if !IsDebuggingTab() \| tabclose \| else \| unlet g:vimspector_session_windows.tabpage \| call vimspector#Reset() \| endif<CR>
 
 function! ComputeRemainingHeight()
 	let screenrow = screenrow()
@@ -690,7 +690,7 @@ tnoremap <C-O> <Esc>
 
 " Folding" ----------------------------{{{
 vnoremap <silent> <space> <Esc>zE:let b:focus_mode=1 \| setlocal foldmethod=manual<CR>`<kzfgg`>jzfG`<
-nnoremap <silent> <space> :exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode<CR>
+nnoremap <silent> <space> :if IsDebuggingTab() \| call vimspector#StepOver() \| else \| exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode \| endif<CR>
 
 " Search" -----------------------------{{{
 set hlsearch
@@ -952,9 +952,12 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 	let item = trim(@d, '/\')
 	let item_folder= fnamemodify(item, ':h')
 	let item_filename= fnamemodify(item, ':t')
-	let item_finalname = PromptUserForRenameOrSkip(item_filename) | redraw
-	if item_finalname == ''
-		return
+	let item_finalname = item_filename
+	if glob(item_filename) != ''
+		let item_finalname = PromptUserForRenameOrSkip(item_filename) | redraw
+		if item_finalname == ''
+			return
+		endif
 	endif
 	if cwd == item_folder
 		if isdirectory(item)
@@ -1208,7 +1211,6 @@ nnoremap <silent> <Leader>m :call OpenDashboard()<CR>
 augroup dashboard
 	au!
 	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>m :Git push --force-with-lease<CR>
-	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>l :silent! Glog! 
 	autocmd FileType fugitive     nmap <silent> <buffer> <space> =
 	autocmd FileType fugitive     nmap <silent> <buffer> <leader>s s
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>l <C-W>l
@@ -1488,6 +1490,27 @@ augroup END
 
 " Debugging"---------------------------{{{
 let g:vimspector_enable_mappings = 'HUMAN'
+sign define vimspectorBP text=:          texthl=MatchParen
+sign define vimspectorBPCond text=;      texthl=MatchParen
+sign define vimspectorBPDisabled text=. texthl=MatchParen
+sign define vimspectorPC text=\=>         texthl=ErrorMsg
+sign define vimspectorPCBP text=:>       texthl=ErrorMsg
+
+function! ToggleBreakpoint()
+	let alreadyHasBreakpoint1 = len(sign_getplaced(bufnr(), #{group:'VimspectorBP', lnum: line(".")})[0].signs) > 0
+	let alreadyHasBreakpoint2 = len(sign_getplaced(bufnr(), #{group:'VimspectorCode', lnum: line(".")})[0].signs) > 0
+	if alreadyHasBreakpoint1 || alreadyHasBreakpoint2
+		call vimspector#ToggleBreakpoint()
+	else
+		let condition = input('condition:')
+		if condition == ''
+			call vimspector#ToggleBreakpoint()
+		else
+			call vimspector#ToggleBreakpoint({'condition': condition})
+		endif
+		redraw
+	endif
+endfunction
 
 function! IsDebuggingTab()
 	return tabpagenr() == get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 0)
@@ -1496,6 +1519,40 @@ endfunction
 function! IsDebuggingHappening()
 	return get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 99) <= tabpagenr('$')
 endfunction
+
+func! CustomiseUI()
+	call win_gotoid(g:vimspector_session_windows.stack_trace)
+	wincmd H
+	call win_gotoid( g:vimspector_session_windows.code )
+	wincmd H
+	call win_gotoid(g:vimspector_session_windows.variables)
+	let b = bufnr('%')
+	quit
+	call win_gotoid(g:vimspector_session_windows.watches)
+	nunmenu WinBar
+	wincmd J
+	exec 'vertical sbuffer' b
+	call win_gotoid( g:vimspector_session_windows.code )
+	nunmenu WinBar
+	call win_gotoid(g:vimspector_session_windows.output)
+	nunmenu WinBar.Telemetry
+	resize 12
+	set winfixheight
+	wincmd J
+	wincmd =
+	call win_gotoid( g:vimspector_session_windows.code )
+	resize +4
+	normal! zz
+	windo nnoremap <buffer> <localleader>j :call vimspector#StepInto()<CR>
+	windo nnoremap <buffer> <localleader>k :call vimspector#StepOut()<CR>
+	windo nnoremap <buffer> <localleader>l :call vimspector#Continue()<CR>
+	windo nnoremap <buffer> <localleader>h :call vimspector#Restart()<CR>
+endfunction
+
+augroup MyVimspectorUICustomistaion
+  autocmd!
+  autocmd User VimspectorUICreated call CustomiseUI()
+augroup END
 
 " Specific Workflows:------------------{{{
 " Nuget" ------------------------------{{{
@@ -1689,8 +1746,8 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>I <Plug>(omnisharp_preview_implementations)
 	autocmd FileType cs nmap <buffer> <LocalLeader>s <Plug>(omnisharp_find_symbol)
 	autocmd FileType cs nmap <buffer> <LocalLeader>u <Plug>(omnisharp_find_usages)
-	autocmd FileType cs nmap <buffer> <LocalLeader>l <Plug>(omnisharp_find_members)
-	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_documentation)
+	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_type_lookup)
+	"autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
 	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
 	autocmd FileType cs nmap <buffer> <LocalLeader>q <Plug>(omnisharp_code_actions)
 	autocmd FileType cs xmap <buffer> <LocalLeader>q <Plug>(omnisharp_code_actions)
@@ -1701,10 +1758,15 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>t :OmniSharpRunTest<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>T :OmniSharpRunTestsInFile<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>D :if !IsDebuggingHappening() \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>b :call vimspector#ToggleBreakpoint()<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>B :call vimspector#ToggleBreakpoint(#{ condition: '', hitCondition: 1 })<left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left><left>
+	autocmd FileType cs nnoremap <buffer> <LocalLeader>b :call ToggleBreakpoint()<CR>
+	autocmd FileType cs nnoremap <buffer> <LocalLeader>B :call vimspector#ListBreakpoints()<CR>
+	autocmd FileType cs nnoremap <buffer> <localleader>j :call vimspector#StepInto()<CR>
+	autocmd FileType cs nnoremap <buffer> <localleader>k :call vimspector#StepOut()<CR>
+	autocmd FileType cs nnoremap <buffer> <localleader>l :call vimspector#Continue()<CR>
+	autocmd FileType cs nnoremap <buffer> <localleader>h :call vimspector#Restart()<CR>
 	autocmd FileType cs cnoremap <buffer> <expr> <C-G> GetDirOrSln()
 augroup end
+
 let g:OmniSharp_highlight_groups = {
 	\ 'Comment': 'Comment',
 	\ 'Identifier': 'Identifier',
