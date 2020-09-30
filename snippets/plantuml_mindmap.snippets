@@ -9,6 +9,53 @@ $0
 'https://plantuml.com/fr/mindmap-diagram
 endsnippet
 
-snippet multi "multi-line box" b
-:${multiline};
+snippet : "multi-line box" i
+:${0:a
+string
+on
+multiple
+lines};
 endsnippet
+
+snippet ut "unit test listing" b
+@startmindmap
+title ${1:MyMethod}: (${2:string}) => ${3:string}
+* Unit Tests
+
+** happy_path
+*** ${4:acceptance_test}
+**** ${5:first_increment}
+$6
+
+** supported edge cases
+*** ${7:some_value}
+**** ${8:behavior}
+
+** specified as out of scope
+*** ${9:some_value}
+**** ${10:do not throw}
+
+** not mentioned in specifications
+*** ${11:some_value}
+**** ${0:can throw - we don't care}
+
+@endmindmap
+'https://plantuml.com/fr/mindmap-diagram
+endsnippet
+
+snippet io "input/output" b
+@startmindmap
+title ${1:MethodName}: ( ${2:input} ) => ${3:output}
+* Bottom] [Top
+** ${4:step 1 of algo}
+$5
+
+left side
+
+** ${6:required low-level brick}
+$0
+right footer node = folder + implementation + generation of test data + automated tests
+@endmindmap
+'https://plantuml.com/fr/mindmap-diagram
+endsnippet
+

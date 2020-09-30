@@ -1,15 +1,22 @@
 snippet new "sequence diagram" b
 @startuml
 'https://plantuml.com/fr/sequence-diagram
-${1:Alice} -> ${2:Bob}: ${3:Request}
-$1 --> $2: ${4:Response}
+actor       u  as "User"
+participant c  as "Client"
+participant s  as "Server"
+database    db as "Database"
+${1:u} -> ${2:c}
+${2:c} -> ${3:s}: ${4:Request}
+$3 -> ${4:db}: ${5:SQL}
+$4 --> $3: ${6:Entity}
+$3 --> $2: ${7:dto}
 $0
 @enduml
 endsnippet
 
 snippet seq "arrow" b
 ${1:Alice} -> ${2:Bob}: ${3:Request}
-$1 --> $2: ${4:Response}
+$1 <-- $2: ${4:Response}
 $0
 endsnippet
 
