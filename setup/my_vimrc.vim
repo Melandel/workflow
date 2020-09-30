@@ -195,7 +195,7 @@ function! JobStartExample(...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echo "[cb] '.escape(msg,'"').'"',  1)},
+			\'callback': { chan,msg  -> execute('echo ''[cb] '.msg.'''',  1)},
 			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)},
 			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'" | botright sbuffer '.scratchbufnr, '')}
 		\}
@@ -254,6 +254,14 @@ function! WindowsPath(path)
 	return shellescape(substitute(a:path, '/', '\', 'g'))
 endfunction
 
+function! OmniFuncTodo(findstart, base)
+	if a:findstart
+		return match(getline('.'), '[^\s \*\+]')
+	endif
+	return map(['✗', '✓'], { _,x -> x.' '.trim(a:base, ' \t✗✓+*') })
+endfunction
+set omnifunc=OmniFuncTodo
+
 " AZERTY Keyboard:---------------------{{{
 " AltGr keys" -------------------------{{{
 inoremap ^q {|		cnoremap ^q {
@@ -311,7 +319,7 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-command! -bar Enew    exec('enew | set buftype=nofile bufhidden=hide noswapfile | silent lcd '.$desktop.'/tmp')
+command! -bar Enew    exec('enew | set buftype=nofile bufhidden=hide noswapfile foldmethod=indent| silent lcd '.$desktop.'/tmp')
 command! -bar New     call NewTmpWindow(0)
 command! -bar Vnew    call NewTmpWindow(1)
 nnoremap <silent> <Leader>s :New<CR>
@@ -355,7 +363,7 @@ function! NewTmpWindow(isVertical)
 	endif
 	lcd $desktop/tmp
 	enew
-	setlocal buftype=nofile bufhidden=hide noswapfile
+	setlocal buftype=nofile bufhidden=hide noswapfile foldmethod=indent
 	if useRemainingSpace
 		wincmd k
 		normal! `k
@@ -631,7 +639,7 @@ nnoremap zY "+Y
 vnoremap zy "+y
 nnoremap zp :set paste<CR>o<Esc>"+p:set nopaste<CR>
 nnoremap zP :set paste<CR>O<Esc>"+P:set nopaste<CR>
-inoremap <C-V> <C-O>:set paste<CR><C-R>+<C-O>:set nopaste<CR>
+inoremap <C-V> <C-O>:set paste<CR><C-R>+<C-O>:set nopaste<CR> | inoremap <C-C> <C-V>
 cnoremap <C-V> <C-R>=@+<CR>| cnoremap <C-C> <C-V>
 tnoremap <C-V> <C-W>"+
 vnoremap gy y`]
@@ -692,6 +700,11 @@ tnoremap <C-O> <Esc>
 vnoremap <silent> <space> <Esc>zE:let b:focus_mode=1 \| setlocal foldmethod=manual<CR>`<kzfgg`>jzfG`<
 nnoremap <silent> <space> :if IsDebuggingTab() \| call vimspector#StepOver() \| else \| exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode \| endif<CR>
 
+
+set foldtext=FoldText()
+function! FoldText()
+	return v:folddashes.getline(v:foldstart)[len(v:folddashes)-1:].' ('.(v:foldend-v:foldstart+1).'rows)'
+endfunction
 " Search" -----------------------------{{{
 set hlsearch
 set incsearch
@@ -1445,10 +1458,10 @@ function! CompileDiagramAndShowImage(outputExtension, ...)
 	let g:job = job_start(
 		\'cmd /C '.cmd,
 		\{
-			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
-			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"').'"',  1)                                   },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
-			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                       },
+			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.msg.'''',  1)                              },
+			\'out_cb':   { chan,msg  -> execute('echomsg '''.msg.'''',  1)                                   },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.msg.''' | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                                       },
 			\'exit_cb':  function('JobExitDiagramCompilationJob', [outputfile])
 		\}
 	\)
@@ -1470,6 +1483,7 @@ function GetPlantumlConfigFile(fileext)
 	return $HOME.'/Desktop/setup/my_plantuml_'.configfilebyft[a:fileext].'.config'
 endfunction
 command! -nargs=* -bar CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
+
 
 augroup mydiagrams
 	autocmd!
@@ -1570,10 +1584,10 @@ function! FindNuget(...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echo "[cb] '.escape(msg,'"').'"',  1)                              },
-			\'out_cb':   { chan,msg  -> execute('echo "Found: '.escape(msg,'"').'"',  1)                                   },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
-			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)},
+			\'callback': { chan,msg  -> execute('echo ''[cb] '.msg.'''',  1)                              },
+			\'out_cb':   { chan,msg  -> execute('echo ''Found: '.msg.'''',  1)                                   },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.msg.''' | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)},
 			\'exit_cb':  function('FindNugetExitCb', [tokens, scratchbufnr])
 		\}
 	\)
@@ -1601,7 +1615,7 @@ let g:OmniSharp_loglevel = 'debug'
 let g:OmniSharp_highlight_types = 3
 let g:OmniSharp_selector_ui = 'fzf'
 let g:OmniSharp_fzf_options = { 'window': 'botright 7new' }
-let g:OmniSharp_want_snippet=1
+let g:OmniSharp_want_snippet=0
 let g:OmniSharp_diagnostic_showid = 1
 augroup lightline_integration
   autocmd!
@@ -1635,10 +1649,10 @@ function! StartCSharpBuild(sln_or_dir)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
-			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"').'"',  1)                                   },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
-			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                       },
+			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.msg.'''',  1)                              },
+			\'out_cb':   { chan,msg  -> execute('echomsg '''.msg.'''',  1)                                   },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.msg.''' | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                                       },
 			\'exit_cb':  function('StartCSharpBuildExitCb', [folder, scratchbufnr])
 		\}
 	\)
@@ -1672,10 +1686,10 @@ function! StartCSharpTest(workingdir)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echomsg "[cb] '.escape(msg,'"').'"',  1)                              },
-			\'out_cb':   { chan,msg  -> execute('echomsg "'.escape(msg,'"').'"',  1)                                   },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg "'.escape(msg,'"').'" | echohl Normal',  1) },
-			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)                                       },
+			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.msg.'''',  1)                              },
+			\'out_cb':   { chan,msg  -> execute('echomsg '''.msg.'''',  1)                                   },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.msg.''' | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                                       },
 			\'exit_cb':  function('Commit', [scratchbufnr])
 		\}
 	\)
