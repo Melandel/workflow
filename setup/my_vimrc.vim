@@ -667,7 +667,7 @@ set wildmode=full
 
 " Expanded characters" ----------------{{{
 " Folder of current file
-cnoremap <expr> <C-F> (stridx(getcmdline()[-1-len(expand('%:h')):], expand('%:h')) == 0 ? '**\*' : expand('%:h').'\')
+cnoremap <expr> <C-F> (expand('%:h') != '' && stridx(getcmdline()[-1-len(expand('%:h')):], expand('%:h')) == 0 ? '**\*' : expand('%:h').'\')
 cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory()):], GetInterestingParentDirectory()) == 0 ? '**\*' : GetInterestingParentDirectory().'\')
 
 " Sourcing" ---------------------------{{{
@@ -1086,7 +1086,7 @@ function! CreateDirectory()
 	endif
 	silent exec '!start /b mkdir' shellescape(dirname)
 	normal R
-	exec '/'.escape(getcwd(), '\').'\\'.dirname.'$'
+	exec '/'.escape(getcwd(), '\').'\\'.dirname.'\\$'
 	nohlsearch
 endf
 
@@ -1168,7 +1168,7 @@ function! Firefox(...)
 endfun
 command! -nargs=* -range Firefox :call Firefox(<f-args>)
 command! -nargs=* -range Ff :call Firefox(<f-args>)
-nnoremap <Leader>w :w<CR>:Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
+nnoremap <Leader>w :w!<CR>:Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 vnoremap <Leader>w :Firefox<CR>
 command! -nargs=* -range WordreferenceFrEn :call Firefox('https://www.wordreference.com/fren/', <f-args>)
 command! -nargs=* -range GoogleTranslateFrEn :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
