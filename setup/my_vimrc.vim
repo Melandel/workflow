@@ -322,8 +322,8 @@ nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
 command! -bar Enew    exec('enew | set buftype=nofile bufhidden=hide noswapfile foldmethod=indent| silent lcd '.$desktop.'/tmp')
-command! -bar New     call NewTmpWindow(0)
-command! -bar Vnew    call NewTmpWindow(1)
+command! -bar New     call SplitWindow(0)
+command! -bar Vnew    call SplitWindow(1)
 nnoremap <silent> <Leader>s :New<CR>
 nnoremap <silent> <Leader>v :Vnew<CR>
 nnoremap <silent> K :q<CR>
@@ -337,8 +337,9 @@ function! ComputeRemainingHeight()
 	return res
 endfunction
 
-function! NewTmpWindow(isVertical)
+function! SplitWindow(isVertical)
 	let useRemainingSpace = 0
+	let bufferHistory = get(w:, 'buffers', [])
 	if a:isVertical
 		exec 'vnew' expand('%')
 	else
@@ -363,9 +364,6 @@ function! NewTmpWindow(isVertical)
 		endif
 		exec (useRemainingSpace ? (remainingheight-1) : '') 'new' expand('%')
 	endif
-	lcd $desktop/tmp
-	enew
-	setlocal buftype=nofile bufhidden=hide noswapfile foldmethod=indent
 	if useRemainingSpace
 		wincmd k
 		normal! `k
@@ -373,7 +371,7 @@ function! NewTmpWindow(isVertical)
 		wincmd j
 	endif
 	mark `
-	buffer#
+	let w:buffers = bufferHistory
 endfunction
 
 " Browse to Window or Tab
@@ -520,6 +518,8 @@ function! BrowseLayoutDown()
 		silent! keepjumps normal! ]czx
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cnext
+	elseif &filetype == 'cs'
+		ALENext
 	endif
 	silent! normal! zv
 	normal! m'
@@ -531,6 +531,8 @@ function! BrowseLayoutUp()
 		silent! keepjumps normal! [czx
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cprev
+	elseif &filetype == 'cs'
+		ALEPrevious
 	endif
 	silent! normal! zv
 	normal! m'
@@ -840,39 +842,39 @@ nnoremap q, :History<CR>
 nnoremap q; :Buffers<CR>
 
 " Window buffer navigation"------------{{{
-function! CycleWindowBuffersHistoryBackwards()
-	let jumplist = getjumplist()
-	let currentbufnr = bufnr('%')
-	let newbuffer = currentbufnr
-	let currentpos = get(w:, 'pos', jumplist[1]-1)
-	if currentpos > len(jumplist[0])
-		let currentpos = len(jumplist[0])
+augroup cycleWindowBuffer
+	au!
+	autocmd BufEnter * call AddCurrentBufferToWindowBufferList()
+augroup end
+
+function! AddCurrentBufferToWindowBufferList()
+	let w:buffers = get(w:, 'buffers', [])
+	let w:skip_tracking_buffers = get(w:, 'skip_tracking_buffers', 0)
+	if w:skip_tracking_buffers | return | endif
+	let bufnr = bufnr('%')
+	let existing_pos = index(w:buffers, bufnr) 
+	if existing_pos == -1
+		call add(w:buffers, bufnr)
+	else
+		let before = existing_pos == 0 ? [] : copy(w:buffers[:existing_pos-1])
+		let after = existing_pos == len(w:buffers)-1 ? [] : copy(w:buffers[existing_pos+1:])
+		let element = copy(w:buffers[existing_pos])
+		let w:buffers = before + after + [element]
 	endif
-	for i in range(max([0,currentpos-1]), 0, -1)
-		let bufnr = jumplist[0][i].bufnr
-		if bufnr != currentbufnr && bufnr > 0
-			let newbuffer = bufnr
-			let w:pos = i
-			break
-		endif
-	endfor
-	silent! exec 'keepjumps buffer' newbuffer
 endfunction
 
 function! CycleWindowBuffersHistoryForward()
-	let jumplist = getjumplist()
-	let currentbufnr = bufnr('%')
-	let newbuffer = currentbufnr
-	let currentpos = get(w:, 'pos', jumplist[1]-1)
-	for i in range(min([currentpos+1, len(jumplist[0])-1]), len(jumplist[0])-1)
-		let bufnr = jumplist[0][i].bufnr
-		if bufnr != currentbufnr && bufnr > 0
-			let newbuffer = bufnr
-			let w:pos = i
-			break
-		endif
-	endfor
-	silent! exec 'keepjumps buffer' newbuffer
+	let w:buffers = w:buffers[1:] + [w:buffers[0]]
+	let w:skip_tracking_buffers = 1
+	exec 'buffer' w:buffers[-1]
+	let w:skip_tracking_buffers = 0
+endfunction
+
+function! CycleWindowBuffersHistoryBackwards()
+	let w:buffers = [w:buffers[-1]] + w:buffers[:-2]
+	let w:skip_tracking_buffers = 1
+	exec 'buffer' w:buffers[-1]
+	let w:skip_tracking_buffers = 0
 endfunction
 
 " Full screen" ------------------------{{{
@@ -1708,7 +1710,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>s <Plug>(omnisharp_find_symbol)
 	autocmd FileType cs nmap <buffer> <LocalLeader>u <Plug>(omnisharp_find_usages)
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_type_lookup)
-	"autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
+	autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
 	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
 	autocmd FileType cs nmap <buffer> <LocalLeader>q <Plug>(omnisharp_code_actions)
 	autocmd FileType cs xmap <buffer> <LocalLeader>q <Plug>(omnisharp_code_actions)
@@ -1718,7 +1720,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nmap <buffer> <LocalLeader>t :OmniSharpRunTest<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>T :OmniSharpRunTestsInFile<CR>
-	autocmd FileType cs nmap <buffer> <LocalLeader>D :if !IsDebuggingHappening() \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
+	autocmd FileType cs nmap <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>b :call ToggleBreakpoint()<CR>
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>B :call vimspector#ListBreakpoints()<CR>
 	autocmd FileType cs nnoremap <buffer> <localleader>j :call vimspector#StepInto()<CR>
