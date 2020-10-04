@@ -20,9 +20,7 @@ function! MinpacInit()
 	call minpac#add('justinmk/vim-dirvish')
 	call minpac#add('tpope/vim-dadbod')
 	call minpac#add('tpope/vim-surround')
-	call minpac#add('tpope/vim-repeat')
-	call minpac#add('tpope/vim-repeat')
-	call minpac#add('junegunn/vim-easy-align')
+	call minpac#add('godlygeek/tabular')
 	call minpac#add('tpope/vim-fugitive')
 	call minpac#add('tpope/vim-obsession')
 	call minpac#add('ap/vim-css-color')
@@ -261,6 +259,10 @@ function! OmniFuncTodo(findstart, base)
 	return map(['✗', '✓'], { _,x -> x.' '.trim(a:base, ' \t✗✓+*') })
 endfunction
 set omnifunc=OmniFuncTodo
+
+function! Alert(text)
+	let winid = popup_create(a:text, #{border:[], borderhighligh:'Constant', padding: [], time:10000, close:'button'})
+endfunction
 
 " AZERTY Keyboard:---------------------{{{
 " AltGr keys" -------------------------{{{
@@ -560,62 +562,6 @@ nnoremap <silent> <End> :call ExtendedEnd()<CR>
 vnoremap <silent> <End> $
 onoremap <silent> <End> :call ExtendedEnd()<CR>
 
-function! MoveCursorToNext(pattern)
-	mark '
-	let match =	 searchpos(a:pattern, '', line('.'))
-endfunction
-
-function! MoveCursorToLast(pattern)
-	mark '
-	let match = searchpos(a:pattern, 'b', line('.'))
-endfunction
-
-function! MoveToLastMatch()
-	let lastcmd = histget('cmd', -1)
-	if lastcmd =~ 'MoveCursorTo'
-		exec substitute(lastcmd, 'Next', 'Last', 'g')
-	else
-		normal! ,
-	endif
-endfunction
-
-function! MoveToNextMatch()
-	let lastcmd = histget('cmd', -1)
-	if lastcmd =~ 'MoveCursorTo'
-		exec substitute(lastcmd, 'Last', 'Next', 'g')
-	else
-		normal! ;
-	endif
-endfunction
-nnoremap <silent> <Leader>, :call ExecuteAndAddIntoHistory("call MoveCursorToNext('[A-Z_]\\C')")<CR>
-nnoremap <silent> <Leader>; :call ExecuteAndAddIntoHistory("call MoveCursorToNext('[^A-Za-z_ \\t]\\C')")<CR>
-nnoremap <silent> , :call MoveToLastMatch()<CR>
-nnoremap <silent> ; :call MoveToNextMatch()<CR>
-
-function! VMoveToLastMatch()
-	normal! gv
-	let lastcmd = histget('cmd', -1)
-	if lastcmd =~ 'MoveCursorTo'
-		exec substitute(lastcmd, 'Next', 'Last', 'g')
-	else
-		normal! ,
-	endif
-endfunction
-
-function! VMoveToNextMatch()
-	normal! gv
-	let lastcmd = histget('cmd', -1)
-	if lastcmd =~ 'MoveCursorTo'
-		exec substitute(lastcmd, 'Last', 'Next', 'g')
-	else
-		normal! ;
-	endif
-endfunction
-vnoremap <silent> <Leader>, :<C-U>call ExecuteAndAddIntoHistory("call MoveCursorToNext('[A-Z_]\\C')") \| normal! v`<o<CR>
-vnoremap <silent> <Leader>; :<C-U>call ExecuteAndAddIntoHistory("call MoveCursorToNext('[^A-Za-z_ \\t]\\C')") \| normal! v`<o<CR>
-vnoremap <silent> , :<C-U>call VMoveToLastMatch()<CR>
-vnoremap <silent> ; :<C-U>call VMoveToNextMatch()<CR>
-
 " Text objects" -----------------------{{{
 vnoremap iz [zjo]zkVg_| onoremap iz :normal viz<CR>
 vnoremap az [zo]zVg_|   onoremap az :normal vaz<CR>
@@ -646,11 +592,11 @@ vnoremap gy y`]
 nnoremap <expr> vp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
 " Repeat-Last-Action" -----------------{{{
-nmap ù .
+nnoremap ù .
 
 " Vertical Alignment" -----------------{{{
-xmap ga <Plug>(EasyAlign)
-nmap ga <Plug>(EasyAlign)
+xmap ga :Tabular /
+nmap ga :Tabular /
 
 " Vim Core Functionalities:------------{{{
 " Command Line"------------------------{{{
@@ -688,8 +634,9 @@ set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :Files<CR>
 nnoremap <Leader>F :GFiles?<CR>
-nnoremap <Leader>r :Rg! 
+nnoremap <Leader>r :Rg! <C-R><C-W><CR>
 vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
+nnoremap <Leader>R :Rg! 
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
@@ -1615,7 +1562,7 @@ let g:OmniSharp_loglevel = 'debug'
 let g:OmniSharp_highlight_types = 3
 let g:OmniSharp_selector_ui = 'fzf'
 let g:OmniSharp_fzf_options = { 'window': 'botright 7new' }
-let g:OmniSharp_want_snippet=0
+let g:OmniSharp_want_snippet=1
 let g:OmniSharp_diagnostic_showid = 1
 augroup lightline_integration
   autocmd!
