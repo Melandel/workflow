@@ -193,7 +193,7 @@ function! JobStartExample(...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echo ''[cb] '.msg.'''',  1)},
+			\'callback': { chan,msg  -> execute('echo ''[cb] '.substitute(msg,"'","''","g").'''',  1)},
 			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)},
 			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'" | botright sbuffer '.scratchbufnr, '')}
 		\}
@@ -251,14 +251,6 @@ endfunction
 function! WindowsPath(path)
 	return shellescape(substitute(a:path, '/', '\', 'g'))
 endfunction
-
-function! OmniFuncTodo(findstart, base)
-	if a:findstart
-		return match(getline('.'), '[^\s \*\+]')
-	endif
-	return map(['✗', '✓'], { _,x -> x.' '.trim(a:base, ' \t✗✓+*') })
-endfunction
-set omnifunc=OmniFuncTodo
 
 function! Alert(text)
 	let winid = popup_create(a:text, #{border:[], borderhighligh:'Constant', padding: [], time:10000, close:'button'})
@@ -321,7 +313,7 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-command! -bar Enew    exec('enew | set buftype=nofile bufhidden=hide noswapfile foldmethod=indent| silent lcd '.$desktop.'/tmp')
+command! -bar Enew    exec('enew | setlocal buftype=nofile bufhidden=hide noswapfile| silent lcd '.$desktop.'/tmp')
 command! -bar New     call SplitWindow(0)
 command! -bar Vnew    call SplitWindow(1)
 nnoremap <silent> <Leader>s :New<CR>
@@ -372,6 +364,8 @@ function! SplitWindow(isVertical)
 	endif
 	mark `
 	let w:buffers = bufferHistory
+	Enew
+	call CycleWindowBuffersHistoryBackwards()
 endfunction
 
 " Browse to Window or Tab
@@ -382,7 +376,9 @@ nnoremap <silent> <Leader>l <C-W>l
 nnoremap <silent> <Leader><home> 1<C-W>W
 nnoremap <silent> <Leader><end> 99<C-W>W
 nnoremap <silent> <Leader>n gt
+nnoremap <silent> <Leader>N :tabnew<CR>
 nnoremap <silent> <Leader>p gT
+nnoremap <silent> <Leader>P :$tabnew<CR>
 
 augroup windows
 	autocmd!
@@ -515,10 +511,10 @@ nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>
 
 function! BrowseLayoutDown()
 	if &diff
-		silent! keepjumps normal! ]czx
+		silent! keepjumps normal! ]czxzz
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cnext
-	elseif &filetype == 'cs'
+	elseif len(getloclist(winnr())) > 0
 		ALENext
 	endif
 	silent! normal! zv
@@ -528,10 +524,10 @@ nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 
 function! BrowseLayoutUp()
 	if &diff
-		silent! keepjumps normal! [czx
+		silent! keepjumps normal! [czxzz
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		keepjumps silent! cprev
-	elseif &filetype == 'cs'
+	elseif len(getloclist(winnr())) > 0
 		ALEPrevious
 	endif
 	silent! normal! zv
@@ -609,7 +605,6 @@ cnoremap !! Start
 " Wild Menu" --------------------------{{{
 set wildmenu
 set wildcharm=<Tab>
-cnoremap <C-O> <S-tab> " because <C-I> is <tab>
 set wildignorecase
 set wildmode=full
 
@@ -660,10 +655,10 @@ set incsearch
 set ignorecase
 " Display '1 out of 23 matches' when searching
 set shortmess=filnxtToO
-nnoremap ! mG/
-vnoremap ! <Esc>mGgv"vy/<C-R>v
+nnoremap ! /
+vnoremap ! /
 nnoremap q! q/
-nnoremap / mG:Lines<CR>
+nnoremap / :Lines<CR>
 
 nnoremap z! :BLines<CR>
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
@@ -691,33 +686,61 @@ endfunction
 command! -range=% SortByLength <line1>,<line2>call SortLinesByLength()
 
 " Autocompletion (Insert Mode)" -------{{{
-inoremap <C-O> <C-X><C-O>
-inoremap <C-I> <C-R>=TabExpand()<CR>
-snoremap <C-I> <esc>:call UltiSnips#ExpandSnippetOrJump()<CR>
+set completeopt+=menuone,noselect,noinsert
 let g:UltiSnipsExpandTrigger = "<nop>"
 let g:UltiSnipsJumpForwardTrigger="<nop>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 let g:UltiSnipsEditSplit="horizontal"
 let g:UltiSnipsSnippetDirectories=[
-	\$VIM.'/pack/plugins/start/vim-snippets/ultisnips',
-	\$desktop.'/snippets'
+	\$desktop.'/snippets',
+	\$VIM.'/pack/plugins/start/vim-snippets/ultisnips'
 \]
-nnoremap <Leader>u :UltiSnipsEdit!<CR>G
-augroup ultisnips
+
+augroup autocompletion
 	au!
 	autocmd User UltiSnipsEnterFirstSnippet mark '
+	autocmd InsertCharPre * if !pumvisible() && ((v:char >= 'a' && v:char <= 'z') || (v:char >= 'A' && v:char <= 'Z')) | call feedkeys("\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>"), "n") | endif
 augroup end
 
-function! TabExpand()
-	if pumvisible()
-		return "\<C-Y>"
+inoremap <expr> <esc> pumvisible() ? "\<C-E>" : "\<esc>"
+inoremap <C-I> <C-R>=ExpandSnippetOrValidateAutocompletionSelection()<CR>
+xnoremap <C-I> :call UltiSnips#SaveLastVisualSelection()<cr>gvs
+snoremap <C-I> <esc>:call UltiSnips#ExpandSnippetOrJump()<CR>
+nnoremap <Leader>u :UltiSnipsEdit!<CR>G
+nnoremap <Leader>U :call UltiSnips#RefreshSnippets()<CR>
+inoremap <C-O> <C-X><C-U>
+
+function! CompleteFuncTodo(findstart, base)
+	if a:findstart
+		let line = getline('.')
+		return min(filter([match(line, '\a'), match(line, '\d')], { _,x -> x != -1 }))
 	endif
+	return map(['✗', '✓'], { _,x -> x.' '.trim(a:base, ' \t✗✓+*') })
+endfunction
+set completefunc=CompleteFuncTodo
+
+
+function! ExpandSnippetOrValidateAutocompletionSelection()
 	if col('.') == 1
 		return "\<C-I>"
 	endif
-	let g:ulti_expand_or_jump_res = 0
-	call UltiSnips#ExpandSnippetOrJump()
-	return g:ulti_expand_or_jump_res > 0 ? '' : PreviousCharacter() =~ '\S' ? "\<C-N>" : "\<C-I>"
+	if !pumvisible()
+		let g:ulti_expand_or_jump_res = 0
+		call UltiSnips#ExpandSnippetOrJump()
+		return g:ulti_expand_or_jump_res > 0 ? '' : PreviousCharacter() =~ '\S' ? "\<C-N>" : "\<C-I>"
+	else
+		echomsg 'selected' complete_info(['selected'])
+		let completionstate = complete_info(['selected', 'items'])
+		if completionstate.selected != -1
+			return "\<C-Y>"
+		elseif empty(UltiSnips#SnippetsInCurrentScope())
+			return "\<C-N>\<C-Y>"
+		else
+			let g:ulti_expand_or_jump_res = 0
+			call UltiSnips#ExpandSnippetOrJump()
+			return g:ulti_expand_or_jump_res > 0 ? '' : "\<C-N>\<C-Y>"
+		endif
+	endif
 endfunction
 
 " Diff" -------------------------------{{{
@@ -942,6 +965,7 @@ function! DeleteItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
 	let cmd = (isdirectory(target)) ?  printf('rmdir "%s" /s /q',target) : printf('del "%s"', target)
+	echomsg cmd
 	silent exec '!start /b' cmd
 	normal R
 endfunction
@@ -1160,6 +1184,7 @@ augroup end
 " Dashboard" --------------------------{{{
 function! OpenDashboard()
 	silent tab G
+	-tabmove
 	normal gu
 	silent exec winheight(0)/4.'split $desktop./todo'
 	silent exec 'vnew $desktop/done'
@@ -1407,10 +1432,10 @@ function! CompileDiagramAndShowImage(outputExtension, ...)
 	let g:job = job_start(
 		\'cmd /C '.cmd,
 		\{
-			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.msg.'''',  1)                              },
-			\'out_cb':   { chan,msg  -> execute('echomsg '''.msg.'''',  1)                                   },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.msg.''' | echohl Normal',  1) },
-			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                                       },
+			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.substitute(msg,"'","''","g").'''',  1)      },
+			\'out_cb':   { chan,msg  -> execute('echomsg '''.substitute(msg,"'","''","g").'''',  1)           },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                            },
 			\'exit_cb':  function('JobExitDiagramCompilationJob', [outputfile])
 		\}
 	\)
@@ -1533,9 +1558,9 @@ function! FindNuget(...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echo ''[cb] '.msg.'''',  1)                              },
-			\'out_cb':   { chan,msg  -> execute('echo ''Found: '.msg.'''',  1)                                   },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.msg.''' | echohl Normal',  1) },
+			\'callback': { chan,msg  -> execute('echo ''[cb] '.substitute(msg,"'","''","g").'''',  1)   },
+			\'out_cb':   { chan,msg  -> execute('echo ''Found: '.substitute(msg,"'","''","g").'''',  1) },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
 			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)},
 			\'exit_cb':  function('FindNugetExitCb', [tokens, scratchbufnr])
 		\}
@@ -1566,6 +1591,7 @@ let g:OmniSharp_selector_ui = 'fzf'
 let g:OmniSharp_fzf_options = { 'window': 'botright 7new' }
 let g:OmniSharp_want_snippet=1
 let g:OmniSharp_diagnostic_showid = 1
+let g:omnicomplete_fetch_full_documentation = 0
 augroup lightline_integration
   autocmd!
   autocmd User OmniSharpStarted,OmniSharpReady,OmniSharpStopped call lightline#update()
@@ -1573,12 +1599,11 @@ augroup END
 
 function! BuildAndTestCurrentSolution()
 	cclose
+	let sln_dir = GetCsproj()
 	let omnisharp_host = getbufvar(bufnr('%'), 'OmniSharp_host')
-	if empty(omnisharp_host) || !get(omnisharp_host, 'initialized')
-		echomsg "Omnisharp server isn't loaded. Please load Omnisharp server with :OmniSharpStartServer (qR)."
-		return
+	if !empty(omnisharp_host) && get(omnisharp_host, 'initialized')
+		let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, isdirectory(omnisharp_host.sln_or_dir) ? ':p' : ':h:p')
 	endif
-	let sln_dir = fnamemodify(omnisharp_host.sln_or_dir, isdirectory(omnisharp_host.sln_or_dir) ? ':p' : ':h:p')
 	call StartCSharpBuild(sln_dir)
 endfunction
 command! -bar BuildAndTestCurrentSolution call BuildAndTestCurrentSolution()
@@ -1598,10 +1623,10 @@ function! StartCSharpBuild(sln_or_dir)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.msg.'''',  1)                              },
-			\'out_cb':   { chan,msg  -> execute('echomsg '''.msg.'''',  1)                                   },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.msg.''' | echohl Normal',  1) },
-			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                                       },
+			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.substitute(msg,"'","''","g").'''',  1) },
+			\'out_cb':   { chan,msg  -> execute('echomsg '''.substitute(msg,"'","''","g").'''',  1)      },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                       },
 			\'exit_cb':  function('StartCSharpBuildExitCb', [folder, scratchbufnr])
 		\}
 	\)
@@ -1635,10 +1660,10 @@ function! StartCSharpTest(workingdir)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.msg.'''',  1)                              },
-			\'out_cb':   { chan,msg  -> execute('echomsg '''.msg.'''',  1)                                   },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.msg.''' | echohl Normal',  1) },
-			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                                       },
+			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.substitute(msg,"'","''","g").'''',  1) },
+			\'out_cb':   { chan,msg  -> execute('echomsg '''.substitute(msg,"'","''","g").'''',  1)      },
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
+			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                       },
 			\'exit_cb':  function('Commit', [scratchbufnr])
 		\}
 	\)
@@ -1729,6 +1754,7 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <localleader>h :call vimspector#Restart()<CR>
 	autocmd FileType cs cnoremap <buffer> <expr> <C-G> GetDirOrSln()
 augroup end
+
 
 let g:OmniSharp_highlight_groups = {
 	\ 'Comment': 'Comment',
