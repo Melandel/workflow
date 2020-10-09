@@ -1,3 +1,11 @@
-snippet echo "echo variable" b
-echomsg '${VISUAL}:'.${VISUAL}
+priority 1
+snippet echomsg "echo variable" b
+echomsg '${1:variable}:' $1
+endsnippet
+
+snippet f "Description" b
+function! ${1:MyFunction}($2)
+	$0
+endfunction
+
 endsnippet
