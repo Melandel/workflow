@@ -12,7 +12,7 @@ function! MinpacInit()
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
-	call minpac#add('Melandel/omnisharp-vim')
+	call minpac#add('OmniSharp/omnisharp-vim')
 	call minpac#add('puremourning/vimspector')
 	call minpac#add('nickspoons/vim-sharpenup')
 	call minpac#add('SirVer/ultisnips')
@@ -511,9 +511,9 @@ nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>
 
 function! BrowseLayoutDown()
 	if &diff
-		silent! keepjumps normal! ]czxzz
+		silent! normal! ]czxzz
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
-		keepjumps silent! cnext
+		silent! cnext
 	elseif len(getloclist(winnr())) > 0
 		ALENext
 	endif
@@ -524,9 +524,9 @@ nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 
 function! BrowseLayoutUp()
 	if &diff
-		silent! keepjumps normal! [czxzz
+		silent! normal! [czxzz
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
-		keepjumps silent! cprev
+		silent! cprev
 	elseif len(getloclist(winnr())) > 0
 		ALEPrevious
 	endif
@@ -621,7 +621,7 @@ nnoremap <silent> <Leader>S ^vg_y:exec @@<CR>
 nnoremap ç :let script=''\|call histadd('cmd',script)\|put=execute(script)<Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
 augroup vimsourcing
 	au!
-	autocmd BufWritePost _vimrc GvimTweakToggleFullScreen | so % | GvimTweakToggleFullScreen
+	autocmd BufWritePost _vimrc,*.vim GvimTweakToggleFullScreen | so % | GvimTweakToggleFullScreen
 	autocmd FileType vim nnoremap <buffer> z! :BLines function!\\|{{{<CR>
 augroup end
 
@@ -631,9 +631,9 @@ set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :Files<CR>
 nnoremap <Leader>F :GFiles?<CR>
-nnoremap <Leader>r :Rg! <C-R><C-W><CR>
+nnoremap <Leader>r :Rg <C-R><C-W><CR>
 vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
-nnoremap <Leader>R :Rg! 
+nnoremap <Leader>R :Rg 
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
@@ -699,16 +699,15 @@ let g:UltiSnipsSnippetDirectories=[
 augroup autocompletion
 	au!
 	autocmd User UltiSnipsEnterFirstSnippet mark '
-	autocmd InsertCharPre * if !pumvisible() && ((v:char >= 'a' && v:char <= 'z') || (v:char >= 'A' && v:char <= 'Z')) | call feedkeys("\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>"), "n") | endif
+	"autocmd InsertCharPre * if !pumvisible() && v:char =~ '\a\|\.' | call feedkeys("\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>"), "n") | endif
 augroup end
 
-inoremap <expr> <esc> pumvisible() ? "\<C-E>" : "\<esc>"
 inoremap <C-I> <C-R>=ExpandSnippetOrValidateAutocompletionSelection()<CR>
 xnoremap <C-I> :call UltiSnips#SaveLastVisualSelection()<cr>gvs
 snoremap <C-I> <esc>:call UltiSnips#ExpandSnippetOrJump()<CR>
 nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 nnoremap <Leader>U :call UltiSnips#RefreshSnippets()<CR>
-inoremap <C-O> <C-X><C-U>
+inoremap <C-O> <C-X><C-O>
 
 function! CompleteFuncTodo(findstart, base)
 	if a:findstart
@@ -778,8 +777,6 @@ nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
 
 " Fuzzy Finder"------------------------{{{
 " Makes Omnishahrp-vim code actions select both two elements
-let g:fzf_preview_window = 'right:60%'
-let g:fzf_layout = { 'window': { 'width': 0.9, 'height': 0.6 } }
 augroup my_fzf"------------------------{{{
 	au!
 	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
@@ -789,19 +786,19 @@ augroup my_fzf"------------------------{{{
 	autocmd FileType fzf tnoremap <buffer> <C-O> <C-T>
 augroup end
 let g:fzf_colors =
-\ { 'fg':      ['fg', 'Normal'],
+\ { 'fg':      ['fg', 'Comment'],
   \ 'bg':      ['bg', 'Normal'],
-  \ 'hl':      ['fg', 'Constant'],
-  \ 'fg+':     ['fg', 'Constant', 'CursorColumn', 'Normal'],
-  \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-  \ 'hl+':     ['fg', 'Ignore'],
-  \ 'gutter':  ['fg', 'Comment'],
-  \ 'info':    ['fg', 'PreProc'],
+  \ 'hl':      ['fg', 'Float'],
+  \ 'fg+':     ['fg', 'Normal', 'CursorColumn', 'Normal'],
+  \ 'bg+':     ['bg', 'Normal'],
+  \ 'hl+':     ['fg', 'Constant'],
+  \ 'gutter':  ['bg', 'Normal'],
+  \ 'info':    ['fg', 'Comment'],
   \ 'border':  ['fg', 'Normal'],
   \ 'prompt':  ['fg', 'Normal'],
   \ 'pointer': ['fg', 'Constant'],
-  \ 'marker':  ['fg', 'Keyword'],
-  \ 'spinner': ['fg', 'Label'],
+  \ 'marker':  ['fg', 'Comment'],
+  \ 'spinner': ['fg', 'String'],
   \ 'header':  ['fg', 'Comment'] }
 
 function! Edit(lines)"-----------------{{{
@@ -1727,7 +1724,7 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :!dotnet run -p Startup<CR>
 	autocmd FileType cs nmap <buffer> zk <Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
-	autocmd FileType cs nmap <buffer> z! :BLines public\\|private\\|protected<CR>
+	autocmd FileType cs nmap <buffer> z! <Plug>(omnisharp_find_members)
 	autocmd FileType cs nmap <buffer> gd <Plug>(omnisharp_go_to_definition)
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
 	autocmd FileType cs nmap <buffer> <LocalLeader>i <Plug>(omnisharp_find_implementations)
