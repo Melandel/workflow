@@ -1,12 +1,16 @@
-let $desktop = $HOME . '/Desktop'
+let $desktop = $HOME . (has('win32') ? '/Desktop' : '')
+let $rcfolder = (has('win32') ? $VIM : $HOME)
+let $rcfilename = (has('win32') ? '_vimrc' : '.vimrc')
+let $packpath = (has('win32') ? $VIM : $HOME.'/.vim')
 set path+=$desktop/notes
 
 " Desktop Integration:-----------------{{{
 " Plugins" ----------------------------{{{
 function! MinpacInit()
 	packadd minpac
-	call minpac#init( #{dir:$VIM, package_name: 'plugins', progress_open: 'none' } )
+	call minpac#init( #{dir:$packpath, package_name: 'plugins', progress_open: 'none' } )
 	call minpac#add('editorconfig/editorconfig-vim')
+	call minpac#add('kana/vim-fakeclip')
 	call minpac#add('dense-analysis/ale')
 	call minpac#add('zigford/vim-powershell')
 	call minpac#add('junegunn/fzf.vim')
@@ -31,12 +35,11 @@ function! MinpacInit()
 endfunction
 command! -bar MinPacInit call MinpacInit()
 command! -bar MinPacUpdate call MinpacInit()| call minpac#clean()| call minpac#update()
-packadd! matchit
 let loaded_netrwPlugin = 1 " do not load netrw
 
 " First time" -------------------------{{{
-if !isdirectory($VIM.'/pack/plugins')
-	call system('git clone https://github.com/k-takata/minpac.git ' . $VIM . '/pack/packmanager/opt/minpac')
+if !isdirectory($packpath.'/pack/plugins')
+	call system('git clone https://github.com/k-takata/minpac.git ' . $packpath . '/pack/packmanager/opt/minpac')
 	call MinpacInit()
 	call minpac#update()
 	packloadall
@@ -45,14 +48,14 @@ endif
 " Duplicated/Generated files" ---------{{{
 augroup duplicatefiles
 	au!
-	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($HOME . '/Desktop/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
+	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($desktop . '/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
 augroup end
 
 " General:-----------------------------{{{
 " Settings" ---------------------------{{{
 syntax on
 filetype plugin indent on
-language messages English_United states
+silent! language messages English_United states
 set novisualbell
 set langmenu=en_US.UTF-8
 set encoding=utf8
@@ -65,12 +68,12 @@ set listchars=tab:▸\ ,eol:¬,extends:>,precedes:<
 set list
 set fillchars=vert:\|,fold:\ 
 set noswapfile
-set directory=$HOME/Desktop/tmp/vim
+set directory=$desktop/tmp/vim
 set backup
-set backupdir=$HOME/Desktop/tmp/vim
+set backupdir=$desktop/tmp/vim
 set undofile
-set undodir=$HOME/Desktop/tmp/vim
-set viewdir=$HOME/Desktop/tmp/vim
+set undodir=$desktop/tmp/vim
+set viewdir=$desktop/tmp/vim
 set history=200
 " GVim specific
 if has("gui_running")
@@ -82,6 +85,28 @@ if has("gui_running")
 	set guioptions+=c  "console-style dialogs instead of popups
 	set guifont=consolas:h11
 	set termwintype=conpty
+endif
+" Windows Subsystem for Linx (WSL)
+set ttimeout ttimeoutlen=0
+if &term =~ '^xterm'
+  autocmd VimEnter * silent !echo -ne "\e[0 q"
+  let &t_EI .= "\<Esc>[0 q"
+  let &t_SI .= "\<Esc>[5 q"
+  " 1 or 0 -> blinking block
+  " 2 -> solid block
+  " 3 -> blinking underscore
+  " 4 -> solid underscore
+  " Recent versions of xterm (282 or above) also support
+  " 5 -> blinking vertical bar
+  " 6 -> solid vertical bar
+  autocmd VimLeave * silent !echo -ne "\e[5 q"
+endif
+let s:clip = '/mnt/c/Windows/System32/clip.exe'
+if executable(s:clip)
+	augroup WSLYank
+		autocmd!
+		autocmd TextYankPost * if v:event.operator ==# 'y' | call system(s:clip, @0) | endif
+	augroup END
 endif
 
 " Tabs and Indentation" ---------------{{{
@@ -126,6 +151,17 @@ augroup lcd
 augroup end
 
 " Utils"-------------------------------{{{
+function! BufferIsEmpty()
+	return line('$') == 1 && getline(1) == '' 
+endfunction 
+
+function! DeleteEmptyScratchBuffers()
+    let buffers = filter(range(1, bufnr('$')), 'getbufvar(v:val, "&bt")=="nofile" && len(getbufline(v:val, 1, "$")) == 1 && empty(getbufline(v:val, 1)[0])')
+    if !empty(buffers)
+        exec 'bw' join(buffers, ' ')
+    endif
+endfunction
+
 function! IsQuickFixWindowOpen()
 	return len(filter(range(1, winnr('$')), {_,x -> getwinvar(x, '&syntax') == 'qf'}))
 endfunction
@@ -160,7 +196,7 @@ endfunction
 function! ClearTrailingWhiteSpaces()
 	%s/\s\+$//e
 endfunction
-command ClearTrailingWhiteSpaces call ClearTrailingWhiteSpaces()
+command! ClearTrailingWhiteSpaces call ClearTrailingWhiteSpaces()
 
 function! OmnifunctionExample(findstart, base)
 	if a:findstart
@@ -313,7 +349,7 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-command! -bar Enew    exec('enew | setlocal buftype=nofile bufhidden=hide noswapfile| silent lcd '.$desktop.'/tmp')
+command! -bar Enew    exec(' enew | call DeleteEmptyScratchBuffers() | setlocal buftype=nofile bufhidden=hide noswapfile| silent lcd '.$desktop.'/tmp')
 command! -bar New     call SplitWindow(0)
 command! -bar Vnew    call SplitWindow(1)
 nnoremap <silent> <Leader>s :New<CR>
@@ -333,7 +369,7 @@ function! SplitWindow(isVertical)
 	let useRemainingSpace = 0
 	let bufferHistory = get(w:, 'buffers', [])
 	if a:isVertical
-		exec 'vnew' expand('%')
+		vsplit
 	else
 		let minheight = 2
 		let remainingheight = ComputeRemainingHeight()
@@ -354,13 +390,13 @@ function! SplitWindow(isVertical)
 			mark k
 			normal! H
 		endif
-		exec (useRemainingSpace ? (remainingheight-1) : '') 'new' expand('%')
-	endif
-	if useRemainingSpace
-		wincmd k
-		normal! `k
-		delmarks k
-		wincmd j
+		exec (useRemainingSpace ? (remainingheight-1) : '').'split'
+		if useRemainingSpace
+			wincmd k
+			normal! `k
+			delmarks k
+			wincmd j
+		endif
 	endif
 	mark `
 	let w:buffers = bufferHistory
@@ -435,7 +471,7 @@ function! FolderRelativePathFromGit()
 	let foldergitpath = folderpath[len(gitrootfolder)+1:]
 	return '/' . substitute(foldergitpath, '\', '/', 'g')
 endfunction
-let sharpenupStatusLineScript = $VIM.'/pack/plugins/start/vim-sharpenup/autoload/sharpenup/statusline.vim'
+let sharpenupStatusLineScript = $packpath.'/pack/plugins/start/vim-sharpenup/autoload/sharpenup/statusline.vim'
 if (glob(sharpenupStatusLineScript) != '') | exec 'source' sharpenupStatusLineScript | endif
 let g:sharpenup_statusline_opts = { 'TextLoading': '<%s…>', 'TextReady': '<%s>', 'TextDead': '<>', 'Highlight': 0 }
 let g:lightline = {
@@ -621,7 +657,11 @@ nnoremap <silent> <Leader>S ^vg_y:exec @@<CR>
 nnoremap ç :let script=''\|call histadd('cmd',script)\|put=execute(script)<Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
 augroup vimsourcing
 	au!
-	autocmd BufWritePost _vimrc,*.vim GvimTweakToggleFullScreen | so % | GvimTweakToggleFullScreen
+	if has('win32')
+		autocmd BufWritePost .vimrc,_vimrc,*.vim GvimTweakToggleFullScreen | so % | GvimTweakToggleFullScreen
+	else
+		autocmd BufWritePost .vimrc,_vimrc,*.vim so %
+	endif
 	autocmd FileType vim nnoremap <buffer> z! :BLines function!\\|{{{<CR>
 augroup end
 
@@ -693,7 +733,7 @@ let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 let g:UltiSnipsEditSplit="horizontal"
 let g:UltiSnipsSnippetDirectories=[
 	\$desktop.'/snippets',
-	\$VIM.'/pack/plugins/start/vim-snippets/ultisnips'
+	\$packpath.'/pack/plugins/start/vim-snippets/ultisnips'
 \]
 
 augroup autocompletion
@@ -807,14 +847,14 @@ function! Edit(lines)"-----------------{{{
 	if file_or_dir =~ '^(current folder) '
 		let file_or_dir = expand('%:h:p')
 	elseif glob(file_or_dir) == ''
-		if glob($Desktop.'/'.file_or_dir) != ''
-			let file_or_dir = $Desktop.'/'.file_or_dir
+		if glob($desktop.'/'.file_or_dir) != ''
+			let file_or_dir = $desktop.'/'.file_or_dir
 		elseif glob($HOME.'/'.file_or_dir) != ''
 			let file_or_dir = $HOME.'/'.file_or_dir
-		elseif glob($VIM.'/'.file_or_dir) != ''
-			let file_or_dir = $VIM.'/'.file_or_dir
-		elseif glob($VIM.'/pack/plugins/start/'.file_or_dir) != ''
-			let file_or_dir = $VIM.'/pack/plugins/start/'.file_or_dir
+		elseif glob($rcfolder.'/'.file_or_dir) != ''
+			let file_or_dir = $rcfolder.'/'.file_or_dir
+		elseif glob($packpath.'/pack/plugins/start/'.file_or_dir) != ''
+			let file_or_dir = $packpath.'/pack/plugins/start/'.file_or_dir
 		endif
 	endif
 	let cmd = isdirectory(file_or_dir) ?
@@ -836,22 +876,22 @@ endfunction
 function! Explore()
 	let original_lcd = getcwd()
 	let source = []
-	lcd $HOME/Desktop
-	let source += expand('tmp\*',      0, 1)
-	let source += expand('notes\*',    0, 1)
-	let source += expand('snippets\*', 0, 1)
-	let source += expand('templates\*',0, 1)
-	let source += expand('setup\*',    0, 1)
-	let source += expand('tools\*',    0, 1)
-	let source += expand('projects\*', 0, 1)
+	lcd $desktop
+	let source += expand('tmp/*',      0, 1)
+	let source += expand('notes/*',    0, 1)
+	let source += expand('snippets/*', 0, 1)
+	let source += expand('templates/*',0, 1)
+	let source += expand('setup/*',    0, 1)
+	let source += expand('tools/*',    0, 1)
+	let source += expand('projects/*', 0, 1)
 	call add(source, map(filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)}), { _,x -> fnamemodify(x, ':.') }))
 	call add(source, map(filter(systemlist('git ls-files'), {_,x->x !~ 'my_vimrc.vim'}), { _,x -> fnamemodify(x, ':.') }))
-	lcd $VIM/pack/plugins/start
+	lcd $packpath/pack/plugins/start
 	call add(source, [expand('*', 0, 1)])
 	let source = uniq(sort(flatten(source)))
-	let source = ['(current folder) '.expand('%:h:p'), '_vimrc', 'Downloads', 'Desktop', 'tmp', 'notes', 'snippets', 'templates', 'setup', 'tools', 'projects'] + source
+	let source = ['(current folder) '.expand('%:h:p'), $rcfilename, 'Downloads', 'Desktop', 'tmp', 'notes', 'snippets', 'templates', 'setup', 'tools', 'projects'] + source
 	let source = map(source, { _,x -> substitute(x, '\', '/', 'g') })
-	exec 'lcd' shellescape(original_lcd)
+	exec 'lcd' (has('win32') ? shellescape(original_lcd) : original_lcd)
 	call fzf#run(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b','--prompt', 'Explore> ']}))
 endfunction
 command! Explore call Explore()
@@ -886,6 +926,9 @@ endfunction
 function! CycleWindowBuffersHistoryForward()
 	let w:buffers = w:buffers[1:] + [w:buffers[0]]
 	let w:skip_tracking_buffers = 1
+	while !bufexists(w:buffers[-1])
+		call remove(w:buffers, -1)
+	endwhile
 	exec 'buffer' w:buffers[-1]
 	let w:skip_tracking_buffers = 0
 endfunction
@@ -893,6 +936,9 @@ endfunction
 function! CycleWindowBuffersHistoryBackwards()
 	let w:buffers = [w:buffers[-1]] + w:buffers[:-2]
 	let w:skip_tracking_buffers = 1
+	while !bufexists(w:buffers[-1])
+		call remove(w:buffers, -1)
+	endwhile
 	exec 'buffer' w:buffers[-1]
 	let w:skip_tracking_buffers = 0
 endfunction
@@ -1438,7 +1484,7 @@ function! CompileDiagramAndShowImage(outputExtension, ...)
 	\)
 endfunction
 
-function GetPlantumlConfigFile(fileext)
+function! GetPlantumlConfigFile(fileext)
 	let configfilebyft = #{
 		\puml_activity:      'styles',
 		\puml_mindmap:       'styles',
@@ -1451,7 +1497,7 @@ function GetPlantumlConfigFile(fileext)
 		\puml_usecase:       'skinparams',
 		\puml_dot:           'graphviz'
 	\}
-	return $HOME.'/Desktop/setup/my_plantuml_'.configfilebyft[a:fileext].'.config'
+	return $desktop.'/setup/my_plantuml_'.configfilebyft[a:fileext].'.config'
 endfunction
 command! -nargs=* -bar CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
 
@@ -1582,7 +1628,7 @@ let g:OmniSharp_start_server = 0
 let g:OmniSharp_server_stdio = 1
 let g:ale_linters = { 'cs': ['OmniSharp'] }
 let g:OmniSharp_popup = 0
-let g:OmniSharp_loglevel = 'debug'
+let g:OmniSharp_loglevel = 'none'
 let g:OmniSharp_highlight_types = 3
 let g:OmniSharp_selector_ui = 'fzf'
 let g:OmniSharp_fzf_options = { 'window': 'botright 7new' }
