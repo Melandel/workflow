@@ -10,7 +10,6 @@ function! MinpacInit()
 	packadd minpac
 	call minpac#init( #{dir:$packpath, package_name: 'plugins', progress_open: 'none' } )
 	call minpac#add('editorconfig/editorconfig-vim')
-	call minpac#add('kana/vim-fakeclip')
 	call minpac#add('dense-analysis/ale')
 	call minpac#add('zigford/vim-powershell')
 	call minpac#add('junegunn/fzf.vim')
@@ -803,9 +802,47 @@ augroup quickfix
 	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
 augroup end
 
+function! QuickFixVerticalAlign(info)
+	if a:info.quickfix
+		let qfl = getqflist({'id': a:info.id, 'items': 0}).items
+	else
+		let qfl = getloclist(a:info.winid, {'id': a:info.id, 'items': 0}).items
+	endif
+	let l = []
+	let efm_type = {'e': 'error', 'w': 'warning', 'i': 'info', 'n': 'note'}
+	let lnum_width =   len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), { _,v -> qfl[v].lnum })))
+	let col_width =    len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> qfl[v].col})))
+	let fname_width =  max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> strchars(fnamemodify(bufname(qfl[v].bufnr), ':t'), 1)}))
+	let type_width =   max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> strlen(get(efm_type, qfl[v].type, ''))}))
+	let errnum_width = len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1),{_, v -> qfl[v].nr})))
+	for idx in range(a:info.start_idx - 1, a:info.end_idx - 1)
+		let e = qfl[idx]
+		if !e.valid
+			call add(l, '|| ' .. e.text)
+		else
+			if e.lnum == 0 && e.col == 0
+				call add(l, bufname(e.bufnr))
+			else
+				let fname = fnamemodify(printf('%-*S', fname_width, bufname(e.bufnr)), ':t')
+				let lnum = printf('%*d', lnum_width, e.lnum)
+				let col = printf('%*d', col_width, e.col)
+				let type = printf('%-*S', type_width, get(efm_type, e.type, ''))
+				let errnum = ''
+				if e.nr
+					let errnum = printf('%*d', errnum_width + 1, e.nr)
+				endif
+				call add(l, printf('%s|%s col %s %s%s| %s', fname, lnum, col, type, errnum, e.text))
+			endif
+		endif
+	endfor
+	return l
+endfunction
+set quickfixtextfunc=QuickFixVerticalAlign
+
 " Marks"-------------------------------{{{
 " H and L are used for cycling between buffers and `A is a pain to type
 nnoremap M `
+
 " Changelist"--------------------------{{{
 nnoremap g; g;zv
 nnoremap g, g,zv
