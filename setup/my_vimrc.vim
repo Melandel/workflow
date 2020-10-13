@@ -284,7 +284,7 @@ function! PromptUserForFilename(requestToUser, ...)
 endfunction
 
 function! WindowsPath(path)
-	return shellescape(substitute(a:path, '/', '\', 'g'))
+	return has('win32') ? shellescape(substitute(a:path, '/', '\', 'g')) : a:path
 endfunction
 
 function! Alert(text)
@@ -467,7 +467,7 @@ function! FolderRelativePathFromGit()
 	let filepath = expand('%:p')
 	let folderpath = expand('%:p:h')
 	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
-	let foldergitpath = folderpath[len(gitrootfolder)+1:]
+	let foldergitpath = folderpath[len(gitrootfolder)+(has('win32')?1:0):]
 	return '/' . substitute(foldergitpath, '\', '/', 'g')
 endfunction
 let sharpenupStatusLineScript = $packpath.'/pack/plugins/start/vim-sharpenup/autoload/sharpenup/statusline.vim'
@@ -645,8 +645,8 @@ set wildmode=full
 
 " Expanded characters" ----------------{{{
 " Folder of current file
-cnoremap <expr> <C-F> (expand('%:h') != '' && stridx(getcmdline()[-1-len(expand('%:h')):], expand('%:h')) == 0 ? '**\*' : expand('%:h').'\')
-cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory()):], GetInterestingParentDirectory()) == 0 ? '**\*' : GetInterestingParentDirectory().'\')
+cnoremap <expr> <C-F> (expand('%:h') != '' && stridx(getcmdline()[-1-len(expand('%:h')):], expand('%:h')) == 0 ? '**\*' : expand('%:h').(has('win32')?'\':'/'))
+cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory()):], GetInterestingParentDirectory()) == 0 ? '**\*' : GetInterestingParentDirectory().(has('win32')?'\':'/'))
 
 " Sourcing" ---------------------------{{{
 " Run a line/selected text composed of vim script
@@ -1024,29 +1024,40 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 			return
 		endif
 	endif
-	if cwd == item_folder
-		if isdirectory(item)
-			let cmd = printf('xcopy %s %s /E /I', WindowsPath(item), item_finalname)
+	if has('win32')
+		if cwd == item_folder
+				if isdirectory(item)
+					let cmd = printf('xcopy %s %s /E /I', WindowsPath(item), item_finalname)
+				else
+					let cmd = printf('copy %s %s', WindowsPath(item), item_finalname)
+				endif
 		else
-			let cmd = printf('copy %s %s', WindowsPath(item), item_finalname)
+			let cmd = 'robocopy '
+			if isdirectory(item)
+				let cmd .= printf('/e "%s" "%s\%s"', WindowsPath(item), cwd, item_finalname)
+			else
+				let cmd .= printf('"%s" "%s" "%s"', WindowsPath(item_folder), cwd, item_finalname)
+			endif
+			silent exec '!start /b' cmd
 		endif
 	else
-		let cmd = 'robocopy '
-		if isdirectory(item)
-			let cmd .= printf('/e "%s" "%s\%s"', WindowsPath(item), cwd, item_finalname)
-		else
-			let cmd .= printf('"%s" "%s" "%s"', WindowsPath(item_folder), cwd, item_finalname)
-		endif
+		let item = '/'.item
+		let cmd = printf('cp %s %s', item, item_finalname)
+		silent exec '!'.cmd '&' | redraw!
 	endif
-	silent exec '!start /b' cmd
 endfunction
 
 function! DeleteItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
-	let cmd = (isdirectory(target)) ?  printf('rmdir "%s" /s /q',target) : printf('del "%s"', target)
-	echomsg cmd
-	silent exec '!start /b' cmd
+	if has('win32')
+		let cmd = (isdirectory(target)) ?  printf('rmdir "%s" /s /q',target) : printf('del "%s"', target)
+		silent exec '!start /b' cmd
+	else
+		let target = '/'.target
+		let cmd = (isdirectory(target)) ?  printf('rm -r "%s"',target) : printf('rm "%s"', target)
+		silent exec '!'.cmd '&' | redraw!
+	endif
 	normal R
 endfunction
 
@@ -1066,19 +1077,34 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 			return
 		endif
 	endif
-	let cmd = printf('move "%s" "%s\%s"', item, cwd, item_finalname)
-	silent exec '!start /b' cmd
-	normal R
-	exec '/'.escape(getcwd(), '\').'\\'.item_finalname.'$'
+	if has('win32')
+		let cmd = printf('move "%s" "%s\%s"', item, cwd, item_finalname)
+		silent exec '!start /b' cmd
+		normal R
+		exec '/'.escape(getcwd(), '\').'\\'.item_finalname.'$'
 	nohlsearch
+	else
+		let item = '/'.item
+		let cmd = printf('mv "%s" "%s/%s"', item, cwd, item_finalname)
+		silent exec '!'.cmd '&' | redraw!
+		normal R
+		exec '/'.escape(getcwd(), '/').'\/'.item_finalname.'$'
+		nohlsearch
+	endif
 endfunction
 
 function! RenameItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
 	let newname = input('Rename into:', filename)
-	silent exec '!start /b rename' WindowsPath(target) WindowsPath(newname)
-	normal R
+	if has('win32')
+		silent exec '!start /b rename' WindowsPath(target) WindowsPath(newname)
+		normal R
+	else
+		let cmd = printf('mv "%s" "%s"', target, newname)
+		silent exec '!'.cmd '&' | redraw!
+		normal R
+	endif
 endfunction
 
 function! OpenTree(path, flags)
@@ -1086,7 +1112,7 @@ function! OpenTree(path, flags)
 	vnew | set buftype=nofile nowrap
 	set conceallevel=3 concealcursor=n | syn match Todo /\v(\a|\:|\\|\/|\.)*(\/|\\)/ conceal
 	nnoremap <buffer> yy $"by$
-	let cmd = printf('silent read !tree.exe --noreport -I "bin|obj" "%s" %s', a:path, flags)
+	let cmd = printf('silent read !tree'.(has('win32')?'.exe':' --charset=ascii').' --noreport -I "bin|obj" "%s" %s', a:path, flags)
 	exec(cmd)
 	%s,\\,/,ge
 	normal! gg"_dd
@@ -1137,9 +1163,15 @@ function! CreateDirectory()
 	if trim(dirname) == ''
 		return
 	endif
-	silent exec '!start /b mkdir' shellescape(dirname)
-	normal R
-	exec '/'.escape(getcwd(), '\').'\\'.dirname.'\\$'
+	if has('win32')
+		silent exec '!start /b mkdir' shellescape(dirname)
+		normal R
+		exec '/'.escape(getcwd(), '\').'\\'.dirname.'\\$'
+	else
+		silent exec '!mkdir' dirname '&' | redraw!
+		normal R
+		exec '/'.escape(getcwd(), '/').'\/'.dirname.'\\$'
+	endif
 	nohlsearch
 endf
 
@@ -1148,9 +1180,15 @@ function! CreateFile()
 	if trim(filename) == ''
 		return
 	endif
-	exec '!start /b copy /y NUL' shellescape(filename) '>NUL'
-	normal R
-	exec '/'.escape(getcwd(), '\').'\\'.filename.'$'
+	if has('win32')
+		exec '!start /b copy /y NUL' shellescape(filename) '>NUL'
+		normal R
+		exec '/'.escape(getcwd(), '\').'\\'.filename.'$'
+	else
+		exec '!touch'filename '&' | redraw!
+		normal R
+		exec '/'.escape(getcwd(), '/').'\/'.filename.'$'
+	endif
 	nohlsearch
 endf
 
