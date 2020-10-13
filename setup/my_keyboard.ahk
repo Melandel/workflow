@@ -6,10 +6,13 @@ LShift & $::Suspend
 
 ; § <-> Switch in and out of vim
 vkA0 & vkDF::
-If WinActive("GVIM")
+if WinActive("Ubuntu") {
+	Send !{Tab}
+} else if WinActive("GVIM"){
 	Send ^z
-Else
+} else {
 	Send #{vk31}
+}
 return
 
 ;;; CAPSLOCK ;;;
@@ -191,7 +194,7 @@ return
 n::
 	SendInput, @
 	waitingForNextKey := false
-	
+
 return
 $a::
 	Send, {vkDD}a
