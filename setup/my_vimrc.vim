@@ -1697,7 +1697,7 @@ function! FindNugetExitCb(tokens, scratchbufnr, job, status)
 endfunction
 
 " cs(c#)" -----------------------------{{{
-let g:OmniSharp_server_path = $desktop . '/tools/omnisharp/OmniSharp.exe'
+if has('win32') | let g:OmniSharp_server_path = $desktop . '/tools/omnisharp/OmniSharp.exe' | endif
 let $DOTNET_NEW_LOCAL_SEARCH_FILE_ONLY=1
 let g:OmniSharp_start_server = 0
 let g:OmniSharp_server_stdio = 1
