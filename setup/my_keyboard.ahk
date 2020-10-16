@@ -30,7 +30,7 @@ CapsLock & f::Send ^f
 CapsLock & g::Send ^g
 CapsLock & h::Send ^h
 CapsLock & i::Send ^i
-#If !WinActive("GVIM")
+#If !WinActive("GVIM") && !WinActive("Ubuntu")
 CapsLock & i::Send {Tab}
 #If
 CapsLock & j::Send ^j
@@ -39,7 +39,7 @@ CapsLock & l::Send ^l
 CapsLock & m::Send ^m
 CapsLock & n::Send ^n
 CapsLock & o::Send ^o
-#If !WinActive("GVIM")
+#If !WinActive("GVIM") && !WinActive("Ubuntu")
 CapsLock & o::Send +{Tab}
 #If
 CapsLock & p::Send ^p
@@ -87,7 +87,7 @@ CapsLock & vkBE::Send {Up}
 vkDE::Send #+S
 #If
 
-#If not WinActive("GVIM")
+#If not WinActive("GVIM") && not WinActive("Ubuntu")
 ; Close window
 CapsLock & q::Send !{F4}
 
