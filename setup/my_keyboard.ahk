@@ -87,7 +87,7 @@ CapsLock & vkBE::Send {Up}
 vkDE::Send #+S
 #If
 
-#If not WinActive("GVIM") && not WinActive("Ubuntu")
+#If !(WinActive("GVIM") || WinActive("Ubuntu"))
 ; Close window
 CapsLock & q::Send !{F4}
 
@@ -194,7 +194,6 @@ return
 n::
 	SendInput, @
 	waitingForNextKey := false
-
 return
 $a::
 	Send, {vkDD}a
