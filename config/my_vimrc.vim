@@ -1,7 +1,20 @@
-let $desktop = $HOME . (has('win32') ? '/Desktop' : '')
-let $rcfolder = (has('win32') ? $VIM : $HOME)
-let $rcfilename = (has('win32') ? '_vimrc' : '.vimrc')
-let $packpath = (has('win32') ? $VIM : $HOME.'/.vim')
+if !isdirectory($HOME.'/Desktop')
+	let $desktop     = $HOME
+	let $rcfolder    = $HOME
+	let $rcfilename  = '.vimrc'
+	let $packpath    = $HOME.'/.vim'
+else
+	let $desktop     = $HOME.'/Desktop'
+	if has('win32')
+		let $rcfolder   = $VIM
+		let $rcfilename = '_vimrc'
+		let $packpath   = $VIM
+	else
+		let $rcfolder   = $HOME
+		let $rcfilename = '.vimrc'
+		let $packpath   = $HOME.'/.vim'
+	endif
+endif
 set path+=$desktop/notes
 
 " Desktop Integration:-----------------{{{
