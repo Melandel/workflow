@@ -1,77 +1,113 @@
-Welcome to Melandel's desktop setup! ^-^
+## Melandel's workflow ##
+Hi, my name is Melandel and this project was born from my desire to feel as efficient as possible while developping software.
 
-## What is this? ##
-This project is a help for setting up my desktop environment on new workstations!
+The main criteria for me is **minimizing context switches**.
 
-## Why did you design this? ##
-As a C# developer, I spent 4 years using the Visual Studio IDE (up to the 2019 version, with ReSharper). My day-to-day workflow made me unhappy:
-* Switching to another window always disrupted my focus
-* Point-and-clicking sometimes felt painful, especially on common operations that required several steps
-* Switching from the IDE back and forth to Notepad++ felt inefficient, like having 2 tools to do the job of 1
-* Working with two files side by side on one screen implied too many drag-and-drops so I never worked like that
-* All these collapsed, docked windows were visual pollution yet still better than browsing the menus
-* Disruptive waiting time. While firing up the IDE/ReSharper, while firing up the unit tests, while upgrading the IDE
+## Background ##
+As a C# developer, I spent 4 years using the Visual Studio IDE (up to the 2019 version, with ReSharper). My day-to-day workflow made me unhappy. It involved:
 
-## So what did you want? ##
-I want an environment that allows a certain workflow where I can remain focused as long as possible. That workflow:
-* Should feel fast and lightweight
-* Should not make me feel like juggling between different contexts and tools
-* Should expose me to the minimal amount of information I need
-* Should offer search capabilities that mainly require my fingers, not my eyes
-* Should be reachable on Windows, Unix, and MacOS
+|                                                                 |                                                                                              |
+| -                                                               | -                                                                                            |
+| **Searching with my eyes**                                      | for the feature I was looking for on the screen                                              |
+| **Scrolling**                                                   | to the data I was looking for                                                                |
+| **Clicking link after link**                                    | to finally reach the page with button or input I was looking for                             |
+| **Using both an IDE and a text editor**                         | the first for the code, the second for drafts and notes                                      |
+| **Having multiple file explorer windows**                       | for copypasta, for diffs, for downloads, for exploration                                     |
+| **Switching back and forth between the keyboard and the mouse** | when working with two splits on the same screen                                              |
+| **Visual pollution taking space on the screen**                 | such as a collection of buttons, menus, docked windows taking space but never or rarely used |
+| **Disruptive waiting times**                                    | while firing up the IDE/ReSharper, while firing up the unit tests, while upgrading the IDE   |
 
-## Design ##
+## The Problem ##
+All these issues seemed to point to one main pain point:
 
-### Root Folder ###
+| Context switching |
+| ----------------- |
+| My brain's _**PROBLEM-SOLVING**_ mode was constantly disrupted by some _**FIND-WHAT-YOU-ARE-LOOKING-FOR**_ or _**BROWSE-TO-YOUR-DESTINATION**_ process. |
 
-The `$HOME/Desktop` folder is the root folder for my desktop environment. The main point is that accessing its files and folders doesn't require a window
+## What to look for then ? ##
+So now I know I want an environment that lets me stay in _**PROBLEM-SOLVING**_ mode as _**consistently**_ as possible. What could it involved ?
 
-The desktop environment consists of:
-* a `tools` folder for programs integrated in the workflow
-* 3 files, `todo`, `done` and `achievements` to use for taking stock of my activity: tracking what I'm done, what I wanted to do, and celebrating progress
-* a `drafts` folder to use for thinking: writing drafts, taking notes, storing resources, writing diagrams
-* a `tmp` folder for pretty much anything, including source code clones, sandbox projects and silly things
-* a `setup` folder to use for storing tool configuration artefacts: bookmarks, config file, icons, etc.
-* a `snippets` folder to host ultisnips snippets
-* a `templates` folder to store basically "folder" snippets, ie project templates for example
+|                                                                                                |
+| -                                                                                              |
+| **Fast and lightweight**                                                                       |
+| **One interface for every tool**                                                               |
+| **Requests to a search engine over scrolling/following links/parsing the screen with my eyes** |
+| **Doesn't display anything that I don't need at that moment on the screen**                    |
 
-### Tools ###
+I also want to be able to use it from any operating system.
 
-These tools go in the `tools` folder if possible, and their binaries should be available through the environment variable `$PATH`
+## A Solution - that works for me ##
 
+### Files and Folders ###
+My experience suggests that the following files/folders address my different needs:
 
-| Functionality          | Program/Script                                                                                               | Notes                                                                                      |
-| ---------------        | -------                                                                                                      | -----                                                                                      |
-| Keyboard optimization  | [AutoHotKey](https://www.autohotkey.com/)                                                                    | Re-run the installer to change the installation folder to `$HOME/tools`.                   |
-|                        |                                                                                                              | Put also its `Compiler` subfolder into `Path`                                              |
-|                        |                                                                                                              | Generate the `exe` by editing & saving `setup/my_keyboard.ahk` inside Vim                  |
-| Web Browser            | [Firefox](https://www.mozilla.org/en-US/firefox/new/)                                                        | Go to `Advanced install options` to choose the install folder                              |
-| Versioning Control     | [git](https://git-scm.com/downloads)                                                                         |                                                                                            |
-| Text editor            | [Vim](https://github.com/vim/vim-win32-installer/releases)                                                   | Pick x64 or x86. Set `gvim.exe` to run as Administrator                                    |
-|                        |                                                                                                              | The plugins are automatically installed when `:source ~/Desktop/setup/my_vimrc.vim` in vim |
-| g/re/p                 | [ripgrep](https://github.com/BurntSushi/ripgrep/releases)                                                    |                                                                                            |
-| Fuzzy finder           | [fzf](https://github.com/junegunn/fzf-bin/releases)                                                          |                                                                                            |
-| Terminal Pager         | [less](https://github.com/Pscx/Pscx/blob/81b76cfdb1343f84880e0e2cd647db5c56cf354b/Imports/Less-394/less.exe) |                                                                                            |
-| Filesystem Tree Viewer | [tree](http://gnuwin32.sourceforge.net/packages/tree.htm)                                                    |                                                                                            |
-| Nuget explorer/fetcher | [nuget](https://www.nuget.org/downloads)                                                                     |                                                                                            |
-| Scripting language     | [python (needed by vim's plugin UltiSnips)](https://www.python.org/downloads/windows/)                       | Be sure you install the same version (x64 or x86) as vim                                   |
-| C# Intellisense        | [omnisharp-roslyn](https://github.com/OmniSharp/omnisharp-roslyn/releases)                                   |                                                                                            |
-| Zip Utility            | [7-zip](https://www.7-zip.org/download.html)                                                                 |                                                                                            |
-| Thinking assistant/UML | [PlantUML](https://sourceforge.net/projects/plantuml/files/plantuml.jar/download)+[Java](https://www.java.com/ES/download/)+[GraphViz](https://www2.graphviz.org/Packages/stable/windows/)|               |
+|                    |                                                                                 |
+| -                  | -                                                                               |
+| `[…]/todo`         | Keeps track of my **todo list**, what I want done at the end of the current day |
+| `[…]/done`         | Keeps track of how **productive** I have been lately                            |
+| `[…]/achievements` | Keeps track of the **major steps** that my productivity allowed me to reach     |
+| `[…]/projects/**`  | Regroups all the **source code** I'm editing                                    |
+| `[…]/config/*`     | Regroups all the **config files** I'm using for all my tools                    |
+| `[…]/tmp/*`        | Regroups stuff that I need at the moment but **don't care** afterwards          |
+| `[…]/notes/*`      | Regroups stuff that I want to **keep** somewhere                                |
+| `[…]/snippets/*`   | Regroups all the **text snippets** I create                                     |
+| `[…]/templates/**` | Regroups all the **folder structure templates** I create                        |
+| `[…]/tools/**`     | Regroups all the **tools** I use as part of my workflow                         |
 
-### Config files ###
+### Tool box ###
+I went with a dev environment made mostly from **vim**.
+||
+|-|
+|Vim is **fast**. |
+|Vim is **lightweight**. |
+|Vim offers **a universal interface for every tool** (read: a cursor positioned on a text buffer). |
+|Vim offers **minimal graphical artifacts**.  |
+|Last but not least, Vim offers **_INSANE_** customization capabilities. |
 
+Also, VIM will easily ask one year of your lifetime hahaha. Ha...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_Contemplates the horizon, far away, for an instant..._
 
-| File                    | Notes                                                                                                       |
-| ---------------         | -------                                                                                                     |
-| setup/my_keyboard.ahk   | Autohotkey script. Remaps CAPS LOCK to Ctrl/Esc and all AltGr keys to using caret (^), amongst other things |
-| setup/my_vimrc.vim      | vim config file. Create a symbolic link `$HOME/Desktop/tools/vim/_vimrc` referring to it                    |
-| setup/my_vimium.json    | Firefox web-extension Vimium's config file. In the extension panel, import this file                        |
-| setup/my_omnisharp.json | omnisharp server config file. Copy it to `$HOME/.omnisharp/omnisharp.json`                                  |
-| setup/my_omnisharp.ico  | omnisharp icon                                                                                              |
-| setup/my_bookmarks.json | Bookmarks for firefox                                                                                       |
+But here, I'm also using VIM (and I know and understand many whom think this is very wrong) a cement for my whole **toolbox**:
 
-### Startup programs ###
+| Tool                                               | Main Feature                                                      | Usage                                                                                                              |
+| -                                                  | -                                                                 | -                                                                                                                  |
+| **Autohotkey**                                     | Keyboard remappings                                               | Use CapsLock for Esc/Ctrl, use alphabetical keys for arrows/home/end/AltGr keys, CapsLock+I/M for Tab/Enter        |
+| **Git**                                            | Version Control System                                            | Helps me add values little by little but more frequently                                                           |
+| **Firefox**                                        | Web browser                                                       | Web browser & Image/pdf/markdown viewer                                                                            |
+| &nbsp;&nbsp;&nbsp;&nbsp;**Vimium**                 | vim-like keyboard **shortcuts**                                       |                                                                                                                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;**AutoFullscreen**         | set window as **fullscreen** at startup                               |                                                                                                                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;**Markdown Viewer Webext** | render **markdown** files                                             |                                                                                                                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;**Homify**                 | Add a quote and the current **time & date** at the bottom of pictures | Use images as background wallpapers                                                                                |
+| **Fzf**                                            | fuzzy finder                                                      | Allows me to organize commands/folders by groups with fast selection                                               |
+| **Ripgrep**                                        | (fast) Search tool                                                | Fast search for word in file contents                                                                              |
+| **OmniSharp-roslyn**                               | C# language server                                                | Intellisense for C#                                                                                                |
+| **PlantUML**                                       | Text-file-based diagram generation                                | Helps me build a thought or keep a visual representation of an idea                                                |
+| **Tree**                                           | directory listing                                                 | Shows the structure of a project                                                                                   |
+| **Nuget**                                          | package manager for .NET                                          | Search for nugets names to add to current project                                                                  |
+| **VIM**                                            | Text edition                                                      | Edit text, use keyboard for everything, split the screen, select intput and send it to command-line-friendly tools |
+| &nbsp;&nbsp;&nbsp;&nbsp;**editorconfig-vim**       | Consistent **style** in a project                                 | tabs vs spaces, `CR`/`LF`/`CRLF`                                                                                   |
+| &nbsp;&nbsp;&nbsp;&nbsp;**ale**                    | Asynchronous **Linting** Engine                                   | Show errors and warnings on current file in real time                                                              |
+| &nbsp;&nbsp;&nbsp;&nbsp;**fzf.vim**                | **Fzf** wrapper for vim                                           | Offer fast selection of commands or files/folders                                                                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;**lightline.vim**          | Lightweight **status line** customization                         | Show time & date, path-from-git-root, parent sln-or-csproj, window/tab number                                      |
+| &nbsp;&nbsp;&nbsp;&nbsp;**omnisharp-vim**          | Provides vim commands for **C# intellisense**                     | Go to Definition, Find Symbol, Find usages, Get Documentation, Fix Usings, Run Tests, etc.                         |
+| &nbsp;&nbsp;&nbsp;&nbsp;**vimspector**             | **Debugger** inside vim                                           | Toggle Breakpoint, Add Breakpoint with condition, Start/Stop/Re-run debugging session, Step In/Out/Over, etc.      |
+| &nbsp;&nbsp;&nbsp;&nbsp;**ultisnips**              | Ability to use **snippets** in vim                                | `cls+` → `public class                                                                                             | { }` |
+| &nbsp;&nbsp;&nbsp;&nbsp;**vim-dirvish**            | Path **navigator**                                                | File explorer (similar usage from vifm)                                                                            |
+| &nbsp;&nbsp;&nbsp;&nbsp;**vim-dadbod**             | **Database** interaction from vim                                 | database querying                                                                                                  |
+| &nbsp;&nbsp;&nbsp;&nbsp;**vim-surround**           | delete, change, add **surroundings** (`{[(<"'>)]}`)               |                                                                                                                    |
+| &nbsp;&nbsp;&nbsp;&nbsp;**tabular**                | Vertical **alignment**                                            | Markdown tables, C# property mappings, etc.                                                                        |
+| &nbsp;&nbsp;&nbsp;&nbsp;**vim-fugitive**           | **Git** in vim                                                    | git operations (log/commit/add/push/checkout/merge)                                                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;**vim-obsession**          | **Session** in vim                                                | Start with everyone left the way they were when leaving vim the last time                                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;**vim-css-color**          | Show hex **colors** in background highlighting                    | When tweaking my color theme mainly                                                                                |
+| &nbsp;&nbsp;&nbsp;&nbsp;**targets.vim**            | Improved **text objects**                                         | Argument text object, next/2nd next/last/2nd last text object                                                      |
+| &nbsp;&nbsp;&nbsp;&nbsp;**vim-empower**            | My **colorscheme**                                                | Feel in an empowering environment all day                                                                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;**gvimtweak**              | Handle **opacity/fullscreen** features in (windows?) gVim         |                                                                                                                    |
+| **7-zip**                                          | compression/decompression                                         | Install binaries on Windows                                                                                        |
+| **WSL2**                                           | Windows Subsystem for Linux 2                                     | Feel in an efficient and comfortable environment under my control                                                  |
+| **Windows Terminal**                               | A Decent terminal on Windows                                      | Emoji support, several tabs in one window in Windows                                                               |
+
+## Installation Details ##
+### Windows ###
+#### Startup programs ####
 
 `gvim`, `tools/myAzertyKeyboard.RunMeAsAdmin.exe` and your internet browser should be run when the system starts up.
 
@@ -84,6 +120,8 @@ WshShell.Run """C:\Users\tranm\Desktop\tools\firefox\firefox.exe""", 0 'Must quo
 Set WshShell = Nothing
 ```
 
-### Task Bar Icons ###
+`Windows Terminal` has a particular configuration item `"startOnUserLogin": true`.
+
+#### Task Bar Icons ####
 
 Don't forget to set the target of the task bar icon to `$HOME\Desktop\tools\vim\gvim.exe -S` and its startup directory to `$HOME` in order to use and locate Vim's session file properly!

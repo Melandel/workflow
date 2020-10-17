@@ -24,7 +24,6 @@ function! MinpacInit()
 	call minpac#init( #{dir:$packpath, package_name: 'plugins', progress_open: 'none' } )
 	call minpac#add('editorconfig/editorconfig-vim')
 	call minpac#add('dense-analysis/ale')
-	call minpac#add('zigford/vim-powershell')
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
@@ -643,6 +642,8 @@ nnoremap ù .
 " Vertical Alignment" -----------------{{{
 xmap ga :Tabular /
 nmap ga :Tabular /
+xnoremap gA :Tabular /\|<CR>
+nnoremap gA vip:Tabular /\|<CR>
 
 " Vim Core Functionalities:------------{{{
 " Command Line"------------------------{{{
