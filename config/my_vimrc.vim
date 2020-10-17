@@ -1318,7 +1318,7 @@ function! OpenDashboard()
 	silent tab G
 	-tabmove
 	normal gu
-	silent exec winheight(0)/4.'split $desktop./todo'
+	silent exec winheight(0)/4.'split' $desktop.'/todo'
 	silent exec 'vnew $desktop/done'
 	silent exec 'new $desktop/achievements'
 	silent resize -2
@@ -1350,6 +1350,8 @@ augroup dashboard
 	autocmd BufWritePost todo                   redraw | echo 'Nice :)'
 	autocmd BufWritePost      done              redraw | echo 'Good job! :D'
 	autocmd BufWritePost           achievements redraw | echo 'You did great ;)'
+	autocmd BufEnter               achievements nnoremap <buffer> p o<C-R>=strftime('%Y-%m-%d')<CR> <C-R>"<esc>
+	autocmd BufEnter               achievements nnoremap <buffer> P O<C-R>=strftime('%Y-%m-%d')<CR> <C-R>"<esc>
 	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
 	autocmd TextChanged  todo,done,achievements set buftype= | silent write
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> <Leader>w :Todo<CR> 
