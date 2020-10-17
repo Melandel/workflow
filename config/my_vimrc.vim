@@ -1184,7 +1184,7 @@ function! CreateDirectory()
 	else
 		silent exec '!mkdir' dirname '&' | redraw!
 		normal R
-		exec '/'.escape(getcwd(), '/').'\/'.dirname.'\\$'
+		exec '/'.escape(getcwd(), '/').'\/'.dirname.'\/$'
 	endif
 	nohlsearch
 endf
