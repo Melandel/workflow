@@ -6,7 +6,7 @@ LShift & $::Suspend
 
 ; § <-> Switch in and out of vim
 vkA0 & vkDF::
-if WinActive("Ubuntu") {
+if WinActive("Ubuntu") || WinActive("melandel@") {
 	Send !{Tab}
 } else if WinActive("GVIM"){
 	Send ^z
@@ -30,7 +30,7 @@ CapsLock & f::Send ^f
 CapsLock & g::Send ^g
 CapsLock & h::Send ^h
 CapsLock & i::Send ^i
-#If !WinActive("GVIM") && !WinActive("Ubuntu")
+#If !(WinActive("GVIM") || WinActive("Ubuntu") || WinActive("melandel@"))
 CapsLock & i::Send {Tab}
 #If
 CapsLock & j::Send ^j
@@ -39,7 +39,7 @@ CapsLock & l::Send ^l
 CapsLock & m::Send ^m
 CapsLock & n::Send ^n
 CapsLock & o::Send ^o
-#If !WinActive("GVIM") && !WinActive("Ubuntu")
+#If !(WinActive("GVIM") || WinActive("Ubuntu") || WinActive("melandel@"))
 CapsLock & o::Send +{Tab}
 #If
 CapsLock & p::Send ^p
@@ -87,7 +87,7 @@ CapsLock & vkBE::Send {Up}
 vkDE::Send #+S
 #If
 
-#If !(WinActive("GVIM") || WinActive("Ubuntu"))
+#If !(WinActive("GVIM") || WinActive("Ubuntu") || WinActive("melandel@"))
 ; Close window
 CapsLock & q::Send !{F4}
 
