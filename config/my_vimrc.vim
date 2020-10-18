@@ -553,8 +553,8 @@ function! BrowseToLastParagraph()
 		normal! k
 	endif
 endfunction
-nnoremap <silent> <C-N> :call BrowseToNextParagraph()<CR>
-nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>
+nnoremap <silent> <C-N> :call BrowseToNextParagraph()<CR>zz
+nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>zz
 
 function! BrowseLayoutDown()
 	if &diff
