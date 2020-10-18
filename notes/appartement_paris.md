@@ -13,8 +13,8 @@
 | [leboncoin](https://www.leboncoin.fr/recherche/?category=10&locations=Paris__48.85790400439862_2.358842071208555_10000_5000&real_estate_type=2&furnished=2&price=400-900&rooms=min-2)                                                                                                                                                                                                                                                                                                                                                                                                                                               | direct Gare Montparnasse (Metros 4/6/12/13)    |                      |
 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | fibre                                          |                      |
 
-![](metro-montparnarsse.png)
-![](arrondissements.jpg)
+![](media/metro-montparnarsse.png)
+![](media/arrondissements.jpg)
 
 ## Dossier
 

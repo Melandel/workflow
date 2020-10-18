@@ -1112,10 +1112,10 @@ function! RenameItemUnderCursor()
 	let filename = fnamemodify(target, ':t')
 	let newname = input('Rename into:', filename)
 	if has('win32')
-		silent exec '!start /b rename' WindowsPath(target) WindowsPath(newname)
+		silent exec '!start /b rename' WindowsPath(filename) WindowsPath(newname)
 		normal R
 	else
-		let cmd = printf('mv "%s" "%s"', target, newname)
+		let cmd = printf('mv "%s" "%s"', filename, newname)
 		silent exec '!'.cmd '&' | redraw!
 		normal R
 	endif
@@ -1199,7 +1199,7 @@ function! CreateFile()
 		normal R
 		exec '/'.escape(getcwd(), '\').'\\'.filename.'$'
 	else
-		exec '!touch'filename '&' | redraw!
+		exec '!touch' filename '&' | redraw!
 		normal R
 		exec '/'.escape(getcwd(), '/').'\/'.filename.'$'
 	endif
@@ -1272,7 +1272,10 @@ function! BuildFirefoxUrl(path)
 	if s:isWindows
 		let url = substitute(url, '"', '\\"', 'g')
 	elseif s:isWsl
-		let url = 'file://///wsl$/Ubuntu-20.04'.url
+		let url = substitute(escape(url, '\'), '"', '\\"', 'g')
+		if url !~ '^http'
+			let url = 'file:\/\/\/\/\/wsl$\/Ubuntu-20.04'.url
+		endif
 	endif
 	return url
 endfunction
@@ -1299,7 +1302,6 @@ vnoremap <Leader>q :Google<CR>
 function! Lynx(...)
 	let url = ((a:0 == 0) ? GetCurrentSelection() : join(a:000))
 	let url = shellescape(url, 1)
-	echomsg url
 	exec (bufname() =~ '\.lynx$' ? 'edit!' : 'tabedit') printf($desktop.'/tmp/_%s.lynx', substitute(url, '\v(\<|\>|:|"|/|\||\?|\*)', '_', 'g'))
 	normal! ggdG
 	exec 'silent 0read' '!echo' url
@@ -1536,12 +1538,10 @@ function! Draft(lines)"-----------------{{{
 			\'ctrl-t': 'tabe',
 			\'ctrl-o': 'tabe'}, a:lines[0], 'e')
 		let ComputePath = { str -> '' }
-		if file_or_diagramtype == 'note'
-			let ComputePath = { x -> $desktop.'/notes/'. x }
-		elseif file_or_diagramtype == 'adr'
-			let ComputePath = { x -> $desktop.'/tmp/'. x.'.md' }
+		if index(['note', 'adr'], file_or_diagramtype) != -1
+			let ComputePath = { x -> $desktop.'/notes/'.x.'.md' }
 		else " if is diagramtype
-			let ComputePath = { x -> $desktop.'/tmp/'. x.'.puml_'.split(file_or_diagramtype,' ')[0] }
+			let ComputePath = { x -> $desktop.'/tmp/'.x.'.puml_'.split(file_or_diagramtype,' ')[0] }
 		endif
 		let title = PromptUserForFilename('Note title:', ComputePath) | redraw | exec cmd ComputePath(title)
 	endif
