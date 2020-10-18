@@ -1199,7 +1199,7 @@ function! CreateFile()
 		normal R
 		exec '/'.escape(getcwd(), '\').'\\'.filename.'$'
 	else
-		exec '!touch'filename '&' | redraw!
+		exec '!touch' filename '&' | redraw!
 		normal R
 		exec '/'.escape(getcwd(), '/').'\/'.filename.'$'
 	endif
