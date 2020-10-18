@@ -1,21 +1,21 @@
-if !isdirectory($HOME.'/Desktop')
-	let $desktop     = $HOME
-	let $rcfolder    = $HOME
-	let $rcfilename  = '.vimrc'
-	let $packpath    = $HOME.'/.vim'
-else
-	let $desktop     = $HOME.'/Desktop'
-	if has('win32')
-		let $rcfolder   = $VIM
-		let $rcfilename = '_vimrc'
-		let $packpath   = $VIM
-	else
-		let $rcfolder   = $HOME
-		let $rcfilename = '.vimrc'
-		let $packpath   = $HOME.'/.vim'
-	endif
+let s:isWindows = has('win32')
+let s:isWsl = isdirectory('/mnt/c/Windows')
+if !s:isWindows && !s:isWsl
+	echoerr 'Only Windows and WSL are handled by this vimrc for now.'
+	finish
 endif
-set path+=$desktop/notes
+
+if s:isWindows
+	let $desktop    = $HOME.'/Desktop'
+	let $rcfolder   = $HOME
+	let $rcfilename = '_vimrc'
+	let $packpath   = $VIM
+elseif s:isWsl
+	let $desktop    = $HOME
+ let $rcfolder    = $HOME
+	let $rcfilename = '.vimrc'
+	let $packpath   = $HOME.'/.vim'
+endif
 
 " Desktop Integration:-----------------{{{
 " Plugins" ----------------------------{{{
@@ -112,11 +112,11 @@ if &term =~ '^xterm'
   " 6 -> solid vertical bar
   autocmd VimLeave * silent !echo -ne "\e[5 q"
 endif
-let s:clip = '/mnt/c/Windows/System32/clip.exe'
-if executable(s:clip)
+
+if s:isWsl
 	augroup WSLYank
 		autocmd!
-		autocmd TextYankPost * if v:event.operator ==# 'y' | call system(s:clip, @0) | endif
+		autocmd TextYankPost * if v:event.operator ==# 'y' | call system('/mnt/c/Windows/System32/clip.exe', @0) | endif
 	augroup END
 endif
 
@@ -1044,11 +1044,7 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 	endif
 	if has('win32')
 		if cwd == item_folder
-				if isdirectory(item)
-					let cmd = printf('xcopy %s %s /E /I', WindowsPath(item), item_finalname)
-				else
-					let cmd = printf('copy %s %s', WindowsPath(item), item_finalname)
-				endif
+			let cmd = printf( (isdirectory(item)? 'xcopy %s %s /E /I' : 'copy %s %s'), WindowsPath(item), item_finalname)
 		else
 			let cmd = 'robocopy '
 			if isdirectory(item)
@@ -1268,12 +1264,21 @@ augroup my_dirvish
 augroup end
 
 " Web Browsing" -----------------------{{{
-function! Firefox(...)
-	let url = ((a:0 == 0) ? GetCurrentSelection() : join(a:000))
+function! BuildFirefoxUrl(path)
+	let url = a:path
 	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
 	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0 | let url.= ' "' |	endif
-	let url = substitute(escape(trim(url), '%#'), '"', '\\"', 'g')
-	let s:job= job_start('firefox "'.url.'"')
+	let url = escape(trim(url), '%#')
+	if s:isWindows
+		let url = substitute(url, '"', '\\"', 'g')
+	elseif s:isWsl
+		let url = 'file://///wsl$/Ubuntu-20.04'.url
+	endif
+	return url
+endfunction
+
+function! Firefox(...)
+	let s:job= job_start('firefox.exe "'. BuildFirefoxUrl((a:0 == 0) ? GetCurrentSelection() : join(a:000)) .'"')
 endfun
 command! -nargs=* -range Firefox :call Firefox(<f-args>)
 command! -nargs=* -range Ff :call Firefox(<f-args>)
