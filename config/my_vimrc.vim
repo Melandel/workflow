@@ -1272,7 +1272,8 @@ function! BuildFirefoxUrl(path)
 	if s:isWindows
 		let url = substitute(url, '"', '\\"', 'g')
 	elseif s:isWsl
-		let url = 'file://///wsl$/Ubuntu-20.04'.url
+		let url = 'file:\/\/\/\/\/wsl$\/Ubuntu-20.04'.substitute(escape(url, '\'), '"', '\\"', 'g')
+		echomsg url
 	endif
 	return url
 endfunction
