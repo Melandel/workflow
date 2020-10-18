@@ -1,7 +1,8 @@
 LOCAL_IP=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')
 export DISPLAY=$LOCAL_IP:0
 export PATH="~/.local/bin:$PATH"
-alias bat=batcat
+export EDITOR=vim
+export BAT_THEME="OneHalfDark"
 
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)

@@ -21,7 +21,7 @@ endif
 " Plugins" ----------------------------{{{
 function! MinpacInit()
 	packadd minpac
-	call minpac#init( #{dir:$packpath, package_name: 'plugins', progress_open: 'none' } )
+	call minpac#init( {'dir':$packpath, 'package_name': 'plugins', 'progress_open': 'none' } )
 	call minpac#add('editorconfig/editorconfig-vim')
 	call minpac#add('dense-analysis/ale')
 	call minpac#add('junegunn/fzf.vim')
