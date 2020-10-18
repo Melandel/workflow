@@ -1,11 +1,6 @@
-/desktop.ini
-/Session.vim
-*.exe
-/tmp
-/games
-/tools
-/projects
-/todo
-/done
-/achievements
-/today.png
+/*
+/*/
+!/config/
+!/notes/
+!/snippets/
+!/templates/

@@ -59,7 +59,7 @@ endif
 " Duplicated/Generated files" ---------{{{
 augroup duplicatefiles
 	au!
-	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape($desktop . '/tools/myAzertyKeyboard.RunMeAsAdmin.exe')
+	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape((isdirectory($desktop.'/tools') ? $desktop.'/tools' : $desktop) . '/myAzertyKeyboard.RunMeAsAdmin.exe')
 augroup end
 
 " General:-----------------------------{{{
@@ -553,8 +553,8 @@ function! BrowseToLastParagraph()
 		normal! k
 	endif
 endfunction
-nnoremap <silent> <C-N> :call BrowseToNextParagraph()<CR>
-nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>
+nnoremap <silent> <C-N> :call BrowseToNextParagraph()<CR>zz
+nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>zz
 
 function! BrowseLayoutDown()
 	if &diff
@@ -897,6 +897,8 @@ function! Edit(lines)"-----------------{{{
 	let file_or_dir = a:lines[1]
 	if file_or_dir =~ '^(current folder) '
 		let file_or_dir = expand('%:h:p')
+	elseif file_or_dir == 'tools'
+		let file_or_dir = isdirectory('tools') ? $desktop.'/tools' : '/usr/local/src'
 	elseif glob(file_or_dir) == ''
 		if glob($desktop.'/'.file_or_dir) != ''
 			let file_or_dir = $desktop.'/'.file_or_dir
@@ -933,14 +935,16 @@ function! Explore()
 	let source += expand('snippets/*', 0, 1)
 	let source += expand('templates/*',0, 1)
 	let source += expand('setup/*',    0, 1)
-	let source += expand('tools/*',    0, 1)
+	if isdirectory('tools')
+		let source += expand('tools/*',    0, 1)
+	endif
 	let source += expand('projects/*', 0, 1)
 	call add(source, map(filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)}), { _,x -> fnamemodify(x, ':.') }))
 	call add(source, map(filter(systemlist('git ls-files'), {_,x->x !~ 'my_vimrc.vim'}), { _,x -> fnamemodify(x, ':.') }))
 	lcd $packpath/pack/plugins/start
 	call add(source, [expand('*', 0, 1)])
 	let source = uniq(sort(flatten(source)))
-	let source = ['(current folder) '.expand('%:h:p'), $rcfilename, 'Downloads', 'Desktop', 'tmp', 'notes', 'snippets', 'templates', 'setup', 'tools', 'projects'] + source
+	let source = ['(current folder) '.expand('%:h:p'), $rcfilename] + (isdirectory($HOME.'/Desktop') ? ['Downloads', 'Desktop'] : []) + ['tmp', 'notes', 'snippets', 'templates', 'config', 'tools', 'projects'] + source
 	let source = map(source, { _,x -> substitute(x, '\', '/', 'g') })
 	exec 'lcd' (has('win32') ? shellescape(original_lcd) : original_lcd)
 	call fzf#run(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b','--prompt', 'Explore> ']}))
@@ -1184,7 +1188,7 @@ function! CreateDirectory()
 	else
 		silent exec '!mkdir' dirname '&' | redraw!
 		normal R
-		exec '/'.escape(getcwd(), '/').'\/'.dirname.'\\$'
+		exec '/'.escape(getcwd(), '/').'\/'.dirname.'\/$'
 	endif
 	nohlsearch
 endf
@@ -1318,7 +1322,7 @@ function! OpenDashboard()
 	silent tab G
 	-tabmove
 	normal gu
-	silent exec winheight(0)/4.'split $desktop./todo'
+	silent exec winheight(0)/4.'split' $desktop.'/todo'
 	silent exec 'vnew $desktop/done'
 	silent exec 'new $desktop/achievements'
 	silent resize -2
@@ -1350,6 +1354,8 @@ augroup dashboard
 	autocmd BufWritePost todo                   redraw | echo 'Nice :)'
 	autocmd BufWritePost      done              redraw | echo 'Good job! :D'
 	autocmd BufWritePost           achievements redraw | echo 'You did great ;)'
+	autocmd BufEnter               achievements nnoremap <buffer> p o<C-R>=strftime('%Y-%m-%d')<CR> <C-R>"<esc>
+	autocmd BufEnter               achievements nnoremap <buffer> P O<C-R>=strftime('%Y-%m-%d')<CR> <C-R>"<esc>
 	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
 	autocmd TextChanged  todo,done,achievements set buftype= | silent write
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> <Leader>w :Todo<CR> 
