@@ -223,4 +223,8 @@ v::
 	send, {vkDD}v
 	waitingfornextkey := false
 return
+z::
+send, ^!{Tab}
+	waitingfornextkey := false
+return
 #If
