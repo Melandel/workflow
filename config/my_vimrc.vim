@@ -876,21 +876,6 @@ augroup my_fzf"------------------------{{{
 	autocmd FileType fzf tnoremap <buffer> <C-K> <C-K>
 	autocmd FileType fzf tnoremap <buffer> <C-O> <C-T>
 augroup end
-let g:fzf_colors =
-\ { 'fg':      ['fg', 'Comment'],
-  \ 'bg':      ['bg', 'Normal'],
-  \ 'hl':      ['fg', 'Float'],
-  \ 'fg+':     ['fg', 'Normal', 'CursorColumn', 'Normal'],
-  \ 'bg+':     ['bg', 'Normal'],
-  \ 'hl+':     ['fg', 'Constant'],
-  \ 'gutter':  ['bg', 'Normal'],
-  \ 'info':    ['fg', 'Comment'],
-  \ 'border':  ['fg', 'Normal'],
-  \ 'prompt':  ['fg', 'Normal'],
-  \ 'pointer': ['fg', 'Constant'],
-  \ 'marker':  ['fg', 'Comment'],
-  \ 'spinner': ['fg', 'String'],
-  \ 'header':  ['fg', 'Comment'] }
 
 function! Edit(lines)"-----------------{{{
 	if len(a:lines) < 2 | return | endif
