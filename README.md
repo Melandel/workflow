@@ -14,7 +14,7 @@ As a C# developer, I spent 4 years using the Visual Studio IDE (up to the 2019 v
 | **Using both an IDE and a text editor**                         | the first for the code, the second for drafts and notes                                    |
 | **Having multiple file explorer windows**                       | for copypasta, for diffs, for downloads, for exploration                                   |
 | **Switching back and forth between the keyboard and the mouse** | when working with two splits on the same screen                                            |
-| **Visual pollution taking space on the screen**                 | buttons, menus, docked windows I have no _immediate_ use for in my current task            |
+| **Visual pollution taking space on the screen**                 | buttons, menus, docked windows I have no _immediate_ use for                               |
 | **Disruptive waiting times**                                    | while firing up the IDE/ReSharper, while firing up the unit tests, while upgrading the IDE |
 
 ## The Problem ##
