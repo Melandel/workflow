@@ -229,8 +229,11 @@ function! JobStartExample(...)
 	let cmd = a:0 ? (a:1 != '' ? a:1 : 'dir') : 'dir'
 	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Job')
 	echomsg "<start> ".cmd
+	if s:isWindows
+		let cmd = 'cmd /C '.cmd
+	endif
 	let s:job = job_start(
-		\'cmd /C '.cmd,
+		\cmd,
 		\{
 			\'cwd': getcwd(),
 			\'out_io': 'buffer',
@@ -1557,8 +1560,11 @@ function! CompileDiagramAndShowImage(outputExtension, ...)
 	let inputfile = (a:0 == 2) ? a:2 : expand('%:p')
 	let outputfile = fnamemodify(inputfile, ':r').'.'.a:outputExtension
 	let cmd = printf('plantuml -t%s -charset UTF-8 -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(inputfile,':e')), inputfile)
-	let g:job = job_start(
-		\'cmd /C '.cmd,
+	if s:isWindows
+		let cmd = 'cmd /C '.cmd
+	endif
+	let s:job = job_start(
+		\cmd,
 		\{
 			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.substitute(msg,"'","''","g").'''',  1)      },
 			\'out_cb':   { chan,msg  -> execute('echomsg '''.substitute(msg,"'","''","g").'''',  1)           },
@@ -1582,7 +1588,7 @@ function! GetPlantumlConfigFile(fileext)
 		\puml_usecase:       'skinparams',
 		\puml_dot:           'graphviz'
 	\}
-	return $desktop.'/setup/my_plantuml_'.configfilebyft[a:fileext].'.config'
+	return $desktop.'/config/my_plantuml_'.configfilebyft[a:fileext].'.config'
 endfunction
 command! -nargs=* -bar CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
 
@@ -1676,8 +1682,11 @@ function! FindNuget(...)
 	let tokens = flatten(map(copy(a:000), { _,x -> split(x, '\.') }))
 	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Nugets')
 	let cmd = 'nuget list id:'.tokens[0]
+	if s:isWindows
+		let cmd = 'cmd /C '.cmd
+	endif
 	let s:job = job_start(
-		\'cmd /C '.cmd,
+		\cmd,
 		\{
 			\'out_io': 'buffer',
 			\'out_buf': scratchbufnr,
@@ -1740,8 +1749,11 @@ function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
+	if s:isWindows
+		let cmd = 'cmd /C '.cmd
+	endif
 	let s:job = job_start(
-		\'cmd /C '.cmd,
+		\cmd,
 		\{
 			\'cwd': folder,
 			\'out_io': 'buffer',
@@ -1777,8 +1789,11 @@ endfunction
 function! StartCSharpTest(workingdir)
 	let cmd = 'dotnet test --nologo --no-build'
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Test')
+	if s:isWindows
+		let cmd = 'cmd /C '.cmd
+	endif
 	let s:job = job_start(
-		\'cmd /C '.cmd,
+		\cmd,
 		\{
 			\'cwd': a:workingdir,
 			\'out_io': 'buffer',
