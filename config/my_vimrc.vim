@@ -1526,7 +1526,9 @@ function! Draft(lines)"-----------------{{{
 			\'ctrl-t': 'tabe',
 			\'ctrl-o': 'tabe'}, a:lines[0], 'e')
 		let ComputePath = { str -> '' }
-		if index(['note', 'adr'], file_or_diagramtype) != -1
+		if file_or_diagramtype == 'note'
+			let ComputePath = { x -> $desktop.'/notes/'.x }
+		elseif file_or_diagramtype == 'adr'
 			let ComputePath = { x -> $desktop.'/notes/'.x.'.md' }
 		else " if is diagramtype
 			let ComputePath = { x -> $desktop.'/tmp/'.x.'.puml_'.split(file_or_diagramtype,' ')[0] }
