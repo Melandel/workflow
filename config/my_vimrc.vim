@@ -1,16 +1,16 @@
-let s:isWindows = has('win32')
-let s:isWsl = isdirectory('/mnt/c/Windows')
-if !s:isWindows && !s:isWsl
+let isWindows = has('win32')
+let isWsl = isdirectory('/mnt/c/Windows')
+if !isWindows && !isWsl
 	echoerr 'Only Windows and WSL are handled by this vimrc for now.'
 	finish
 endif
 
-if s:isWindows
+if isWindows
 	let $desktop    = $HOME.'/Desktop'
 	let $rcfolder   = $HOME
 	let $rcfilename = '_vimrc'
 	let $packpath   = $VIM
-elseif s:isWsl
+elseif isWsl
 	let $desktop    = $HOME
  let $rcfolder    = $HOME
 	let $rcfilename = '.vimrc'
@@ -77,7 +77,7 @@ set cursorline
 set backspace=indent,start,eol
 set listchars=tab:▸\ ,eol:¬,extends:>,precedes:<
 set list
-set fillchars=vert:\|,fold:\ 
+set fillchars=vert:\|,fold:\
 set noswapfile
 set directory=$desktop/tmp/vim
 set backup
@@ -113,7 +113,7 @@ if &term =~ '^xterm'
   autocmd VimLeave * silent !echo -ne "\e[5 q"
 endif
 
-if s:isWsl
+if isWsl
 	augroup WSLYank
 		autocmd!
 		autocmd TextYankPost * if v:event.operator ==# 'y' | call system('/mnt/c/Windows/System32/clip.exe', @0) | endif
@@ -163,8 +163,8 @@ augroup end
 
 " Utils"-------------------------------{{{
 function! BufferIsEmpty()
-	return line('$') == 1 && getline(1) == '' 
-endfunction 
+	return line('$') == 1 && getline(1) == ''
+endfunction
 
 function! DeleteEmptyScratchBuffers()
     let buffers = filter(range(1, bufnr('$')), 'getbufvar(v:val, "&bt")=="nofile" && len(getbufline(v:val, 1, "$")) == 1 && empty(getbufline(v:val, 1)[0])')
@@ -229,7 +229,7 @@ function! JobStartExample(...)
 	let cmd = a:0 ? (a:1 != '' ? a:1 : 'dir') : 'dir'
 	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Job')
 	echomsg "<start> ".cmd
-	if s:isWindows
+	if isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
 	let s:job = job_start(
@@ -652,7 +652,7 @@ nnoremap gA vip:Tabular /\|<CR>
 " Command Line"------------------------{{{
 set cmdwinheight=40
 set cedit=<C-S>
-cnoremap !! Start 
+cnoremap !! Start
 
 " Wild Menu" --------------------------{{{
 set wildmenu
@@ -689,7 +689,7 @@ nnoremap <Leader>f :Files<CR>
 nnoremap <Leader>F :GFiles?<CR>
 nnoremap <Leader>r :Rg <C-R><C-W><CR>
 vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
-nnoremap <Leader>R :Rg 
+nnoremap <Leader>R :Rg
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
@@ -955,7 +955,7 @@ function! AddCurrentBufferToWindowBufferList()
 	let w:skip_tracking_buffers = get(w:, 'skip_tracking_buffers', 0)
 	if w:skip_tracking_buffers | return | endif
 	let bufnr = bufnr('%')
-	let existing_pos = index(w:buffers, bufnr) 
+	let existing_pos = index(w:buffers, bufnr)
 	if existing_pos == -1
 		call add(w:buffers, bufnr)
 	else
@@ -1257,9 +1257,9 @@ function! BuildFirefoxUrl(path)
 	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
 	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0 | let url.= ' "' |	endif
 	let url = escape(trim(url), '%#')
-	if s:isWindows
+	if isWindows
 		let url = substitute(url, '"', '\\"', 'g')
-	elseif s:isWsl
+	elseif isWsl
 		let url = substitute(escape(url, '\'), '"', '\\"', 'g')
 		if url !~ '^http'
 			let url = 'file:\/\/\/\/\/wsl$\/Ubuntu-20.04'.url
@@ -1277,14 +1277,14 @@ nnoremap <Leader>w :w!<CR>:Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g
 vnoremap <Leader>w :Firefox<CR>
 command! -nargs=* -range WordreferenceFrEn :call Firefox('https://www.wordreference.com/fren/', <f-args>)
 command! -nargs=* -range GoogleTranslateFrEn :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
-nnoremap <Leader>t :WordreferenceFrEn 
+nnoremap <Leader>t :WordreferenceFrEn
 vnoremap <Leader>t :GoogleTranslateFrEn<CR>
 command! -nargs=* -range WordreferenceEnFr :call Firefox('https://www.wordreference.com/enfr/', <f-args>)
 command! -nargs=* -range GoogleTranslateEnFr :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=en&tl=fr&text=', <f-args>)
-nnoremap <Leader>T :WordreferenceEnFr 
+nnoremap <Leader>T :WordreferenceEnFr
 vnoremap <Leader>T :GoogleTranslateEnFr<CR>
 command! -nargs=* -range Google :call Firefox('http://google.com/search?q=', <f-args>)
-nnoremap <Leader>q :Google <C-R>=&ft<CR> 
+nnoremap <Leader>q :Google <C-R>=&ft<CR>
 vnoremap <Leader>q :Google<CR>
 
 function! Lynx(...)
@@ -1298,7 +1298,7 @@ function! Lynx(...)
 	write
 endfunction
 command! -nargs=* -range Lynx call Lynx(<f-args>)
-nnoremap <Leader>W :Lynx 
+nnoremap <Leader>W :Lynx
 vnoremap <Leader>W :Lynx<CR>
 
 command! -nargs=* -range Wikipedia :call Lynx('https://en.wikipedia.org/wiki/Special:Random')
@@ -1307,8 +1307,8 @@ augroup lynx
 	au!
 	autocmd BufEnter *.lynx set filetype=lynx
 	autocmd FileType lynx set nowrap
-	autocmd FileType lynx vnoremap <buffer> <Leader>w :Lynx<CR> 
-	autocmd FileType lynx vnoremap <buffer> <Leader>W :Firefox<CR> 
+	autocmd FileType lynx vnoremap <buffer> <Leader>w :Lynx<CR>
+	autocmd FileType lynx vnoremap <buffer> <Leader>W :Firefox<CR>
 	autocmd FileType lynx nnoremap <buffer> <Leader>w :Firefox <C-R>=getline('1')<CR><CR>
 augroup end
 
@@ -1353,7 +1353,7 @@ augroup dashboard
 	autocmd BufEnter               achievements nnoremap <buffer> P O<C-R>=strftime('%Y-%m-%d')<CR> <C-R>"<esc>
 	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
 	autocmd TextChanged  todo,done,achievements set buftype= | silent write
-	autocmd BufEnter     todo,done,achievements nnoremap <buffer> <Leader>w :Todo<CR> 
+	autocmd BufEnter     todo,done,achievements nnoremap <buffer> <Leader>w :Todo<CR>
 augroup end
 
 
@@ -1562,7 +1562,7 @@ function! CompileDiagramAndShowImage(outputExtension, ...)
 	let inputfile = (a:0 == 2) ? a:2 : expand('%:p')
 	let outputfile = fnamemodify(inputfile, ':r').'.'.a:outputExtension
 	let cmd = printf('plantuml -t%s -charset UTF-8 -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(inputfile,':e')), inputfile)
-	if s:isWindows
+	if isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
 	let s:job = job_start(
@@ -1644,6 +1644,21 @@ function! IsDebuggingHappening()
 	return get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 99) <= tabpagenr('$')
 endfunction
 
+function! StartDebuggingSession()
+	if IsDebuggingHappening()
+		exec 'normal!' g:vimspector_session_windows.tabpage.'gt'
+	else
+		let debugConfigFiles = FindDebugConfigFiles()
+		let debugConfig = empty(debugConfigFiles) ? CreateDebugConfigFile() : debugConfigFiles[0]
+		call vimspector#Launch()
+	endif
+endfunction
+
+function! FindDebugConfigFile()
+	return ''
+endfunction
+
+
 func! CustomiseUI()
 	call win_gotoid(g:vimspector_session_windows.stack_trace)
 	wincmd H
@@ -1684,7 +1699,7 @@ function! FindNuget(...)
 	let tokens = flatten(map(copy(a:000), { _,x -> split(x, '\.') }))
 	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Nugets')
 	let cmd = 'nuget list id:'.tokens[0]
-	if s:isWindows
+	if isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
 	let s:job = job_start(
@@ -1751,7 +1766,7 @@ function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
-	if s:isWindows
+	if isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
 	let s:job = job_start(
@@ -1791,7 +1806,7 @@ endfunction
 function! StartCSharpTest(workingdir)
 	let cmd = 'dotnet test --nologo --no-build'
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Test')
-	if s:isWindows
+	if isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
 	let s:job = job_start(
