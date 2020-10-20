@@ -747,10 +747,6 @@ let g:UltiSnipsExpandTrigger = "<nop>"
 let g:UltiSnipsJumpForwardTrigger="<nop>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 let g:UltiSnipsEditSplit="horizontal"
-let g:UltiSnipsSnippetDirectories=[
-	\$desktop.'/snippets',
-	\$packpath.'/pack/plugins/start/vim-snippets/ultisnips'
-\]
 
 augroup autocompletion
 	au!
