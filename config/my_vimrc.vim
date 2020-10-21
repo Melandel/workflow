@@ -712,7 +712,7 @@ set hlsearch
 set incsearch
 set ignorecase
 " Display '1 out of 23 matches' when searching
-set shortmess=filnxtToO
+set shortmess=filnxtToOc
 nnoremap ! /
 vnoremap ! /
 nnoremap q! q/
