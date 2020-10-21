@@ -3,6 +3,11 @@ export DISPLAY=$LOCAL_IP:0
 export PATH="~/.local/bin:$PATH"
 export EDITOR=vim
 export BAT_THEME="OneHalfDark"
+bind "\C-l":delete-char
+bind "\C-j":backward-char
+bind "\C-k":forward-char
+bind "\C-n":history-search-forward
+bind "\C-p":history-search-backward
 
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
