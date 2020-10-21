@@ -5,6 +5,8 @@ if !isWindows && !isWsl
 	finish
 endif
 
+
+
 if isWindows
 	let $desktop    = $HOME.'/Desktop'
 	let $rcfolder   = $HOME
@@ -12,7 +14,7 @@ if isWindows
 	let $packpath   = $VIM
 elseif isWsl
 	let $desktop    = $HOME
- let $rcfolder    = $HOME
+ let $rcfolder   = $HOME
 	let $rcfilename = '.vimrc'
 	let $packpath   = $HOME.'/.vim'
 endif
@@ -751,7 +753,7 @@ let g:UltiSnipsEditSplit="horizontal"
 augroup autocompletion
 	au!
 	autocmd User UltiSnipsEnterFirstSnippet mark '
-	"autocmd InsertCharPre * if !pumvisible() && v:char =~ '\a\|\.' | call feedkeys("\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>"), "n") | endif
+	autocmd InsertCharPre * if !pumvisible() && v:char =~ '\a\|\.' | call feedkeys("\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>"), "n") | endif
 augroup end
 
 inoremap <C-I> <C-R>=ExpandSnippetOrValidateAutocompletionSelection()<CR>
