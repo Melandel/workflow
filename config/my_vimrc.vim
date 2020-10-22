@@ -1,18 +1,18 @@
-let isWindows = has('win32')
-let isWsl = isdirectory('/mnt/c/Windows')
-if !isWindows && !isWsl
+let g:isWindows = has('win32')
+let g:isWsl = isdirectory('/mnt/c/Windows')
+if !g:isWindows && !g:isWsl
 	echoerr 'Only Windows and WSL are handled by this vimrc for now.'
 	finish
 endif
 
 
 
-if isWindows
+if g:isWindows
 	let $desktop    = $HOME.'/Desktop'
 	let $rcfolder   = $HOME
 	let $rcfilename = '_vimrc'
 	let $packpath   = $VIM
-elseif isWsl
+elseif g:isWsl
 	let $desktop    = $HOME
  let $rcfolder   = $HOME
 	let $rcfilename = '.vimrc'
@@ -115,7 +115,7 @@ if &term =~ '^xterm'
   autocmd VimLeave * silent !echo -ne "\e[5 q"
 endif
 
-if isWsl
+if g:isWsl
 	augroup WSLYank
 		autocmd!
 		autocmd TextYankPost * if v:event.operator ==# 'y' | call system('/mnt/c/Windows/System32/clip.exe', @0) | endif
@@ -231,7 +231,7 @@ function! JobStartExample(...)
 	let cmd = a:0 ? (a:1 != '' ? a:1 : 'dir') : 'dir'
 	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Job')
 	echomsg "<start> ".cmd
-	if isWindows
+	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
 	let s:job = job_start(
@@ -1255,9 +1255,9 @@ function! BuildFirefoxUrl(path)
 	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
 	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0 | let url.= ' "' |	endif
 	let url = escape(trim(url), '%#')
-	if isWindows
+	if g:isWindows
 		let url = substitute(url, '"', '\\"', 'g')
-	elseif isWsl
+	elseif g:isWsl
 		let url = substitute(escape(url, '\'), '"', '\\"', 'g')
 		if url !~ '^http'
 			let url = 'file:\/\/\/\/\/wsl$\/Ubuntu-20.04'.url
@@ -1560,7 +1560,7 @@ function! CompileDiagramAndShowImage(outputExtension, ...)
 	let inputfile = (a:0 == 2) ? a:2 : expand('%:p')
 	let outputfile = fnamemodify(inputfile, ':r').'.'.a:outputExtension
 	let cmd = printf('plantuml -t%s -charset UTF-8 -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(inputfile,':e')), inputfile)
-	if isWindows
+	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
 	let s:job = job_start(
@@ -1697,7 +1697,7 @@ function! FindNuget(...)
 	let tokens = flatten(map(copy(a:000), { _,x -> split(x, '\.') }))
 	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Nugets')
 	let cmd = 'nuget list id:'.tokens[0]
-	if isWindows
+	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
 	let s:job = job_start(
@@ -1764,7 +1764,7 @@ function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
-	if isWindows
+	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
 	let s:job = job_start(
@@ -1804,7 +1804,7 @@ endfunction
 function! StartCSharpTest(workingdir)
 	let cmd = 'dotnet test --nologo --no-build'
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Test')
-	if isWindows
+	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
 	let s:job = job_start(
