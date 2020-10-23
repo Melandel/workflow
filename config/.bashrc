@@ -8,6 +8,9 @@ bind "\C-j":backward-char
 bind "\C-k":forward-char
 bind "\C-n":history-search-forward
 bind "\C-p":history-search-backward
+# Install Ruby Gems to ~/gems
+export GEM_HOME="$HOME/gems"
+export PATH="$HOME/gems/bin:$PATH"
 
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
@@ -128,4 +131,3 @@ if ! shopt -oq posix; then
 fi
 
 if [ -z "$INIT" ]; then export INIT=1; cd; vim -S; fi
-

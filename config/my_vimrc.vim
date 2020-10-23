@@ -691,7 +691,7 @@ nnoremap <Leader>f :Files<CR>
 nnoremap <Leader>F :GFiles?<CR>
 nnoremap <Leader>r :Rg <C-R><C-W><CR>
 vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
-nnoremap <Leader>R :Rg
+nnoremap <Leader>R :Rg 
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
