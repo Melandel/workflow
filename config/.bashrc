@@ -1,4 +1,4 @@
-LOCAL_IP=$(ipconfig.exe | awk 'BEGIN { RS="\r\n" } /^[A-Z]/ { isWslSection=/WSL/; }; { if (!isWslSection && /IPv4 Address/) { printf $NF; exit; }}')
+LOCAL_IP=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')
 export DISPLAY=$LOCAL_IP:0
 export PATH="~/.local/bin:$PATH"
 export EDITOR=vim
