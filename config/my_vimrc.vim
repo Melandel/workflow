@@ -635,7 +635,7 @@ nnoremap zY "+Y
 vnoremap zy "+y
 nnoremap zp :set paste<CR>o<Esc>"+p:set nopaste<CR>
 nnoremap zP :set paste<CR>O<Esc>"+P:set nopaste<CR>
-inoremap <C-V> <C-O>:set paste<CR><C-R>+<C-O>:set nopaste<CR> | inoremap <C-C> <C-V>
+inoremap <C-V> <C-O>:set paste<CR><C-R>+<C-O>:set nopaste<CR>| inoremap <C-C> <C-V>
 cnoremap <C-V> <C-R>=@+<CR>| cnoremap <C-C> <C-V>
 tnoremap <C-V> <C-W>"+
 vnoremap gy y`]
