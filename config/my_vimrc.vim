@@ -869,6 +869,8 @@ nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
 
 " Fuzzy Finder"------------------------{{{
 " Makes Omnishahrp-vim code actions select both two elements
+"let g:fzf_layout = { 'window': { 'width': 0.39, 'height': 0.25 } }
+"let g:fzf_preview_window = []
 augroup my_fzf"------------------------{{{
 	au!
 	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
@@ -1042,7 +1044,7 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 		endif
 	else
 		let item = '/'.item
-		let cmd = printf('cp %s %s', item, item_finalname)
+		let cmd = printf('cp '.(isdirectory(item)?'-r ':'').'%s %s', item, item_finalname)
 		silent exec '!'.cmd '&' | redraw!
 	endif
 endfunction
@@ -1220,8 +1222,13 @@ augroup my_dirvish
 	autocmd BufEnter if &ft == 'dirvish' | silent normal R
 	autocmd FileType dirvish silent! nunmap <silent> <buffer> q
 	autocmd FileType dirvish nnoremap <silent> <buffer> q: q:
+	if g:isWindows
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose powershell -NoLogo<CR>
+elseif g:isWsl
+	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose<CR>
+endif
 	autocmd FileType dirvish unmap <buffer> o
 	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit', 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> O :call PreviewFile('vsplit', 1)<CR>
@@ -1275,14 +1282,14 @@ nnoremap <Leader>w :w!<CR>:Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g
 vnoremap <Leader>w :Firefox<CR>
 command! -nargs=* -range WordreferenceFrEn :call Firefox('https://www.wordreference.com/fren/', <f-args>)
 command! -nargs=* -range GoogleTranslateFrEn :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
-nnoremap <Leader>t :WordreferenceFrEn
+nnoremap <Leader>t :WordreferenceFrEn 
 vnoremap <Leader>t :GoogleTranslateFrEn<CR>
 command! -nargs=* -range WordreferenceEnFr :call Firefox('https://www.wordreference.com/enfr/', <f-args>)
 command! -nargs=* -range GoogleTranslateEnFr :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=en&tl=fr&text=', <f-args>)
-nnoremap <Leader>T :WordreferenceEnFr
+nnoremap <Leader>T :WordreferenceEnFr 
 vnoremap <Leader>T :GoogleTranslateEnFr<CR>
 command! -nargs=* -range Google :call Firefox('http://google.com/search?q=', <f-args>)
-nnoremap <Leader>q :Google <C-R>=&ft<CR>
+nnoremap <Leader>q :Google <C-R>=&ft<CR> 
 vnoremap <Leader>q :Google<CR>
 
 function! Lynx(...)
@@ -1322,7 +1329,8 @@ function! OpenDashboard()
 	0wincmd w
 	redraw | echo 'You are doing great <3'
 endfunction
-nnoremap <silent> <Leader>m :call OpenDashboard()<CR>
+command! -bar Dashboard call OpenDashboard()
+nnoremap <silent> <Leader>m :Dashboard<CR>
 
 augroup dashboard
 	au!
