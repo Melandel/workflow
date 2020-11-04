@@ -695,8 +695,7 @@ nnoremap <Leader>R :Rg
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
-tnoremap <Esc> <C-W>N:setlocal norelativenumber number foldcolumn=0 nowrap<CR>zb
-tnoremap <C-O> <Esc>
+tnoremap <C-O> <C-W>N:setlocal norelativenumber number foldcolumn=0 nowrap<CR>zb
 
 " Folding" ----------------------------{{{
 vnoremap <silent> <space> <Esc>zE:let b:focus_mode=1 \| setlocal foldmethod=manual<CR>`<kzfgg`>jzfG`<
