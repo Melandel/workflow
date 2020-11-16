@@ -9,7 +9,7 @@ endif
 
 if g:isWindows
 	let $desktop    = $HOME.'/Desktop'
-	let $rcfolder   = $HOME
+	let $rcfolder   = $VIM
 	let $rcfilename = '_vimrc'
 	let $packpath   = $VIM
 elseif g:isWsl
@@ -1357,7 +1357,7 @@ augroup dashboard
 	autocmd BufEnter               achievements nnoremap <buffer> p o<C-R>=strftime('%Y-%m-%d')<CR> <C-R>"<esc>
 	autocmd BufEnter               achievements nnoremap <buffer> P O<C-R>=strftime('%Y-%m-%d')<CR> <C-R>"<esc>
 	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
-	autocmd TextChanged  todo,done,achievements set buftype= | silent write
+	autocmd TextChanged  todo,done,achievements set buftype= | silent write!
 	autocmd BufEnter     todo,done,achievements nnoremap <buffer> <Leader>w :Todo<CR>
 augroup end
 
