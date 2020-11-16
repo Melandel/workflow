@@ -749,10 +749,44 @@ let g:UltiSnipsJumpForwardTrigger="<nop>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 let g:UltiSnipsEditSplit="horizontal"
 
+function! AsyncCompletion()
+	return pumvisible() ? '' : ForceAsyncCompletion()
+endfunction
+
+function! ForceAsyncCompletion()
+	return "\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>")
+endfunction
+
 augroup autocompletion
 	au!
 	autocmd User UltiSnipsEnterFirstSnippet mark '
-	autocmd InsertCharPre * if !pumvisible() && v:char =~ '\a\|\.' | call feedkeys("\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>"), "n") | endif
+	autocmd FileType cs inoremap <expr> . '.'.ForceAsyncCompletion()
+	autocmd FileType cs inoremap <expr> a 'a'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> b 'b'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> c 'c'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> d 'd'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> e 'e'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> f 'f'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> g 'g'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> h 'h'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> i 'i'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> j 'j'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> k 'k'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> l 'l'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> m 'm'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> n 'n'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> o 'o'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> p 'p'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> q 'q'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> r 'r'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> s 's'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> t 't'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> u 'u'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> v 'v'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> w 'w'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> x 'x'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> y 'y'.AsyncCompletion()
+	autocmd FileType cs inoremap <expr> z 'z'.AsyncCompletion()
 augroup end
 
 inoremap <C-I> <C-R>=ExpandSnippetOrValidateAutocompletionSelection()<CR>
@@ -1745,7 +1779,7 @@ let g:OmniSharp_server_stdio = 1
 let g:ale_linters = { 'cs': ['OmniSharp'] }
 let g:OmniSharp_popup = 0
 let g:OmniSharp_loglevel = 'none'
-let g:OmniSharp_highlight_types = 3
+let g:OmniSharp_highlighting = 2
 let g:OmniSharp_selector_ui = 'fzf'
 let g:OmniSharp_fzf_options = { 'window': 'botright 7new' }
 let g:OmniSharp_want_snippet=1
