@@ -1835,6 +1835,7 @@ function! StartCSharpBuildExitCb(workingdir, scratchbufnr, job, status)
 		set errorformat+=%f(%l\\,%c):\ error\ MSB%n:\ %m\ [%.%#
 		set errorformat+=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
 		set errorformat+=%f(%l\\,%c):\ error\ xUnit%n:\ %m\ [%.%#
+		set errorformat+=%f\ :\ error\ NU%c:\ %m\ [%.%#
 		set errorformat+=%-G%.%#
 		exec 'cgetbuffer' a:scratchbufnr
 	else
