@@ -757,36 +757,36 @@ function! ForceAsyncCompletion()
 	return "\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>")
 endfunction
 
+	inoremap <expr> a 'a'.AsyncCompletion()
+	inoremap <expr> b 'b'.AsyncCompletion()
+	inoremap <expr> c 'c'.AsyncCompletion()
+	inoremap <expr> d 'd'.AsyncCompletion()
+	inoremap <expr> e 'e'.AsyncCompletion()
+	inoremap <expr> f 'f'.AsyncCompletion()
+	inoremap <expr> g 'g'.AsyncCompletion()
+	inoremap <expr> h 'h'.AsyncCompletion()
+	inoremap <expr> i 'i'.AsyncCompletion()
+	inoremap <expr> j 'j'.AsyncCompletion()
+	inoremap <expr> k 'k'.AsyncCompletion()
+	inoremap <expr> l 'l'.AsyncCompletion()
+	inoremap <expr> m 'm'.AsyncCompletion()
+	inoremap <expr> n 'n'.AsyncCompletion()
+	inoremap <expr> o 'o'.AsyncCompletion()
+	inoremap <expr> p 'p'.AsyncCompletion()
+	inoremap <expr> q 'q'.AsyncCompletion()
+	inoremap <expr> r 'r'.AsyncCompletion()
+	inoremap <expr> s 's'.AsyncCompletion()
+	inoremap <expr> t 't'.AsyncCompletion()
+	inoremap <expr> u 'u'.AsyncCompletion()
+	inoremap <expr> v 'v'.AsyncCompletion()
+	inoremap <expr> w 'w'.AsyncCompletion()
+	inoremap <expr> x 'x'.AsyncCompletion()
+	inoremap <expr> y 'y'.AsyncCompletion()
+	inoremap <expr> z 'z'.AsyncCompletion()
 augroup autocompletion
 	au!
 	autocmd User UltiSnipsEnterFirstSnippet mark '
 	autocmd FileType cs inoremap <expr> . '.'.ForceAsyncCompletion()
-	autocmd FileType cs inoremap <expr> a 'a'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> b 'b'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> c 'c'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> d 'd'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> e 'e'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> f 'f'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> g 'g'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> h 'h'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> i 'i'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> j 'j'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> k 'k'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> l 'l'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> m 'm'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> n 'n'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> o 'o'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> p 'p'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> q 'q'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> r 'r'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> s 's'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> t 't'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> u 'u'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> v 'v'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> w 'w'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> x 'x'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> y 'y'.AsyncCompletion()
-	autocmd FileType cs inoremap <expr> z 'z'.AsyncCompletion()
 augroup end
 
 inoremap <C-I> <C-R>=ExpandSnippetOrValidateAutocompletionSelection()<CR>
@@ -1027,8 +1027,8 @@ let g:gvimtweak#enable_maximize_at_startup=1
 let g:gvimtweak#enable_fullscreen_at_startup=1
 nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
 nnoremap <silent> <A-n> :GvimTweakToggleTransparency<CR>
-nnoremap <silent> <A-i> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
-nnoremap <silent> <A-o> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-o> <C-W>N:GvimTweakSetAlpha -10<CR>i
+nnoremap <silent> <A-i> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-o> <C-W>N:GvimTweakSetAlpha -10<CR>i
+nnoremap <silent> <A-o> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
 
 " File explorer (graphical)" ----------{{{
 function! IsPreviouslyYankedItemValid()
