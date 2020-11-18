@@ -1860,8 +1860,6 @@ function! StartCSharpTest(workingdir)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.substitute(msg,"'","''","g").'''',  1) },
-			\'out_cb':   { chan,msg  -> execute('echomsg '''.substitute(msg,"'","''","g").'''',  1)      },
 			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
 			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                       },
 			\'exit_cb':  function('Commit', [scratchbufnr])
@@ -1872,12 +1870,14 @@ endfunction
 function! Commit(scratchbufnr, job, status)
 	if a:status
 		echomsg 'Tests failed.'
-		set errorformat=%A\ %#X\ %.%#
-		set errorformat+=%Z\ %#X\ %.%#
-		set errorformat+=%-C\ %#Arborescence%.%#
+		set errorformat=%A\ %#Failed\ %.%#
+		set errorformat+=%Z\ %#Failed\ %.%#
+		set errorformat+=%-C\ %#Stack\ Trace:
+		set errorformat+=%-C\ %#at%.%#\ in\ %.%#ValidationResultExtention.cs%.%#
 		set errorformat+=%C\ %#at%.%#\ in\ %f:line\ %l
-		set errorformat+=%-C%.%#\ Message\ d'erreur%.%#
+		set errorformat+=%-C%.%#\ Error\ Message%.%#
 		set errorformat+=%-C%.%#\ (pos\ %.%#
+		set errorformat+=%-G%*\\d-%*\\d-%*\\d\ %.%#
 		set errorformat+=%C\ %#%m\ Failure
 		set errorformat+=%C\ %#%m
 		set errorformat+=%-G%.%#
