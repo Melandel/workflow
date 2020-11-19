@@ -224,7 +224,31 @@ v::
 	waitingfornextkey := false
 return
 z::
+if WinActive("MozillaWindowClass") {
+	Send !{Tab}
+} else {
+	Send, #{vk32}
+	Send, {esc}
+}
+waitingfornextkey := false
+return
+r::
+if WinActive("MozillaWindowClass") {
+	Send, {esc}
+	Send !{Tab}
+} else {
+	Send, #{vk32}
+	Send, {esc}
+	Send, q
+}
+	waitingfornextkey := false
+return
+t::
 send, ^!{Tab}
+	waitingfornextkey := false
+return
+p::
+ Send, #d
 	waitingfornextkey := false
 return
 #If
