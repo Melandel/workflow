@@ -61,7 +61,7 @@ endif
 " Duplicated/Generated files" ---------{{{
 augroup duplicatefiles
 	au!
-	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out ' . fnameescape((isdirectory($desktop.'/tools') ? $desktop.'/tools' : $desktop) . '/myAzertyKeyboard.RunMeAsAdmin.exe')
+	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out '.$desktop.'\myAzertyKeyboard.RunMeAsAdmin.exe'
 augroup end
 
 " General:-----------------------------{{{
