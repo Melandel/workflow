@@ -1888,7 +1888,6 @@ function! Commit(scratchbufnr, job, status)
 		set errorformat+=%-G%.%#
 		exec 'cgetbuffer' a:scratchbufnr
 	else
-		exec 'bdelete!' a:scratchbufnr
 		call OpenDashboard()
 	endif
 endfunction
