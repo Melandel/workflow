@@ -904,6 +904,8 @@ nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
 " Makes Omnishahrp-vim code actions select both two elements
 "let g:fzf_layout = { 'window': { 'width': 0.39, 'height': 0.25 } }
 "let g:fzf_preview_window = []
+let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b --bind up:preview-up,down:preview-down"
+
 augroup my_fzf"------------------------{{{
 	au!
 	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
@@ -1849,7 +1851,7 @@ function! StartCSharpBuildExitCb(workingdir, scratchbufnr, job, status)
 endfunction
 
 function! StartCSharpTest(workingdir)
-	let cmd = 'dotnet test --nologo --no-build'
+	let cmd = 'dotnet test --no-build'
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Test')
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
@@ -1865,6 +1867,8 @@ function! StartCSharpTest(workingdir)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
+			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.substitute(msg,"'","''","g").'''',  1) },
+			\'out_cb':   { chan,msg  -> execute('echomsg '''.substitute(msg,"'","''","g").'''',  1)      },
 			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
 			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                       },
 			\'exit_cb':  function('Commit', [scratchbufnr])
