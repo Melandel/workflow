@@ -26,3 +26,10 @@ git remote add upstream https://github.com/original-repo/goes-here.git
 	> git fetch upstream
 	> git rebase upstream/master
 	> git push --force-with-lease
+
+https://stackoverflow.com/questions/2316677/can-git-automatically-switch-between-spaces-and-tabs
+
+	.git/info/attributes
+		> *.cs filter=filtername
+		> git config --global filter.tabspace.smudge 'unexpand --tabs=4 --first-only'
+		> git config --global filter.tabspace.clean 'expand --tabs=4 --initial'
