@@ -1867,8 +1867,6 @@ function! StartCSharpTest(workingdir)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.substitute(msg,"'","''","g").'''',  1) },
-			\'out_cb':   { chan,msg  -> execute('echomsg '''.substitute(msg,"'","''","g").'''',  1)      },
 			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
 			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                       },
 			\'exit_cb':  function('Commit', [scratchbufnr])
