@@ -743,6 +743,11 @@ endfunction
 command! -range=% SortByLength <line1>,<line2>call SortLinesByLength()
 
 " Autocompletion (Insert Mode)" -------{{{
+abbreviate :t: ✘
+abbreviate :d: ✔
+abbreviate :ok: ✅
+abbreviate :ko: 🚫
+
 set completeopt+=menuone,noselect,noinsert
 let g:UltiSnipsExpandTrigger = "<nop>"
 let g:UltiSnipsJumpForwardTrigger="<nop>"
