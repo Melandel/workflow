@@ -112,5 +112,5 @@ $0
 endsnippet
 
 snippet img "Image" b
-[![$1]({{ site.baseurl }}/assets/img/$1.${2:png})]({{ site.baseurl }}/assets/img/$1.$2)
+[![${1:filename}](${3:\{\{ site.baseurl \}\}/assets/img}/$1.${2:png})]($3/$1.$2)
 endsnippet

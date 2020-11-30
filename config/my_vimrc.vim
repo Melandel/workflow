@@ -747,6 +747,9 @@ abbreviate :t: ✘
 abbreviate :d: ✔
 abbreviate :ok: ✅
 abbreviate :ko: 🚫
+abbreviate :happy: 😊
+abbreviate :sad: 😞
+abbreviate :dk: 🤷
 
 set completeopt+=menuone,noselect,noinsert
 let g:UltiSnipsExpandTrigger = "<nop>"
