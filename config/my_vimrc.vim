@@ -587,6 +587,8 @@ function! BrowseLayoutUp()
 endfunction
 nnoremap <silent> <C-K> :call BrowseLayoutUp()<CR>
 
+nnoremap <silent> <C-H>:cnfile<CR>
+nnoremap <silent> <C-L>:cpfile<CR>
 " Current Line" -----------------------{{{
 nnoremap <silent> . :let c= strcharpart(getline('.')[col('.') - 1:], 0, 1)\|exec "normal! f".c<CR>
 
@@ -743,14 +745,6 @@ endfunction
 command! -range=% SortByLength <line1>,<line2>call SortLinesByLength()
 
 " Autocompletion (Insert Mode)" -------{{{
-abbreviate :t: ✘
-abbreviate :d: ✔
-abbreviate :ok: ✅
-abbreviate :ko: 🚫
-abbreviate :happy: 😊
-abbreviate :sad: 😞
-abbreviate :dk: 🤷
-
 set completeopt+=menuone,noselect,noinsert
 let g:UltiSnipsExpandTrigger = "<nop>"
 let g:UltiSnipsJumpForwardTrigger="<nop>"
