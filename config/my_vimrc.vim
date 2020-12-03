@@ -587,8 +587,8 @@ function! BrowseLayoutUp()
 endfunction
 nnoremap <silent> <C-K> :call BrowseLayoutUp()<CR>
 
-nnoremap <silent> <C-H>:cnfile<CR>
-nnoremap <silent> <C-L>:cpfile<CR>
+nnoremap <silent> <C-H> :cnfile<CR>
+nnoremap <silent> <C-L> :cpfile<CR>
 " Current Line" -----------------------{{{
 nnoremap <silent> . :let c= strcharpart(getline('.')[col('.') - 1:], 0, 1)\|exec "normal! f".c<CR>
 
