@@ -224,23 +224,23 @@ v::
 	waitingfornextkey := false
 return
 z::
-	Send !{Tab}
-waitingfornextkey := false
-return
-r::
 if WinActive("MozillaWindowClass") {
 	Send !{Tab}
 } else {
 	Send, #{vk32}
 }
+waitingfornextkey := false
+return
+r::
+	send, ^!{Tab}
 	waitingfornextkey := false
 return
 t::
-send, ^!{Tab}
+ send, #d
 	waitingfornextkey := false
 return
 p::
- Send, #d
+	Send, {PrintScreen}
 	waitingfornextkey := false
 return
 #If
