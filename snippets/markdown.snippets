@@ -1,74 +1,95 @@
 snippet madr "Description" b
-# ${1:[short title of solved problem and solution]}
+# ${1:Do Things This Way}
 
-| Technical story             | Status             | Deciders      | Date         |
-| :-------------------------- | :---------         | :---------    | :----------- |
-| ${2:[description or ticket/issue URL]} | ${3:[proposed/rejected/accepted/deprecated/…/superseded by [ADR-0005](0005-example.md)]} | ${4:[list everyone involved in the decision]} | `!v strftime('%Y-%m-%d')` |
+| Author / Modifier           | Status        | Deciders                                     | Date                      |
+| :-------------------------- | :---------    | :---------                                   | :-----------              |
+| ${2:Minh-Tâm TRAN}          | ${3:proposed/rejected/accepted/deprecated/…/superseded by [ADR-0005](0005-example.md)} | ${4:list everyone involved in the decision} | `!v strftime('%Y-%m-%d')` |
 
-## Context and Problem Statement
+## 👀 Context and Problem Statement
 
-${5:[Describe the context and problem statement, e.g., in free form using two to three sentences. You may want to articulate the problem in form of a question.]}
+<div style="display: flex"><div style="flex: 50%">
 
-## Decision Drivers
+**In order to** uphold a professional level of ease and promptness regarding creating/changing features in the existing systems,
 
-* ${7:[driver 1, e.g., a force, facing concern, …]
-* [driver 2, e.g., a force, facing concern, …]
-* … <!-- numbers of drivers can vary -->}
+**As** software developers,
 
-## Considered Options
+**We want to** ${5:do something}.
 
-* ${6:[option 1]
-* [option 2]
-* [option 3]
-* … <!-- numbers of options can vary -->}
+> **${8:How/What stuff should we do?}**
 
-## Decision Outcome
+</div><div style="flex: 50%">
 
-Chosen option: "${8:[option 1]}", because ${9:[justification. e.g., only option, which meets k.o. criterion decision driver | which resolves force force | … | comes out best (see below)].}
-${10:
-### Positive Consequences
+Measurement of ${9:some metrics about current situation}:
 
-${11:* [e.g., improvement of quality attribute satisfaction, follow-up decisions required, …]
-* …}
-}
-${12:### Negative Consequences
+A few key things we identified:
+* ${10:Some pain point}
 
-${13:* [e.g., compromising quality attribute, follow-up decisions required, …]
-* …}
-}
-${14:## Pros and Cons of the Options
+</div></div>
 
-### [option 1]
+## 🚦 Decision Drivers
 
-[example | description | pointer to more information | …]
+<div style="display: flex"><div style="flex: 50%">
 
-* Good, because [argument a]
-* Good, because [argument b]
-* Bad, because [argument c]
-* … <!-- numbers of pros and cons can vary -->
+* ${11:(put words on the main "relevance" aspects of a solution)}
+* Initial Cost
+* Maintenance Cost
 
-### [option 2]
+</div><div style="flex: 50%">
 
-[example | description | pointer to more information | …]
+* Constraints generated on future decisions
+* Consistently-up-to-date-documentation Cost
+* Integration cost with current tooling
 
-* Good, because [argument a]
-* Good, because [argument b]
-* Bad, because [argument c]
-* … <!-- numbers of pros and cons can vary -->
+</div></div>
 
-### [option 3]
+## 💡 Considered Options
 
-[example | description | pointer to more information | …]
+* Option 1: ${12:Do something}
+* Option 2: ${14:Do something else}
 
-* Good, because [argument a]
-* Good, because [argument b]
-* Bad, because [argument c]
-* … <!-- numbers of pros and cons can vary -->
-}
-${15:## Links
+## 🎯 Decision Outcome
+* **Option ${15:1} : description**
+* Because ${16:justification}.
 
-* ${16:[Link type] [Link to ADR] <!-- example: Refined by [ADR-0005](0005-example.md) -->
-* … <!-- numbers of links can vary -->}}
+## 🎭 Pros and Cons of the Options
+
+<div style="display: flex"><div style="flex: 50%">
+
+### Option 1: $12
+
+* ✅ ${17:pro regarding first decision driver}
+* 🚫 ${18:cons regarding first or second decision driver}
+* 🤷 ${19:unknown regarding first or second decision driver}
+
+</div><div style="flex: 50%">
+
+${20:\`\`\`
+Example
+\`\`\`}
+
+</div></div>
+
+<div style="display: flex"><div style="flex: 50%">
+
+### Option 2: $14
+
+* ✅ ${21:pro regarding first decision driver}
+* 🚫 ${22:cons regarding first or second decision driver}
+* 🤷 ${23:unknown regarding first or second decision driver}
+
+</div><div style="flex: 50%">
+
+${24:\`\`\`
+Example
+\`\`\`}
+
+</div></div>
+
+## More
+
+* [${25:Some link}](${26:some_url})
+$0
+
 endsnippet
 
 snippet cols "columns" b
