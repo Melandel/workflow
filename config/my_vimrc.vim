@@ -88,6 +88,7 @@ set undofile
 set undodir=$desktop/tmp/vim
 set viewdir=$desktop/tmp/vim
 set history=200
+set mouse=r
 " GVim specific
 if has("gui_running")
 	set guioptions-=m  "menu bar
@@ -1814,6 +1815,7 @@ function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
+	let cmd = '"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"'
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
@@ -1840,11 +1842,9 @@ endfunction
 function! StartCSharpBuildExitCb(workingdir, scratchbufnr, job, status)
 	if a:status
 		echomsg 'Compilation failed.'
-		set errorformat=MSBUILD\ :\ error\ MSB%n:\ %m
-		set errorformat+=%f(%l\\,%c):\ error\ MSB%n:\ %m\ [%.%#
-		set errorformat+=%f(%l\\,%c):\ error\ CS%n:\ %m\ [%.%#
-		set errorformat+=%f(%l\\,%c):\ error\ xUnit%n:\ %m\ [%.%#
-		set errorformat+=%f\ :\ error\ NU%c:\ %m\ [%.%#
+		set errorformat=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
+		set errorformat+=MSBUILD\ :\ error\ %*\\a%n:\ %m
+		set errorformat+=%f\ :\ error\ %*\\a%n::\ %m\ [%.%#
 		set errorformat+=%-G%.%#
 		exec 'cgetbuffer' a:scratchbufnr
 	else
