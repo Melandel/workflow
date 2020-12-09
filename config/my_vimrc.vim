@@ -976,7 +976,7 @@ function! Explore()
 	let source = uniq(sort(flatten(source)))
 	let source = ['(current folder) '.expand('%:h:p'), $rcfilename] + (isdirectory($HOME.'/Desktop') ? ['Downloads', 'Desktop'] : []) + ['tmp', 'notes', 'snippets', 'templates', 'config', 'tools', 'projects'] + source
 	let source = map(source, { _,x -> substitute(x, '\', '/', 'g') })
-	exec 'lcd' (has('win32') ? shellescape(original_lcd) : original_lcd)
+	exec 'lcd' original_lcd
 	call fzf#run(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b','--prompt', 'Explore> ']}))
 endfunction
 command! Explore call Explore()
