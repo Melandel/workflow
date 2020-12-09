@@ -17,7 +17,10 @@ return
 
 ;;; CAPSLOCK ;;;
 ; CapsLock -> Escape
+; #If is necessary, otherwise using remote desktop with ahk on both local and remote sends esc every time capslock key is up (because of the double send of esc, one from the local, one from the remote)
+#If  !WinActive("Remote Desktop Connection")
 CapsLock::Send {esc}
+#If
 
 ; CapsLock + Key -> Ctrl + Key
 CapsLock & $::Send ^$
