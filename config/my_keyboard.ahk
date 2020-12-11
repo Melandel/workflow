@@ -151,24 +151,29 @@ k::
 	waitingForNextKey := false
 return
 q::
-	SendRaw, {
+	SendInput, ^!{vk34}
 	waitingForNextKey := false
+	;{
 return
 s::
-	SendRaw, [
+	SendInput, ^!{vk35}
 	waitingForNextKey := false
+	;[
 return
 d::
-	SendRaw, ]
+	SendInput, ^!{vkDB}
 	waitingForNextKey := false
+	;]
 return
 f::
-	SendRaw, }
+	SendInput, ^!{vkBB}
 	waitingForNextKey := false
+	;}
 return
 g::
-	SendInput, ``{Space}
+	SendInput, ^!{vk37}{space}
 	waitingForNextKey := false
+	;`
 return
 h::
 	SendInput, {+}
@@ -179,24 +184,29 @@ l::
 	waitingForNextKey := false
 return
 w::
-	SendInput, ~{Space}
+	SendInput, ^!{vk32}{space}
 	waitingForNextKey := false
+	;~
 return
 x::
-	SendInput, {#}
+	SendInput, ^!{vk33}
 	waitingForNextKey := false
+	;#
 return
 c::
-	SendInput, |
+	SendInput, ^!{vk36}
 	waitingForNextKey := false
+	;|
 return
 b::
-	SendInput, \
+	SendInput, ^!{vk38}
 	waitingForNextKey := false
+	;\
 return
 n::
-	SendInput, @
+	Send ^!{vk30}
 	waitingForNextKey := false
+	;@
 return
 $a::
 	Send, {vkDD}a
