@@ -176,8 +176,9 @@ g::
 	;`
 return
 h::
-	SendInput, {+}
+	SendInput, ^!{vk30}^!{vk30}
 	waitingForNextKey := false
+	;@@
 return
 l::
 	SendInput, {`%}
@@ -197,6 +198,10 @@ c::
 	SendInput, ^!{vk36}
 	waitingForNextKey := false
 	;|
+return
+v::
+	Send, .
+	waitingForNextKey := false
 return
 b::
 	SendInput, ^!{vk38}
@@ -230,10 +235,6 @@ $o::
 return
 $Space::
 	send, {vkDD}{Space}
-	waitingfornextkey := false
-return
-v::
-	send, {vkDD}v
 	waitingfornextkey := false
 return
 z::
