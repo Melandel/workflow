@@ -176,7 +176,7 @@ g::
 	;`
 return
 h::
-	SendInput, ^!{vk30}^!{vk30}
+	SendInput, .
 	waitingForNextKey := false
 	;@@
 return
@@ -200,7 +200,7 @@ c::
 	;|
 return
 v::
-	Send, .
+	Send, /
 	waitingForNextKey := false
 return
 b::
@@ -254,6 +254,11 @@ t::
 	waitingfornextkey := false
 return
 p::
+	SendInput, ^!{vk30}^!{vk30}
+	waitingfornextkey := false
+	;@@
+return
+m::
 	Send, {PrintScreen}
 	waitingfornextkey := false
 return

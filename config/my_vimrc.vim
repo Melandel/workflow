@@ -322,7 +322,9 @@ inoremap ^b \
 					cnoremap ^b \
 inoremap ^n @|		cnoremap ^n @
 inoremap ^g `|		cnoremap ^g `
-inoremap ^h +|		cnoremap ^h +
+inoremap ^h .|		cnoremap ^h .
+inoremap ^v /|		cnoremap ^v /
+
 
 " Arrows" -----------------------------{{{
 inoremap <C-J> <Left>|  cnoremap <C-J> <Left>|  tnoremap <C-J> <Left>
