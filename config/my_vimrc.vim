@@ -921,7 +921,6 @@ augroup end
 function! Edit(lines)"-----------------{{{
 	if len(a:lines) < 2 | return | endif
 	let file_or_dir = a:lines[1]
-	echomsg file_or_dir
 	if file_or_dir =~ '^projects/'
 		let g:last_opened_project = file_or_dir
 	endif
