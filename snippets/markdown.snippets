@@ -135,3 +135,12 @@ endsnippet
 snippet img "Image" b
 [![${1:filename}](${3:\{\{ site.baseurl \}\}/assets/img}/$1.${2:png})]($3/$1.$2)
 endsnippet
+
+snippet spoiler "spoiler" b
+<details><summary>${2:Title}</summary>
+
+${1:Content}
+
+</details>
+
+endsnippet
