@@ -1588,7 +1588,7 @@ function! Draft(lines)"-----------------{{{
 endfunction
 
 function! ExploreDrafts()
-	let diagramtypes = map(['activity', 'mindmap', 'sequence', 'workbreakdown', 'class', 'component', 'entities', 'state', 'usecase', 'dot'], { _,x -> x. ' diagram' })
+	let diagramtypes = map(['activity', 'mindmap', 'sequence', 'json', 'workbreakdown', 'class', 'component', 'entities', 'state', 'usecase', 'dot'], { _,x -> x. ' diagram' })
 	let diagrams = expand($desktop.'/tmp/*.puml*', 0, 1)
 	let notetypes = ['note']
 	let notes = expand($desktop.'/notes/*', 0, 1)
@@ -1608,10 +1608,18 @@ function! JobExitDiagramCompilationJob(outputfile, channelInfos, status)
 	call Firefox('', a:outputfile)
 endfunc
 
+function! GetPlantumlCmdLine(outputExtension, inputFile)
+	if a:inputFile =~ '_json$'
+		return printf('plantuml -t%s -charset UTF-8 "%s"', a:outputExtension, a:inputFile)
+	else
+		return printf('plantuml -t%s -charset UTF-8 -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(a:inputFile,':e')), a:inputFile)
+	endif
+endfunction
+
 function! CompileDiagramAndShowImage(outputExtension, ...)
 	let inputfile = (a:0 == 2) ? a:2 : expand('%:p')
 	let outputfile = fnamemodify(inputfile, ':r').'.'.a:outputExtension
-	let cmd = printf('plantuml -t%s -charset UTF-8 -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(inputfile,':e')), inputfile)
+	let cmd = GetPlantumlCmdLine(a:outputExtension, inputfile)
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
@@ -1657,8 +1665,9 @@ augroup mydiagrams
 	autocmd BufRead,BufNewFile *.puml_state           set ft=plantuml_state
 	autocmd BufRead,BufNewFile *.puml_usecase         set ft=plantuml_usecase
 	autocmd BufRead,BufNewFile *.puml_workbreakdown   set ft=plantuml_workbreakdown
+	autocmd BufRead,BufNewFile *.puml_json            set ft=plantuml_json
 	autocmd BufRead,BufNewFile *.puml_*               silent nnoremap <buffer> <Leader>w :silent w<CR>
-	autocmd BufWritePost       *.puml_*               if line('$') > 1 | CompileDiagramAndShowImage png | endif
+	autocmd BufWritePost       *.puml_*               if line('$') > 1 | CompileDiagramAndShowImage svg | endif
 	autocmd FileType           dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
 
@@ -1816,7 +1825,7 @@ function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
-	let cmd = '"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"'
+	"let cmd = '"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"'
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
@@ -2033,3 +2042,16 @@ function! DiffWithSaved()
   exe "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
 endfunction
 com! DiffSaved call DiffWithSaved()
+
+function! ComputeSecondsFromHoursMinutesSeconds(string)
+	let array = map(split(a:string, ':', 1), {_,x->str2nr(x)})
+	echo array
+	if len(array) == 2
+		return array[0]*60 + array[1]
+	elseif len(array) == 3
+		return array[0]*60 + array[1]*60 + array[2]
+	else
+		echoerr a:string 'not a handled time format'
+		return a:string
+	endif
+endfunction
