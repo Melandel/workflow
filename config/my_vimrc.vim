@@ -1401,22 +1401,22 @@ function! OpenDashboard()
 	-tabmove
 	normal gu
 	silent exec winheight(0)/4.'new' $desktop.'/todo'
-	if bufname('todo') != ''
+	if bufname('^todo$') != ''
 		exec 'buffer' 'todo'
 	else
-		PTree | file todo | normal "_dd
+		PTree | file todo | exec "normal! \<C-E>"
 	endif
 	silent exec winwidth(0)*2/3.'vnew' $desktop.'/wip_work'
 	if bufname('^wip_perso$') != ''
 		exec 'buffer' 'wip_work'
 	else
-		PTree | file wip_work | normal "_dd
+		PTree | file todo | exec "normal! \<C-E>"
 	endif
 	silent vnew $desktop/wip_perso
 	if bufname('^wip_perso$') != ''
 		exec 'buffer' 'wip_perso'
 		else
-		PTree | file wip_perso | normal "_dd
+		PTree | file todo | exec "normal! \<C-E>"
 	endif
 	0wincmd w
 	redraw | echo 'You are doing great <3'
