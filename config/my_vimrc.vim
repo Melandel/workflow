@@ -212,6 +212,15 @@ function! ClearTrailingWhiteSpaces()
 endfunction
 command! ClearTrailingWhiteSpaces call ClearTrailingWhiteSpaces()
 
+function! UserCompleteFuncExample(findstart, base)
+	if a:findstart
+		let line = getline('.')
+		return min(filter([match(line, '\a'), match(line, '\d')], { _,x -> x != -1 }))
+	endif
+	return map(['✗', '✓'], { _,x -> x.' '.trim(a:base, ' \t✗✓+*') })
+endfunction
+set completefunc=UserCompleteFuncExample
+
 function! OmnifunctionExample(findstart, base)
 	if a:findstart
 		return col('.')
@@ -369,10 +378,12 @@ nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
 command! -bar Enew    exec(' enew | call DeleteEmptyScratchBuffers() | setlocal buftype=nofile bufhidden=hide noswapfile| silent lcd '.$desktop.'/tmp')
-command! -bar New     call SplitWindow(0)
-command! -bar Vnew    call SplitWindow(1)
-nnoremap <silent> <Leader>s :New<CR>
-nnoremap <silent> <Leader>v :Vnew<CR>
+command! -bar Split   call SplitWindow(0)
+command! -bar Vsplit  call SplitWindow(1)
+command! -bar New     call NewWindow(0)
+command! -bar Vnew    call NewWindow(1)
+nnoremap <silent> <Leader>s :Split<CR>
+nnoremap <silent> <Leader>v :Vsplit<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
 nnoremap <silent> <Leader>O mW:tabnew<CR>`W
@@ -385,10 +396,16 @@ function! ComputeRemainingHeight()
 endfunction
 
 function! SplitWindow(isVertical)
-	let useRemainingSpace = 0
+	let currentPath = expand('%:p')
+	call NewWindow(a:isVertical)
+	exec 'edit' currentPath
+endfunction
+
+function! NewWindow(isVertical)
 	let bufferHistory = get(w:, 'buffers', [])
+	let useRemainingSpace = 0
 	if a:isVertical
-		vsplit
+		vnew
 	else
 		let minheight = 2
 		let remainingheight = ComputeRemainingHeight()
@@ -409,7 +426,7 @@ function! SplitWindow(isVertical)
 			mark k
 			normal! H
 		endif
-		exec (useRemainingSpace ? (remainingheight-1) : '').'split'
+		exec (useRemainingSpace ? (remainingheight-1) : '').'new'
 		if useRemainingSpace
 			wincmd k
 			normal! `k
@@ -417,11 +434,8 @@ function! SplitWindow(isVertical)
 			wincmd j
 		endif
 	endif
-	mark `
 	let w:buffers = bufferHistory
-	Enew
-	call CycleWindowBuffersHistoryBackwards()
-endfunction
+endfunc
 
 " Browse to Window or Tab
 nnoremap <silent> <Leader>h <C-W>h
@@ -810,15 +824,6 @@ nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 nnoremap <Leader>U :call UltiSnips#RefreshSnippets()<CR>
 inoremap <C-O> <C-X><C-O>
 
-function! CompleteFuncTodo(findstart, base)
-	if a:findstart
-		let line = getline('.')
-		return min(filter([match(line, '\a'), match(line, '\d')], { _,x -> x != -1 }))
-	endif
-	return map(['✗', '✓'], { _,x -> x.' '.trim(a:base, ' \t✗✓+*') })
-endfunction
-set completefunc=CompleteFuncTodo
-
 
 function! ExpandSnippetOrValidateAutocompletionSelection()
 	if col('.') == 1
@@ -1162,20 +1167,42 @@ function! RenameItemUnderCursor()
 	endif
 endfunction
 
-function! OpenTree(path, flags)
-	let flags = ( a:flags != '' ? ('-'.a:flags) : '' )
-	vnew | set buftype=nofile nowrap
-	set conceallevel=3 concealcursor=n | syn match Todo /\v(\a|\:|\\|\/|\.)*(\/|\\)/ conceal
-	nnoremap <buffer> yy $"by$
-	let cmd = printf('silent read !tree'.(has('win32')?'.exe':' --charset=ascii').' --noreport -I "bin|obj" "%s" %s', a:path, flags)
-	exec(cmd)
-	%s,\\,/,ge
-	normal! gg"_dd
-	nnoremap <buffer> gf :e <C-R>=GetPathFromTree()<CR><CR>
-	nnoremap <buffer> gF :sp <C-R>=GetPathFromTree()<CR><CR>
+function! BuildTreeCommand(path, flags)
+	let path = trim(a:path, '\')
+	let flags = (a:flags != '' ? ('-'.a:flags) : '')
+	if has('win32')
+		return printf('tree.exe --noreport -I "bin|obj" "%s" %s', path, flags)
+	else
+		return printf('tree --charset=ascii --noreport -I "bin|obj" "%s" %s', path, flags)
+	endif
 endfunction
 
-function! GetPathFromTree()
+function! EditFilesystemTree(path, flags)
+	set buftype=nofile nowrap ft=tree
+	set conceallevel=3 concealcursor=n | syn match Todo /\v(\a|\:|\\|\/|\.)*(\/|\\)/ conceal
+	exec 'silent 0read !'.BuildTreeCommand(a:path, a:flags)
+	silent %s,\\,/,ge
+	normal gg
+	nnoremap <buffer> yy $"by$
+	nnoremap <buffer> gf :e <C-R>=GetCurrentLinePath()<CR><CR>
+	nnoremap <buffer> gF :tabe <C-R>=GetCurrentLinePath()<CR><CR>
+	nnoremap <buffer> f :e <C-R>=fnamemodify(GetCurrentLinePath(), ':h')<CR><CR>
+	nnoremap <buffer> <leader>w :call Firefox('', GetCurrentLinePath())<CR>
+endfunction
+
+function! GetCurrentLineAsPath()
+	return trim(getline('.'), '\')
+endfunc
+
+command! -bar Tree        let path=            GetCurrentLineAsPath()        | Enew | call EditFilesystemTree(path, '')
+command! -bar SplitTree   let path=            GetCurrentLineAsPath()        | New  | call EditFilesystemTree(path, '')
+command! -bar VSplitTree  let path=            GetCurrentLineAsPath()        | Vnew | call EditFilesystemTree(path, '')
+command! -bar PTree       let path=fnamemodify(GetCurrentLineAsPath(), ':h') | Enew | call EditFilesystemTree(path, '')
+command! -bar SplitPTree  let path=fnamemodify(GetCurrentLineAsPath(), ':h') | New  | call EditFilesystemTree(path, '')
+command! -bar VSplitPTree let path=fnamemodify(GetCurrentLineAsPath(), ':h') | Vnew | call EditFilesystemTree(path, '')
+
+
+function! GetCurrentLinePath()
 	let line = getline('.')
 	let farthest = FindLastOccurrencePos(line, '|`')
 	let path = line[farthest+3:]
@@ -1188,7 +1215,7 @@ function! GetPathFromTree()
 			let farthest = lastVerticalBarPos
 		endif
 	endfor
-	return path
+	return substitute(path, '/', '\', 'g')
 endfunction
 
 function! ReverseString(string)
@@ -1301,10 +1328,8 @@ endif
 	autocmd FileType dirvish nmap <silent> <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
-	autocmd FileType dirvish nnoremap <silent> <buffer> t :call OpenTree(trim(getline('.'), '\'), '')<CR>
-	autocmd FileType dirvish nnoremap <buffer> T :call OpenTree(trim(getline('.'), '\'), 'df')<left><left><left>
-	autocmd FileType dirvish nnoremap <silent> <buffer> gt :call OpenTree(fnamemodify(trim(getline('.'), '\'), ':h'), '')<CR>
-	autocmd FileType dirvish nnoremap <silent> <buffer> gT :call OpenTree(fnamemodify(trim(getline('.'), '\'), ':h'), 'df')<left><left><left>
+	autocmd FileType dirvish nnoremap <silent> <buffer> t :VSplitTree<CR>
+	autocmd FileType dirvish nnoremap <buffer> T :VSplitPTree<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :Lcd \| e .<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> <leader>w vv<leader>w<CR>
 augroup end
@@ -1375,10 +1400,24 @@ function! OpenDashboard()
 	silent tab G
 	-tabmove
 	normal gu
-	silent exec winheight(0)/4.'split' $desktop.'/todo'
-	silent exec 'vnew $desktop/done'
-	silent exec 'new $desktop/achievements'
-	silent resize -2
+	silent exec winheight(0)/4.'new' $desktop.'/todo'
+	if bufname('todo') != ''
+		exec 'buffer' 'todo'
+	else
+		PTree | file todo | normal "_dd
+	endif
+	silent exec winwidth(0)*2/3.'vnew' $desktop.'/wip_work'
+	if bufname('^wip_perso$') != ''
+		exec 'buffer' 'wip_work'
+	else
+		PTree | file wip_work | normal "_dd
+	endif
+	silent vnew $desktop/wip_perso
+	if bufname('^wip_perso$') != ''
+		exec 'buffer' 'wip_perso'
+		else
+		PTree | file wip_perso | normal "_dd
+	endif
 	0wincmd w
 	redraw | echo 'You are doing great <3'
 endfunction
@@ -1400,165 +1439,8 @@ augroup dashboard
 	autocmd FileType          git nmap <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
 	autocmd FileType fugitive,git nnoremap <buffer> <Leader>w :Todo<CR>
-	autocmd BufEnter     todo,done,achievements set buftype=nofile nowrap
-	autocmd BufWritePost todo,done,achievements set buftype=nofile
-	autocmd BufEnter     todo,done,achievements normal! gg
-	autocmd BufLeave     todo,done,achievements normal! gg
-	autocmd BufEnter     todo,done,achievements redraw | echo 'You are doing great <3'
-	autocmd BufWritePost todo                   redraw | echo 'Nice :)'
-	autocmd BufWritePost      done              redraw | echo 'Good job! :D'
-	autocmd BufWritePost           achievements redraw | echo 'You did great ;)'
-	autocmd BufEnter               achievements nnoremap <buffer> p o<C-R>=strftime('%Y-%m-%d')<CR> <C-R>"<esc>
-	autocmd BufEnter               achievements nnoremap <buffer> P O<C-R>=strftime('%Y-%m-%d')<CR> <C-R>"<esc>
-	autocmd BufEnter     todo,done,achievements inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
-	autocmd TextChanged  todo,done,achievements set buftype= | silent write!
-	autocmd BufEnter     todo,done,achievements nnoremap <buffer> <Leader>w :Todo<CR>
 augroup end
 
-
-function! RenderTodoList(todofile, donefile)
-	let todolines = readfile(a:todofile)
-	let donelines = readfile(a:donefile)
-	let lines = todolines + donelines
-	let todomaxindex=len(todolines)-1
-	let items = []
-	for i in range(len(lines))
-		if lines[i] == ''
-			continue
-		endif
-		let item = ParseTodoItem(lines[i])
-		let item.isDone = (i > todomaxindex)
-		call add(items, item)
-	endfor
-	let itemsToRender = []
-	let mantras = []
-	for itm in items
-		if has_key(itm, 'mantra')
-			let existingMantras = filter(copy(mantras), { _,x -> x.title == itm.mantra})
-			if len(existingMantras) == 0
-				call add(mantras, #{ title: itm.mantra, priority: itm.priority, items: [itm] })
-			else
-				call add(existingMantras[0].items, itm)
-			endif
-		elseif has_key(itm, 'group')
-			let existingGroups = filter(copy(itemsToRender), { _,x -> has_key(x, 'title') && x.title == itm.group})
-			if len(existingGroups) == 0
-				call add(itemsToRender, #{ title: itm.group, priority: itm.priority, items: [itm] })
-			else
-				call add(existingGroups[0].items, itm)
-			endif
-		else
-			call add(itemsToRender, itm)
-		endif
-	endfor
-	let itemsToRender = mantras + itemsToRender
-	let todoHtml = []
-	let doneHtml = []
-	let ideasHtml = []
-	let doneParentsAlreadyProcessed = []
-	for itm in itemsToRender
-		if has_key(itm, 'title') && index(doneParentsAlreadyProcessed, itm.title) == -1
-			if len(filter(copy(itm.items), {_,x->!x.isDone})) == 0
-				call add(doneHtml, BuildDoneTodoParentItemHtml(itm))
-				call add(doneParentsAlreadyProcessed, itm.title)
-			else
-				call add((itm.priority >= 1 ? todoHtml : ideasHtml), BuildUnfinishedTodoParentItemHtml(itm))
-				for i in filter(copy(itm.items), {_,x->x.isDone})
-					call add(doneHtml, BuildTodoItemHtml(i))
-				endfor
-			endif
-		else
-			if itm.isDone
-					call add(doneHtml, BuildTodoItemHtml(itm))
-			else
-					call add((itm.priority >= 1 ? todoHtml : ideasHtml), BuildTodoItemHtml(itm))
-			endif
-		endif
-	endfor
-	let html = BuildHtml(join(todoHtml,''), join(doneHtml,''), join(ideasHtml,''))
-	call writefile([html], $desktop.'/tmp/today.html')
-	call Firefox('',expand($desktop.'/tmp/today.html', ':p'))
-endfunction
-
-function! ParseTodoItem(line)
-	let res = #{ priority: 0 }
-	let descriptionstart = 0
-	let descriptionend = len(a:line)-1
-	if (a:line =~ '^#')
-		if (stridx(a:line, '@ ') != -1)
-			echoerr printf('%s should have either a priority (@), either a mantra (#), but not both', res.description)
-		endif
-		let res.mantra = CapitalizeFirstLetter(matchlist(a:line, '#\(\S\+\)')[1])
-		let res.priority = 9
-		let descriptionstart = len(res.mantra)+1
-	elseif (a:line =~ '^@')
-			let descriptionstart = 1
-		for i in range(1,3)
-			let priorityPattern = '^'.repeat('@',i)
-			if (a:line =~ priorityPattern)
-				let res.priority += 1
-				let descriptionstart += 1
-			else
-				break
-			endif
-		endfor
-	endif
-	if (stridx(a:line, ' #') != -1)
-		let res.group = CapitalizeFirstLetter(a:line[stridx(a:line, ' #')+2:])
-		let descriptionend = stridx(a:line, ' #')-1
-	endif
-	let res.description = CapitalizeFirstLetter(a:line[descriptionstart:descriptionend])
-	return res
-endfunction
-
-function! CapitalizeFirstLetter(string)
-	if a:string==''
-		return ''
-	endif
-	return toupper(a:string[0]) . a:string[1:]
-endfunction
-
-function! HtmlEncode(string)
-	let string = a:string
-	let string = substitute(string, '<', '\&lt;', 'g')
-	let string = substitute(string, '>', '\&gt;', 'g')
-	return string
-endfunction
-
-function! BuildHtml(todoHtml, doneHtml, ideasHtml)
-	return join(['<html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><style type="text/css" media="screen">.priority-1{background:#b2d0e4!important}.priority-3{background:#fb8072!important}.priority-2{background:#8dd3c7!important}.priority-0{background:#ffffb3!important}.priority-9{background:#d8e7f1!important}body{margin: 0px; height: 100%; font-family: georgia}#main{display: flex; flex-direction: column; background:url(../notes/media/dagger.jpg) no-repeat center center fixed; background-size: cover; min-height:100%;}#content{flex-grow: 1; font-size:x-large;}#todoHeader{text-align: center; background:#fabd2f;}#doneHeader{text-align: center; background:#b3de69;}#ideasHeader{text-align: center; background:#fdb462;}#content>table>tbody>tr>th{padding:0px 10px 1px 10px; margin:2px; height:42px;}.columncontent{height:100%;}.item{background:lightgrey; border-radius:5px; padding:0px 10px 1px 10px; margin:4px; display: flex;}.item>div{overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}.item>div:first-child{max-width: 25%; width: 25%; font-weight: bold;}.item>div:last-child{max-width:75%; width:75%; font-style: italic;}.item>div:only-child{max-width:100%; width:100%; font-weight: normal; font-style:normal;}.itemparent{background:lightgrey; border-radius:5px; padding:0px 10px 1px 10px; margin:4px;}.itemparent>div:first-child{font-weight:bold; margin:2px; padding:2px; display:inline-block; text-decoration:underline;}.striked{text-decoration:line-through;}ul{margin:0px 0px 5px 0px;}li>div{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}</style><title>TODO</title></head><body><div id="main"><div id="content" height="100%"><table width="100%" height="100%" style="table-layout:fixed;"><tr><th id="todoHeader">THE PLAN</td><th id="doneHeader"><u>DONE</u></td><th id="ideasHeader">TODOLIST</td></tr><tr><td><div class="columncontent">', a:todoHtml, '</div></td><td><div class="columncontent">', a:doneHtml, '</div></td><td><div class="columncontent">', a:ideasHtml, '</div></td></tr></table></div><div id="footer"><div style="color: white;float: right;">', strftime("generated at %Hh%M"),'</div></div></div></body></html>'], '')
-endfunction
-
-function! BuildTodoItemHtml(todoItem)
-	if get(a:todoItem, 'parent', '') != ''
-		return printf('<div class="item priority-%d"><div title="%s">%s</div><div title="%s">%s</div></div>', a:todoItem.priority, HtmlEncode(a:todoItem.parent), HtmlEncode(a:todoItem.parent), HtmlEncode(a:todoItem.description), HtmlEncode(a:todoItem.description))
-	else
-		return printf('<div class="item priority-%d"><div title="%s">%s</div></div>', a:todoItem.priority, HtmlEncode(a:todoItem.description), HtmlEncode(a:todoItem.description))
-	endif
-endfunction
-
-function! BuildUnfinishedTodoParentItemHtml(parentItem)
-	return printf('<div class="itemparent priority-%d"><div>%s</div><ul>%s</ul></div>', HtmlEncode(a:parentItem.priority), HtmlEncode(a:parentItem.title), BuildListOfUnfinishedTodoItemsHtml(a:parentItem.items))
-endfunction
-
-function! BuildListOfUnfinishedTodoItemsHtml(todoItems)
-	return join(map(copy(a:todoItems), {_,x -> printf('<li%s title="%s">%s</li>', GetHtmlClassAttributeByDoneState(x.isDone), HtmlEncode(x.description), HtmlEncode(x.description))}), '')
-endfunction
-
-function! GetHtmlClassAttributeByDoneState(isDone)
-	return a:isDone ? ' class="striked"' : ''
-endfunction
-
-function! BuildDoneTodoParentItemHtml(parentItem)
-	return printf('<div class="itemparent priority-%d"><div>%s</div><ul>%s</ul></div>', HtmlEncode(a:parentItem.priority), HtmlEncode(a:parentItem.title), BuildListOfDoneTodoItemsHtml(a:parentItem.items))
-endfunction
-
-function! BuildListOfDoneTodoItemsHtml(doneItems)
-	return join(map(copy(a:doneItems), {_,x -> printf('<li title="%s">%s</li>', HtmlEncode(x.description), HtmlEncode(x.description))}))
-endfunction
-
-command! RenderTodoList call RenderTodoList($desktop.'/todo', $desktop.'/done')
-command! Todo call RenderTodoList($desktop.'/todo', $desktop.'/done')
 
 " Drafts (Diagrams & Notes)"-----------{{{
 function! Draft(lines)"-----------------{{{
