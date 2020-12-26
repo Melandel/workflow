@@ -674,8 +674,17 @@ cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory(
 
 " Sourcing" ---------------------------{{{
 " Run a line/selected text composed of vim script
-vnoremap <silent> <Leader>S y:exec @@<CR>
-nnoremap <silent> <Leader>S ^vg_y:exec @@<CR>
+function! SquashMultilineScriptToSingleLine(multilineScript)
+	return substitute(a:multilineScript, '\v(((\^|\\|```)\n)|`)', '', 'g')
+endfunc
+
+augroup interpret
+	au!
+	autocmd BufWinEnter * if &ft=='vim' | vnoremap <silent> <Leader>S y:exec @@<CR>|     else | vnoremap <silent> <Leader>S y:new   \| Enew \| 0read !cmd /c <C-R>=SquashMultilineScriptToSingleLine(@")<CR><CR> | endif
+	autocmd BufWinEnter * if &ft=='vim' | nnoremap <silent> <Leader>S ^vg_y:exec @@<CR>| else | nnoremap <silent> <Leader>S yip:new \| Enew \| 0read !cmd /c <C-R>=SquashMultilineScriptToSingleLine(@")<CR><CR> | endif
+	autocmd BufWinEnter * vnoremap <silent> <Leader>V y:vnew   \| Enew \| 0read !cmd /c <C-R>=SquashMultilineScriptToSingleLine(@")<CR><CR>
+	autocmd BufWinEnter * nnoremap <silent> <Leader>V yip:vnew \| Enew \| 0read !cmd /c <C-R>=SquashMultilineScriptToSingleLine(@")<CR><CR>
+augroup end
 " Write output of a vim command in a buffer
 nnoremap ç :let script=''\|call histadd('cmd',script)\|put=execute(script)<Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
 augroup vimsourcing
