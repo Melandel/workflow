@@ -362,6 +362,10 @@ set previewheight=25
 set showtabline=0
 
 " Close Buffers
+function! DeleteBuffers(regex)
+	exec 'bd' join(filter(copy(range(1, bufnr('$'))), { _,y -> bufname(y)=~ a:regex }), ' ')
+endfunc
+
 function! DeleteHiddenBuffers()" ------{{{
   let tpbl=[]
   let closed = 0
@@ -382,8 +386,8 @@ command! -bar Split   call SplitWindow(0)
 command! -bar Vsplit  call SplitWindow(1)
 command! -bar New     call NewWindow(0)
 command! -bar Vnew    call NewWindow(1)
-nnoremap <silent> <Leader>s :Split<CR>
-nnoremap <silent> <Leader>v :Vsplit<CR>
+nnoremap <silent> <Leader>s :silent! Split<CR>
+nnoremap <silent> <Leader>v :silent! Vsplit<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
 nnoremap <silent> <Leader>O mW:tabnew<CR>`W
@@ -1400,24 +1404,17 @@ function! OpenDashboard()
 	silent tab G
 	-tabmove
 	normal gu
+	silent call DeleteBuffers('todo\|wip_')
 	silent exec winheight(0)/4.'new' $desktop.'/todo'
-	if bufname('^todo$') != ''
-		exec 'buffer' 'todo'
-	else
-		PTree | file todo | exec "normal! \<C-E>"
-	endif
+		PTree
+		exec "normal! \<C-E>"
+		silent file todo
 	silent exec winwidth(0)*2/3.'vnew' $desktop.'/wip_work'
-	if bufname('^wip_perso$') != ''
-		exec 'buffer' 'wip_work'
-	else
-		PTree | file todo | exec "normal! \<C-E>"
-	endif
+		PTree | exec "normal! \<C-E>"
+		silent file wip_work
 	silent vnew $desktop/wip_perso
-	if bufname('^wip_perso$') != ''
-		exec 'buffer' 'wip_perso'
-		else
-		PTree | file todo | exec "normal! \<C-E>"
-	endif
+		PTree | exec "normal! \<C-E>"
+		silent file wip_perso
 	0wincmd w
 	redraw | echo 'You are doing great <3'
 endfunction
@@ -1438,7 +1435,6 @@ augroup dashboard
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>o :only<CR>
 	autocmd FileType          git nmap <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
-	autocmd FileType fugitive,git nnoremap <buffer> <Leader>w :Todo<CR>
 augroup end
 
 
