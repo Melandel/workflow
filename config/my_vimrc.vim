@@ -1458,7 +1458,7 @@ function! OpenDashboard()
 	silent tab G
 	-tabmove
 	normal gu
-	silent call DeleteBuffers('todo\|wip_')
+	silent! call DeleteBuffers('todo\|wip_')
 	silent exec winheight(0)/4.'new'
 		exec 'Tree' $desktop.'/todo' 'f'
 	silent exec winwidth(0)*2/3.'vnew'
