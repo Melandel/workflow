@@ -146,22 +146,35 @@ ${1:Content}
 endsnippet
 
 snippet wi "Work Item" b
-| [#${1:Number}](https://azuredevops/CapsCollection/CapsuleTech/_workitems/edit/$1) |
-| -- |
-| ${2:Title} |
+# [#${1:Number}](https://azuredevops/CapsCollection/CapsuleTech/_workitems/edit/$1) ${2:Title} - Developer notes
 
-${3:Description}
+## About: the feature
 
-# Behavior before development (reproduced)
-## Environment configuration
-## Facts
+### Setting up the environment
 
-# Analysis
+### Steps to get there
 
-# Development
-## What
-## Why
-## How
+### Current Behavior
 
-# Behavior after development (tested)
+### Behavior expected after the dev
+**Value:**
+
+## About: the implementation
+### 💡 Considered Options
+
+* Option 1: Do something
+* Option 2: Do something else
+
+### 🎯 Decision Outcome
+* **Option 1 : description**
+* Because justification.
+
+## About: observed manual testing
+
+### Nominal Case
+These steps have been observed:
+
+### Regression Cases
+These steps have been observed:
+
 endsnippet
