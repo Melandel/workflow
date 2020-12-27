@@ -165,6 +165,27 @@ augroup lcd
 augroup end
 
 " Utils"-------------------------------{{{
+function! ParseArgs(argValues, ...)
+	let args = {}
+	let argNames = a:000
+	let nbargValues = len(a:argValues)
+	for i in range(len(argNames))
+		if type(argNames[i]) == v:t_list
+			let spec = argNames[i]
+			let name = spec[0]
+			let defaultValue = spec[1]
+			let args[name] = (nbargValues >= (i+1)) ? a:argValues[i] : defaultValue
+		else
+			let name = argNames[i]
+			if (nbargValues >= (i+1))
+				let args[name] = a:argValues[i]
+			else
+				echoerr 'Could not parse argument' name 'from' a:argValues
+			endif
+		endif
+	endfor
+	return args
+endfunc
 function! BufferIsEmpty()
 	return line('$') == 1 && getline(1) == ''
 endfunction
@@ -386,6 +407,7 @@ command! -bar Split   call SplitWindow(0)
 command! -bar Vsplit  call SplitWindow(1)
 command! -bar New     call NewWindow(0)
 command! -bar Vnew    call NewWindow(1)
+nnoremap <silent> <Leader><space> :Enew<CR>
 nnoremap <silent> <Leader>s :silent! Split<CR>
 nnoremap <silent> <Leader>v :silent! Vsplit<CR>
 nnoremap <silent> K :q<CR>
@@ -1181,41 +1203,78 @@ function! BuildTreeCommand(path, flags)
 	endif
 endfunction
 
+function! Tree(...)
+	let args = ParseArgs(a:000, ['path', GetCurrentLineAsPath()], ['flags', ''], ['where', ''])
+	call OpenTreeView(args.path, args.flags, args.where)
+endfunc
+
+function! STree(...)
+	let args = ParseArgs(a:000, ['path', GetCurrentLineAsPath()], ['flags', ''])
+	call OpenTreeView(args.path, args.flags, 's')
+endfunc
+
+function! VTree(...)
+	let args = ParseArgs(a:000, ['path', GetCurrentLineAsPath()], ['flags', ''])
+	call OpenTreeView(args.path, args.flags, 'v')
+endfunc
+
+function! TTree(...)
+	let args = ParseArgs(a:000, ['path', GetCurrentLineAsPath()], ['flags', ''])
+	call OpenTreeView(args.path, args.flags, 't')
+endfunc
+
+function! GetCurrentLineAsPath()
+	return trim(getline('.'), '\')
+endfunc
+
+function! OpenTreeView(path, flags, where)
+	exec get({
+		\ 'v': "Vnew",
+		\ 's': 'New',
+		\ 't': 'tabedit'
+	\}, a:where, 'Enew')
+	call EditFilesystemTree(a:path, a:flags)
+endfunc
+
 function! EditFilesystemTree(path, flags)
 	set buftype=nofile nowrap ft=tree
 	set conceallevel=3 concealcursor=n | syn match Todo /\v(\a|\:|\\|\/|\.)*(\/|\\)/ conceal
 	exec 'silent 0read !'.BuildTreeCommand(a:path, a:flags)
 	silent %s,\\,/,ge
 	normal gg
-	nnoremap <buffer> yy $"by$
-	nnoremap <buffer> gf :e <C-R>=GetCurrentLinePath()<CR><CR>
-	nnoremap <buffer> gF :tabe <C-R>=GetCurrentLinePath()<CR><CR>
-	nnoremap <buffer> f :e <C-R>=fnamemodify(GetCurrentLinePath(), ':h')<CR><CR>
+	nnoremap <buffer> yy :let p = match(getline('.'), '\a\\|\d')<CR>:exec 'normal!' (p+1).'\|'<CR>y$
+	nnoremap <buffer> gf :exec 'edit' GetCurrentLinePath()<CR>
+	nnoremap <buffer> gF :exec 'tabedit' GetCurrentLinePath()<CR>
+	nnoremap <buffer> <silent> f :echomsg 'path' path<CR>:let path = GetCurrentLinePath()<CR>:echomsg 'path' path<CR>:exec 'edit' fnamemodify(path, ':h')<CR>:silent! exec '/'.escape(path, '\')<CR>
 	nnoremap <buffer> <leader>w :call Firefox('', GetCurrentLinePath())<CR>
 endfunction
 
-function! GetCurrentLineAsPath()
-	return trim(getline('.'), '\')
-endfunc
-
-command! -bar Tree        let path=            GetCurrentLineAsPath()        | Enew | call EditFilesystemTree(path, '')
-command! -bar SplitTree   let path=            GetCurrentLineAsPath()        | New  | call EditFilesystemTree(path, '')
-command! -bar VSplitTree  let path=            GetCurrentLineAsPath()        | Vnew | call EditFilesystemTree(path, '')
-command! -bar PTree       let path=fnamemodify(GetCurrentLineAsPath(), ':h') | Enew | call EditFilesystemTree(path, '')
-command! -bar SplitPTree  let path=fnamemodify(GetCurrentLineAsPath(), ':h') | New  | call EditFilesystemTree(path, '')
-command! -bar VSplitPTree let path=fnamemodify(GetCurrentLineAsPath(), ':h') | Vnew | call EditFilesystemTree(path, '')
+command! -bar -nargs=* -complete=file  Tree call  Tree(<f-args>)
+command! -bar -nargs=* -complete=file STree call STree(<f-args>)
+command! -bar -nargs=* -complete=file VTree call VTree(<f-args>)
+command! -bar -nargs=* -complete=file TTree call TTree(<f-args>)
+"command! -bar Tree        call OpenTreeView(GetCurrentLineAsPath(), '', '')
+"command! -bar SplitTree   call OpenTreeView(GetCurrentLineAsPath(), '', 's')
+"command! -bar VSplitTree  call OpenTreeView(GetCurrentLineAsPath(), '', 'v')
+"command! -bar PTree       call OpenTreeView(GetCurrentLineAsPath(), '', '')
+"command! -bar SplitPTree  call OpenTreeView(GetCurrentLineAsPath(), '', 's')
+"command! -bar VSplitPTree call OpenTreeView(GetCurrentLineAsPath(), '', 'v')
 
 
 function! GetCurrentLinePath()
 	let line = getline('.')
 	let farthest = FindLastOccurrencePos(line, '|`')
 	let path = line[farthest+3:]
+	if fnamemodify(path, ':p') == path
+		return substitute(path, '/', '\', 'g')
+	endif
 	for i in range(line('.')-1, 1, -1)
 		let currentline = getline(i)
 		let lastVerticalBarPos = FindLastOccurrencePos(currentline, '|`')
 		if lastVerticalBarPos < farthest
 			let start = lastVerticalBarPos+ (lastVerticalBarPos == -1 ? 1 : 3)
 			let path = currentline[start:] . '/' . path
+			echomsg 'pathp' path
 			let farthest = lastVerticalBarPos
 		endif
 	endfor
@@ -1332,8 +1391,8 @@ endif
 	autocmd FileType dirvish nmap <silent> <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
-	autocmd FileType dirvish nnoremap <silent> <buffer> t :VSplitTree<CR>
-	autocmd FileType dirvish nnoremap <buffer> T :VSplitPTree<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> t :VTree<CR>
+	autocmd FileType dirvish nnoremap <buffer> T :VTree <C-R>=expand('%:p')<CR><CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :Lcd \| e .<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> <leader>w vv<leader>w<CR>
 augroup end
@@ -1405,16 +1464,12 @@ function! OpenDashboard()
 	-tabmove
 	normal gu
 	silent call DeleteBuffers('todo\|wip_')
-	silent exec winheight(0)/4.'new' $desktop.'/todo'
-		PTree
-		exec "normal! \<C-E>"
-		silent file todo
-	silent exec winwidth(0)*2/3.'vnew' $desktop.'/wip_work'
-		PTree | exec "normal! \<C-E>"
-		silent file wip_work
+	silent exec winheight(0)/4.'new'
+		exec 'Tree' $desktop.'/todo' 'f'
+	silent exec winwidth(0)*2/3.'vnew'
+		exec 'Tree' $desktop.'/wip_work' 'f'
 	silent vnew $desktop/wip_perso
-		PTree | exec "normal! \<C-E>"
-		silent file wip_perso
+		exec 'Tree' $desktop.'/wip_perso' 'f'
 	0wincmd w
 	redraw | echo 'You are doing great <3'
 endfunction
