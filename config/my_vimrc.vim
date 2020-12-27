@@ -1253,12 +1253,6 @@ command! -bar -nargs=* -complete=file  Tree call  Tree(<f-args>)
 command! -bar -nargs=* -complete=file STree call STree(<f-args>)
 command! -bar -nargs=* -complete=file VTree call VTree(<f-args>)
 command! -bar -nargs=* -complete=file TTree call TTree(<f-args>)
-"command! -bar Tree        call OpenTreeView(GetCurrentLineAsPath(), '', '')
-"command! -bar SplitTree   call OpenTreeView(GetCurrentLineAsPath(), '', 's')
-"command! -bar VSplitTree  call OpenTreeView(GetCurrentLineAsPath(), '', 'v')
-"command! -bar PTree       call OpenTreeView(GetCurrentLineAsPath(), '', '')
-"command! -bar SplitPTree  call OpenTreeView(GetCurrentLineAsPath(), '', 's')
-"command! -bar VSplitPTree call OpenTreeView(GetCurrentLineAsPath(), '', 'v')
 
 
 function! GetCurrentLinePath()
@@ -1415,9 +1409,10 @@ function! BuildFirefoxUrl(path)
 endfunction
 
 function! Firefox(...)
+	echomsg 'firefox.exe "'. BuildFirefoxUrl((a:0 == 0) ? GetCurrentSelection() : join(a:000)) .'"'
 	let s:job= job_start('firefox.exe "'. BuildFirefoxUrl((a:0 == 0) ? GetCurrentSelection() : join(a:000)) .'"')
 endfun
-command! -nargs=* -range Firefox :call Firefox(<f-args>)
+command! -nargs=* -range Firefox :call Firefox(<q-args>)
 command! -nargs=* -range Ff :call Firefox(<f-args>)
 nnoremap <Leader>w :w!<CR>:Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 vnoremap <Leader>w :Firefox<CR>
