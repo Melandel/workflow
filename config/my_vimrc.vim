@@ -713,18 +713,75 @@ cnoremap <expr> <C-F> (expand('%:h') != '' && stridx(getcmdline()[-1-len(expand(
 cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory()):], GetInterestingParentDirectory()) == 0 ? '**\*' : GetInterestingParentDirectory().(has('win32')?'\':'/'))
 
 " Sourcing" ---------------------------{{{
-" Run a line/selected text composed of vim script
-function! SquashMultilineScriptToSingleLine(multilineScript)
-	return substitute(a:multilineScript, '\v(((\^|\\|```)\n)|`)', '', 'g')
+function! RunCurrentlySelectedScriptInNewBufferAsync()
+	let script = GetCurrentlySelectedScriptOnOneLine()
+	let script = ExpandEnvironmentVariables(script)
+	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Job')
+	echomsg "<start> ".script | redraw
+	if g:isWindows
+		let cmd = 'cmd /C '.script
+	endif
+	let s:job = job_start(
+		\cmd,
+		\{
+			\'cwd': getcwd(),
+			\'out_io': 'buffer',
+			\'out_buf': scratchbufnr,
+			\'out_modifiable': 1,
+			\'err_io': 'buffer',
+			\'err_buf': scratchbufnr,
+			\'err_modifiable': 1,
+			\'in_io': 'null',
+			\'callback': { chan,msg  -> execute('echo ''[cb] '.substitute(msg,"'","''","g").'''',  1)},
+			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)},
+			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'" | tabnew | -tabmove | buffer '.scratchbufnr.' | normal! gg', '')}
+		\}
+	\)
+endfunc
+command! AsyncTSplitCurrentlySelectedScriptInNewBuffer call RunCurrentlySelectedScriptInNewBufferAsync()
+vnoremap <silent> <Leader>S mv:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
+nnoremap <silent> <Leader>S mvvip:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
+vnoremap <silent> <Leader>V mvy:exec @@<CR>`v
+nnoremap <silent> <Leader>V mv^y$:exec @@<CR>`v
+
+function! GetCurrentlySelectedScriptOnOneLine()
+	let lines = GetCurrentlySelectedScriptLines()
+	let oneliner = SquashAndTrimLines(lines)
+	return oneliner
 endfunc
 
-augroup interpret
-	au!
-	autocmd BufWinEnter * if &ft=='vim' | vnoremap <silent> <Leader>S y:exec @@<CR>|     else | vnoremap <silent> <Leader>S y:new   \| Enew \| 0read !cmd /c <C-R>=SquashMultilineScriptToSingleLine(@")<CR><CR> | endif
-	autocmd BufWinEnter * if &ft=='vim' | nnoremap <silent> <Leader>S ^vg_y:exec @@<CR>| else | nnoremap <silent> <Leader>S yip:new \| Enew \| 0read !cmd /c <C-R>=SquashMultilineScriptToSingleLine(@")<CR><CR> | endif
-	autocmd BufWinEnter * vnoremap <silent> <Leader>V y:vnew   \| Enew \| 0read !cmd /c <C-R>=SquashMultilineScriptToSingleLine(@")<CR><CR>
-	autocmd BufWinEnter * nnoremap <silent> <Leader>V yip:vnew \| Enew \| 0read !cmd /c <C-R>=SquashMultilineScriptToSingleLine(@")<CR><CR>
-augroup end
+function! ExpandEnvironmentVariables(script)
+	let mayHaveEnvironmentVars = (stridx(a:script, '$') > -1)
+	if (!mayHaveEnvironmentVars)
+		return a:script
+	endif
+
+	let script = a:script
+	let environmentvars = environ()
+	for [key, value] in items(environmentvars)
+		let var = '$'.key
+		if (stridx(script, var) == -1)
+			continue
+		endif
+			let script = substitute(script, var, value, 'g')
+	endfor
+	return script
+endfunc
+
+function! GetCurrentlySelectedScriptLines()
+	return getline("'<", "'>")
+endfunc
+
+function! SquashAndTrimLines(lines)
+	if len(a:lines) == 0
+		return ''
+	elseif len(a:lines) == 1
+		return trim(a:lines[0], " \t`")
+	else
+		return join(map(a:lines, { _,x -> ' '.trim(x, " \t`")}), ' ')[1:]
+	endif
+endfunc
+
 " Write output of a vim command in a buffer
 nnoremap ç :let script=''\|call histadd('cmd',script)\|put=execute(script)<Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
 augroup vimsourcing
@@ -1245,7 +1302,7 @@ function! EditFilesystemTree(path, flags)
 	nnoremap <buffer> yy :let p = match(getline('.'), '\a\\|\d')<CR>:exec 'normal!' (p+1).'\|'<CR>y$
 	nnoremap <buffer> gf :exec 'edit' GetCurrentLinePath()<CR>
 	nnoremap <buffer> gF :exec 'tabedit' GetCurrentLinePath()<CR>
-	nnoremap <buffer> <silent> f :echomsg 'path' path<CR>:let path = GetCurrentLinePath()<CR>:echomsg 'path' path<CR>:exec 'edit' fnamemodify(path, ':h')<CR>:silent! exec '/'.escape(path, '\')<CR>
+	nnoremap <buffer> <silent> f :let path = GetCurrentLinePath()<CR>:exec 'edit' fnamemodify(path, ':h')<CR>:silent! exec '/'.escape(path, '\')<CR>
 	nnoremap <buffer> <leader>w :call Firefox('', GetCurrentLinePath())<CR>
 endfunction
 
