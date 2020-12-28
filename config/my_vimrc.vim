@@ -1762,7 +1762,7 @@ function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
-	"let cmd = '"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"'
+	let cmd = '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe"'
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
