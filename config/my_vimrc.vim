@@ -715,6 +715,7 @@ cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory(
 " Sourcing" ---------------------------{{{
 function! RunCurrentlySelectedScriptInNewBufferAsync()
 	let script = GetCurrentlySelectedScriptOnOneLine()
+	let script = ExpandEnvironmentVariables(script)
 	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Job')
 	echomsg "<start> ".script | redraw
 	if g:isWindows
@@ -747,6 +748,24 @@ function! GetCurrentlySelectedScriptOnOneLine()
 	let lines = GetCurrentlySelectedScriptLines()
 	let oneliner = SquashAndTrimLines(lines)
 	return oneliner
+endfunc
+
+function! ExpandEnvironmentVariables(script)
+	let mayHaveEnvironmentVars = (stridx(a:script, '$') > -1)
+	if (!mayHaveEnvironmentVars)
+		return a:script
+	endif
+
+	let script = a:script
+	let environmentvars = environ()
+	for [key, value] in items(environmentvars)
+		let var = '$'.key
+		if (stridx(script, var) == -1)
+			continue
+		endif
+			let script = substitute(script, var, value, 'g')
+	endfor
+	return script
 endfunc
 
 function! GetCurrentlySelectedScriptLines()
@@ -796,7 +815,7 @@ nnoremap <silent> <space> :if IsDebuggingTab() \| call vimspector#StepOver() \| 
 
 set foldtext=FoldText()
 function! FoldText()
-	return v:folddashes.getline(v:foldstart)[len(v:folddashes)-1:].' ('.(v:foldend-v:foldstart+1).'rows)'
+		return v:folddashes.getline(v:foldstart)[len(v:folddashes)-1:].' ('.(v:foldend-v:foldstart+1).'rows)'
 endfunction
 " Search" -----------------------------{{{
 set hlsearch
@@ -807,7 +826,8 @@ set shortmess=filnxtToOc
 nnoremap ! /
 vnoremap ! /
 nnoremap q! q/
-nnoremap / :Lines<CR>
+nnoremap / !
+vnoremap / !
 
 nnoremap z! :BLines<CR>
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
@@ -2030,3 +2050,4 @@ function! ComputeSecondsFromHoursMinutesSeconds(string)
 		return a:string
 	endif
 endfunction
+
