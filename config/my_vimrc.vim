@@ -815,16 +815,7 @@ nnoremap <silent> <space> :if IsDebuggingTab() \| call vimspector#StepOver() \| 
 
 set foldtext=FoldText()
 function! FoldText()
-	let firstline = getline(v:foldstart)
-	if firstline =~ '^\s\+curl'
-		let http = stridx(firstline, 'http')
-		let firstletter = stridx(firstline, 'curl')
-		let longestpossiblestart = len('curl -X OPTIONS ')
-		let nb = len(repeat(' ', firstletter + http - longestpossiblestart))
-		return firstline[:http-1]. repeat(' ', (firstletter+longestpossiblestart - (http-2))).firstline[http:].' ('.(v:foldend-v:foldstart+1).'rows)' 
-	else
 		return v:folddashes.getline(v:foldstart)[len(v:folddashes)-1:].' ('.(v:foldend-v:foldstart+1).'rows)'
-	endif
 endfunction
 " Search" -----------------------------{{{
 set hlsearch
@@ -835,7 +826,8 @@ set shortmess=filnxtToOc
 nnoremap ! /
 vnoremap ! /
 nnoremap q! q/
-nnoremap / :Lines<CR>
+nnoremap / !
+vnoremap / !
 
 nnoremap z! :BLines<CR>
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
@@ -2058,3 +2050,4 @@ function! ComputeSecondsFromHoursMinutesSeconds(string)
 		return a:string
 	endif
 endfunction
+
