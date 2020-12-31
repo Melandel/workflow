@@ -2051,3 +2051,8 @@ function! ComputeSecondsFromHoursMinutesSeconds(string)
 	endif
 endfunction
 
+for file in expand('$desktop/startups/*.bat', 1, 1)
+	let filename = fnamemodify(file, ':t:r')
+	let filename = toupper(filename[0]).filename[1:]
+	exec 'command!' filename 'terminal ++curwin ++noclose cmd /k' filename.'.bat'
+endfor
