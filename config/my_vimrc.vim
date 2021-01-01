@@ -260,7 +260,7 @@ endfunction
 
 function! JobStartExample(...)
 	let cmd = a:0 ? (a:1 != '' ? a:1 : 'dir') : 'dir'
-	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Job')
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 	echomsg "<start> ".cmd
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
@@ -716,7 +716,7 @@ cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory(
 function! RunCurrentlySelectedScriptInNewBufferAsync()
 	let script = GetCurrentlySelectedScriptOnOneLine()
 	let script = ExpandEnvironmentVariables(script)
-	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Job')
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 	echomsg "<start> ".script | redraw
 	if g:isWindows
 		let cmd = 'cmd /C '.script
@@ -763,7 +763,8 @@ function! ExpandEnvironmentVariables(script)
 		if (stridx(script, var) == -1)
 			continue
 		endif
-			let script = substitute(script, var, value, 'g')
+		let value = substitute(value, '\\', '/', 'g')
+		let script = '"'.trim(substitute(script, var, value, 'g'), '"').'"'
 	endfor
 	return script
 endfunc

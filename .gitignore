@@ -4,5 +4,6 @@
 !/notes/
 !/snippets/
 !/templates/
-!/tools/filters
-/config/my_vimrc.vim
+!/tools/
+/tools/*/
+!/tools/filters/
