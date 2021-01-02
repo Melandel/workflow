@@ -5,13 +5,22 @@ if !g:isWindows && !g:isWsl
 	finish
 endif
 
-
-
 if g:isWindows
-	let $desktop    = $HOME.'/Desktop'
-	let $rcfolder   = $VIM
-	let $rcfilename = '_vimrc'
-	let $packpath   = $VIM
+let $config    = $HOME.'/Desktop/config'
+let $desktop   = $HOME.'/Desktop'                    | let $d = $desktop
+let $downloads = $HOME.'/Downloads'                  | let $D = $HOME.'/Downloads'
+let $notes     = $HOME.'/Desktop/notes'              | let $n = $notes
+let $projects  = $HOME.'/Desktop/projects'           | let $p = $projects
+let $rest      = $HOME.'/Desktop/templates/rest'
+let $snippets  = $HOME.'/Desktop/templates/snippets'
+let $startups  = $HOME.'/Desktop/startups'
+let $tmp       = $HOME.'/Desktop/tmp'                | let $t = $tmp
+let $templates = $HOME.'/Desktop/templates'          | let $T = $templates
+
+let $rc         = $HOME.'/Desktop/tools/vim/_vimrc'
+let $rcfolder   = $VIM
+let $rcfilename = '_vimrc'
+let $packpath   = $VIM
 elseif g:isWsl
 	let $desktop    = $HOME
  let $rcfolder   = $HOME
@@ -158,10 +167,38 @@ function! UpdateLocalCurrentDirectory()
 endfunction
 command! -bar Lcd call UpdateLocalCurrentDirectory()
 
+function UpdateEnvironmentLocationVariables()
+	let csproj = GetNearestParentFolderContainingFile('*.csproj')
+	if csproj == ''
+		unlet $csproj
+		unlet $sln
+		unlet $bin
+	else
+		let $csproj = csproj
+		let $bin = glob('%:h/**/bin/Debug')
+		let sln = GetNearestParentFolderContainingFile('*.sln')
+		if sln != ''
+			let $sln = sln
+		elseif has_key(g:, 'csprojs2sln') && has_key(g:csprojs2sln, csprojdir)
+			let sln = g:csprojs2sln[csproj]
+		else
+			unlet $sln
+		endif
+	endif
+	let gitfolder = gitbranch#dir(expand('%:p'))
+	if gitfolder != ''
+		let $git = fnamemodify(gitfolder, ':h')
+	else
+		unlet $git
+	endif
+endfunc
+
 augroup lcd
 	au!
 	autocmd BufEnter * if &ft!='dirvish' | Lcd | else | lcd %:p:h | endif
 	autocmd QuickFixCmdPre * let g:lcd_qf = getcwd()
+	autocmd BufEnter * call UpdateEnvironmentLocationVariables()
+	autocmd BufEnter * let g:g = bufname()
 augroup end
 
 " Utils"-------------------------------{{{
@@ -186,6 +223,28 @@ function! ParseArgs(argValues, ...)
 	endfor
 	return args
 endfunc
+
+function! GetNearestParentFolderContainingFile(regex)
+	let filepath = GetNearestPathInCurrentFileParents(a:regex)
+	return filepath != '' ? fnamemodify(filepath, ':h') : ''
+endfunc
+
+function! GetNearestPathInCurrentFileParents(regex)
+	let dir = expand('%:p:h')
+	let lastfolder = ''
+	let csproj_dir = []
+	while dir !=# lastfolder
+		let csproj_dir += globpath(dir, a:regex, 1, 1)
+		call uniq(csproj_dir)
+		if !empty(csproj_dir)
+				return csproj_dir[0]
+		endif
+		let lastfolder = dir
+		let dir = fnamemodify(dir, ':h')
+	endwhile
+	return ''
+endfunc
+
 function! BufferIsEmpty()
 	return line('$') == 1 && getline(1) == ''
 endfunction
@@ -460,7 +519,8 @@ function! NewWindow(isVertical)
 			wincmd j
 		endif
 	endif
-	let w:buffers = bufferHistory
+	set bufhidden=hide buftype=nofile buflisted nolist nowrap
+	let w:buffers = bufferHistory + [bufnr()]
 endfunc
 
 " Browse to Window or Tab
@@ -1447,7 +1507,7 @@ endif
 	autocmd FileType dirvish nnoremap <silent> <buffer> t :VTree<CR>
 	autocmd FileType dirvish nnoremap <buffer> T :VTree <C-R>=expand('%:p')<CR><CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :Lcd \| e .<CR>
-	autocmd FileType dirvish nmap <silent> <buffer> <leader>w vv<leader>w<CR>
+	autocmd FileType dirvish nmap <silent> <buffer> <leader>w :exec 'Firefox' GetCurrentLineAsPath()<CR>
 augroup end
 
 " Web Browsing" -----------------------{{{
@@ -1548,53 +1608,52 @@ augroup end
 
 
 " Drafts (Diagrams & Notes)"-----------{{{
-function! Draft(lines)"-----------------{{{
-	if len(a:lines) < 2 | return | endif
-	let file_or_diagramtype = a:lines[1]
-	let cmd=''
-	if glob(file_or_diagramtype) != ''
-		let file = file_or_diagramtype
-		let cmd = get({
-			\'ctrl-x': 'split',
-			\'ctrl-j': 'split',
-			\'ctrl-v': 'vertical split',
-			\'ctrl-k': 'vertical split',
-			\'ctrl-t': 'tabe',
-			\'ctrl-o': 'tabe',
-			\'ctrl-b': 'CompileDiagramAndShowImage png'}, a:lines[0], 'e')
-	exec cmd file
-	else
-		let cmd = get({
-			\'ctrl-x': 'split',
-			\'ctrl-j': 'split',
-			\'ctrl-v': 'vertical split',
-			\'ctrl-k': 'vertical split',
-			\'ctrl-t': 'tabe',
-			\'ctrl-o': 'tabe'}, a:lines[0], 'e')
-		let ComputePath = { str -> '' }
-		if file_or_diagramtype == 'note'
-			let ComputePath = { x -> $desktop.'/notes/'.x }
-		elseif file_or_diagramtype == 'adr'
-			let ComputePath = { x -> $desktop.'/notes/'.x.'.md' }
-		else " if is diagramtype
-			let ComputePath = { x -> $desktop.'/tmp/'.x.'.puml_'.split(file_or_diagramtype,' ')[0] }
+function! SaveInFolderAs(folder, ...)
+	let args = ParseArgs(a:000, ['filetype', ''])
+	let filename = expand('%:t:r')
+	if filename == ''
+		let filename = PromptUserForFilename('File name:')
+		if trim(filename) == ''
+			return
 		endif
-		let title = PromptUserForFilename('Note title:', ComputePath) | redraw | exec cmd ComputePath(title)
 	endif
-endfunction
+	call setbufvar(bufnr(), '&bt', '')
+	call setbufvar(bufnr(), '&ft', args.filetype)
+	echomsg 'a:folder' a:folder
+	echomsg 'filename' filename
+	let newpath = a:folder.'/'.filename.get({
+			\'markdown':          '.md',
+			\'plantuml_mindmap':  '.puml_mindmap',
+			\'plantuml_activity': '.puml_activity',
+			\'plantuml_sequence': '.puml_sequence',
+			\'plantuml_json':     '.puml_json'
+		\}, args.filetype,     '')
+	echomsg 'newpath' newpath
+	call Move(newpath)
+endfunc
+command! -nargs=? -complete=customlist,GetNoteFileTypes Note call SaveInFolderAs($notes, <q-args>)
+command! -nargs=? -complete=customlist,GetTmpFileTypes  Tmp  call SaveInFolderAs($tmp,   <q-args>)
 
-function! ExploreDrafts()
-	let diagramtypes = map(['activity', 'mindmap', 'sequence', 'json', 'workbreakdown', 'class', 'component', 'entities', 'state', 'usecase', 'dot'], { _,x -> x. ' diagram' })
-	let diagrams = expand($desktop.'/tmp/*.puml*', 0, 1)
-	let notetypes = ['note']
-	let notes = expand($desktop.'/notes/*', 0, 1)
-	let adrtypes = ['adr']
-	let adrs = expand($desktop.'/tmp/*.md', 0, 1)
-	call fzf#run(fzf#vim#with_preview(fzf#wrap({'source': notetypes+adrtypes+diagramtypes+notes+adrs+diagrams,'sink*': function('Draft'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b', '--prompt', 'Drafts> ']})))
-endfunction
-command! ExploreDrafts call ExploreDrafts()
-nnoremap <leader>d :ExploreDrafts<CR>
-nnoremap <leader>D :vs\|Dirvish <C-R>=expand('$HOME/Downloads')<CR><CR>
+function! GetNoteFileTypes(argLead, cmdLine, cursorPos)
+	return ['markdown', 'plantuml_mindmap', 'plantuml_activity', 'plantuml_sequence', 'plantuml_json']
+endfunc
+
+function! GetTmpFileTypes(argLead, cmdLine, cursorPos)
+	return [ 'json', 'xml', 'plantuml_mindmap', 'plantuml_activity', 'plantuml_sequence', 'plantuml_json']
+endfunc
+
+function! Move(newpath)
+	echomsg a:newpath
+	if (glob(a:newpath) != '')
+		return
+	else
+		let currentpath = expand('%:p:h')
+		exec 'saveas' a:newpath
+		exec 'edit' a:newpath
+		call delete(currentpath)
+		bdelete! #
+	endif
+endfunc
 
 function! JobExitDiagramCompilationJob(outputfile, channelInfos, status)
 	if a:status != 0
@@ -1903,18 +1962,7 @@ function! Commit(scratchbufnr, job, status)
 endfunction
 
 function! GetCsproj()
-	let dir = expand('%:p:h')
-	let lastfolder = ''
-	let csproj_dir = []
-	while dir !=# lastfolder
-		let csproj_dir += globpath(dir, '*.csproj', 1, 1)
-		call uniq(csproj_dir)
-		if !empty(csproj_dir)
-				return csproj_dir[0]
-		endif
-		let lastfolder = dir
-		let dir = fnamemodify(dir, ':h')
-	endwhile
+	return GetNearestPathInCurrentFileParents('*.csproj')
 endfunction
 
 function! GetDirOrSln()
@@ -2057,3 +2105,4 @@ for file in expand('$desktop/startups/*.bat', 1, 1)
 	let filename = toupper(filename[0]).filename[1:]
 	exec 'command!' filename 'terminal ++curwin ++noclose cmd /k' filename.'.bat'
 endfor
+
