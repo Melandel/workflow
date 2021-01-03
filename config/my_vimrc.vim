@@ -495,7 +495,7 @@ nnoremap <silent> <Leader>s :silent! Split<CR>
 nnoremap <silent> <Leader>v :silent! Vsplit<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
-nnoremap <silent> <Leader>O mW:tabnew<CR>`W
+nnoremap <silent> <Leader>O mW:-tabnew<CR>`W
 nnoremap <silent> <Leader>x :if !IsDebuggingTab() \| tabclose \| else \| unlet g:vimspector_session_windows.tabpage \| call vimspector#Reset() \| endif<CR>
 
 function! ComputeRemainingHeight()

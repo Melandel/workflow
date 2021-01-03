@@ -145,36 +145,72 @@ ${1:Content}
 
 endsnippet
 
-snippet wi "Work Item" b
-# [#${1:Number}](https://azuredevops/CapsCollection/CapsuleTech/_workitems/edit/$1) ${2:Title} - Developer notes
+snippet wip "Work In Progress" b
+# [#${1:Number}](https://azuredevops/CapsCollection/CapsuleTech/_workitems/edit/$1) ${2:Title}
 
-## About: the feature
+## Validation & Investigation
+<div style="display: flex"><div style="flex: 50%">
 
-### Setting up the environment
+### Acceptance Tests
 
-### Steps to get there
+</div><div style="flex: 50%">
 
-### Current Behavior
+### Developer Notes
+#### Useful queries
+##### Launching goat to space
+<div style="display: flex"><div style="flex: 50%">
 
-### Behavior expected after the dev
-**Value:**
+###### Request
 
-## About: the implementation
-### 💡 Considered Options
+\`\`\`
+curl -X POST ...
+\`\`\`
 
-* Option 1: Do something
-* Option 2: Do something else
+</div><div style="flex: 50%">
 
-### 🎯 Decision Outcome
-* **Option 1 : description**
-* Because justification.
+######  Valid Response
+\`\`\`
+{"response": "Silviu did it!"}
+\`\`\`
 
-## About: observed manual testing
+</div></div>
+</div></div>
 
-### Nominal Case
-These steps have been observed:
+## Implementation
+### Implement this, this way
+<div style="display: flex"><div style="flex: 50%">
 
-### Regression Cases
-These steps have been observed:
+* Context item 1
+* Context item 2
 
+**\> How do we ... ?**
+
+</div><div style="flex: 50%">
+
+#### Considered Options
+
+* **Option 1**
+* **Option 2**
+
+#### Decision Outcome
+* **Option 1**, because
+</div></div>
+
+### Implementat that, that way
+<div style="display: flex"><div style="flex: 50%">
+
+* Context item 1
+* Context item 2
+
+**\> How do we ... ?**
+</div><div style="flex: 50%">
+
+#### Considered Options
+
+* **Option 1**
+* **Option 2**
+
+#### Decision Outcome
+* **Option 1**, because
+</div></div>
 endsnippet
