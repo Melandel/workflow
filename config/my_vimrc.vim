@@ -16,6 +16,8 @@ let $snippets  = $HOME.'/Desktop/templates/snippets'
 let $startups  = $HOME.'/Desktop/startups'
 let $tmp       = $HOME.'/Desktop/tmp'                | let $t = $tmp
 let $templates = $HOME.'/Desktop/templates'          | let $T = $templates
+let $todo      = $HOME.'/Desktop/todo'
+let $wip       = $HOME.'/Desktop/wip.md'
 
 let $rc         = $HOME.'/Desktop/tools/vim/_vimrc'
 let $rcfolder   = $VIM
@@ -195,13 +197,35 @@ endfunc
 
 augroup lcd
 	au!
+	" enew has a delay before updating bufname()
+	autocmd BufCreate * call timer_start(100, { timerid -> execute('if bufname() == "" | set bt=nofile | endif', '') })
 	autocmd BufEnter * if &ft!='dirvish' | Lcd | else | lcd %:p:h | endif
 	autocmd QuickFixCmdPre * let g:lcd_qf = getcwd()
 	autocmd BufEnter * call UpdateEnvironmentLocationVariables()
-	autocmd BufEnter * let g:g = bufname()
 augroup end
 
 " Utils"-------------------------------{{{
+function! DiffWithSaved()
+  let filetype=&ft
+  diffthis
+  vnew | r # | normal! 1Gdd
+  diffthis
+  exe "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
+endfunction
+com! DiffSaved call DiffWithSaved()
+
+function! ComputeSecondsFromHoursMinutesSeconds(string)
+	let array = map(split(a:string, ':', 1), {_,x->str2nr(x)})
+	echo array
+	if len(array) == 2
+		return array[0]*60 + array[1]
+	elseif len(array) == 3
+		return array[0]*60 + array[1]*60 + array[2]
+	else
+		echoerr a:string 'not a handled time format'
+		return a:string
+	endif
+endfunction
 function! ParseArgs(argValues, ...)
 	let args = {}
 	let argNames = a:000
@@ -1488,6 +1512,7 @@ endif
 	autocmd FileType dirvish unmap <buffer> o
 	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit', 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> O :call PreviewFile('vsplit', 1)<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> gF :silent! call PreviewFile('-tabnew', 1)<CR>
 	autocmd FileType dirvish unmap <buffer> a
 	autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split', 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> A :call PreviewFile('split', 1)<CR>
@@ -1577,14 +1602,11 @@ function! OpenDashboard()
 	silent tab G
 	-tabmove
 	normal gu
-	silent! call DeleteBuffers('todo.\?$\|wip_')
 	silent exec winheight(0)/4.'new'
-		exec 'Tree' $desktop.'/todo' 'f'
-	silent exec winwidth(0)*2/3.'vnew'
-		exec 'Tree' $desktop.'/wip_work' 'f'
-	silent vnew $desktop/wip_perso
-		exec 'Tree' $desktop.'/wip_perso' 'f'
-	0wincmd w
+		exec 'edit' $desktop.'/wip.md'
+	silent exec winwidth(0)*1/3.'vnew'
+		exec 'edit' $desktop.'/todo'
+	1wincmd w
 	redraw | echo 'You are doing great <3'
 endfunction
 command! -bar Dashboard call OpenDashboard()
@@ -1602,8 +1624,16 @@ augroup dashboard
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>n gt
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>p gT
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>o :only<CR>
-	autocmd FileType          git nmap <silent> <buffer> l <CR>
+	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
+	autocmd BufEnter     todo,wip.md set buftype=nofile nowrap
+	autocmd BufWritePost todo,wip.md set buftype=nofile
+	autocmd BufEnter     todo normal! gg
+	autocmd BufLeave     todo normal! gg
+	autocmd BufEnter     todo,wip.md redraw | echo 'You are doing great <3'
+	autocmd BufWritePost todo,wip.md redraw | echo 'Nice :)'
+	autocmd BufEnter     todo,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
+	autocmd TextChanged  todo,wip.md set buftype= | silent write!
 augroup end
 
 
@@ -2078,31 +2108,33 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 \ '\<AssemblyInfo\.cs\>'
 \]
 
-function! DiffWithSaved()
-  let filetype=&ft
-  diffthis
-  vnew | r # | normal! 1Gdd
-  diffthis
-  exe "setlocal bt=nofile bh=wipe nobl noswf ro ft=" . filetype
-endfunction
-com! DiffSaved call DiffWithSaved()
-
-function! ComputeSecondsFromHoursMinutesSeconds(string)
-	let array = map(split(a:string, ':', 1), {_,x->str2nr(x)})
-	echo array
-	if len(array) == 2
-		return array[0]*60 + array[1]
-	elseif len(array) == 3
-		return array[0]*60 + array[1]*60 + array[2]
-	else
-		echoerr a:string 'not a handled time format'
-		return a:string
-	endif
-endfunction
-
 for file in expand('$desktop/startups/*.bat', 1, 1)
 	let filename = fnamemodify(file, ':t:r')
 	let filename = toupper(filename[0]).filename[1:]
 	exec 'command!' filename 'terminal ++curwin ++noclose cmd /k' filename.'.bat'
+	exec 'command!' filename.'Dir' 'edit' substitute(trim(filter(readfile(file), {_,x -> x =~ '^cd'})[0][3:], '"'), '\\', '/', 'g') 
 endfor
+
+function! SynchronizeDuplicatedConfigFile()
+	let filename = expand('%:t')
+	let duplicated = glob('%:p:h/bin/**/'.filename)
+	if duplicated != ''
+		call SynchronizeWith(duplicated)
+		return
+	endif
+	let original = GetNearestParentFolderContainingFile('*.csproj').'/'.filename
+	if glob(original) != ''
+		call SynchronizeWith(original)
+		return
+	endif
+endfunction
+
+function! SynchronizeWith(path)
+	exec 'autocmd BufWritePost <buffer>' 'write!' substitute(a:path, '\\', '/', 'g')
+endfunction
+
+augroup runprojects
+	au!
+	autocmd FileType json,xml call SynchronizeDuplicatedConfigFile()
+augroup end
 
