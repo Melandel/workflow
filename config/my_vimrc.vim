@@ -2107,7 +2107,7 @@ for file in expand('$desktop/startups/*.bat', 1, 1)
 	let filename = fnamemodify(file, ':t:r')
 	let filename = toupper(filename[0]).filename[1:]
 	exec 'command!' filename 'terminal ++curwin ++noclose cmd /k' filename.'.bat'
-	exec 'command!' filename.'Dir' 'edit' substitute(trim(filter(readfile(file), {_,x -> x =~ '^cd'})[0][3:], '"'), '\\', '/', 'g') 
+	exec 'let' '$'.filename.'Dir' '=' "'".substitute(trim(filter(readfile(file), {_,x -> x =~ '^cd'})[0][3:], '"'), '\\', '/', 'g')."'"
 endfor
 
 function! SynchronizeDuplicatedConfigFile()
