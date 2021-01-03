@@ -1411,7 +1411,6 @@ function! GetCurrentLinePath()
 		if lastVerticalBarPos < farthest
 			let start = lastVerticalBarPos+ (lastVerticalBarPos == -1 ? 1 : 3)
 			let path = currentline[start:] . '/' . path
-			echomsg 'pathp' path
 			let farthest = lastVerticalBarPos
 		endif
 	endfor
@@ -1553,8 +1552,7 @@ function! BuildFirefoxUrl(path)
 endfunction
 
 function! Firefox(...)
-	echomsg 'firefox.exe "'. BuildFirefoxUrl((a:0 == 0) ? GetCurrentSelection() : join(a:000)) .'"'
-	let s:job= job_start('firefox.exe "'. BuildFirefoxUrl((a:0 == 0) ? GetCurrentSelection() : join(a:000)) .'"')
+	let s:job= job_start('firefox.exe "'. BuildFirefoxUrl((a:0 == 0 || (a:0 == 1 && a:1 == '')) ? GetCurrentSelection() : join(a:000)) .'"')
 endfun
 command! -nargs=* -range Firefox :call Firefox(<q-args>)
 command! -nargs=* -range Ff :call Firefox(<f-args>)
@@ -1634,6 +1632,7 @@ augroup dashboard
 	autocmd BufWritePost todo,wip.md redraw | echo 'Nice :)'
 	autocmd BufEnter     todo,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
 	autocmd TextChanged  todo,wip.md set buftype= | silent write!
+	autocmd BufEnter          wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 augroup end
 
 
@@ -1649,8 +1648,6 @@ function! SaveInFolderAs(folder, ...)
 	endif
 	call setbufvar(bufnr(), '&bt', '')
 	call setbufvar(bufnr(), '&ft', args.filetype)
-	echomsg 'a:folder' a:folder
-	echomsg 'filename' filename
 	let newpath = a:folder.'/'.filename.get({
 			\'markdown':          '.md',
 			\'plantuml_mindmap':  '.puml_mindmap',
@@ -1658,7 +1655,6 @@ function! SaveInFolderAs(folder, ...)
 			\'plantuml_sequence': '.puml_sequence',
 			\'plantuml_json':     '.puml_json'
 		\}, args.filetype,     '')
-	echomsg 'newpath' newpath
 	call Move(newpath)
 endfunc
 command! -nargs=? -complete=customlist,GetNoteFileTypes Note call SaveInFolderAs($notes, <q-args>)
@@ -1673,7 +1669,6 @@ function! GetTmpFileTypes(argLead, cmdLine, cursorPos)
 endfunc
 
 function! Move(newpath)
-	echomsg a:newpath
 	if (glob(a:newpath) != '')
 		return
 	else
