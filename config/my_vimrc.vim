@@ -90,7 +90,7 @@ set cursorline
 set backspace=indent,start,eol
 set listchars=tab:▸\ ,eol:¬,extends:>,precedes:<
 set list
-set fillchars=vert:\|,fold:\
+set fillchars=vert:\|,fold:\ 
 set noswapfile
 set directory=$desktop/tmp/vim
 set backup
@@ -824,7 +824,7 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 endfunc
 command! AsyncTSplitCurrentlySelectedScriptInNewBuffer call RunCurrentlySelectedScriptInNewBufferAsync()
 vnoremap <silent> <Leader>S mv:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
-nnoremap <silent> <Leader>S mvvip:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
+nnoremap <silent> <Leader>S mvvip3}:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
 vnoremap <silent> <Leader>V mvy:exec @@<CR>`v
 nnoremap <silent> <Leader>V mv^y$:exec @@<CR>`v
 
@@ -863,7 +863,13 @@ function! SquashAndTrimLines(lines)
 	elseif len(a:lines) == 1
 		return trim(a:lines[0], " \t`")
 	else
-		return join(map(a:lines, { _,x -> ' '.trim(x, " \t`")}), ' ')[1:]
+		let lines = a:lines
+		let firstSnippetSep = match(a:lines, '```')
+		if (firstSnippetSep != -1)
+			let secondSnippetSep = match(a:lines, '```', firstSnippetSep+1)
+			let lines = a:lines[firstSnippetSep+1:secondSnippetSep-1]
+		endif
+		return join(map(lines, { _,x -> ' '.trim(x, " \t")}), ' ')[1:]
 	endif
 endfunc
 
@@ -900,7 +906,7 @@ nnoremap <silent> <space> :if IsDebuggingTab() \| call vimspector#StepOver() \| 
 
 set foldtext=FoldText()
 function! FoldText()
-		return v:folddashes.getline(v:foldstart)[len(v:folddashes)-1:].' ('.(v:foldend-v:foldstart+1).'rows)'
+		return repeat('-', len(v:folddashes)-1).getline(v:foldstart)[len(v:folddashes)-1:].' ('.(v:foldend-v:foldstart+1).'rows)'
 endfunction
 " Search" -----------------------------{{{
 set hlsearch
@@ -1632,6 +1638,8 @@ augroup dashboard
 	autocmd BufWritePost todo,wip.md redraw | echo 'Nice :)'
 	autocmd BufEnter     todo,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
 	autocmd TextChanged  todo,wip.md set buftype= | silent write!
+	autocmd BufEnter          wip.md nnoremap <buffer> z! :BLines ^### \a<CR>
+	autocmd BufEnter          wip.md nnoremap <buffer> Z! :BLines ^#<CR>
 	autocmd BufEnter          wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 augroup end
 
@@ -1665,7 +1673,7 @@ function! GetNoteFileTypes(argLead, cmdLine, cursorPos)
 endfunc
 
 function! GetTmpFileTypes(argLead, cmdLine, cursorPos)
-	return [ 'json', 'xml', 'plantuml_mindmap', 'plantuml_activity', 'plantuml_sequence', 'plantuml_json']
+	return [ 'markdown', 'json', 'xml', 'plantuml_mindmap', 'plantuml_activity', 'plantuml_sequence', 'plantuml_json']
 endfunc
 
 function! Move(newpath)
