@@ -98,7 +98,7 @@ snippet cols "columns" b
 ${2:####} ${3:Column title 1}
 
 $5
-</div><div style="flex: $1%">
+</div><div style="flex: $1%; max-width: $1%;">
 
 $2 ${4:Column title 2}
 
@@ -152,29 +152,23 @@ snippet wip "Work In Progress" b
 <div style="display: flex"><div style="flex: 50%; max-width: 50%;">
 
 ### ❎ Acceptance Tests
+#### 🎉 Happy Path
+1. Do this
+1. Do that
+1. **Profit**
+
+#### 🎗 Non-Regression Check
+1. Do this
+1. Do that
+1. **Profit**
 
 </div><div style="flex: 50%; max-width: 50%;">
 
-### 📃 Developer Notes
+### 📃 Notes
 * Limitations
 * Elements considered out of scope
 * Link to [something useful](www.google.com)
 * Useful note
-
-### Request/Response for launching goat to space:
-\`\`\`
-curl -X POST ...
-\`\`\`
-
-\`\`\`
-{"response": "Silviu did it!"}
-\`\`\`
-
-### 📕 Error messages crossed
-* \`Error message\`
-	* Crossed while...
-	* Happens when/because...
-	* Fixed by/Workaround...
 </div></div>
 
 ## 🚀 Implementation
@@ -186,7 +180,6 @@ curl -X POST ...
 * Context item 2
 
 **\> How do we ... ?**
-
 </div><div style="flex: 50%; max-width: 50%;">
 
 #### 💡 Considered Options
@@ -215,5 +208,68 @@ curl -X POST ...
 
 #### 🥇 Decision Outcome
 * **Option 1**, because
+</div></div>
+
+## 📜 Mischellaneous
+Environment variables listing
+
+### Launching Goat to space
+<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
+
+#### Request
+\`\`\`
+curl -X POST ...
+\`\`\`
+
+* May work only if...
+* A registry string value describes...
+	* **Path:**  \`Path\`
+	* **Name:**  \`Name\`
+	* **Values:**
+		* \`A\` means...
+		* \`B\` means...
+</div><div style="flex: 50%">
+
+#### Response
+##### 🚫 400 Bad Request
+\`\`\`
+{"response": "Silviu seems innocent."}
+\`\`\`
+* Caused by...
+
+##### ✅ 200 OK
+\`\`\`
+{"response": "Silviu did it!"}
+\`\`\`
+</div></div>
+
+### Launching Silviu into a goat
+<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
+
+#### Request
+\`\`\`
+curl -X POST ...
+\`\`\`
+
+* May work only if...
+* A registry string value describes...
+	* **Path:**  \`Path\`
+	* **Name:**  \`Name\`
+	* **Values:**
+		* \`A\` means...
+		* \`B\` means...
+</div><div style="flex: 50%">
+
+#### Response
+##### 🚫 400 Bad Request
+\`\`\`
+{"response": "Silviu is working."}
+\`\`\`
+* Caused by...
+
+##### ✅ 200 OK
+\`\`\`
+{"response": "Silviu is doing it!"}
+\`\`\`
 </div></div>
 endsnippet
