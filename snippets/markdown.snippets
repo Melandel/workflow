@@ -273,3 +273,27 @@ curl -X POST ...
 \`\`\`
 </div></div>
 endsnippet
+
+snippet rq "REST exhange" b
+${1:###} ${2:Do Thing}
+<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
+
+$1# Request
+\`\`\`
+$0curl.exe -X POST "$api/endpoint"
+--verbose --silent
+\`\`\`
+</div><div style="flex: 50%; max-width: 50%;">
+
+$1# Response
+##### 🚫 KO
+\`\`\`
+{}
+\`\`\`
+##### ✅ OK
+\`\`\`
+{}
+\`\`\`
+</div></div>
+
+endsnippet

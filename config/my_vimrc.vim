@@ -1673,7 +1673,7 @@ function! GetNoteFileTypes(argLead, cmdLine, cursorPos)
 endfunc
 
 function! GetTmpFileTypes(argLead, cmdLine, cursorPos)
-	return [ 'json', 'xml', 'plantuml_mindmap', 'plantuml_activity', 'plantuml_sequence', 'plantuml_json']
+	return [ 'markdown', 'json', 'xml', 'plantuml_mindmap', 'plantuml_activity', 'plantuml_sequence', 'plantuml_json']
 endfunc
 
 function! Move(newpath)
