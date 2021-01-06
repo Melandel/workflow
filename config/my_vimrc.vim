@@ -800,11 +800,19 @@ cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory(
 function! RunCurrentlySelectedScriptInNewBufferAsync()
 	let script = GetCurrentlySelectedScriptOnOneLine()
 	let script = ExpandEnvironmentVariables(script)
+	echomsg 'script' script
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
-	echomsg "<start> ".script | redraw
 	if g:isWindows
-		let cmd = 'cmd /C '.script
+		let len = len(script)
+		if len < 8150
+			let cmd = 'cmd /C '.script
+		else
+			let powershell = executable('pwsh') ? 'pwsh' : 'powershell'
+			let script = substitute(script, '"', "'", 'g')
+			let cmd = powershell.' -NoLogo -NoProfile -NonInteractive -Command '.script
+		endif
 	endif
+	echomsg "<start> ".script[:100] | redraw
 	let s:job = job_start(
 		\cmd,
 		\{
@@ -824,7 +832,7 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 endfunc
 command! AsyncTSplitCurrentlySelectedScriptInNewBuffer call RunCurrentlySelectedScriptInNewBufferAsync()
 vnoremap <silent> <Leader>S mv:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
-nnoremap <silent> <Leader>S mvvip3}:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
+nnoremap <silent> <Leader>S mvvip}}}:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
 vnoremap <silent> <Leader>V mvy:exec @@<CR>`v
 nnoremap <silent> <Leader>V mv^y$:exec @@<CR>`v
 
@@ -841,14 +849,13 @@ function! ExpandEnvironmentVariables(script)
 	endif
 
 	let script = a:script
-	let environmentvars = environ()
-	for [key, value] in items(environmentvars)
+	let environmentvars = sort(items(environ()), {a,b -> len(b) - len(a)})
+	for [key, value] in environmentvars
 		let var = '$'.key
 		if (stridx(script, var) == -1)
 			continue
 		endif
-		let value = substitute(value, '\\', '/', 'g')
-		let script = '"'.trim(substitute(script, var, value, 'g'), '"').'"'
+		let script = substitute(script, var, value, 'g')
 	endfor
 	return script
 endfunc
