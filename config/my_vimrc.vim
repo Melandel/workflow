@@ -808,8 +808,9 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 			let cmd = 'cmd /C '.script
 		else
 			let powershell = executable('pwsh') ? 'pwsh' : 'powershell'
+			let script = substitute(script, "'", "`'", 'g')
 			let script = substitute(script, '"', "'", 'g')
-			let cmd = powershell.' -NoLogo -NoProfile -NonInteractive -Command '.script
+			let cmd = powershell.' -NoLogo -NoProfile -NonInteractive -Command remove-item alias:curl; '.script
 		endif
 	endif
 	echomsg "<start> ".script[:100] | redraw
