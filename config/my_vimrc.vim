@@ -1671,6 +1671,9 @@ function! SaveInFolderAs(folder, ...)
 			\'plantuml_json':     '.puml_json'
 		\}, args.filetype,     '')
 	call Move(newpath)
+	if args.filetype == 'markdown' && getline(1) !~ '^#'
+		execute 'normal!' 'ggO# '.filename."\<CR>\<esc>:w\<CR>"
+	endif
 endfunc
 command! -nargs=? -complete=customlist,GetNoteFileTypes Note call SaveInFolderAs($notes, <q-args>)
 command! -nargs=? -complete=customlist,GetTmpFileTypes  Tmp  call SaveInFolderAs($tmp,   <q-args>)
