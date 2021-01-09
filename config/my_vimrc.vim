@@ -1,3 +1,4 @@
+echo 'hey :)'
 let g:isWindows = has('win32')
 let g:isWsl = isdirectory('/mnt/c/Windows')
 if !g:isWindows && !g:isWsl
@@ -19,7 +20,7 @@ let $templates = $HOME.'/Desktop/templates'          | let $T = $templates
 let $todo      = $HOME.'/Desktop/todo'
 let $wip       = $HOME.'/Desktop/wip.md'
 
-let $rc         = $HOME.'/Desktop/tools/vim/_vimrc'
+let $rc         = $HOME.'/Desktop/config/my_vimrc.vim'
 let $rcfolder   = $VIM
 let $rcfilename = '_vimrc'
 let $packpath   = $VIM
@@ -169,7 +170,7 @@ function! UpdateLocalCurrentDirectory()
 endfunction
 command! -bar Lcd call UpdateLocalCurrentDirectory()
 
-function UpdateEnvironmentLocationVariables()
+function! UpdateEnvironmentLocationVariables()
 	let csproj = GetNearestParentFolderContainingFile('*.csproj')
 	if csproj == ''
 		unlet $csproj
@@ -1117,69 +1118,6 @@ augroup my_fzf"------------------------{{{
 	autocmd FileType fzf tnoremap <buffer> <C-O> <C-T>
 augroup end
 
-function! Edit(lines)"-----------------{{{
-	if len(a:lines) < 2 | return | endif
-	let file_or_dir = a:lines[1]
-	if file_or_dir =~ '^projects/'
-		let g:last_opened_project = file_or_dir
-	endif
-	if file_or_dir =~ '^(current folder) '
-		let file_or_dir = expand('%:h:p')
-	elseif file_or_dir == 'tools'
-		let file_or_dir = isdirectory('tools') ? $desktop.'/tools' : '/usr/local/src'
-	elseif glob(file_or_dir) == ''
-		if glob($desktop.'/'.file_or_dir) != ''
-			let file_or_dir = $desktop.'/'.file_or_dir
-		elseif glob($HOME.'/'.file_or_dir) != ''
-			let file_or_dir = $HOME.'/'.file_or_dir
-		elseif glob($rcfolder.'/'.file_or_dir) != ''
-			let file_or_dir = $rcfolder.'/'.file_or_dir
-		elseif glob($packpath.'/pack/plugins/start/'.file_or_dir) != ''
-			let file_or_dir = $packpath.'/pack/plugins/start/'.file_or_dir
-		endif
-	endif
-	let cmd = isdirectory(file_or_dir) ?
-		\get({'ctrl-x': 'split | Dirvish',
-		     \'ctrl-j': 'split | Dirvish',
-		     \'ctrl-v': 'vertical split | Dirvish',
-		     \'ctrl-k': 'vertical split | Dirvish',
-							\'ctrl-t': 'tabe | Dirvish',
-							\'ctrl-o': 'tabe | Dirvish'}, a:lines[0], 'Dirvish') :
-		\get({'ctrl-x': 'split',
-		     \'ctrl-j': 'split',
-		     \'ctrl-v': 'vertical split',
-		     \'ctrl-k': 'vertical split',
-							\'ctrl-t': 'tabe',
-							\'ctrl-o': 'tabe'}, a:lines[0], 'e')
-	exec cmd file_or_dir
-endfunction
-
-function! Explore()
-	let original_lcd = getcwd()
-	let source = []
-	lcd $desktop
-	let source += expand('tmp/*',      0, 1)
-	let source += expand('notes/*',    0, 1)
-	let source += expand('snippets/*', 0, 1)
-	let source += expand('templates/*',0, 1)
-	let source += expand('setup/*',    0, 1)
-	if isdirectory('tools')
-		let source += expand('tools/*',    0, 1)
-	endif
-	let source += expand('projects/*', 0, 1)
-	call add(source, map(filter(keys(get(g:,'csprojs2sln',{})), {_,x->isdirectory(x)}), { _,x -> fnamemodify(x, ':.') }))
-	call add(source, map(filter(systemlist('git ls-files'), {_,x->x !~ 'my_vimrc.vim'}), { _,x -> fnamemodify(x, ':.') }))
-	lcd $packpath/pack/plugins/start
-	call add(source, [expand('*', 0, 1)])
-	let source = uniq(sort(flatten(source)))
-	let source = ['(current folder) '.expand('%:h:p'), $rcfilename] + (isdirectory($HOME.'/Desktop') ? ['Downloads', 'Desktop'] : []) + ['tmp', 'notes', 'snippets', 'templates', 'config', 'tools', 'projects'] + source
-	let source = map(source, { _,x -> substitute(x, '\', '/', 'g') })
-	exec 'lcd' original_lcd
-	call fzf#run(fzf#wrap({'source': source,'sink*': function('Edit'), 'options': ['--expect', 'ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b','--prompt', 'Explore> ']}))
-endfunction
-command! Explore call Explore()
-nnoremap <leader>e :Explore<CR>
-nnoremap <silent> <leader>E :edit $desktop/<C-R>=g:last_opened_project<CR><CR>
 nnoremap <leader>g :Commits<CR>
 nnoremap <leader>G :BCommits<CR>
 nnoremap q, :History<CR>
