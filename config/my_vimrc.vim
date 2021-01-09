@@ -801,7 +801,6 @@ cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory(
 function! RunCurrentlySelectedScriptInNewBufferAsync()
 	let script = GetCurrentlySelectedScriptOnOneLine()
 	let script = ExpandEnvironmentVariables(script)
-	echomsg 'script' script
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 	if g:isWindows
 		let len = len(script)
@@ -814,7 +813,7 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 			let cmd = powershell.' -NoLogo -NoProfile -NonInteractive -Command remove-item alias:curl; '.script
 		endif
 	endif
-	echomsg "<start> ".script[:100] | redraw
+	echomsg "<start> ".script | redraw
 	let s:job = job_start(
 		\cmd,
 		\{
