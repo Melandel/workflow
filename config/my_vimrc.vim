@@ -1591,7 +1591,7 @@ augroup end
 
 " Drafts (Diagrams & Notes)"-----------{{{
 function! SaveInFolderAs(folder, ...)
-	let args = ParseArgs(a:000, ['filetype', ''])
+	let args = ParseArgs(a:000, ['filetype', 'markdown'])
 	let filename = expand('%:t:r')
 	if filename == ''
 		let filename = PromptUserForFilename('File name:')
