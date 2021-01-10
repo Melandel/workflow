@@ -1603,13 +1603,14 @@ function! SaveInFolderAs(folder, ...)
 	call setbufvar(bufnr(), '&ft', args.filetype)
 	let newpath = a:folder.'/'.filename.get({
 			\'markdown':          '.md',
+			\'plaintext':         '',
 			\'plantuml_mindmap':  '.puml_mindmap',
 			\'plantuml_activity': '.puml_activity',
 			\'plantuml_sequence': '.puml_sequence',
 			\'plantuml_json':     '.puml_json'
-		\}, args.filetype,     '')
+		\}, args.filetype,     '.md')
 	call Move(newpath)
-	if args.filetype == 'markdown' && getline(1) !~ '^#'
+	if fnamemodify(newpath, ':t:e') == 'md' && getline(1) !~ '^#'
 		execute 'normal!' 'ggO# '.filename."\<CR>\<esc>:w\<CR>"
 	endif
 endfunc
