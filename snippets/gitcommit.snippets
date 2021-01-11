@@ -1,116 +1,174 @@
-snippet build "Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)"
-build(${1:scope}): ${2:subject}
+snippet feat "Commit message: Feature commit" b
+feat${2:(${3:scope})}${4:[BREAKING CHANGE]}: ${5:subject}${6: (#${7:123})}
 
-${3:body}
-
-BREAKING CHANGE: ${4:isolate scope bindings definition has changed and
-	the inject option for the directive controller injection was removed.
-	
-	To migrate the code follow the example below:
-	
-	Before:
-	
-	scope: {
-	  myAttr: 'attribute',
-	  myBind: 'bind',
-	  myExpression: 'expression',
-	  myEval: 'evaluate',
-	  myAccessor: 'accessor'
-	}
-	
-	After:
-	
-	scope: {
-	  myAttr: '@',
-	  myBind: '@',
-	  myExpression: '&',
-	  // myEval - usually not useful, but in cases where the expression is assignable, you can use '='
-	  myAccessor: '=' // in directive's template change myAccessor() to myAccessor
-	}
-	
-	The removed \`inject\` wasn't generaly useful for directives so there should be no code using it.
+${8:BREAKING CHANGE: ${9:stuff is not available on version X/Contract changed from A to B}
 }
-Closes #${5:1234}
+Given ${10:context}
+When ${11:context}
+The system ${12:context}
+
+In order to ${13:business value}
+${14:someone} wants ${15:new behavior}
+
+The chosen implementation should
+* ${16:have value or guarantee property 1}
+* ${17:have value or guarantee property 2}
+
+The following options were considered:
+* Option 1: ${18:Do things this way}
+* Option 2: ${19:Do things that way}
+
+We decided to go with Option ${20:1} because:
+* ${21:reasons}
+* ${22:more reasons}
+* ${23:and more reasons}
+${24:
+The ${25:ticket} \`${26:#456}\` was created and prioritized in order to refund the resulting technical debt.}
+${27:
+Pros, cons and unknowns of the Options:
+* Option 1: $18
+	* ✅ $0
+	* 🚫 
+	* 🤷 
+* Option 2: $19
+	* ✅ 
+	* 🚫 
+	* 🤷 }
 endsnippet
 
+snippet fix "Commit message: Bug fix commit" b
+fix${2:(${3:scope})}${4:[BREAKING CHANGE]}: ${5:subject}${6: (#${7:123})}
 
-snippet ci "Changes to our CI configuration files and scripts (example scopes: Circle, BrowserStack, SauceLabs)"
-ci(${1:scope}): ${2:subject}
-
-${3:body:body}
-
-${4:BREAKING CHANGE:
+${8:BREAKING CHANGE: ${9:stuff is not available on version X/Contract changed from A to B}
 }
-Closes #${5:1234}
+Given ${10:context}
+${10:When ${11:context}}
+The system ${12:context}
+
+In that context, it was noticed that
+${13:environment/temporality/trigger},
+* ${14:Something does something}
+* which leads to ${15:Something doing something}
+* which leads to ${16:Something else doing something}
+* which leads to ${17:observable consequence}
+* which is ${18:a poor experience for the user}
+
+The chosen fix should
+* ${17:have value or guarantee property 1}
+* ${18:have value or guarantee property 2}
+
+The following options were considered:
+* Option 1: ${19:Do things this way}
+* Option 2: ${20:Do things that way}
+
+We decided to go with Option ${21:1} because:
+* ${22:reasons}
+* ${23:more reasons}
+* ${24:and more reasons}
+${25:
+The ${26:ticket} \`${27:#456}\` was created and prioritized in order to refund the resulting technical debt.}
+${28:
+Pros, cons and unknowns of the Options:
+* Option 1: $18
+	* ✅ $0
+	* 🚫 
+	* 🤷 
+* Option 2: $19
+	* ✅ 
+	* 🚫 
+	* 🤷 }
 endsnippet
 
-snippet docs "Documentation only changes"
-docs(${1:scope}): ${2:subject}
+snippet perf "Commit message: Performance commit" b
+perf${2:(${3:scope})}${4:[BREAKING CHANGE]}: ${5:subject}${6: (#${7:123})}
 
-${3:body:body}
-
-${4:BREAKING CHANGE:
+${8:BREAKING CHANGE: ${9:stuff is not available on version X/Contract changed from A to B}
 }
-Closes #${5:1234}
+Given ${10:context}
+When ${11:context}
+The system ${12:context}
 endsnippet
 
-snippet feat "A new feature"
-feat(${1:scope}): ${2:subject}
+snippet refactor "Commit message: Refactoring commit" b
+refactor${2:(${3:scope})}${4:[BREAKING CHANGE]}: ${5:subject}${6: (#${7:123})}
 
-${3:body:body}
-
-${4:BREAKING CHANGE:
+${8:BREAKING CHANGE: ${9:stuff is not available on version X/Contract changed from A to B}
 }
-Closes #${5:1234}
+Given ${10:context}
+When ${11:context}
+The system ${12:context}
 endsnippet
 
-snippet fix "A bug fix"
-fix(${1:scope}): ${2:subject}
+snippet test "Commit message: Test commit" b
+test${2:(${3:scope})}${4:[BREAKING CHANGE]}: ${5:subject}${6: (#${7:123})}
 
-${3:body:body}
-
-${4:BREAKING CHANGE:
+${8:BREAKING CHANGE: ${9:stuff is not available on version X/Contract changed from A to B}
 }
-Closes #${5:1234}
+Given ${10:context}
+When ${11:context}
+The system ${12:context}
+
+To this date,
+The system ${13:uses this and that mechanisms/does this and that}
+And demonstrates the following performances:
+* ${14:numbers}
+* ${15:more numbers}
+* ${16:and more numbers}
+
+The following options were considered:
+* Option 1: ${19:Do things this way}
+* Option 2: ${20:Do things that way}
+
+We decided to go with Option ${21:1} because:
+* ${22:reasons}
+* ${23:more reasons}
+* ${24:and more reasons}
+
+Here are the resulting performances, at the time of writing:
+* 
+* 
+* 
+
+${25:
+The ${26:ticket} \`${27:#456}\` was created and prioritized in order to refund the resulting technical debt.}
+${28:
+Pros, cons and unknowns of the Options:
+* Option 1: $18
+	* ✅ $0
+	* 🚫 
+	* 🤷 
+* Option 2: $19
+	* ✅ 
+	* 🚫 
+	* 🤷 }
 endsnippet
 
-snippet perf "A code change that improves performance"
-perf(${1:scope}): ${2:subject}
+snippet build "Commit message: Build commit" b
+build${2:(${3:scope})}${4:[BREAKING CHANGE]}: ${5:subject}${6: (#${7:123})}
 
-${3:body:body}
-
-${4:BREAKING CHANGE:
+${8:BREAKING CHANGE: ${9:stuff is not available on version X/Contract changed from A to B}
 }
-Closes #${5:1234}
+Given ${10:context}
+When ${11:context}
+The system ${12:context}
 endsnippet
 
-snippet refactor "A code change that neither fixes a bug nor adds a feature"
-refactor(${1:scope}): ${2:subject}
+snippet ci "Commit message: Continuous Integration commit" b
+ci${2:(${3:scope})}${4:[BREAKING CHANGE]}: ${5:subject}${6: (#${7:123})}
 
-${3:body:body}
-
-${4:BREAKING CHANGE:
+${8:BREAKING CHANGE: ${9:stuff is not available on version X/Contract changed from A to B}
 }
-Closes #${5:1234}
+Given ${10:context}
+When ${11:context}
+The system ${12:context}
 endsnippet
 
-snippet style "Changes that do not affect the meaningo of the code (white-space, formatting, missing semi-colons, etc)"
-style(${1:scope}): ${2:subject}
+snippet docs "Commit message: Documentation commit" b
+docs${2:(${3:scope})}${4:[BREAKING CHANGE]}: ${5:subject}${6: (#${7:123})}
 
-${3:body:body}
-
-${4:BREAKING CHANGE:
+${8:BREAKING CHANGE: ${9:stuff is not available on version X/Contract changed from A to B}
 }
-Closes #${5:1234}
+Given ${10:context}
+When ${11:context}
+The system ${12:context}
 endsnippet
-
-snippet test "Adding missing tests or correcting existing tests"
-test(${1:scope}): ${2:subject}
-
-${3:body:body}
-
-${4:BREAKING CHANGE:
-}
-Closes #${5:1234}
-endsnippet
-

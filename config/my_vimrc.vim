@@ -1,4 +1,3 @@
-echo 'hey :)'
 let g:isWindows = has('win32')
 let g:isWsl = isdirectory('/mnt/c/Windows')
 if !g:isWindows && !g:isWsl
@@ -103,6 +102,13 @@ set history=200
 set mouse=r
 " GVim specific
 if has("gui_running")
+	augroup markdownrendering
+		au!
+		autocmd FileType fzf  set renderoptions=
+		autocmd BufEnter *    if &buftype == 'terminal' | set renderoptions= | endif
+		autocmd BufLeave *    if len(&renderoptions) == 0 | set renderoptions=type:directx,level:0.75,gamma:1.25,contrast:0.25,geom:1,renmode:5,taamode:1 | endif
+	augroup end
+	set renderoptions=type:directx,level:0.75,gamma:1.25,contrast:0.25,geom:1,renmode:5,taamode:1
 	set guioptions-=m  "menu bar
 	set guioptions-=T  "toolbar
 	set guioptions-=t  "toolbar
@@ -1548,18 +1554,48 @@ augroup end
 
 " Dashboard" --------------------------{{{
 function! OpenDashboard()
+	let cwd = getcwd()
 	silent tab G
 	-tabmove
 	normal gu
 	silent exec winheight(0)/4.'new'
-		exec 'edit' $desktop.'/wip.md'
-	silent exec winwidth(0)*1/3.'vnew'
 		exec 'edit' $desktop.'/todo'
+	silent exec winwidth(0)*2/3.'vnew'
+		let bufnr = bufnr()
+		silent! bdelete git\ --no-pager\ log
+		let buf = term_start('git --no-pager log', {'curwin':1, 'cwd':cwd, 'close_cb': {_ -> execute('let t = timer_start(100, function(''OnGitLogExit'', ['.bufnr.']))', '')}})
 	1wincmd w
 	redraw | echo 'You are doing great <3'
 endfunction
 command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
+
+function! OnGitLogExit(bufnr,...)
+	call setbufvar(a:bufnr, '&modifiable', 0)
+	call setbufvar(a:bufnr, '&buftype', 'nofile')
+	call setbufvar(a:bufnr, '&wrap', 0)
+	let winid = bufwinid(a:bufnr)
+	call win_execute(winid, ['call setpos(".", [0, 1, 1, 1])', 'redraw'])
+endfunc
+
+function! GetCommitTypesExceptBugs(findstart, base)
+	if a:findstart
+		return col('.')
+	endif
+	if line('.') == 1 && col('.') == 1
+		return [
+			\{ 'word': 'build',    'menu': 'Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)' },
+			\{ 'word': 'ci',       'menu': 'Changes to our CI configuration files and scripts (example scopes: Circle, BrowserStack, SauceLabs)' },
+			\{ 'word': 'docs',     'menu': 'Documentation only changes' },
+			\{ 'word': 'feat',     'menu': 'A new feature' },
+			\{ 'word': 'fix',      'menu': 'A bug fix' },
+			\{ 'word': 'perf',     'menu': 'A code change that improves performance' },
+			\{ 'word': 'refactor', 'menu': 'A code change that neither fixes a bug nor adds a feature' },
+			\{ 'word': 'test',     'menu': 'Adding missing tests or correcting existing tests' }
+		\]
+	endif
+	return []
+endfunc
 
 augroup dashboard
 	au!
@@ -1573,6 +1609,8 @@ augroup dashboard
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>n gt
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>p gT
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>o :only<CR>
+	autocmd FileType gitcommit    set omnifunc=GetCommitTypesExceptBugs
+	autocmd FileType gitcommit    set textwidth=0
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
 	autocmd BufEnter     todo,wip.md set buftype=nofile nowrap
@@ -2089,4 +2127,3 @@ augroup runprojects
 	au!
 	autocmd FileType json,xml call SynchronizeDuplicatedConfigFile()
 augroup end
-
