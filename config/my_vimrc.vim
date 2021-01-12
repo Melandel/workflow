@@ -8,14 +8,14 @@ endif
 if g:isWindows
 let $config    = $HOME.'/Desktop/config'
 let $desktop   = $HOME.'/Desktop'                    | let $d = $desktop
-let $downloads = $HOME.'/Downloads'                  | let $D = $HOME.'/Downloads'
+let $downloads = $HOME.'/Downloads'
 let $notes     = $HOME.'/Desktop/notes'              | let $n = $notes
 let $projects  = $HOME.'/Desktop/projects'           | let $p = $projects
 let $rest      = $HOME.'/Desktop/templates/rest'
 let $snippets  = $HOME.'/Desktop/templates/snippets'
 let $startups  = $HOME.'/Desktop/startups'
 let $tmp       = $HOME.'/Desktop/tmp'                | let $t = $tmp
-let $templates = $HOME.'/Desktop/templates'          | let $T = $templates
+let $templates = $HOME.'/Desktop/templates'
 let $todo      = $HOME.'/Desktop/todo'
 let $wip       = $HOME.'/Desktop/wip.md'
 
