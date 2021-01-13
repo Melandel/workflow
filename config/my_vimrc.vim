@@ -178,11 +178,7 @@ command! -bar Lcd call UpdateLocalCurrentDirectory()
 
 function! UpdateEnvironmentLocationVariables()
 	let csproj = GetNearestParentFolderContainingFile('*.csproj')
-	if csproj == ''
-		unlet $csproj
-		unlet $sln
-		unlet $bin
-	else
+	if csproj != ''
 		let $csproj = csproj
 		let $bin = glob('%:h/**/bin/Debug')
 		let sln = GetNearestParentFolderContainingFile('*.sln')
@@ -190,15 +186,11 @@ function! UpdateEnvironmentLocationVariables()
 			let $sln = sln
 		elseif has_key(g:, 'csprojs2sln') && has_key(g:csprojs2sln, csprojdir)
 			let sln = g:csprojs2sln[csproj]
-		else
-			unlet $sln
 		endif
 	endif
 	let gitfolder = gitbranch#dir(expand('%:p'))
 	if gitfolder != ''
 		let $git = fnamemodify(gitfolder, ':h')
-	else
-		unlet $git
 	endif
 endfunc
 
