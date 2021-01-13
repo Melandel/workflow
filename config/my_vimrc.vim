@@ -960,51 +960,27 @@ endfunction
 command! -range=% SortByLength <line1>,<line2>call SortLinesByLength()
 
 " Autocompletion (Insert Mode)" -------{{{
+set updatetime=250
 set completeopt+=menuone,noselect,noinsert
+
+function! AsyncAutocomplete()
+	if PreviousCharacter() =~ '\w'
+		call feedkeys("\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>"), 't')
+	endif
+endfunction
+command! AsyncAutocomplete call AsyncAutocomplete()
+
+augroup autocompletion
+	au!
+	autocmd CursorHoldI * AsyncAutocomplete
+	autocmd User UltiSnipsEnterFirstSnippet mark '
+augroup end
+
 let g:UltiSnipsExpandTrigger = "<nop>"
 let g:UltiSnipsJumpForwardTrigger="<nop>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 let g:UltiSnipsEditSplit="horizontal"
 
-function! AsyncCompletion()
-	return pumvisible() ? '' : ForceAsyncCompletion()
-endfunction
-
-function! ForceAsyncCompletion()
-	return "\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>")
-endfunction
-
-	inoremap <expr> a 'a'.AsyncCompletion()
-	inoremap <expr> b 'b'.AsyncCompletion()
-	inoremap <expr> c 'c'.AsyncCompletion()
-	inoremap <expr> d 'd'.AsyncCompletion()
-	inoremap <expr> e 'e'.AsyncCompletion()
-	inoremap <expr> f 'f'.AsyncCompletion()
-	inoremap <expr> g 'g'.AsyncCompletion()
-	inoremap <expr> h 'h'.AsyncCompletion()
-	inoremap <expr> i 'i'.AsyncCompletion()
-	inoremap <expr> j 'j'.AsyncCompletion()
-	inoremap <expr> k 'k'.AsyncCompletion()
-	inoremap <expr> l 'l'.AsyncCompletion()
-	inoremap <expr> m 'm'.AsyncCompletion()
-	inoremap <expr> n 'n'.AsyncCompletion()
-	inoremap <expr> o 'o'.AsyncCompletion()
-	inoremap <expr> p 'p'.AsyncCompletion()
-	inoremap <expr> q 'q'.AsyncCompletion()
-	inoremap <expr> r 'r'.AsyncCompletion()
-	inoremap <expr> s 's'.AsyncCompletion()
-	inoremap <expr> t 't'.AsyncCompletion()
-	inoremap <expr> u 'u'.AsyncCompletion()
-	inoremap <expr> v 'v'.AsyncCompletion()
-	inoremap <expr> w 'w'.AsyncCompletion()
-	inoremap <expr> x 'x'.AsyncCompletion()
-	inoremap <expr> y 'y'.AsyncCompletion()
-	inoremap <expr> z 'z'.AsyncCompletion()
-augroup autocompletion
-	au!
-	autocmd User UltiSnipsEnterFirstSnippet mark '
-	autocmd FileType cs inoremap <expr> . '.'.ForceAsyncCompletion()
-augroup end
 
 inoremap <C-I> <C-R>=ExpandSnippetOrValidateAutocompletionSelection()<CR>
 xnoremap <C-I> :call UltiSnips#SaveLastVisualSelection()<cr>gvs
