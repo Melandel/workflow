@@ -358,7 +358,7 @@ function! JobStartExample(...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echo ''[cb] '.substitute(msg,"'","''","g").'''',  1)},
+			\'callback': { chan,msg  -> execute('echo ''[cb] '.substitute(msg[:&columns-8],"'","''","g").'''',  1)},
 			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)},
 			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'" | botright sbuffer '.scratchbufnr, '')}
 		\}
@@ -1868,7 +1868,7 @@ function! StartCSharpBuild(sln_or_dir)
 	let folder = isdirectory(a:sln_or_dir) ? a:sln_or_dir : fnamemodify(a:sln_or_dir, ':h:p')
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
-	let cmd = '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe"'
+	let cmd = GetCompilerFor(folder)
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
@@ -2066,6 +2066,19 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 \ '\<AssemblyInfo\.cs\>'
 \]
 
+if GetCompilerFor('') != ''
+	command! -nargs=* -complete=customlist,GetBuildableFiles Build exec 'Start' GetBuildCmdLine(<q-args>)
+endif
+
+function! GetBuildCmdLine(path)
+	return GetCompilerFor(a:path).' '.a:path
+endfunc
+
+function! GetBuildableFiles(argLead, cmdLine, cursorPos)
+	return glob('**/*.sln', 0, 1) + [fnamemodify(GetCsproj(), ':.')]
+endfunc
+
+
 for file in expand('$desktop/startups/*.bat', 1, 1)
 	let filename = fnamemodify(file, ':t:r')
 	let filename = toupper(filename[0]).filename[1:]
@@ -2095,3 +2108,7 @@ augroup runprojects
 	au!
 	autocmd FileType json,xml call SynchronizeDuplicatedConfigFile()
 augroup end
+
+if glob($config.'my_vimworkenv.vim') != ''
+	source $config.'my_vimworkenv.vim'
+endif
