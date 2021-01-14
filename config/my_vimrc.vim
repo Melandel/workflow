@@ -542,7 +542,7 @@ function! NewWindow(isVertical)
 			wincmd j
 		endif
 	endif
-	set bufhidden=hide buftype=nofile buflisted nolist nowrap
+	set bufhidden=hide buftype=nofile buflisted nowrap
 	let w:buffers = bufferHistory + [bufnr()]
 endfunc
 
