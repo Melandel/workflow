@@ -1305,9 +1305,10 @@ function! OpenTreeView(path, flags, where)
 endfunc
 
 function! EditFilesystemTree(path, flags)
+	let path = glob(a:path)
 	set buftype=nofile nowrap ft=tree
 	set conceallevel=3 concealcursor=n | syn match Todo /\v(\a|\:|\\|\/|\.)*(\/|\\)/ conceal
-	exec 'silent 0read !'.BuildTreeCommand(a:path, a:flags)
+	exec 'silent 0read !'.BuildTreeCommand(path, a:flags)
 	silent %s,\\,/,ge
 	normal gg
 	nnoremap <buffer> yy :let p = match(getline('.'), '\a\\|\d')<CR>:exec 'normal!' (p+1).'\|'<CR>y$
