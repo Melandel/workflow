@@ -2067,18 +2067,6 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 \ '\<AssemblyInfo\.cs\>'
 \]
 
-if GetCompilerFor('') != ''
-	command! -nargs=* -complete=customlist,GetBuildableFiles Build exec 'Start' GetBuildCmdLine(<q-args>)
-endif
-
-function! GetBuildCmdLine(path)
-	return GetCompilerFor(a:path).' '.a:path
-endfunc
-
-function! GetBuildableFiles(argLead, cmdLine, cursorPos)
-	return glob('**/*.sln', 0, 1) + [fnamemodify(GetCsproj(), ':.')]
-endfunc
-
 
 for file in expand('$desktop/startups/*.bat', 1, 1)
 	let filename = fnamemodify(file, ':t:r')
@@ -2110,6 +2098,18 @@ augroup runprojects
 	autocmd FileType json,xml call SynchronizeDuplicatedConfigFile()
 augroup end
 
-if glob($config.'my_vimworkenv.vim') != ''
-	source $config.'my_vimworkenv.vim'
+if !empty(glob($config.'/my_vimworkenv.vim'))
+	source $config/my_vimworkenv.vim
+	if GetCompilerFor('') != ''
+		command! -nargs=* -complete=customlist,GetBuildableFiles Build exec 'Start' GetBuildCmdLine(<q-args>)
+	endif
+
+	function! GetBuildCmdLine(path)
+		return GetCompilerFor(a:path).' '.a:path
+	endfunc
+
+	function! GetBuildableFiles(argLead, cmdLine, cursorPos)
+		return glob('**/*.sln', 0, 1) + [fnamemodify(GetCsproj(), ':.')]
+	endfunc
 endif
+
