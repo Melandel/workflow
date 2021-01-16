@@ -1870,6 +1870,7 @@ function! StartCSharpBuild(sln_or_dir)
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
 	let cmd = 'dotnet build /p:GenerateFullPaths=true /clp:NoSummary'
 	let cmd = GetCompilerFor(folder)
+	echomsg "<start> ".cmd
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
