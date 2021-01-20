@@ -102,7 +102,7 @@ set history=200
 set mouse=r
 " GVim specific
 if has("gui_running")
-	augroup markdownrendering
+	augroup emojirendering
 		au!
 		autocmd FileType fzf  set renderoptions=
 		autocmd BufEnter *    if &buftype == 'terminal' | set renderoptions= | endif
@@ -1547,7 +1547,7 @@ function! OnGitLogExit(bufnr,...)
 	call win_execute(winid, ['call setpos(".", [0, 1, 1, 1])', 'redraw'])
 endfunc
 
-function! GetCommitTypesExceptBugs(findstart, base)
+function! GetCommitTypes(findstart, base)
 	if a:findstart
 		return col('.')
 	endif
@@ -1570,7 +1570,6 @@ augroup dashboard
 	au!
 	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>m :Git push --force-with-lease<CR>
 	autocmd FileType fugitive     nmap <silent> <buffer> <space> =
-	autocmd FileType fugitive     nmap <silent> <buffer> <leader>s s
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>l <C-W>l
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>h <C-W>h
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>j <C-W>j
@@ -1578,7 +1577,7 @@ augroup dashboard
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>n gt
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>p gT
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>o :only<CR>
-	autocmd FileType gitcommit    set omnifunc=GetCommitTypesExceptBugs
+	autocmd FileType gitcommit    set omnifunc=GetCommitTypes
 	autocmd FileType gitcommit    set textwidth=0
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
@@ -1679,6 +1678,27 @@ function! CompileDiagramAndShowImage(outputExtension, ...)
 	\)
 endfunction
 
+function! RenderMarkdownFile()
+	write
+	let inputfile =expand('%:p')
+	if (FileContainsPlantumlSnippets())
+		let inputfile = CreateFileWithRenderedSvgs()
+	endif
+	let inputfile = substitute(inputfile, '/', '\\', 'g')
+	exec 'Firefox' inputfile
+endfunc
+command! RenderMarkdownFile call RenderMarkdownFile()
+augroup markdown
+	au!
+	autocmd FileType markdown nnoremap <buffer> <leader>w :RenderMarkdownFile<CR>
+augroup END
+
+
+function! FileContainsPlantumlSnippets()
+	let file = join(getline(1,'$'))
+	return stridx(file, '```puml_') != -1
+endfunc
+
 function! GetPlantumlConfigFile(fileext)
 	let configfilebyft = #{
 		\puml_activity:      'styles',
@@ -1694,8 +1714,63 @@ function! GetPlantumlConfigFile(fileext)
 	\}
 	return $desktop.'/config/my_plantuml_'.configfilebyft[a:fileext].'.config'
 endfunction
-command! -nargs=* -bar CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
 
+function! CreateFileWithRenderedSvgs()
+	let inputfile = expand('%:p')
+	let inputfolder = fnamemodify(inputfile, ':h')
+	let newinputfile = fnamemodify(inputfile, ':h').'/'.fnamemodify(inputfile, ':t:r').'.withsvgs.'.fnamemodify(inputfile, ':t:e')
+	let lines = getline(1, '$')
+	let start = '^\s*```puml'
+	let stop = '^\s*```'
+	let delimiter = start
+	let lastStart = 0
+	let lastStop = -2
+	let nbBlocksDetected =0
+	let textSplits = []
+	for i in range(len(lines))
+		let line = lines[i]
+		if line =~ delimiter
+			if delimiter == start
+				let textSplits += lines[lastStop+2:i-1]
+				let lastStart = i
+			else
+				let nbBlocksDetected += 1
+				let diagram =lines[lastStart+1:i-1]
+				let diagramtype = split(lines[lastStart], '_')[-1]
+				let pumlDelimiter = GetPlantumlDelimiter(diagramtype)
+				let diagramext = 'puml_'.diagramtype
+				let pumlpath = printf('%s/%s.%s', $tmp, nbBlocksDetected, diagramext)
+				call delete(pumlpath)
+					if diagram[0] !~ '\s*@'
+						let diagram = ['@start'.pumlDelimiter] + lines[lastStart+1:i-1] + ['@end'.pumlDelimiter]
+					endif
+				call writefile(diagram,pumlpath)
+				let svg = system('bat --style=plain '.pumlpath.' | plantuml -tsvg -charset UTF-8 -pipe -config "'.GetPlantumlConfigFile(diagramext).'"')
+				let svg = substitute(svg, ' style="', ' style="padding:8px;', '')
+				call add(textSplits, svg)
+				let lastStop = i
+			endif
+			let delimiter = (delimiter == start) ? stop : start
+		endif
+	endfor
+	let textSplits += lines[lastStop+2:]
+	call writefile(textSplits, newinputfile)
+	return newinputfile
+endfunc
+
+function! GetPlantumlDelimiter(plantuml_type)
+	if a:plantuml_type == 'mindmap'
+		return 'mindmap'
+	elseif a:plantuml_type == 'json' 
+		return 'json'
+	elseif a:plantuml_type == 'workbreakdown' 
+		return 'wbs'
+	else
+		return 'uml'
+	endif
+endfunc
+
+command! -nargs=* -bar CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
 
 augroup mydiagrams
 	autocmd!
@@ -2113,4 +2188,3 @@ if !empty(glob($config.'/my_vimworkenv.vim'))
 		return glob('**/*.sln', 0, 1) + [fnamemodify(GetCsproj(), ':.')]
 	endfunc
 endif
-
