@@ -1532,7 +1532,7 @@ function! OpenDashboard()
 	silent exec winwidth(0)*2/3.'vnew'
 		let bufnr = bufnr()
 		silent! bdelete git\ --no-pager\ log
-		let buf = term_start('git --no-pager log', {'curwin':1, 'cwd':cwd, 'close_cb': {_ -> execute('let t = timer_start(100, function(''OnGitLogExit'', ['.bufnr.']))', '')}})
+		let buf = term_start('git --no-pager log -15', {'curwin':1, 'cwd':cwd, 'close_cb': {_ -> execute('let t = timer_start(100, function(''OnGitLogExit'', ['.bufnr.']))', '')}})
 	1wincmd w
 	redraw | echo 'You are doing great <3'
 endfunction
@@ -1540,7 +1540,7 @@ command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
 
 function! OnGitLogExit(bufnr,...)
-	call setbufvar(a:bufnr, '&modifiable', 0)
+	call setbufvar(a:bufnr, '&modifiable', 1)
 	call setbufvar(a:bufnr, '&buftype', 'nofile')
 	call setbufvar(a:bufnr, '&wrap', 0)
 	let winid = bufwinid(a:bufnr)
@@ -1970,11 +1970,11 @@ function! StartCSharpBuild(sln_or_dir)
 endfunction
 
 function! StartCSharpBuildExitCb(workingdir, scratchbufnr, job, status)
-	if a:status
+	if a:status || !empty(filter(copy(getbufline(a:scratchbufnr, '1', '$')), {_,x -> stridx(x, ' error ') > -1}))
 		echomsg 'Compilation failed.'
 		set errorformat=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
-		set errorformat+=MSBUILD\ :\ error\ %*\\a%n:\ %m
-		set errorformat+=%f\ :\ error\ %*\\a%n::\ %m\ [%.%#
+		set errorformat+=%f\ :\ error\ %*\\a%n:\ %m\ [%.%#
+		set errorformat+=%.%#error\ %*\\a%n:\ %m
 		set errorformat+=%-G%.%#
 		exec 'cgetbuffer' a:scratchbufnr
 	else
@@ -2009,7 +2009,9 @@ endfunction
 function! Commit(scratchbufnr, job, status)
 	if a:status
 		echomsg 'Tests failed.'
-		set errorformat=%A\ %#Failed\ %.%#
+		set errorformat=%f\ :\ error\ %*\\a%l:\ %m
+		set errorformat+=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
+		set errorformat+=%A\ %#Failed\ %.%#
 		set errorformat+=%Z\ %#Failed\ %.%#
 		set errorformat+=%-C\ %#Stack\ Trace:
 		set errorformat+=%-C\ %#at%.%#\ in\ %.%#ValidationResultExtention.cs%.%#
