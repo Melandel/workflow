@@ -95,16 +95,13 @@ endsnippet
 snippet cols "columns" b
 <div style="display: flex"><div style="flex: ${1:50}%; max-width: $1%;">
 
-${2:####} ${3:Column title 1}
-
-$5
+${2:####} ${3:Request}
+${VISUAL}
 </div><div style="flex: $1%; max-width: $1%;">
 
-$2 ${4:Column title 2}
-
-$6
-</div></div>
+$2 ${4:Response}
 $0
+</div></div>
 endsnippet
 
 snippet blog "blog post" b
@@ -282,6 +279,10 @@ $1# Request
 \`\`\`
 $0curl.exe -X POST "$api/endpoint"
 --verbose --silent
+-H "Authorization: Bearer $token"
+--header "Content-Type: application/json"
+--data-raw "{'key': 'value' }"
+
 \`\`\`
 </div><div style="flex: 50%; max-width: 50%;">
 
