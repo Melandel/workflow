@@ -848,7 +848,7 @@ function! ExpandEnvironmentVariables(script)
 	endif
 
 	let script = a:script
-	let environmentvars = sort(items(environ()), {a,b -> len(b) - len(a)})
+	let environmentvars = sort(items(environ()), {a,b -> len(b[0]) - len(a[0])})
 	for [key, value] in environmentvars
 		let var = '$'.key
 		if (stridx(script, var) == -1)
