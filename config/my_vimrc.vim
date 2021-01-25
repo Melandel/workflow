@@ -1596,6 +1596,8 @@ augroup end
 
 
 " Drafts (Diagrams & Notes)"-----------{{{
+nnoremap <silent> <leader>e :edit $notes<CR>
+nnoremap <silent> <leader>E :tabedit $notes<CR>
 function! SaveInFolderAs(folder, ...)
 	let args = ParseArgs(a:000, ['filetype', 'markdown'])
 	let filename = expand('%:t:r')
