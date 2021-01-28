@@ -18,6 +18,7 @@ let $tmp       = $HOME.'/Desktop/tmp'                | let $t = $tmp
 let $templates = $HOME.'/Desktop/templates'
 let $todo      = $HOME.'/Desktop/todo'
 let $wip       = $HOME.'/Desktop/wip.md'
+let $scripts   = $HOME.'/Desktop/scripts'            | let $s = $scripts
 
 let $rc         = $HOME.'/Desktop/config/my_vimrc.vim'
 let $rcfolder   = $VIM
@@ -896,7 +897,7 @@ set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-
 set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :Files<CR>
-nnoremap <Leader>F :GFiles?<CR>
+nnoremap <leader>F :Files $git<CR>
 nnoremap <Leader>r :Rg <C-R><C-W><CR>
 vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <Leader>R :Rg 
@@ -1091,7 +1092,7 @@ augroup my_fzf"------------------------{{{
 	autocmd FileType fzf tnoremap <buffer> <C-O> <C-T>
 augroup end
 
-nnoremap <leader>g :Commits<CR>
+nnoremap <Leader>g :GFiles?<CR>
 nnoremap <leader>G :BCommits<CR>
 nnoremap q, :History<CR>
 nnoremap q; :Buffers<CR>
