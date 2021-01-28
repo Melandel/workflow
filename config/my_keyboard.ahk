@@ -53,9 +53,9 @@ CapsLock & q::Send {esc}
 CapsLock & r::Send ^r
 CapsLock & s::Send ^s
 CapsLock & t::Send ^t
-CapsLock & u::Send +{Home}{Backspace}
+CapsLock & u::Send ^+{Home}{Backspace}
 #If (WinActive("GVIM") || WinActive("Ubuntu") || WinActive("melandel@"))
-CapsLock & u::Send ^w
+CapsLock & u::Send ^u
 #If
 CapsLock & v::Send ^v
 CapsLock & w:: Send ^+{Left}{Backspace}
