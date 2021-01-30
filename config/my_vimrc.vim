@@ -100,6 +100,7 @@ set undodir=$desktop/tmp/vim
 set viewdir=$desktop/tmp/vim
 set history=200
 set mouse=r
+set nomore
 " GVim specific
 if has("gui_running")
 	augroup emojirendering
