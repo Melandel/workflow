@@ -1593,8 +1593,6 @@ augroup dashboard
 	autocmd BufWritePost todo,ideas,wip.md redraw | echo 'Nice :)'
 	autocmd BufEnter     todo,ideas,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
 	autocmd TextChanged  todo,ideas,wip.md set buftype= | silent write!
-	autocmd BufEnter                wip.md nnoremap <buffer> z! :BLines ^### \a<CR>
-	autocmd BufEnter                wip.md nnoremap <buffer> Z! :BLines ^#<CR>
 	autocmd BufEnter                wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 augroup end
 
@@ -1697,6 +1695,8 @@ command! RenderMarkdownFile call RenderMarkdownFile()
 augroup markdown
 	au!
 	autocmd FileType markdown nnoremap <buffer> <leader>w :RenderMarkdownFile<CR>
+	autocmd FileType markdown nnoremap <buffer> z! :BLines ^##<CR>
+	autocmd FileType markdown nnoremap <buffer> Z! :BLines [<CR>
 augroup END
 
 
