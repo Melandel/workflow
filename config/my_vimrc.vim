@@ -13,7 +13,6 @@ let $notes     = $HOME.'/Desktop/notes'              | let $n = $notes
 let $projects  = $HOME.'/Desktop/projects'           | let $p = $projects
 let $rest      = $HOME.'/Desktop/templates/rest'
 let $snippets  = $HOME.'/Desktop/templates/snippets'
-let $startups  = $HOME.'/Desktop/startups'
 let $tmp       = $HOME.'/Desktop/tmp'                | let $t = $tmp
 let $templates = $HOME.'/Desktop/templates'
 let $todo      = $HOME.'/Desktop/todo'
@@ -893,7 +892,7 @@ augroup vimsourcing
 augroup end
 
 " Find, Grep, Make, Equal" ------------{{{
-set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-column\ \"$*\"
+set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-column\ 
 set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :Files<CR>
@@ -1534,6 +1533,8 @@ function! OpenDashboard()
 		let bufnr = bufnr()
 		silent! bdelete git\ --no-pager\ log
 		let buf = term_start('git --no-pager log -15', {'curwin':1, 'cwd':cwd, 'close_cb': {_ -> execute('let t = timer_start(100, function(''OnGitLogExit'', ['.bufnr.']))', '')}})
+	wincmd h
+	silent exec 'vnew' $desktop.'/ideas'
 	1wincmd w
 	redraw | echo 'You are doing great <3'
 endfunction
@@ -1582,17 +1583,17 @@ augroup dashboard
 	autocmd FileType gitcommit    set textwidth=0
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
-	autocmd BufEnter     todo,wip.md set buftype=nofile nowrap
-	autocmd BufWritePost todo,wip.md set buftype=nofile
-	autocmd BufEnter     todo normal! gg
-	autocmd BufLeave     todo normal! gg
-	autocmd BufEnter     todo,wip.md redraw | echo 'You are doing great <3'
-	autocmd BufWritePost todo,wip.md redraw | echo 'Nice :)'
-	autocmd BufEnter     todo,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
-	autocmd TextChanged  todo,wip.md set buftype= | silent write!
-	autocmd BufEnter          wip.md nnoremap <buffer> z! :BLines ^### \a<CR>
-	autocmd BufEnter          wip.md nnoremap <buffer> Z! :BLines ^#<CR>
-	autocmd BufEnter          wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
+	autocmd BufEnter     todo,ideas,wip.md set buftype=nofile nowrap
+	autocmd BufWritePost todo,ideas,wip.md set buftype=nofile
+	autocmd BufEnter     todo,ideas normal! gg
+	autocmd BufLeave     todo,ideas normal! gg
+	autocmd BufEnter     todo,ideas,wip.md redraw | echo 'You are doing great <3'
+	autocmd BufWritePost todo,ideas,wip.md redraw | echo 'Nice :)'
+	autocmd BufEnter     todo,ideas,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
+	autocmd TextChanged  todo,ideas,wip.md set buftype= | silent write!
+	autocmd BufEnter                wip.md nnoremap <buffer> z! :BLines ^### \a<CR>
+	autocmd BufEnter                wip.md nnoremap <buffer> Z! :BLines ^#<CR>
+	autocmd BufEnter                wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 augroup end
 
 
@@ -2149,11 +2150,10 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 \]
 
 
-for file in expand('$desktop/startups/*.bat', 1, 1)
+for file in expand('$scripts/*.bat', 1, 1)
 	let filename = fnamemodify(file, ':t:r')
 	let filename = toupper(filename[0]).filename[1:]
 	exec 'command!' filename 'terminal ++curwin ++noclose cmd /k' filename.'.bat'
-	exec 'let' '$'.filename.'Dir' '=' "'".substitute(trim(filter(readfile(file), {_,x -> x =~ '^cd'})[0][3:], '"'), '\\', '/', 'g')."'"
 endfor
 
 function! SynchronizeDuplicatedConfigFile()
