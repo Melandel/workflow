@@ -14,6 +14,7 @@ let $projects  = $HOME.'/Desktop/projects'           | let $p = $projects
 let $rest      = $HOME.'/Desktop/templates/rest'
 let $snippets  = $HOME.'/Desktop/templates/snippets'
 let $tmp       = $HOME.'/Desktop/tmp'                | let $t = $tmp
+let $tools     = $HOME.'/Desktop/tools'
 let $templates = $HOME.'/Desktop/templates'
 let $todo      = $HOME.'/Desktop/todo'
 let $wip       = $HOME.'/Desktop/wip.md'
