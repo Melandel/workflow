@@ -142,159 +142,36 @@ ${1:Content}
 
 endsnippet
 
-snippet wip "Work In Progress" b
-# [#${1:Number}](https://azuredevops/CapsCollection/CapsuleTech/_workitems/edit/$1) ${2:Title}
-
-## 👀 Validation & Investigation
-<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
-
-### ❎ Acceptance Tests
-#### 🎉 Happy Path
-1. Do this
-1. Do that
-1. **Profit**
-
-#### 🎗 Non-Regression Check
-1. Do this
-1. Do that
-1. **Profit**
-
-</div><div style="flex: 50%; max-width: 50%;">
-
-### 📃 Notes
-* Limitations
-* Elements considered out of scope
-* Link to [something useful](www.google.com)
-* Useful note
-</div></div>
-
-## 🚀 Implementation
-### 🔎 Implement this, this way
-<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
-
-#### 📋 Context
-* Context item 1
-* Context item 2
-
-**\> How do we ... ?**
-</div><div style="flex: 50%; max-width: 50%;">
-
-#### 💡 Considered Options
-
-* **Option 1**
-* **Option 2**
-
-#### 🥇 Decision Outcome
-* **Option 1**, because
-</div></div>
-
-### 🔎 Implementat that, that way
-<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
-
-#### 📋 Context
-* Context item 1
-* Context item 2
-
-**\> How do we ... ?**
-</div><div style="flex: 50%; max-width: 50%;">
-
-#### 💡 Considered Options
-
-* **Option 1**
-* **Option 2**
-
-#### 🥇 Decision Outcome
-* **Option 1**, because
-</div></div>
-
-## 📜 Mischellaneous
-Environment variables listing
-
-### Launching Goat to space
-<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
-
-#### Request
-\`\`\`
-curl -X POST ...
-\`\`\`
-
-* May work only if...
-* A registry string value describes...
-	* **Path:**  \`Path\`
-	* **Name:**  \`Name\`
-	* **Values:**
-		* \`A\` means...
-		* \`B\` means...
-</div><div style="flex: 50%">
-
-#### Response
-##### 🚫 400 Bad Request
-\`\`\`
-{"response": "Silviu seems innocent."}
-\`\`\`
-* Caused by...
-
-##### ✅ 200 OK
-\`\`\`
-{"response": "Silviu did it!"}
-\`\`\`
-</div></div>
-
-### Launching Silviu into a goat
-<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
-
-#### Request
-\`\`\`
-curl -X POST ...
-\`\`\`
-
-* May work only if...
-* A registry string value describes...
-	* **Path:**  \`Path\`
-	* **Name:**  \`Name\`
-	* **Values:**
-		* \`A\` means...
-		* \`B\` means...
-</div><div style="flex: 50%">
-
-#### Response
-##### 🚫 400 Bad Request
-\`\`\`
-{"response": "Silviu is working."}
-\`\`\`
-* Caused by...
-
-##### ✅ 200 OK
-\`\`\`
-{"response": "Silviu is doing it!"}
-\`\`\`
-</div></div>
-endsnippet
-
 snippet rq "REST exhange" b
-${1:###} ${2:Do Thing}
+${1:###} ${2:Verb Noun}
 <div style="display: flex"><div style="flex: 50%; max-width: 50%;">
 
-$1# Request
-\`\`\`
-$0curl.exe -X POST "$api/endpoint"
---verbose --silent
--H "Authorization: Bearer $token"
---header "Content-Type: application/json"
---data-raw "{'key': 'value' }"
+**Request**
+```
+curl -X GET $api
+--verbose --silent --location
+-H "Authorization: Bearer $token" 
+```
 
-\`\`\`
+
 </div><div style="flex: 50%; max-width: 50%;">
 
-$1# Response
-##### 🚫 KO
-\`\`\`
-{}
-\`\`\`
-##### ✅ OK
-\`\`\`
-{}
-\`\`\`
-</div></div>
+**Response**
 
+$0🚫 401 Unauthorized
+```
+[]
+```
+* Caused by this
+* Caused also by that
+
+✅ 200 OK
+```
+[]
+```
+</div></div>
+${3:
+**Additional Information**
+* This
+* That}
 endsnippet
