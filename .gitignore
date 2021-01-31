@@ -7,3 +7,4 @@
 !/tools/
 /tools/*/
 !/tools/filters/
+*.withsvgs.md

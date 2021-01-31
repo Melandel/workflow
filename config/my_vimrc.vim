@@ -1656,10 +1656,11 @@ function! JobExitDiagramCompilationJob(outputfile, channelInfos, status)
 endfunc
 
 function! GetPlantumlCmdLine(outputExtension, inputFile)
-	if a:inputFile =~ '_json$'
+	let configfile = GetPlantumlConfigFile(fnamemodify(a:inputFile, ':e'))
+	if empty(configfile)
 		return printf('plantuml -t%s -charset UTF-8 "%s"', a:outputExtension, a:inputFile)
 	else
-		return printf('plantuml -t%s -charset UTF-8 -config "%s" "%s"', a:outputExtension, GetPlantumlConfigFile(fnamemodify(a:inputFile,':e')), a:inputFile)
+		return printf('plantuml -t%s -charset UTF-8 -config "%s" "%s"', a:outputExtension, configfile, a:inputFile)
 	endif
 endfunction
 
@@ -1716,8 +1717,12 @@ function! GetPlantumlConfigFile(fileext)
 		\puml_entities:      'skinparams',
 		\puml_state:         'skinparams',
 		\puml_usecase:       'skinparams',
-		\puml_dot:           'graphviz'
+		\puml_dot:           'graphviz',
+		\puml_json:          ''
 	\}
+		if empty(configfilebyft[a:fileext])
+			return ''
+		endif
 	return $desktop.'/config/my_plantuml_'.configfilebyft[a:fileext].'.config'
 endfunction
 
@@ -1731,7 +1736,6 @@ function! CreateFileWithRenderedSvgs()
 	let delimiter = start
 	let lastStart = 0
 	let lastStop = -2
-	let nbBlocksDetected =0
 	let textSplits = []
 	for i in range(len(lines))
 		let line = lines[i]
@@ -1740,29 +1744,68 @@ function! CreateFileWithRenderedSvgs()
 				let textSplits += lines[lastStop+2:i-1]
 				let lastStart = i
 			else
-				let nbBlocksDetected += 1
 				let diagram =lines[lastStart+1:i-1]
 				let diagramtype = split(lines[lastStart], '_')[-1]
-				let pumlDelimiter = GetPlantumlDelimiter(diagramtype)
-				let diagramext = 'puml_'.diagramtype
-				let pumlpath = printf('%s/%s.%s', $tmp, nbBlocksDetected, diagramext)
-				call delete(pumlpath)
-					if diagram[0] !~ '\s*@'
-						let diagram = ['@start'.pumlDelimiter] + lines[lastStart+1:i-1] + ['@end'.pumlDelimiter]
-					endif
-				call writefile(diagram,pumlpath)
-				let svg = system('bat --style=plain '.pumlpath.' | plantuml -tsvg -charset UTF-8 -pipe -config "'.GetPlantumlConfigFile(diagramext).'"')
-				let svg = substitute(svg, ' style="', ' style="padding:8px;', '')
-				call add(textSplits, svg)
+				call StartPlantumlToSvg(diagram, diagramtype, textSplits, len(textSplits))
+				call add(textSplits, 'generated diagram')
 				let lastStop = i
 			endif
 			let delimiter = (delimiter == start) ? stop : start
 		endif
 	endfor
 	let textSplits += lines[lastStop+2:]
+	while !empty(filter(copy(textSplits), {_,x -> x == 'generated diagram'}))
+		sleep 50m
+	endwhile
 	call writefile(textSplits, newinputfile)
 	return newinputfile
 endfunc
+
+function! StartPlantumlToSvg(diagram, diagramtype, array, pos)
+	let pumlDelimiter = GetPlantumlDelimiter(a:diagramtype)
+	let diagram = a:diagram
+	if diagram[0] !~ '\s*@'
+		let diagram = flatten(['@start'.pumlDelimiter, diagram, '@end'.pumlDelimiter])
+		if stridx(diagram[0], 'json') >= 0
+		endif
+	endif
+	let plantumlbufnr = bufadd(a:pos.'.puml_'.a:diagramtype)
+	call bufload(plantumlbufnr)
+	call setbufline(plantumlbufnr, 1, diagram)
+	let scratchbufnr = ResetScratchBuffer(bufname(plantumlbufnr).'.svg')
+	let pumlconfig = GetPlantumlConfigFile('puml_'.a:diagramtype)
+	if empty(pumlconfig)
+		let cmd = 'plantuml -tsvg -charset UTF-8 -pipe'
+	else
+		let cmd = 'plantuml -tsvg -charset UTF-8 -pipe -config "'.pumlconfig.'"'
+	endif
+	if g:isWindows
+		let cmd = 'cmd /C '.cmd
+	endif
+	let s:job = job_start(
+		\cmd,
+		\{
+			\'cwd': getcwd(),
+			\'out_io': 'buffer',
+			\'out_buf': scratchbufnr,
+			\'out_modifiable': 1,
+			\'err_io': 'buffer',
+			\'err_buf': scratchbufnr,
+			\'err_modifiable': 1,
+			\'in_io': 'buffer',
+			\'in_buf': plantumlbufnr,
+			\'exit_cb':  function('StartPlantumlToSvgCB', [a:array, a:pos, scratchbufnr])
+		\}
+	\)
+endfunction
+
+function! StartPlantumlToSvgCB(array, pos, scratchbufnr, job, status)
+	let new = join(getbufline(a:scratchbufnr, 1, '$'), '\n')
+	let new = substitute(new, ' style="', ' style="padding:8px;', '')
+	let new = substitute(new, '\/svg>.*$', '/svg>', '')
+	let a:array[a:pos] = new
+	silent! exec 'bdelete!' a:scratchbufnr
+endfunction
 
 function! GetPlantumlDelimiter(plantuml_type)
 	if a:plantuml_type == 'mindmap'
