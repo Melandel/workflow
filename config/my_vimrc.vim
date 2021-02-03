@@ -825,12 +825,22 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echo ''[cb] '.substitute(msg,"'","''","g").'''',  1)},
-			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)},
-			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'" | tabnew | -tabmove | buffer '.scratchbufnr.' | normal! gg', '')}
+			\'exit_cb':  function('DisplayScriptOutputInNewWindow', [scratchbufnr])
 		\}
 	\)
 endfunc
+
+function! DisplayScriptOutputInNewWindow(scratchbufnr, job, status)
+	if winnr('$') == 1
+		vnew
+	else
+		tabnew
+		-tabmove
+	endif
+	exec 'buffer' a:scratchbufnr
+	normal! gg
+endfunction
+
 command! AsyncTSplitCurrentlySelectedScriptInNewBuffer call RunCurrentlySelectedScriptInNewBufferAsync()
 vnoremap <silent> <Leader>S mv:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
 nnoremap <silent> <Leader>S mvvip}}}:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
@@ -2099,9 +2109,31 @@ function! GetDirOrSln()
 	endif
 endfunction
 
+function! OpenCodeOnAzureDevops()
+	let filepath = expand('%:p')
+	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
+	let gitpath = filepath[len(gitrootfolder)+(has('win32')?1:0):]
+	let gitpath = '/' . substitute(gitpath, '\\', '/', 'g')
+	let gitbranch = gitbranch#name()
+	let gitproject = fnamemodify(gitrootfolder, ':t')
+	let url = $ados.'/_git/'.gitproject.'?path='.substitute(gitpath, '/', '%2F', 'g').'&version=GB'.substitute(gitbranch, '/', '%2F', 'g')
+	if !empty(GetCurrentSelection())
+		let url .= '&line='.line("'<")
+		let adostabstop=3
+		let url .= '&lineStartColumn='.(max([getpos("'<")[2], 1]) + adostabstop*(min([getpos("'<")[2],indent(line("'<"))])))
+		let url .= '&lineEnd='.line("'>")
+		let url .= '&lineEndColumn='.(min([getpos("'>")[2], len(getline("'>'"))]) + 1 + adostabstop*indent(line("'>")))
+	else
+		let url .= '&line='.line('.')
+	endif
+	let s:job= job_start(printf('firefox.exe "%s"', url))
+endfunction
+command! Ados call OpenCodeOnAzureDevops()
+
 augroup csharpfiles
 	au!
-	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildAndTestCurrentSolution<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :Ados<CR>
+	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :<C-U>Ados<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :!dotnet run -p Startup<CR>
 	autocmd FileType cs nmap <buffer> zk <Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
