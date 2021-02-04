@@ -1,0 +1,42 @@
+Who are you?
+	A man who wants to create high quality projects
+
+
+What are the most important things I expect from a code base?
+	A great suite of unit tests
+	A great suite of mocks
+	A great clean architecture
+	Up-to-date formats, libs & tools
+What are the most important things I expect from task ?
+	Example values / Scenarios Tests
+	Context
+	Bonus: An explanation on current behavior & implementation (& context)
+What are the most important things I expect from ci/cd?
+	Quick feedback
+What are the most important things I expect from production monitoring?
+	Logs & Bugs
+What are the most important things for newcomers to get started?
+	Install script
+	Event Storm board to browse
+	A guided tour
+	Official resources
+	Basic:
+		howtos
+		architecture diagrams
+		glossary
+		processes
+		resources
+		technological choices
+
+What do you need?
+	People aligned with that notion of quality and with knowledge on how to not make many mistakes
+	Extending technical expertise
+	Spreading technical expertise
+	Tracking technologies
+
+What will you do?
+	A steady bit, every day.
+	Do your job. Priority.
+		But take time. Quick wins first.
+			Readme
+
