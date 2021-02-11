@@ -122,19 +122,6 @@ if has("gui_running")
 endif
 " Windows Subsystem for Linx (WSL)
 set ttimeout ttimeoutlen=0
-if &term =~ '^xterm'
-  autocmd VimEnter * silent !echo -ne "\e[0 q"
-  let &t_EI .= "\<Esc>[0 q"
-  let &t_SI .= "\<Esc>[5 q"
-  " 1 or 0 -> blinking block
-  " 2 -> solid block
-  " 3 -> blinking underscore
-  " 4 -> solid underscore
-  " Recent versions of xterm (282 or above) also support
-  " 5 -> blinking vertical bar
-  " 6 -> solid vertical bar
-  autocmd VimLeave * silent !echo -ne "\e[5 q"
-endif
 
 if g:isWsl
 	augroup WSLYank
@@ -457,6 +444,24 @@ inoremap <C-L> <Del>|   cnoremap <C-L> <Del>
 colorscheme empower
 "nnoremap <LocalLeader>h :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<CR>
 "nnoremap <LocalLeader>H :OmniSharpHighlightEchoKind<CR>
+if &term =~ '^xterm'
+  autocmd VimEnter * silent !echo -ne "\e[0 q"
+  let &t_EI .= "\<Esc>[0 q"
+  let &t_SI .= "\<Esc>[5 q"
+  " 1 or 0 -> blinking block
+  " 2 -> solid block
+  " 3 -> blinking underscore
+  " 4 -> solid underscore
+  " Recent versions of xterm (282 or above) also support
+  " 5 -> blinking vertical bar
+  " 6 -> solid vertical bar
+  autocmd VimLeave * silent !echo -ne "\e[5 q"
+elseif &term == 'win32'
+  let &t_ti.=" \e[1 q"
+  let &t_SI.=" \e[5 q-- INSERT --"
+  let &t_EI.=" \e[1 q"
+  let &t_te.=" \e[0 q"
+	endif
 
 " Buffers, Windows & Tabs" ------------{{{
 set hidden
@@ -895,7 +900,7 @@ endfunc
 nnoremap ç :let script=''\|call histadd('cmd',script)\|put=execute(script)<Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
 augroup vimsourcing
 	au!
-	if has('win32')
+	if has('win32') && has('gui_running')
 		autocmd BufWritePost .vimrc,_vimrc,*.vim GvimTweakToggleFullScreen | so % | GvimTweakToggleFullScreen
 	else
 		autocmd BufWritePost .vimrc,_vimrc,*.vim so %
@@ -968,7 +973,7 @@ set updatetime=250
 set completeopt+=menuone,noselect,noinsert
 
 function! AsyncAutocomplete()
-	if PreviousCharacter() =~ '\w'
+	if PreviousCharacter() =~ '\w\|\.'
 		call feedkeys("\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>"), 't')
 	endif
 endfunction
@@ -1018,7 +1023,7 @@ function! ExpandSnippetOrValidateAutocompletionSelection()
 endfunction
 
 " Diff" -------------------------------{{{
-set diffopt+=algorithm:histogram,indent-heuristic,vertical
+set diffopt+=algorithm:histogram,indent-heuristic,vertical,iwhite
 
 augroup diff
 	au!
@@ -1027,12 +1032,13 @@ augroup diff
 augroup end
 
 " QuickFix, Preview, Location window" -{{{
+let g:ale_set_loclist = 0
 " Always show at the bottom of other windows
 augroup quickfix
 	au!
 " Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
 	autocmd QuickFixCmdPost [^l]* nested cwindow
-	autocmd FileType qf wincmd J
+	autocmd FileType qf if !getwininfo(win_getid())[0].loclist | wincmd J | endif
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | silent! pclose | endif
 	autocmd QuickFixCmdPost	l* nested lwindow
 	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
@@ -1976,7 +1982,7 @@ let g:OmniSharp_start_server = 0
 let g:OmniSharp_server_stdio = 1
 let g:ale_linters = { 'cs': ['OmniSharp'] }
 let g:OmniSharp_popup = 0
-let g:OmniSharp_loglevel = 'none'
+let g:OmniSharp_loglevel = 'debug'
 let g:OmniSharp_highlighting = 2
 let g:OmniSharp_selector_ui = 'fzf'
 let g:OmniSharp_fzf_options = { 'window': 'botright 7new' }
@@ -2137,6 +2143,8 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :!dotnet run -p Startup<CR>
 	autocmd FileType cs nmap <buffer> zk <Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
+	autocmd FileType cs nmap <buffer> zK ggzj
+	autocmd FileType cs nmap <buffer> zJ Gzk
 	autocmd FileType cs nmap <buffer> z! <Plug>(omnisharp_find_members)
 	autocmd FileType cs nmap <buffer> gd <Plug>(omnisharp_go_to_definition)
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
@@ -2270,3 +2278,9 @@ if !empty(glob($config.'/my_vimworkenv.vim'))
 		return glob('**/*.sln', 0, 1) + [fnamemodify(GetCsproj(), ':.')]
 	endfunc
 endif
+
+
+function! LocListNotes(...)
+	silent exec 'lgrep! "^\# "' $n '-g "_*.md"' '-g "!*.withsvgs.md"'
+endfunction
+command! -nargs=* LocListNotes call LocListNotes(<f-args>)
