@@ -1,3 +1,7 @@
+# Clean Architecture
+
+## File Structure
+```
 |-- domain
     |-- bounded_context_I
     `-- bounded_context_II
@@ -134,3 +138,4 @@
         |-- startup
         `-- ui
     |-- ...
+```

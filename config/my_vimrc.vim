@@ -1614,8 +1614,13 @@ augroup end
 
 
 " Drafts (Diagrams & Notes)"-----------{{{
-nnoremap <silent> <leader>e :edit $notes<CR>
-nnoremap <silent> <leader>E :tabedit $notes<CR>
+function! LocListNotes(...)
+	silent exec 'lgrep! "^\# "' $n '-g "*.md"' '-g "!*.withsvgs.md" --sort path'
+	nnoremap <buffer> <CR> <CR>:lclose<CR>
+endfunction
+command! -nargs=* LocListNotes call LocListNotes(<f-args>)
+nnoremap <silent> <leader>d :LocListNotes<CR>
+
 function! SaveInFolderAs(folder, ...)
 	let args = ParseArgs(a:000, ['filetype', 'markdown'])
 	let filename = expand('%:t:r')
@@ -2278,9 +2283,3 @@ if !empty(glob($config.'/my_vimworkenv.vim'))
 		return glob('**/*.sln', 0, 1) + [fnamemodify(GetCsproj(), ':.')]
 	endfunc
 endif
-
-
-function! LocListNotes(...)
-	silent exec 'lgrep! "^\# "' $n '-g "_*.md"' '-g "!*.withsvgs.md"'
-endfunction
-command! -nargs=* LocListNotes call LocListNotes(<f-args>)

@@ -1,3 +1,4 @@
+# Powershell
 https://stackoverflow.com/questions/17794507/reload-the-path-in-powershell
 
 	$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
