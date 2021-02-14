@@ -456,11 +456,16 @@ if &term =~ '^xterm'
   " 5 -> blinking vertical bar
   " 6 -> solid vertical bar
   autocmd VimLeave * silent !echo -ne "\e[5 q"
-elseif &term == 'win32'
-  let &t_ti.=" \e[1 q"
-  let &t_SI.=" \e[5 q-- INSERT --"
-  let &t_EI.=" \e[1 q"
-  let &t_te.=" \e[0 q"
+elseif(&term == 'win32' && !empty($SSH_TTY))
+  let &t_ti.="\<Esc>[1 \q"
+  let &t_SI.="\<Esc>[5 \q"
+  let &t_EI.="\<Esc>[1 \q"
+  let &t_te.="\<Esc>[0 \q"
+elseif &term == 'win32' && empty($SSH_TTY)
+  let &t_ti.=" \<Esc>[1 q"
+  let &t_SI.=" \<Esc>[5 q"
+  let &t_EI.=" \<Esc>[1 q"
+  let &t_te.=" \<Esc>[0 q"
 	endif
 
 " Buffers, Windows & Tabs" ------------{{{
@@ -697,9 +702,11 @@ nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>zz
 function! BrowseLayoutDown()
 	if &diff
 		silent! normal! ]czxzz
+	elseif !empty(getloclist(winnr()))
+		silent! lnext
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		silent! cnext
-	elseif len(getloclist(winnr())) > 0
+	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
 		ALENext
 	endif
 	silent! normal! zv
@@ -710,9 +717,11 @@ nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 function! BrowseLayoutUp()
 	if &diff
 		silent! normal! [czxzz
+	elseif !empty(getloclist(winnr()))
+		silent! lprev
 	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
 		silent! cprev
-	elseif len(getloclist(winnr())) > 0
+	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
 		ALEPrevious
 	endif
 	silent! normal! zv
