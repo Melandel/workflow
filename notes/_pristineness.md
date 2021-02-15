@@ -1,7 +1,36 @@
 # A Pristine code repository
 
+An attempt at formulating a _direction_ I want to lean towards. Not to be used as _expectations_.
+
 ## Architecture
 
+```puml_sequence
+@startuml
+[-> Controller:some form\nof input 
+participant "Controller" as Controller
+
+box "Core"
+participant "UseCase\nObject" as UseCaseObject
+participant "Gateway\nInterfaces" as IGateways
+endbox
+
+participant "Gateway\nImplementation(s)" as Gateways
+
+Controller -> UseCaseObject ++ :UseCaseRequest
+UseCaseObject -> "Gateway\nInterfaces" as IGateways: GET
+IGateways -> Gateways
+Gateways <--]: some form\nof persisted data
+IGateways --> UseCaseObject: Domain or Application Objects
+||75||
+note right of UseCaseObject: calls\nDomain or Application Objects\nmethods
+||75||
+UseCaseObject -> IGateways: FLUSH
+IGateways -> Gateways
+Gateways ->]: some form\nof data persistence
+UseCaseObject --> Controller -- :UseCaseResponse
+?<-- Controller:some form\nof output
+@enduml
+```
 <div style="display: flex"><div style="flex: 50%; max-width: 50%;">
 
 ### Core
@@ -29,7 +58,7 @@
 	* unit tests use mocked gateways
 * **Application Objects&Services**
 	* represent at all times the current application concepts
-	* unit tests don't need any mock
+	* unit tests mock gateways and only gateways
 </div><div style="flex: 50%; max-width: 50%;">
 
 ### Details
