@@ -705,8 +705,14 @@ function! BrowseLayoutDown()
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
-			if !empty(filter(map(quickfixbuffers, {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0)}))
-				silent! lnext
+			let loclistbuffers = filter(map(quickfixbuffers, {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0)})
+			if !empty(loclistbuffers)
+				let currentfilegitlogbuffer=filter(loclistbuffers, {_,x -> getwinvar(x.winnr, 'quickfix_title') =~ 'Gllog\s*$'})
+				if !empty(currentfilegitlogbuffer)
+					silent! lnext | Gdiffsplit! | wincmd h
+				else
+					silent! lnext
+				endif
 			else
 				silent! cnext
 			endif
@@ -725,8 +731,14 @@ function! BrowseLayoutUp()
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
-			if !empty(filter(map(quickfixbuffers, {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0)}))
-				silent! lprev
+			let loclistbuffers = filter(map(quickfixbuffers, {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0)})
+			if !empty(loclistbuffers)
+				let currentfilegitlogbuffer=filter(loclistbuffers, {_,x -> getwinvar(x.winnr, 'quickfix_title') =~ 'Gllog\s*$'})
+				if !empty(currentfilegitlogbuffer)
+					silent! lnext | Gdiffsplit! | wincmd h
+				else
+					silent! lnext
+				endif
 			else
 				silent! cprev
 			endif
@@ -1042,7 +1054,7 @@ set diffopt+=algorithm:histogram,indent-heuristic,vertical,iwhite
 augroup diff
 	au!
 	autocmd OptionSet diff let &cursorline=!v:option_new
-	autocmd OptionSet diff silent! normal! gg]c
+	autocmd OptionSet diff silent 1 | silent! normal! ]c
 augroup end
 
 " QuickFix, Preview, Location window" -{{{
@@ -1053,7 +1065,7 @@ augroup quickfix
 " Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
 	autocmd FileType qf if !getwininfo(win_getid())[0].loclist | wincmd J | endif
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | silent! pclose | endif
-	autocmd QuickFixCmdPost l*    nested lwindow | exec 'resize' min([len(getloclist(winnr())), 24])
+	autocmd QuickFixCmdPost l*    nested lwindow
 	autocmd QuickFixCmdPost [^l]* nested cwindow
 	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
 augroup end
@@ -1093,7 +1105,7 @@ function! QuickFixVerticalAlign(info)
 	endfor
 	return l
 endfunction
-set quickfixtextfunc=QuickFixVerticalAlign
+"set quickfixtextfunc=QuickFixVerticalAlign
 
 " Marks"-------------------------------{{{
 " H and L are used for cycling between buffers and `A is a pain to type
@@ -1626,14 +1638,7 @@ augroup dashboard
 	autocmd BufEnter                wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 augroup end
 
-
-function! CurrentFileHistory()
-	0Gllog!
-	nmap <buffer> <silent> <C-J> <C-J>:Gdiffsplit<CR>
-	nmap <buffer> <silent> <C-R> <>:Gdiffsplit<CR>
-endfunction
-command! CurrentFileGitLog call CurrentFileHistory()
-nnoremap <silent> <leader>D :CurrentFileGitLog<CR>
+nnoremap <silent> <leader>D :0Gllog!<CR>
 
 " Drafts (Diagrams & Notes)"-----------{{{
 function! LocListNotes(...)
