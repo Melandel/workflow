@@ -702,12 +702,17 @@ nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>zz
 function! BrowseLayoutDown()
 	if &diff
 		silent! normal! ]czxzz
-	elseif !empty(getloclist(winnr()))
-		silent! lnext
-	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
-		silent! cnext
-	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
-		ALENext
+	else
+		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
+		if !empty(quickfixbuffers)
+			if !empty(filter(map(quickfixbuffers, {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0)}))
+				silent! lnext
+			else
+				silent! cnext
+			endif
+		elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
+			ALENext
+		endif
 	endif
 	silent! normal! zv
 	normal! m'
@@ -717,12 +722,17 @@ nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 function! BrowseLayoutUp()
 	if &diff
 		silent! normal! [czxzz
-	elseif !empty(getloclist(winnr()))
-		silent! lprev
-	elseif len(filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')) > 0
-		silent! cprev
-	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
-		ALEPrevious
+	else
+		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
+		if !empty(quickfixbuffers)
+			if !empty(filter(map(quickfixbuffers, {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0)}))
+				silent! lprev
+			else
+				silent! cprev
+			endif
+		elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
+			ALEPrevious
+		endif
 	endif
 	silent! normal! zv
 	normal! m'
@@ -805,11 +815,6 @@ set wildmenu
 set wildcharm=<Tab>
 set wildignorecase
 set wildmode=full
-
-" Expanded characters" ----------------{{{
-" Folder of current file
-cnoremap <expr> <C-F> (expand('%:h') != '' && stridx(getcmdline()[-1-len(expand('%:h')):], expand('%:h')) == 0 ? '**\*' : expand('%:h').(has('win32')?'\':'/'))
-cnoremap <expr> <C-G> (stridx(getcmdline()[-1-len(GetInterestingParentDirectory()):], GetInterestingParentDirectory()) == 0 ? '**\*' : GetInterestingParentDirectory().(has('win32')?'\':'/'))
 
 " Sourcing" ---------------------------{{{
 function! RunCurrentlySelectedScriptInNewBufferAsync()
@@ -1037,7 +1042,7 @@ set diffopt+=algorithm:histogram,indent-heuristic,vertical,iwhite
 augroup diff
 	au!
 	autocmd OptionSet diff let &cursorline=!v:option_new
-	autocmd OptionSet diff normal! gg]c
+	autocmd OptionSet diff silent! normal! gg]c
 augroup end
 
 " QuickFix, Preview, Location window" -{{{
@@ -1046,10 +1051,10 @@ let g:ale_set_loclist = 0
 augroup quickfix
 	au!
 " Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
-	autocmd QuickFixCmdPost [^l]* nested cwindow
 	autocmd FileType qf if !getwininfo(win_getid())[0].loclist | wincmd J | endif
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | silent! pclose | endif
-	autocmd QuickFixCmdPost	l* nested lwindow
+	autocmd QuickFixCmdPost l*    nested lwindow | exec 'resize' min([len(getloclist(winnr())), 24])
+	autocmd QuickFixCmdPost [^l]* nested cwindow
 	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
 augroup end
 
@@ -1622,6 +1627,14 @@ augroup dashboard
 augroup end
 
 
+function! CurrentFileHistory()
+	0Gllog!
+	nmap <buffer> <silent> <C-J> <C-J>:Gdiffsplit<CR>
+	nmap <buffer> <silent> <C-R> <>:Gdiffsplit<CR>
+endfunction
+command! CurrentFileGitLog call CurrentFileHistory()
+nnoremap <silent> <leader>D :CurrentFileGitLog<CR>
+
 " Drafts (Diagrams & Notes)"-----------{{{
 function! LocListNotes(...)
 	silent exec 'lgrep! "^\# "' $n '-g "*.md"' '-g "!*.withsvgs.md" --sort path'
@@ -1728,6 +1741,9 @@ augroup markdown
 	autocmd FileType markdown nnoremap <buffer> <leader>w :RenderMarkdownFile<CR>
 	autocmd FileType markdown nnoremap <buffer> z! :BLines ^##<CR>
 	autocmd FileType markdown nnoremap <buffer> Z! :BLines [<CR>
+	autocmd FileType markdown nnoremap <buffer> zj /^#<CR>
+	autocmd FileType markdown nnoremap <buffer> zk ?^#<CR>
+
 augroup END
 
 
