@@ -709,7 +709,7 @@ function! BrowseLayoutDown()
 			if !empty(loclistbuffers)
 				let currentfilegitlogbuffer=filter(loclistbuffers, {_,x -> getwinvar(x.winnr, 'quickfix_title') =~ 'Gllog\s*$'})
 				if !empty(currentfilegitlogbuffer)
-					silent! lnext | Gdiffsplit! | wincmd h
+					silent! lnext | Gdiffsplit! !~ | wincmd h
 				else
 					silent! lnext
 				endif
@@ -735,9 +735,9 @@ function! BrowseLayoutUp()
 			if !empty(loclistbuffers)
 				let currentfilegitlogbuffer=filter(loclistbuffers, {_,x -> getwinvar(x.winnr, 'quickfix_title') =~ 'Gllog\s*$'})
 				if !empty(currentfilegitlogbuffer)
-					silent! lnext | Gdiffsplit! | wincmd h
+					silent! lprev | Gdiffsplit! !~ | wincmd h
 				else
-					silent! lnext
+					silent! lprev
 				endif
 			else
 				silent! cprev
@@ -1054,7 +1054,7 @@ set diffopt+=algorithm:histogram,indent-heuristic,vertical,iwhite
 augroup diff
 	au!
 	autocmd OptionSet diff let &cursorline=!v:option_new
-	autocmd OptionSet diff silent 1 | silent! normal! ]c
+	autocmd OptionSet diff silent! 1 | silent! normal! ]c
 augroup end
 
 " QuickFix, Preview, Location window" -{{{
@@ -1639,7 +1639,7 @@ augroup dashboard
 	autocmd BufEnter                wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 augroup end
 
-nnoremap <silent> <leader>D :0Gllog!<CR>
+nnoremap <silent> <leader>D :0Gllog \| Gdiffsplit! \| wincmd h<CR>
 
 " Drafts (Diagrams & Notes)"-----------{{{
 function! LocListNotes(...)
