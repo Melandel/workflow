@@ -1076,22 +1076,23 @@ function! QuickFixVerticalAlign(info)
 	else
 		let qfl = getloclist(a:info.winid, {'id': a:info.id, 'items': 0}).items
 	endif
+	let modules_are_used = empty(qfl) ? 1 : (get(qfl[0], 'module', '') != '')
 	let l = []
 	let efm_type = {'e': 'error', 'w': 'warning', 'i': 'info', 'n': 'note'}
 	let lnum_width =   len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), { _,v -> qfl[v].lnum })))
 	let col_width =    len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> qfl[v].col})))
-	let fname_width =  max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> strchars(fnamemodify(bufname(qfl[v].bufnr), ':t'), 1)}))
+	let fname_width =  max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), modules_are_used ? {_, v -> strchars(qfl[v].module, 1)} : {_, v -> strchars(fnamemodify(bufname(qfl[v].bufnr), ':t'), 1)}))
 	let type_width =   max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> strlen(get(efm_type, qfl[v].type, ''))}))
 	let errnum_width = len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1),{_, v -> qfl[v].nr})))
 	for idx in range(a:info.start_idx - 1, a:info.end_idx - 1)
 		let e = qfl[idx]
 		if !e.valid
-			call add(l, '|| ' .. e.text)
+			call add(l, '|| '.e.text)
 		else
+			let fname = printf('%-*S', fname_width, modules_are_used ? e.module : fnamemodify(bufname(e.bufnr), ':t'))
 			if e.lnum == 0 && e.col == 0
-				call add(l, bufname(e.bufnr))
+				call add(l, printf('%s|| %s', fname, e.text))
 			else
-				let fname = fnamemodify(printf('%-*S', fname_width, bufname(e.bufnr)), ':t')
 				let lnum = printf('%*d', lnum_width, e.lnum)
 				let col = printf('%*d', col_width, e.col)
 				let type = printf('%-*S', type_width, get(efm_type, e.type, ''))
@@ -1105,7 +1106,7 @@ function! QuickFixVerticalAlign(info)
 	endfor
 	return l
 endfunction
-"set quickfixtextfunc=QuickFixVerticalAlign
+set quickfixtextfunc=QuickFixVerticalAlign
 
 " Marks"-------------------------------{{{
 " H and L are used for cycling between buffers and `A is a pain to type
