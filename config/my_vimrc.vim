@@ -677,17 +677,17 @@ let g:qfprio = 'c'
 
 function! Qfnext()
 	if g:qfprio == 'l'
-		try | lnext | catch | lopen | endtry
+		try | lnext | catch | ll | endtry
 	elseif g:qfprio == 'c'
-		try | cnext | catch | copen | endtry
+		try | cnext | catch | cc | endtry
 	endif
 endfunction
 
 function! Qfprev()
 	if g:qfprio == 'l'
-		try | lprev | catch | lopen | endtry
+		try | lprev | catch | ll | endtry
 	elseif g:qfprio == 'c'
-		try | cprev | catch | copen | endtry
+		try | cprev | catch | cc | endtry
 	endif
 endfunction
 
@@ -733,11 +733,62 @@ function! BrowseLayoutUp()
 endfunction
 nnoremap <silent> <C-K> :call BrowseLayoutUp()<CR>
 
+function! GetVisibleLocListWinNrs()
+	return filter(range(1, winnr('$')), {_,x -> getwinvar(x, "&ft") == "qf" && get(getwininfo(win_getid(x))[0], 'loclist', 0) == 1 })
+endfunction
 
-nnoremap <silent> <C-H> :silent! lwindow \| try \| lolder \| catch \| finally \| let g:qfprio='l' \| endtry<CR>
-nnoremap <silent> <C-L> :silent! lwindow \| try \| lnewer \| catch \| finally \| let g:qfprio='l' \| endtry<CR>
-nnoremap <silent> <C-N> :silent! cwindow \| try \| colder \| catch \| finally \| let g:qfprio='c' \| endtry<CR>
-nnoremap <silent> <C-P> :silent! cwindow \| try \| cnewer \| catch \| finally \| let g:qfprio='c' \| endtry<CR>
+function! IsLocListVisible()
+	return !empty(GetVisibleLocListWinNrs())
+endfunction
+
+function! GetVisibleQListWinNrs()
+	return filter(range(1, winnr('$')), {_,x -> getwinvar(x, "&ft") == "qf" && get(getwininfo(win_getid(x))[0], 'loclist', 0) == 0 })
+endfunction
+
+function! IsQListVisible()
+	return !empty(GetVisibleQListWinNrs())
+endfunction
+
+function! LocListOlder()
+	if IsLocListVisible()
+		try | lolder | catch | finally | let g:qfprio='l' | endtry
+	else
+		lwindow
+	endif
+endfunction
+command! LocListOlder call LocListOlder()
+
+function! LocListNewer()
+	if IsLocListVisible()
+		try | lnewer | catch | finally | let g:qfprio='l' | endtry
+	else
+		lwindow
+	endif
+endfunction
+command! LocListNewer call LocListNewer()
+
+function! QListOlder()
+	if IsQListVisible()
+		try | colder | catch | finally | let g:qfprio='c' | endtry
+	else
+		cwindow
+	endif
+endfunction
+command! QListOlder call QListOlder()
+
+function! QListNewer()
+	if IsQListVisible()
+		try | cnewer | catch | finally | let g:qfprio='c' | endtry
+	else
+		cwindow
+	endif
+endfunction
+command! QListNewer call QListNewer()
+
+nnoremap <silent> <C-H> :LocListOlder<CR>
+nnoremap <silent> <C-L> :LocListNewer<CR>
+nnoremap <silent> <C-N> :QListOlder<CR>
+nnoremap <silent> <C-P> :QListNewer<CR>
 
 " diff > loclist > quickfix > ale
 " older > newer
