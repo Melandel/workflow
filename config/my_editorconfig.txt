@@ -8,6 +8,9 @@ indent_size = 1
 tab_width = 1
 trim_trailing_whitespace = true
 
+[*.designer.cs]
+trim_trailing_whitespace = false
+
 [_vimrc]
 charset = unset
 end_of_line = unset
