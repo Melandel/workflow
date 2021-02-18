@@ -673,31 +673,23 @@ endfunction
 
 " Motions:-----------------------------{{{
 " Browsing File Architecture" ---------{{{
-function! BrowseToNextParagraph()
-	let oldpos = line('.')
-	if oldpos != line('$')
-		normal! }
-	endif
-	if line('.') != line('$')
-		normal! j
+let g:qfprio = 'c'
+
+function! Qfnext()
+	if g:qfprio == 'l'
+		try | lnext | catch | lopen | endtry
+	elseif g:qfprio == 'c'
+		try | cnext | catch | copen | endtry
 	endif
 endfunction
 
-function! BrowseToLastParagraph()
-	let oldpos = line('.')
-	normal! {
-	if line('.') == oldpos-1
-		normal! {
-	endif
-	if line('.') != 1
-		normal! j
-	endif
-	if oldpos != 1 && line('.') == oldpos
-		normal! k
+function! Qfprev()
+	if g:qfprio == 'l'
+		try | lprev | catch | lopen | endtry
+	elseif g:qfprio == 'c'
+		try | cprev | catch | copen | endtry
 	endif
 endfunction
-nnoremap <silent> <C-N> :call BrowseToNextParagraph()<CR>zz
-nnoremap <silent> <C-P> :call BrowseToLastParagraph()<CR>zz
 
 function! BrowseLayoutDown()
 	if &diff
@@ -705,20 +697,15 @@ function! BrowseLayoutDown()
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
-			let loclistbuffers = filter(map(quickfixbuffers, {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0)})
-			if !empty(loclistbuffers)
-				let currentfilegitlogbuffer=filter(loclistbuffers, {_,x -> getwinvar(x.winnr, 'quickfix_title') =~ 'Gllog\s*$'})
-				if !empty(currentfilegitlogbuffer)
-					silent! lnext | Gdiffsplit! !~ | wincmd h
-				else
-					silent! lnext
-				endif
-			else
-				silent! cnext
+			let loclistbuffers = filter(map(copy(quickfixbuffers), {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0) == 1})
+			let qflistbuffers = filter(map(copy(quickfixbuffers), {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0) == 0})
+			if !empty(loclistbuffers) && empty(qflistbuffers)
+				let g:qfprio = 'l'
+			elseif !empty(qflistbuffers) && empty(loclistbuffers)
+				let g:qfprio = 'c'
 			endif
-		elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
-			ALENext
 		endif
+		call Qfnext()
 	endif
 	silent! normal! zv
 	normal! m'
@@ -731,28 +718,30 @@ function! BrowseLayoutUp()
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
-			let loclistbuffers = filter(map(quickfixbuffers, {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0)})
-			if !empty(loclistbuffers)
-				let currentfilegitlogbuffer=filter(loclistbuffers, {_,x -> getwinvar(x.winnr, 'quickfix_title') =~ 'Gllog\s*$'})
-				if !empty(currentfilegitlogbuffer)
-					silent! lprev | Gdiffsplit! !~ | wincmd h
-				else
-					silent! lprev
-				endif
-			else
-				silent! cprev
+			let loclistbuffers = filter(map(copy(quickfixbuffers), {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0) == 1})
+			let qflistbuffers = filter(map(copy(quickfixbuffers), {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0) == 0})
+			if !empty(loclistbuffers) && empty(qflistbuffers)
+				let g:qfprio = 'l'
+			elseif !empty(qflistbuffers) && empty(loclistbuffers)
+				let g:qfprio = 'c'
 			endif
-		elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
-			ALEPrevious
 		endif
+		call Qfprev()
 	endif
 	silent! normal! zv
 	normal! m'
 endfunction
 nnoremap <silent> <C-K> :call BrowseLayoutUp()<CR>
 
-nnoremap <silent> <C-H> :cnfile<CR>
-nnoremap <silent> <C-L> :cpfile<CR>
+
+nnoremap <silent> <C-H> :silent! lwindow \| try \| lolder \| catch \| finally \| let g:qfprio='l' \| endtry<CR>
+nnoremap <silent> <C-L> :silent! lwindow \| try \| lnewer \| catch \| finally \| let g:qfprio='l' \| endtry<CR>
+nnoremap <silent> <C-N> :silent! cwindow \| try \| colder \| catch \| finally \| let g:qfprio='c' \| endtry<CR>
+nnoremap <silent> <C-P> :silent! cwindow \| try \| cnewer \| catch \| finally \| let g:qfprio='c' \| endtry<CR>
+
+" diff > loclist > quickfix > ale
+" older > newer
+" latest used takes control for next <C-J/K>
 " Current Line" -----------------------{{{
 nnoremap <silent> . :let c= strcharpart(getline('.')[col('.') - 1:], 0, 1)\|exec "normal! f".c<CR>
 
@@ -1063,6 +1052,7 @@ let g:ale_set_loclist = 0
 augroup quickfix
 	au!
 " Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
+	autocmd FileType qf set nowrap
 	autocmd FileType qf if !getwininfo(win_getid())[0].loclist | wincmd J | endif
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | silent! pclose | endif
 	autocmd QuickFixCmdPost l*    nested lwindow
@@ -1639,7 +1629,7 @@ augroup dashboard
 	autocmd BufEnter                wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 augroup end
 
-nnoremap <silent> <leader>D :0Gllog \| Gdiffsplit! \| wincmd h<CR>
+nnoremap <silent> <leader>D :0Gllog!<CR>
 
 " Drafts (Diagrams & Notes)"-----------{{{
 function! LocListNotes(...)
@@ -2314,3 +2304,10 @@ if !empty(glob($config.'/my_vimworkenv.vim'))
 		return glob('**/*.sln', 0, 1) + [fnamemodify(GetCsproj(), ':.')]
 	endfunc
 endif
+
+function! Qf2Loclist()
+	call setloclist(0, [], ' ', {'items': get(getqflist({'items': 1}), 'items')})
+	cclose
+	lwindow
+endfunction
+command! Qf2Loclist call Qf2Loclist()
