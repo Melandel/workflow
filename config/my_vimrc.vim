@@ -88,6 +88,7 @@ set encoding=utf8
 set scrolloff=0
 set relativenumber
 set number
+set cursorline
 set backspace=indent,start,eol
 set listchars=tab:▸\ ,eol:¬,extends:>,precedes:<
 set list
@@ -110,7 +111,6 @@ if has("gui_running")
 		autocmd BufEnter *    if &buftype == 'terminal' | set renderoptions= | endif
 		autocmd BufLeave *    if len(&renderoptions) == 0 | set renderoptions=type:directx,level:0.75,gamma:1.25,contrast:0.25,geom:1,renmode:5,taamode:1 | endif
 	augroup end
-	set cursorline
 	set renderoptions=type:directx,level:0.75,gamma:1.25,contrast:0.25,geom:1,renmode:5,taamode:1
 	set guioptions-=m  "menu bar
 	set guioptions-=T  "toolbar
@@ -1691,6 +1691,12 @@ function! LocListNotes(...)
 endfunction
 command! -nargs=* LocListNotes call LocListNotes(<f-args>)
 nnoremap <silent> <leader>d :LocListNotes<CR>
+
+function! LocListNotes(...)
+	silent exec 'lgrep! "^\# "' $n '-g "*.md"' '-g "!*.withsvgs.md" --sort path'
+	nnoremap <buffer> <CR> <CR>:lclose<CR>
+endfunction
+command! -nargs=* LocListNotes call LocListNotes(<f-args>)
 
 function! SaveInFolderAs(folder, ...)
 	let args = ParseArgs(a:000, ['filetype', 'markdown'])
