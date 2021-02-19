@@ -88,7 +88,6 @@ set encoding=utf8
 set scrolloff=0
 set relativenumber
 set number
-set cursorline
 set backspace=indent,start,eol
 set listchars=tab:▸\ ,eol:¬,extends:>,precedes:<
 set list
@@ -111,6 +110,7 @@ if has("gui_running")
 		autocmd BufEnter *    if &buftype == 'terminal' | set renderoptions= | endif
 		autocmd BufLeave *    if len(&renderoptions) == 0 | set renderoptions=type:directx,level:0.75,gamma:1.25,contrast:0.25,geom:1,renmode:5,taamode:1 | endif
 	augroup end
+	set cursorline
 	set renderoptions=type:directx,level:0.75,gamma:1.25,contrast:0.25,geom:1,renmode:5,taamode:1
 	set guioptions-=m  "menu bar
 	set guioptions-=T  "toolbar
@@ -1225,17 +1225,18 @@ function! CycleWindowBuffersHistoryBackwards()
 	let w:skip_tracking_buffers = 0
 endfunction
 
-" Full screen" ------------------------{{{
-let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
-let g:gvimtweak#enable_alpha_at_startup=1
-let g:gvimtweak#enable_topmost_at_startup=0
-let g:gvimtweak#enable_maximize_at_startup=1
-let g:gvimtweak#enable_fullscreen_at_startup=1
-nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
-nnoremap <silent> <A-n> :GvimTweakToggleTransparency<CR>
-nnoremap <silent> <A-i> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-o> <C-W>N:GvimTweakSetAlpha -10<CR>i
-nnoremap <silent> <A-o> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
-
+" Full screen & Opacity" ------------------------{{{
+if has('win32') && has('gui_running')
+	let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
+	let g:gvimtweak#enable_alpha_at_startup=1
+	let g:gvimtweak#enable_topmost_at_startup=0
+	let g:gvimtweak#enable_maximize_at_startup=1
+	let g:gvimtweak#enable_fullscreen_at_startup=1
+	nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
+	nnoremap <silent> <A-n> :GvimTweakToggleTransparency<CR>
+	nnoremap <silent> <A-i> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-o> <C-W>N:GvimTweakSetAlpha -10<CR>i
+	nnoremap <silent> <A-o> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
+endif
 " File explorer (graphical)" ----------{{{
 function! IsPreviouslyYankedItemValid()
 	return @d != ''
