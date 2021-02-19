@@ -33,6 +33,7 @@ endif
 
 " Desktop Integration:-----------------{{{
 " Plugins" ----------------------------{{{
+packadd! matchit
 function! MinpacInit()
 	packadd minpac
 	call minpac#init( {'dir':$packpath, 'package_name': 'plugins', 'progress_open': 'none' } )
