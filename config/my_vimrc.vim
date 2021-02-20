@@ -1221,17 +1221,18 @@ function! CycleWindowBuffersHistoryBackwards()
 	let w:skip_tracking_buffers = 0
 endfunction
 
-" Full screen" ------------------------{{{
-let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
-let g:gvimtweak#enable_alpha_at_startup=1
-let g:gvimtweak#enable_topmost_at_startup=0
-let g:gvimtweak#enable_maximize_at_startup=1
-let g:gvimtweak#enable_fullscreen_at_startup=1
-nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
-nnoremap <silent> <A-n> :GvimTweakToggleTransparency<CR>
-nnoremap <silent> <A-i> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-o> <C-W>N:GvimTweakSetAlpha -10<CR>i
-nnoremap <silent> <A-o> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
-
+" Full screen & Opacity" ------------------------{{{
+if has('win32') && has('gui_running')
+	let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
+	let g:gvimtweak#enable_alpha_at_startup=1
+	let g:gvimtweak#enable_topmost_at_startup=0
+	let g:gvimtweak#enable_maximize_at_startup=1
+	let g:gvimtweak#enable_fullscreen_at_startup=1
+	nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
+	nnoremap <silent> <A-n> :GvimTweakToggleTransparency<CR>
+	nnoremap <silent> <A-i> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-o> <C-W>N:GvimTweakSetAlpha -10<CR>i
+	nnoremap <silent> <A-o> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
+endif
 " File explorer (graphical)" ----------{{{
 function! IsPreviouslyYankedItemValid()
 	return @d != ''
@@ -1686,6 +1687,12 @@ function! LocListNotes(...)
 endfunction
 command! -nargs=* LocListNotes call LocListNotes(<f-args>)
 nnoremap <silent> <leader>d :LocListNotes<CR>
+
+function! LocListNotes(...)
+	silent exec 'lgrep! "^\# "' $n '-g "*.md"' '-g "!*.withsvgs.md" --sort path'
+	nnoremap <buffer> <CR> <CR>:lclose<CR>
+endfunction
+command! -nargs=* LocListNotes call LocListNotes(<f-args>)
 
 function! SaveInFolderAs(folder, ...)
 	let args = ParseArgs(a:000, ['filetype', 'markdown'])
