@@ -19,6 +19,7 @@ let $templates = $HOME.'/Desktop/templates'
 let $todo      = $HOME.'/Desktop/todo'
 let $wip       = $HOME.'/Desktop/wip.md'
 let $scripts   = $HOME.'/Desktop/scripts'            | let $s = $scripts
+let $g         = $HOME.'/tools/git/usr/bin'
 
 let $rc         = $HOME.'/Desktop/config/my_vimrc.vim'
 let $rcfolder   = $VIM
@@ -1691,12 +1692,6 @@ function! LocListNotes(...)
 endfunction
 command! -nargs=* LocListNotes call LocListNotes(<f-args>)
 nnoremap <silent> <leader>d :LocListNotes<CR>
-
-function! LocListNotes(...)
-	silent exec 'lgrep! "^\# "' $n '-g "*.md"' '-g "!*.withsvgs.md" --sort path'
-	nnoremap <buffer> <CR> <CR>:lclose<CR>
-endfunction
-command! -nargs=* LocListNotes call LocListNotes(<f-args>)
 
 function! SaveInFolderAs(folder, ...)
 	let args = ParseArgs(a:000, ['filetype', 'markdown'])
