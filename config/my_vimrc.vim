@@ -570,7 +570,6 @@ nnoremap <silent> <Leader><end> 99<C-W>W
 nnoremap <silent> <Leader>n gt
 nnoremap <silent> <Leader>N :tabnew<CR>
 nnoremap <silent> <Leader>p gT
-nnoremap <silent> <Leader>P :$tabnew<CR>
 
 augroup windows
 	autocmd!
@@ -635,6 +634,7 @@ let g:lightline = {
 	\ 'component_function': {
 	\    'filesize_and_rows': 'FileSizeAndRows',
 	\    'winnr': 'WinNr',
+	\    'filename_or_qftitle': 'FileNameorQfTitle',
 	\    'tabinfo': 'TabInfo'
 	\ },
 	\ 'component': {
@@ -653,7 +653,7 @@ let g:lightline = {
 	\        [ 'tabinfo', 'time' ]
 	\    ],
 	\    'right': [
-	\        ['filename', 'readonly', 'modified' ],
+	\        ['filename_or_qftitle', 'readonly', 'modified' ],
 	\        [ 'gitinfo', 'sharpenup' ]
 	\    ]
 	\ },
@@ -662,7 +662,7 @@ let g:lightline = {
 	\        ['winnr']
 	\    ],
 	\    'right': [
-	\        [ 'filename', 'readonly', 'modified' ],
+	\        [ 'filename_or_qftitle', 'readonly', 'modified' ],
 	\        [ 'gitinfo', 'sharpenup' ]
 	\    ]
 	\ }
@@ -758,7 +758,6 @@ function! LocListOlder()
 		lwindow
 	endif
 endfunction
-command! LocListOlder call LocListOlder()
 
 function! LocListNewer()
 	if IsLocListVisible()
@@ -767,7 +766,6 @@ function! LocListNewer()
 		lwindow
 	endif
 endfunction
-command! LocListNewer call LocListNewer()
 
 function! QListOlder()
 	if IsQListVisible()
@@ -776,7 +774,6 @@ function! QListOlder()
 		cwindow
 	endif
 endfunction
-command! QListOlder call QListOlder()
 
 function! QListNewer()
 	if IsQListVisible()
@@ -785,12 +782,11 @@ function! QListNewer()
 		cwindow
 	endif
 endfunction
-command! QListNewer call QListNewer()
 
-nnoremap <silent> <C-H> :LocListOlder<CR>
-nnoremap <silent> <C-L> :LocListNewer<CR>
-nnoremap <silent> <C-N> :QListOlder<CR>
-nnoremap <silent> <C-P> :QListNewer<CR>
+nnoremap <silent> <C-H> :call LocListOlder()<CR>
+nnoremap <silent> <C-L> :call LocListNewer()<CR>
+nnoremap <silent> <C-N> :call QListOlder()<CR>
+nnoremap <silent> <C-P> :call QListNewer()<CR>
 
 " diff > loclist > quickfix > ale
 " older > newer
@@ -2365,3 +2361,25 @@ function! Qf2Loclist()
 	lwindow
 endfunction
 command! Qf2Loclist call Qf2Loclist()
+
+function! LocListTerminalBuffers()
+	let prefix = '!cmd '
+	let prefixlen = len(prefix.'/k ')
+	let terminalbuffers= map(filter(getbufinfo({'bufloaded':1}), {_,x->x.name =~ prefix}), {_,x -> {'bufnr': x.bufnr, 'valid': 1}})
+	call setloclist(0, [], ' ', {'nr': '$', 'items': terminalbuffers, 'title': '[Location List] Terminal Buffers'})
+	lwindow
+	nnoremap <buffer> <CR> <CR>:lclose<CR>
+endfunction
+command! LocListTerminalBuffers call LocListTerminalBuffers()
+nnoremap <silent> <Leader>P :LocListTerminalBuffers<CR>
+
+function! FileNameorQfTitle()
+	let title = get(w:, 'quickfix_title', fnamemodify(bufname(), ':t'))
+	if title =~ '^k '
+		let title = title[2:]
+	endif
+	if stridx(title, &grepprg) >= 0
+		let title = '[grep] '. title[strlen(&grepprg):]
+	endif
+	return title
+endfunction
