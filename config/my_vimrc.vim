@@ -788,9 +788,13 @@ nnoremap <silent> <C-L> :call LocListNewer()<CR>
 nnoremap <silent> <C-N> :call QListOlder()<CR>
 nnoremap <silent> <C-P> :call QListNewer()<CR>
 
-" diff > loclist > quickfix > ale
-" older > newer
-" latest used takes control for next <C-J/K>
+" Jump to last insert mode
+augroup lastinsert
+	au!
+	autocmd! InsertLeave * mark I
+augroup end
+nnoremap gi `I
+
 " Current Line" -----------------------{{{
 nnoremap <silent> . :let c= strcharpart(getline('.')[col('.') - 1:], 0, 1)\|exec "normal! f".c<CR>
 
