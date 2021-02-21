@@ -1678,8 +1678,8 @@ augroup dashboard
 	autocmd BufEnter     todo,ideas,waiting,mood,wip.md redraw | echo 'You are doing great <3'
 	autocmd BufWritePost todo,ideas,waiting,mood,wip.md redraw | echo 'Nice :)'
 	autocmd BufEnter     todo,ideas,waiting,mood,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
-	autocmd TextChanged  todo,ideas,waiting,mood, wip .md set buftype= | silent write!
-	autocmd BufEnter                              wip .md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
+	autocmd TextChanged  todo,ideas,waiting,mood,wip.md set buftype= | silent write!
+	autocmd BufEnter                             wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 augroup end
 
 nnoremap <silent> <leader>D :0Gllog!<CR>

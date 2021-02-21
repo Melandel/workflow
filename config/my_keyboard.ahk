@@ -157,27 +157,27 @@ k::
 	waitingForNextKey := false
 return
 q::
-	SendInput, ^!{vk34}
+	SendInput, {LCtrl down}{RAlt down}{vk34}{RAlt up}{LCtrl up}
 	waitingForNextKey := false
 	;{
 return
 s::
-	SendInput, ^!{vk35}
+	SendInput, {LCtrl down}{RAlt down}{vk35}{RAlt up}{LCtrl up}
 	waitingForNextKey := false
 	;[
 return
 d::
-	SendInput, ^!{vkDB}
+	SendInput, {LCtrl down}{RAlt down}{vkDB}{RAlt up}{LCtrl up}
 	waitingForNextKey := false
 	;]
 return
 f::
-	SendInput, ^!{vkBB}
+	SendInput, {LCtrl down}{RAlt down}{vkBB}{RAlt up}{LCtrl up}
 	waitingForNextKey := false
 	;}
 return
 g::
-	SendInput, ^!{vk37}{space}
+	SendInput, {LCtrl down}{RAlt down}{vk37}{LCtrl up}{RAlt up}{space}
 	waitingForNextKey := false
 	;`
 return
@@ -191,17 +191,17 @@ l::
 	waitingForNextKey := false
 return
 w::
-	SendInput, ^!{vk32}{space}
+	SendInput, {LCtrl down}{RAlt down}{vk32}{RAlt up}{LCtrl up}{space}
 	waitingForNextKey := false
 	;~
 return
 x::
-	SendInput, ^!{vk33}
+	SendInput, {LCtrl down}{RAlt down}{vk33}{RAlt up}{LCtrl up}
 	waitingForNextKey := false
 	;#
 return
 c::
-	SendInput, ^!{vk36}
+	SendInput, {LCtrl down}{RAlt down}{vk36}{RAlt up}{LCtrl up}
 	waitingForNextKey := false
 	;|
 return
@@ -210,12 +210,12 @@ v::
 	waitingForNextKey := false
 return
 b::
-	SendInput, ^!{vk38}
+	SendInput, {LCtrl down}{RAlt down}{vk38}{RAlt up}{LCtrl up}
 	waitingForNextKey := false
 	;\
 return
 n::
-	Send ^!{vk30}
+	Send {LCtrl down}{RAlt down}{vk30}{RAlt up}{LCtrl up}
 	waitingForNextKey := false
 	;@
 return
@@ -252,7 +252,7 @@ if WinActive("MozillaWindowClass") {
 waitingfornextkey := false
 return
 r::
-	send, ^!{Tab}
+	send, {LCtrl down}{RAlt down}{Tab}{RAlt up}{LCtrl up}
 	waitingfornextkey := false
 return
 t::
@@ -260,7 +260,7 @@ t::
 	waitingfornextkey := false
 return
 p::
-	SendInput, ^!{vk30}^!{vk30}
+	SendInput, {LCtrl down}{RAlt down}{vk30}{vk30}
 	waitingfornextkey := false
 	;@@
 return
