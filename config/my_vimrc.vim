@@ -1620,6 +1620,9 @@ function! OpenDashboard()
 		let buf = term_start('git --no-pager log -15', {'curwin':1, 'cwd':cwd, 'close_cb': {_ -> execute('let t = timer_start(100, function(''OnGitLogExit'', ['.bufnr.']))', '')}})
 	wincmd h
 	silent exec 'vnew' $desktop.'/ideas'
+	silent exec '3new' $desktop.'/mood'
+	wincmd h
+	silent exec '3new' $desktop.'/waiting'
 	1wincmd w
 	redraw | echo 'You are doing great <3'
 endfunction
@@ -1668,15 +1671,15 @@ augroup dashboard
 	autocmd FileType gitcommit    set textwidth=0
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
-	autocmd BufEnter     todo,ideas,wip.md set buftype=nofile nowrap
-	autocmd BufWritePost todo,ideas,wip.md set buftype=nofile
-	autocmd BufEnter     todo,ideas normal! gg
-	autocmd BufLeave     todo,ideas normal! gg
-	autocmd BufEnter     todo,ideas,wip.md redraw | echo 'You are doing great <3'
-	autocmd BufWritePost todo,ideas,wip.md redraw | echo 'Nice :)'
-	autocmd BufEnter     todo,ideas,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
-	autocmd TextChanged  todo,ideas,wip.md set buftype= | silent write!
-	autocmd BufEnter                wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
+	autocmd BufEnter     todo,ideas,waiting,mood,wip.md set buftype=nofile nowrap
+	autocmd BufWritePost todo,ideas,waiting,mood,wip.md set buftype=nofile
+	autocmd BufEnter     todo,ideas,waiting,mood normal! gg
+	autocmd BufLeave     todo,ideas,waiting,mood normal! gg
+	autocmd BufEnter     todo,ideas,waiting,mood,wip.md redraw | echo 'You are doing great <3'
+	autocmd BufWritePost todo,ideas,waiting,mood,wip.md redraw | echo 'Nice :)'
+	autocmd BufEnter     todo,ideas,waiting,mood,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
+	autocmd TextChanged  todo,ideas,waiting,mood, wip .md set buftype= | silent write!
+	autocmd BufEnter                              wip .md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 augroup end
 
 nnoremap <silent> <leader>D :0Gllog!<CR>
