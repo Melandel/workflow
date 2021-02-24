@@ -1106,12 +1106,36 @@ augroup quickfix
 	au!
 " Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
 	autocmd FileType qf set nowrap
+	autocmd FileType qf call SetParticularQuickFixBehaviour()
 	autocmd FileType qf if !getwininfo(win_getid())[0].loclist | wincmd J | endif
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | silent! pclose | endif
 	autocmd QuickFixCmdPost l*    nested lwindow
 	autocmd QuickFixCmdPost [^l]* nested cwindow
 	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
 augroup end
+
+function! SetParticularQuickFixBehaviour()
+	if empty(get(w:, 'quickfix_title'))
+		return
+	endif
+	nnoremap <buffer> <silent> dd <CR>:Gdiffsplit !~<CR>
+	vnoremap <buffer> <silent> dd :<C-U>let v1=GetFileVersionID("'<") \| let v2=GetFileVersionID("'>") \| exec 'Gtabedit' v1 \| exec 'Gdiffsplit' v2<CR>
+	nnoremap <buffer> <silent> D  <CR>:Gdiffsplit<CR><C-W>h
+	nnoremap <buffer> <silent> C  :exec 'Gtabedit' GetSha()<CR>
+	cnoremap <buffer> <C-R><C-G> <C-R>=GetSha()<CR>
+endfunction
+
+function! GetSha(...)
+	let linenr= a:0 == 0 ? '.' : a:1
+	let line=getline(linenr)
+	return line[:stridx(line,':')-1] 
+endfunction
+
+function! GetFileVersionID(...)
+	let linenr= a:0 == 0 ? '.' : a:1
+	let line=getline(linenr)
+	return line[:stridx(line,'|')-1] 
+endfunction
 
 function! QuickFixVerticalAlign(info)
 	if a:info.quickfix
