@@ -1721,17 +1721,31 @@ function! LocListNotes()
 endfunction
 nnoremap <silent> <leader>en :call LocListNotes()<CR>
 
-function! LocListProjects()
-	let projects = expand(fnamemodify($p, ':.').'/*', 0, 1)
-	call setloclist(0, [], " ", {'nr': '$', 'efm': '%f', 'lines': projects, 'title': '[Location List] Projects'})
+function! LocListToDirectory(dir, title)
+	let items = expand(fnamemodify(a:dir, ':.').'/*', 0, 1)
+	call setloclist(0, [], " ", {'nr': '$', 'efm': '%f', 'lines': items, 'title': '[Location List] '.a:title})
 	lwindow
 	if(&ft == 'qf')
 		call matchadd('Conceal', '^[^/|]\+/')
 		set conceallevel=3 concealcursor=nvic
 		nnoremap <buffer> <CR> <CR>:lclose<CR>
+		nnoremap <buffer> o :let filename = GetFilename() \| wincmd q \| exec 'vsplit'  filename<CR>
+		nnoremap <buffer> a :let filename = GetFilename() \| wincmd q \| exec 'split'   filename<CR>
+		nnoremap <buffer> t :let filename = GetFilename() \| wincmd q \| exec 'tabedit' filename<CR>
+		nnoremap <buffer> f :let filename = GetFilename() \| wincmd q \| exec 'Files'   filename<CR>
+		nnoremap <buffer> - :let filename = GetFilename() \| wincmd q \| exec 'Dirvish' filename<CR>:silent! exec '/'.fnamemodify(filename, ':t').'$'<CR>:noh<CR>
 	endif
 endfunction
-nnoremap <silent> <leader>ep :call LocListProjects()<CR>
+nnoremap <silent> <leader>ep :call LocListToDirectory($projects,  'Projects')<CR>
+nnoremap <silent> <leader>ec :call LocListToDirectory($config,    'Config Files')<CR>
+nnoremap <silent> <leader>ed :call LocListToDirectory($desktop,   'Desktop Files')<CR>
+nnoremap <silent> <leader>eD :call LocListToDirectory($downloads, 'Downloads')<CR>
+nnoremap <silent> <leader>es :call LocListToDirectory($scripts,   'Scripts')<CR>
+
+function! GetFilename()
+	let line = getline('.')
+	return line[:match(line, '\s*|')-1]
+endfunction
 
 function! SaveInFolderAs(folder, ...)
 	let args = ParseArgs(a:000, ['filetype', 'markdown'])
