@@ -1710,15 +1710,28 @@ augroup dashboard
 	autocmd BufEnter                             wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 augroup end
 
-nnoremap <silent> <leader>D :0Gllog!<CR>
+nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
 
 " Drafts (Diagrams & Notes)"-----------{{{
-function! LocListNotes(...)
+function! LocListNotes()
 	silent exec 'lgrep! "^\# "' $n '-g "*.md"' '-g "!*.withsvgs.md" --sort path'
-	nnoremap <buffer> <CR> <CR>:lclose<CR>
+	if(&ft == 'qf')
+		nnoremap <buffer> <CR> <CR>:lclose<CR>
+	endif
 endfunction
-command! -nargs=* LocListNotes call LocListNotes(<f-args>)
-nnoremap <silent> <leader>d :LocListNotes<CR>
+nnoremap <silent> <leader>en :call LocListNotes()<CR>
+
+function! LocListProjects()
+	let projects = expand(fnamemodify($p, ':.').'/*', 0, 1)
+	call setloclist(0, [], " ", {'nr': '$', 'efm': '%f', 'lines': projects, 'title': '[Location List] Projects'})
+	lwindow
+	if(&ft == 'qf')
+		call matchadd('Conceal', '^[^/|]\+/')
+		set conceallevel=3 concealcursor=nvic
+		nnoremap <buffer> <CR> <CR>:lclose<CR>
+	endif
+endfunction
+nnoremap <silent> <leader>ep :call LocListProjects()<CR>
 
 function! SaveInFolderAs(folder, ...)
 	let args = ParseArgs(a:000, ['filetype', 'markdown'])
