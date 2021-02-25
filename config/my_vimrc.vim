@@ -988,7 +988,24 @@ nnoremap <Leader>R :Rg
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
-tnoremap <C-O> <C-W>N:setlocal norelativenumber number foldcolumn=0 nowrap<CR>zb
+tnoremap <silent> <Leader>hh <C-W>h
+tnoremap <silent> <Leader>jj <C-W>j
+tnoremap <silent> <Leader>kk <C-W>k
+tnoremap <silent> <Leader>ll <C-W>l
+tnoremap <silent> <Leader><home><home> 1<C-W>W
+tnoremap <silent> <Leader><end><end> 99<C-W>W
+tnoremap <silent> <Leader>nn <C-W>gt
+tnoremap <silent> <Leader>NN :tabnew<CR>
+tnoremap <silent> <Leader>pp <C-W>gT
+tnoremap <silent> <Leader>xx <C-W>:tabclose<CR>
+tnoremap <silent> <Leader>ss <C-W>:new<CR>
+tnoremap <silent> <Leader>vv <C-W>:vnew<CR>
+tnoremap <silent> <Leader>oo <C-W>:only<CR>i
+tnoremap <silent> <Leader>OO <C-W>:exec 'tabnew \|b'.bufnr()<CR>
+tnoremap <silent> <Leader>== <C-W>=
+tnoremap <silent> KK <C-W>:q<CR>
+tnoremap <silent> HH <C-W>:CycleBackwards<CR>
+tnoremap <silent> LL <C-W>:CycleForward<CR>
 
 " Folding" ----------------------------{{{
 vnoremap <silent> <space> <Esc>zE:let b:focus_mode=1 \| setlocal foldmethod=manual<CR>`<kzfgg`>jzfG`<
@@ -1185,8 +1202,8 @@ nnoremap g, g,zv
 
 " Additional Functionalities:----------{{{
 " Buffer navigation"-------------------{{{
-nnoremap <silent> H :call CycleWindowBuffersHistoryBackwards()<CR>
-nnoremap <silent> L :call CycleWindowBuffersHistoryForward()<CR>
+nnoremap <silent> H :CycleBackwards<CR>
+nnoremap <silent> L :CycleForward<CR>
 
 " Fuzzy Finder"------------------------{{{
 " Makes Omnishahrp-vim code actions select both two elements
@@ -1239,6 +1256,7 @@ function! CycleWindowBuffersHistoryForward()
 	exec 'buffer' w:buffers[-1]
 	let w:skip_tracking_buffers = 0
 endfunction
+command! CycleForward call CycleWindowBuffersHistoryForward()
 
 function! CycleWindowBuffersHistoryBackwards()
 	let w:buffers = [w:buffers[-1]] + w:buffers[:-2]
@@ -1249,6 +1267,7 @@ function! CycleWindowBuffersHistoryBackwards()
 	exec 'buffer' w:buffers[-1]
 	let w:skip_tracking_buffers = 0
 endfunction
+command! CycleBackwards call CycleWindowBuffersHistoryBackwards()
 
 " Full screen & Opacity" ------------------------{{{
 if has('win32') && has('gui_running')
@@ -2373,8 +2392,16 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 for file in expand('$scripts/*.bat', 1, 1)
 	let filename = fnamemodify(file, ':t:r')
 	let filename = toupper(filename[0]).filename[1:]
-	exec 'command!' filename 'terminal ++curwin ++noclose cmd /k' filename.'.bat'
+	exec 'command! -bang' filename 'call RunScript('''.filename.''', "<bang>")'
 endfor
+
+function! RunScript(name, bang)
+	if empty(a:bang)
+		exec 'terminal ++hidden ++open' a:name.'.bat'
+	else
+		exec 'terminal ++curwin ++noclose cmd /k' a:name.'.bat'
+	endif
+endfunction
 
 function! SynchronizeDuplicatedConfigFile()
 	let filename = expand('%:t')
@@ -2421,16 +2448,49 @@ function! Qf2Loclist()
 endfunction
 command! Qf2Loclist call Qf2Loclist()
 
-function! LocListTerminalBuffers()
-	let prefix = '!cmd '
-	let prefixlen = len(prefix.'/k ')
-	let terminalbuffers= map(filter(getbufinfo({'bufloaded':1}), {_,x->x.name =~ prefix}), {_,x -> {'bufnr': x.bufnr, 'valid': 1}})
-	call setloclist(0, [], ' ', {'nr': '$', 'items': terminalbuffers, 'title': '[Location List] Terminal Buffers'})
-	lwindow
-	nnoremap <buffer> <CR> <CR>:lclose<CR>
+function! LocListTerminalBuffers(bang)
+	if empty(a:bang)
+		let prefix = '!cmd '
+		let prefixlen = len(prefix.'/k ')
+		let terminalbuffers= map(filter(getbufinfo({'buflisted':1}), {_,x->getbufvar(x.bufnr, '&bt') == 'terminal'}), {_,x -> {'bufnr': x.bufnr, 'valid': 1, 'text': term_getstatus(x.bufnr)}})
+		call setloclist(0, [], ' ', {'nr': '$', 'items': terminalbuffers, 'title': '[Location List] Terminal Buffers'})
+		lwindow
+		if(&ft == 'qf')
+			call matchadd('Conceal', '!\?cmd /k ')
+			set conceallevel=3 concealcursor=nvic
+		endif
+		nnoremap <buffer> o :let bufnr = getloclist(0)[getline('.')-1].bufnr \| wincmd q \| exec 'vertical sbuffer'.bufnr<CR>
+		nnoremap <buffer> a :let bufnr = getloclist(0)[getline('.')-1].bufnr \| wincmd q \| exec 'sbuffer'.bufnr<CR>
+		nnoremap <buffer> t :let bufnr = getloclist(0)[getline('.')-1].bufnr \| wincmd q \| exec 'tabnew \| b'.bufnr<CR>
+		nnoremap <buffer> - :quit \| Dirvish $s<CR>
+		nnoremap <buffer> <CR> <CR>:lclose<CR>
+	else
+		let terminalbuffers= map(filter(getbufinfo({'buflisted':1}), {_,x->getbufvar(x.bufnr, '&bt') == 'terminal' && stridx(term_getstatus(x.bufnr), 'running') != -1 }), {_,x -> x.bufnr})
+		let bufnb = len(terminalbuffers)
+		if bufnb == 0
+			return
+		endif
+		if bufnb > 4
+			call LocListTerminalBuffers('')
+			return
+		endif
+		if bufnb == 4
+			exec 'tabnew | b'.terminalbuffers[0]
+			exec 'sbuffer'.terminalbuffers[2] '| vertical sbuffer'.terminalbuffers[3]
+			windcmd k | exec 'vertical sbuffer'.terminalbuffers[1]
+		elseif bufnb == 3
+			exec 'tabnew | b'.terminalbuffers[0] '| vertical sbuffer'.terminalbuffers[1] '| vertical sbuffer'.terminalbuffers[2] '| wincmd ='
+		elseif bufnb == 2
+			exec 'tabnew | b'.terminalbuffers[0]
+			exec 'vertical sbuffer'.terminalbuffers[1]
+		elseif bufnb == 1
+			exec 'tabnew | b'.terminalbuffers[0]
+		endif
+	endif
 endfunction
-command! LocListTerminalBuffers call LocListTerminalBuffers()
-nnoremap <silent> <Leader>P :LocListTerminalBuffers<CR>
+command! -bang LocListTerminalBuffers call LocListTerminalBuffers("<bang>")
+nnoremap <silent> <Leader>et :LocListTerminalBuffers<CR>
+nnoremap <silent> <Leader>eT :LocListTerminalBuffers!<CR>
 
 function! FileNameorQfTitle()
 	let title = get(w:, 'quickfix_title', fnamemodify(bufname(), ':t'))
