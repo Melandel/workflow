@@ -1744,7 +1744,8 @@ nnoremap <silent> <leader>es :call LocListToDirectory($scripts,   'Scripts')<CR>
 
 function! GetFilename()
 	let line = getline('.')
-	return line[:match(line, '\s*|')-1]
+	let filename = line[:match(line, '\s*|')-1]
+	return fnamemodify(filename, ':p')
 endfunction
 
 function! SaveInFolderAs(folder, ...)
