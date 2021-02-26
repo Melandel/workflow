@@ -2441,6 +2441,32 @@ if !empty(glob($config.'/my_vimworkenv.vim'))
 	endfunc
 endif
 
+function! TestCurrentCsproj()
+	let csproj = GetNearestPathInCurrentFileParents('*.csproj')
+	let csprojLines = readfile(csproj)
+	let assemblyName = map(filter(csprojLines, {_,x->stridx(x, '<AssemblyName>') != -1}), {_,x -> x[stridx(x,'>')+1:stridx(x,'<', stridx(x, '>'))-1]})[0]
+	let paths = filter(glob(fnamemodify(csproj, ':h').'/**/'.assemblyName.'.dll', 0, 1), {_,x -> stridx(x, 'bin') != -1 && stridx(x,'Debug') != -1})
+	let assemblyToTest = empty(paths) ? '' : paths[0]
+	if empty(assemblyToTest)
+		echomsg 'Could not find' assemblyName.'.dll inside /bin, /Debug folders'
+		return
+	echomsg 'Testing' fnamemodify(assemblyToTest, ':.')
+	set errorformat=%f\ :\ error\ %*\\a%l:\ %m
+	set errorformat+=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
+	set errorformat+=%A\ %#Failed\ %.%#
+	set errorformat+=%Z\ %#Failed\ %.%#
+	set errorformat+=%-C\ %#Stack\ Trace:
+	set errorformat+=%-C\ %#at%.%#\ in\ %.%#ValidationResultExtention.cs%.%#
+	set errorformat+=%C\ %#at%.%#\ in\ %f:line\ %l
+	set errorformat+=%-C%.%#\ Error\ Message%.%#
+	set errorformat+=%-C%.%#\ (pos\ %.%#
+	set errorformat+=%-G%*\\d-%*\\d-%*\\d\ %.%#
+	set errorformat+=%C\ %#%m\ Failure
+	set errorformat+=%C\ %#%m
+	set errorformat+=%-G%.%#
+ cexpr system('vstest.console.exe /logger:console;verbosity=minimal '.assemblyToTest)
+endfunction
+
 function! Qf2Loclist()
 	call setloclist(0, [], ' ', {'items': get(getqflist({'items': 1}), 'items')})
 	cclose
@@ -2479,7 +2505,12 @@ function! LocListTerminalBuffers(bang)
 			exec 'sbuffer'.terminalbuffers[2] '| vertical sbuffer'.terminalbuffers[3]
 			windcmd k | exec 'vertical sbuffer'.terminalbuffers[1]
 		elseif bufnb == 3
-			exec 'tabnew | b'.terminalbuffers[0] '| vertical sbuffer'.terminalbuffers[1] '| vertical sbuffer'.terminalbuffers[2] '| wincmd ='
+			quit
+			normal! mW
+			tabnew
+			normal! `W
+			exec 'sbuffer'.terminalbuffers[1] '| vertical sbuffer'.terminalbuffers[2]
+			windcmd k | exec 'vertical sbuffer'.terminalbuffers[0]
 		elseif bufnb == 2
 			exec 'tabnew | b'.terminalbuffers[0]
 			exec 'vertical sbuffer'.terminalbuffers[1]
