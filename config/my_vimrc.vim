@@ -349,7 +349,6 @@ function! JobStartExample(...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'callback': { chan,msg  -> execute('echo ''[cb] '.substitute(msg[:&columns-8],"'","''","g").'''',  1)},
 			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)},
 			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'" | botright sbuffer '.scratchbufnr, '')}
 		\}
@@ -2450,6 +2449,7 @@ function! TestCurrentCsproj()
 	if empty(assemblyToTest)
 		echomsg 'Could not find' assemblyName.'.dll inside /bin, /Debug folders'
 		return
+	endif
 	echomsg 'Testing' fnamemodify(assemblyToTest, ':.')
 	set errorformat=%f\ :\ error\ %*\\a%l:\ %m
 	set errorformat+=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
@@ -2464,7 +2464,9 @@ function! TestCurrentCsproj()
 	set errorformat+=%C\ %#%m\ Failure
 	set errorformat+=%C\ %#%m
 	set errorformat+=%-G%.%#
+	set errorformat=%m
  cexpr system('vstest.console.exe /logger:console;verbosity=minimal '.assemblyToTest)
+	echomsg 'done'
 endfunction
 
 function! Qf2Loclist()
@@ -2503,14 +2505,14 @@ function! LocListTerminalBuffers(bang)
 		if bufnb == 4
 			exec 'tabnew | b'.terminalbuffers[0]
 			exec 'sbuffer'.terminalbuffers[2] '| vertical sbuffer'.terminalbuffers[3]
-			windcmd k | exec 'vertical sbuffer'.terminalbuffers[1]
+			wincmd k | exec 'vertical sbuffer'.terminalbuffers[1]
 		elseif bufnb == 3
 			quit
 			normal! mW
 			tabnew
 			normal! `W
 			exec 'sbuffer'.terminalbuffers[1] '| vertical sbuffer'.terminalbuffers[2]
-			windcmd k | exec 'vertical sbuffer'.terminalbuffers[0]
+			wincmd k | exec 'vertical sbuffer'.terminalbuffers[0]
 		elseif bufnb == 2
 			exec 'tabnew | b'.terminalbuffers[0]
 			exec 'vertical sbuffer'.terminalbuffers[1]
