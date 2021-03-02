@@ -2507,7 +2507,6 @@ function! LocListTerminalBuffers(bang)
 			exec 'sbuffer'.terminalbuffers[2] '| vertical sbuffer'.terminalbuffers[3]
 			wincmd k | exec 'vertical sbuffer'.terminalbuffers[1]
 		elseif bufnb == 3
-			quit
 			normal! mW
 			tabnew
 			normal! `W
