@@ -1041,6 +1041,7 @@ function! CopyAllMatches(...)
   exec 'let @'.reg.' = join(hits, "\n") . "\n"'
 endfunction
 command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
+cnoremap <C-Y> %s//\=len(add(hits, submatch(0))) ? submatch(0) : ''/gne<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
 
 " Sort" -------------------------------{{{
 function! SortLinesByLength() range
@@ -2487,9 +2488,9 @@ function! LocListTerminalBuffers(bang)
 			call matchadd('Conceal', '!\?cmd /k ')
 			set conceallevel=3 concealcursor=nvic
 		endif
-		nnoremap <buffer> o :let bufnr = getloclist(0)[getline('.')-1].bufnr \| wincmd q \| exec 'vertical sbuffer'.bufnr<CR>
-		nnoremap <buffer> a :let bufnr = getloclist(0)[getline('.')-1].bufnr \| wincmd q \| exec 'sbuffer'.bufnr<CR>
-		nnoremap <buffer> t :let bufnr = getloclist(0)[getline('.')-1].bufnr \| wincmd q \| exec 'tabnew \| b'.bufnr<CR>
+		nnoremap <buffer> o :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'vertical sbuffer'.bufnr<CR>
+		nnoremap <buffer> a :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'sbuffer'.bufnr<CR>
+		nnoremap <buffer> t :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'tabnew \| b'.bufnr<CR>
 		nnoremap <buffer> - :quit \| Dirvish $s<CR>
 		nnoremap <buffer> <CR> <CR>:lclose<CR>
 	else
