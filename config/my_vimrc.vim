@@ -1041,7 +1041,13 @@ function! CopyAllMatches(...)
   exec 'let @'.reg.' = join(hits, "\n") . "\n"'
 endfunction
 command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
-cnoremap <C-Y> %s//\=len(add(hits, submatch(0))) ? submatch(0) : ''/gne<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
+nnoremap <Leader>y :let y=[]\|%s//\=add(y, submatch(0))/gne\|echomsg y<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
+vnoremap <Leader>y y:let y=[]\|%s/<C-R>"/\=add(y, submatch(0))/gne\|echomsg y<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
+nnoremap <Leader>Y :%s//\=add(Y, submatch(0))/gne\|echomsg Y<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
+vnoremap <Leader>Y y:%s/<C-R>"/\=add(Y, submatch(0))/gne\|echomsg Y<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
+nnoremap <Leader>P :let @y=join(map(copy(y), {_,x -> printf("%s", x) }), ', ')\|put y<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
+inoremap <C-Y> <C-R>=join(map(copy(y), {_,x -> printf("%s", x) }), ', ')<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
+let Y=[]
 
 " Sort" -------------------------------{{{
 function! SortLinesByLength() range
