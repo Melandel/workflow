@@ -1179,7 +1179,7 @@ function! QuickFixVerticalAlign(info)
 		if !e.valid
 			call add(l, '|| '.e.text)
 		else
-			let fname = printf('%-*S', fname_width, modules_are_used ? e.module : substitute(bufname(e.bufnr), '\', '/', 'g'))
+			let fname = printf('%-*S', fname_width, modules_are_used ? e.module : substitute(fnamemodify(bufname(e.bufnr), ':.'), '\', '/', 'g'))
 			if e.lnum == 0 && e.col == 0
 				call add(l, printf('%s|| %s', fname, e.text))
 			else
@@ -2541,3 +2541,168 @@ function! FileNameorQfTitle()
 	endif
 	return title
 endfunction
+
+function! BuildReverseDependencyTree(...)
+	let csproj = GetCsproj()
+	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
+	let slndir = fnamemodify(sln, ':h:p')
+	let slnprojs = map(filter(readfile(sln), {_,x -> x =~ '"[^"]\+\.\a\{1,3}proj"'}), function("ParseCsprojFromSln", [slndir]))
+	let csprojs = map(systemlist('rg "<ProjectReference Include=(.*)>" '. join(map(copy(slnprojs), {_,x -> '-g '.fnamemodify(x, ':t')}), ' ') . ' -r "$1"'), function("ParseReferenceFromCsproj"))
+	let g:g = csprojs
+	let reverseDependencyTree = {}
+	for i in range(len(slnprojs))
+		let reverseDependencyTree[slnprojs[i]] = []
+	endfor
+	for i in range(len(csprojs))
+		let reference = csprojs[i].reference
+		call add(reverseDependencyTree[reference],csprojs[i].project) 
+	endfor
+	return reverseDependencyTree
+endfunction
+
+function! ParseCsprojFromSln(slndir, index, item)
+	let x = a:item
+	let csprojRelativePathStart = match(x, '"[^"]\+\.\a\{1,3}proj"')+1
+	let csprojRelativePathStop = stridx(x, 'proj"', csprojRelativePathStart) + len('proj') - 1
+	let csprojRelativePath = x[csprojRelativePathStart:csprojRelativePathStop]
+	let csprojFullPath = fnamemodify(a:slndir.'/'.csprojRelativePath, ':p')
+	return substitute(csprojFullPath, '\\', '/', 'g')
+endfunction
+
+function! ParseReferenceFromCsproj(index, item)
+	let x = a:item
+	let res = { 'project': '', 'reference': '' }
+	let csprojFile = fnamemodify(x[:stridx(x, ':')-1], ':p')
+	let csprojFolder = fnamemodify(csprojFile, ':h')
+	let referenceRelativePath = trim(x[stridx(x, ':')+1:])[1:]
+	let referenceRelativePath = referenceRelativePath[:stridx(referenceRelativePath, '"')-1]
+	let referenceFullPath = fnamemodify(csprojFolder.'/'.referenceRelativePath, ':p')
+	let res.project = substitute(csprojFile, '\\', '/', 'g')
+	let res.reference = substitute(referenceFullPath, '\\', '/', 'g')
+	return res
+endfunction
+
+let g:csprojsWithChanges=['C:/Users/tranm/Desktop/projects/SmartLinx_0/Server/Cortex/Services/Capsule.Server.Cortex.WebServices.csproj']
+
+function! FindAndOrderCsprojsToBuild(csprojsWithChanges, reverseDependencyTree)
+	let reverseDependencyTree = a:reverseDependencyTree
+	let reverseDependencyTree.root = a:csprojsWithChanges
+	let res = []
+	for i in range(len(a:csprojsWithChanges))
+		call FillConsumers(a:csprojsWithChanges[i], res, reverseDependencyTree)
+	endfor
+	return res
+endfunction
+
+function! FillConsumers(csproj, consumers, reverseDependencyTree)
+	let references = a:reverseDependencyTree[a:csproj]
+	let consumers = a:consumers
+	for j in range(len(references))
+		let consumer = references[j]
+		let idx = index(consumers, consumer)
+		if idx >= 0
+			break
+		endif
+		call add(consumers, consumer)
+		let consumers = FillConsumers(consumer, consumers, a:reverseDependencyTree)
+	endfor
+	return consumers
+endfunction
+
+function! ParallelBuild(csprojs)
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
+	call StartParallelBuild(a:csprojs, scratchbufnr)
+endfunction
+
+function! StartParallelBuild(remainingcsprojs, scratchbufnr,...)
+	if (a:0 && a:2)
+		echomsg 'Compilation failed.'
+		set errorformat=CSC\ :\ error\ %*\\a%n:\ %m\ [%f]
+		set errorformat+=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
+		set errorformat+=%f\ :\ error\ %*\\a%n:\ %m\ [%.%#
+		set errorformat+=%.%#error\ %*\\a%n:\ %m
+		set errorformat+=%-G%.%#
+		exec 'cgetbuffer' a:scratchbufnr
+		let w:quickfix_title='Build'
+	endif
+	if empty(a:remainingcsprojs)
+		return
+	endif
+	let csproj = a:remainingcsprojs[0]
+	let remaining = len(a:remainingcsprojs) ? a:remainingcsprojs[1:] : []
+	let cmd = printf('MSBuild.exe -nologo -p:BuildProjectReferences=false -v:quiet %s', csproj)
+	echomsg fnamemodify(csproj, ':t')
+	let g:job = job_start(
+		\cmd,
+		\{
+			\'out_io': 'buffer',
+			\'out_buf': a:scratchbufnr,
+			\'out_modifiable': 0,
+			\'err_io': 'buffer',
+			\'err_buf': a:scratchbufnr,
+			\'err_modifiable': 0,
+			\'in_io': 'null',
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
+			\'exit_cb': csproj =~# 'Test' ? function("StartTestAndParallelBuild", [csproj, remaining, a:scratchbufnr]) : function("StartParallelBuild", [remaining, a:scratchbufnr])
+		\}
+	\)
+endfunction
+
+function! StartTestAndParallelBuild(csproj, remainingcsprojs, scratchbufnr, job, status)
+	call StartParallelBuild(a:remainingcsprojs, a:scratchbufnr)
+	let assemblyName = map(filter(readfile(a:csproj), {_,x->stridx(x, '<AssemblyName>') != -1}), {_,x -> x[stridx(x,'>')+1:stridx(x,'<', stridx(x, '>'))-1]})[0]
+	let paths = filter(glob(fnamemodify(a:csproj, ':h').'/**/'.assemblyName.'.dll', 0, 1), {_,x -> stridx(x, 'bin') != -1 && stridx(x,'Debug') != -1})
+	let assemblyToTest = empty(paths) ? '' : paths[0]
+	if empty(assemblyToTest)
+		echomsg 'Could not find' assemblyName.'.dll inside /bin, /Debug folders'
+		return
+	endif
+	echomsg 'WAZAAAAAAAAAAAAAAAAAAA' a:csproj
+	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Test')
+ let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal %s', assemblyToTest)
+	let g:job = job_start(
+		\cmd,
+		\{
+			\'out_io': 'buffer',
+			\'out_buf': scratchbufnr,
+			\'out_modifiable': 0,
+			\'err_io': 'buffer',
+			\'err_buf': scratchbufnr,
+			\'err_modifiable': 0,
+			\'in_io': 'null',
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
+			\'exit_cb': function("VsTestCB", scratchbufnr])
+		\}
+	\)
+endfunction
+
+function! VsTestCB(scratchbufnr, job, status)
+	if a:status
+		echomsg 'Tests failed.'
+		set errorformat=%f\ :\ error\ %*\\a%l:\ %m
+		set errorformat+=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
+		set errorformat+=%A\ %#Failed\ %.%#
+		set errorformat+=%Z\ %#Failed\ %.%#
+		set errorformat+=%-C\ %#Stack\ Trace:
+		set errorformat+=%-C\ %#at%.%#\ in\ %.%#ValidationResultExtention.cs%.%#
+		set errorformat+=%C\ %#at%.%#\ in\ %f:line\ %l
+		set errorformat+=%-C%.%#\ Error\ Message%.%#
+		set errorformat+=%-C%.%#\ (pos\ %.%#
+		set errorformat+=%-G%*\\d-%*\\d-%*\\d\ %.%#
+		set errorformat+=%C\ %#%m\ Failure
+		set errorformat+=%C\ %#%m
+		set errorformat+=%-G%.%#
+		set errorformat=%m
+		exec 'cgetbuffer' a:scratchbufnr
+	else
+		call OpenDashboard()
+	endif
+endfunction
+
+function! BuildCurrentSolution(...)
+	let reverseDependencyTree = BuildReverseDependencyTree()
+	let modifiedCsProjs = g:csprojsWithChanges
+	let actualCsProjsToBuildInOrder = FindAndOrderCsprojsToBuild(g:csprojsWithChanges, reverseDependencyTree)
+	call ParallelBuild(actualCsProjsToBuildInOrder)
+endfunc
+command! -nargs=? Build call BuildCurrentSolution(<f-args>)
