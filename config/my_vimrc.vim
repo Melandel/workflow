@@ -1742,6 +1742,7 @@ function! LocListNotes()
 	silent exec 'lgrep! "^\# "' $n '-g "*.md"' '-g "!*.withsvgs.md" --sort path'
 	if(&ft == 'qf')
 		nnoremap <buffer> <CR> <CR>:lclose<CR>
+		nmap <buffer> l <CR>
 	endif
 endfunction
 nnoremap <silent> <leader>en :call LocListNotes()<CR>
@@ -1754,6 +1755,7 @@ function! LocListToDirectory(dir, title)
 		call matchadd('Conceal', '^[^/|]\+/')
 		set conceallevel=3 concealcursor=nvic
 		nnoremap <buffer> <CR> <CR>:lclose<CR>
+		nmap <buffer> l <CR>
 		nnoremap <buffer> o :let filename = GetFilename() \| wincmd q \| exec 'vsplit'  filename<CR>
 		nnoremap <buffer> a :let filename = GetFilename() \| wincmd q \| exec 'split'   filename<CR>
 		nnoremap <buffer> t :let filename = GetFilename() \| wincmd q \| exec 'tabedit' filename<CR>
@@ -2494,6 +2496,7 @@ function! LocListTerminalBuffers(bang)
 			call matchadd('Conceal', '!\?cmd /k ')
 			set conceallevel=3 concealcursor=nvic
 		endif
+		nnoremap <buffer> i <CR>
 		nnoremap <buffer> o :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'vertical sbuffer'.bufnr<CR>
 		nnoremap <buffer> a :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'sbuffer'.bufnr<CR>
 		nnoremap <buffer> t :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'tabnew \| b'.bufnr<CR>
