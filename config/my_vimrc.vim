@@ -2585,21 +2585,24 @@ function! ParseReferenceFromCsproj(index, item)
 	return res
 endfunction
 
-let g:csprojsWithChanges=['C:/Users/tranm/Desktop/projects/SmartLinx_0/Server/Cortex/Services/Capsule.Server.Cortex.WebServices.csproj']
+let g:csprojsWithChanges=['C:/Users/c_mtran/Desktop/projects/SmartLinx/Server/Cortex/Services/Capsule.Server.Cortex.WebServices.csproj']
 
 function! FindAndOrderCsprojsToBuild(csprojsWithChanges, reverseDependencyTree)
 	let reverseDependencyTree = a:reverseDependencyTree
 	let reverseDependencyTree.root = a:csprojsWithChanges
 	let res = []
 	for i in range(len(a:csprojsWithChanges))
-		call FillConsumers(a:csprojsWithChanges[i], res, reverseDependencyTree)
+		let res = [a:csprojsWithChanges[i]] + FillConsumers(a:csprojsWithChanges[i], res, reverseDependencyTree)
 	endfor
 	return res
 endfunction
 
 function! FillConsumers(csproj, consumers, reverseDependencyTree)
-	let references = a:reverseDependencyTree[a:csproj]
 	let consumers = a:consumers
+	if index(consumers, a:csproj) == -1
+		call add(consumers, a:csproj)
+	endif
+	let references = a:reverseDependencyTree[a:csproj]
 	for j in range(len(references))
 		let consumer = references[j]
 		let idx = index(consumers, consumer)
@@ -2617,6 +2620,7 @@ function! ParallelBuild(csprojs)
 	call StartParallelBuild(a:csprojs, scratchbufnr)
 endfunction
 
+let g:jobs = []
 function! StartParallelBuild(remainingcsprojs, scratchbufnr,...)
 	if (a:0 && a:2)
 		echomsg 'Compilation failed.'
@@ -2635,7 +2639,7 @@ function! StartParallelBuild(remainingcsprojs, scratchbufnr,...)
 	let remaining = len(a:remainingcsprojs) ? a:remainingcsprojs[1:] : []
 	let cmd = printf('MSBuild.exe -nologo -p:BuildProjectReferences=false -v:quiet %s', csproj)
 	echomsg fnamemodify(csproj, ':t')
-	let g:job = job_start(
+	call add(g:jobs, job_start(
 		\cmd,
 		\{
 			\'out_io': 'buffer',
@@ -2648,7 +2652,7 @@ function! StartParallelBuild(remainingcsprojs, scratchbufnr,...)
 			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
 			\'exit_cb': csproj =~# 'Test' ? function("StartTestAndParallelBuild", [csproj, remaining, a:scratchbufnr]) : function("StartParallelBuild", [remaining, a:scratchbufnr])
 		\}
-	\)
+	\))
 endfunction
 
 function! StartTestAndParallelBuild(csproj, remainingcsprojs, scratchbufnr, job, status)
@@ -2660,10 +2664,9 @@ function! StartTestAndParallelBuild(csproj, remainingcsprojs, scratchbufnr, job,
 		echomsg 'Could not find' assemblyName.'.dll inside /bin, /Debug folders'
 		return
 	endif
-	echomsg 'WAZAAAAAAAAAAAAAAAAAAA' a:csproj
-	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Test')
+	let scratchbufnr = ResetScratchBuffer($tmp.'/Test')
  let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal %s', assemblyToTest)
-	let g:job = job_start(
+	call add(g:jobs, job_start(
 		\cmd,
 		\{
 			\'out_io': 'buffer',
@@ -2674,9 +2677,9 @@ function! StartTestAndParallelBuild(csproj, remainingcsprojs, scratchbufnr, job,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
 			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
-			\'exit_cb': function("VsTestCB", scratchbufnr])
+			\'exit_cb': function("VsTestCB", [scratchbufnr])
 		\}
-	\)
+	\))
 endfunction
 
 function! VsTestCB(scratchbufnr, job, status)
