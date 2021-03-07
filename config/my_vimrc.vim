@@ -1666,7 +1666,7 @@ function! OpenDashboard()
 	-tabmove
 	normal gu
 	silent exec winheight(0)/4.'new'
-		exec 'edit' $desktop.'/todo'
+		silent exec 'edit' $desktop.'/todo'
 	silent exec winwidth(0)*2/3.'vnew'
 		let bufnr = bufnr()
 		silent! bdelete git\ --no-pager\ log
@@ -1677,7 +1677,6 @@ function! OpenDashboard()
 	wincmd h
 	silent exec '3new' $desktop.'/waiting'
 	1wincmd w
-	redraw | echo 'You are doing great <3'
 endfunction
 command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
@@ -1728,8 +1727,6 @@ augroup dashboard
 	autocmd BufWritePost todo,ideas,waiting,mood,wip.md set buftype=nofile
 	autocmd BufEnter     todo,ideas,waiting,mood normal! gg
 	autocmd BufLeave     todo,ideas,waiting,mood normal! gg
-	autocmd BufEnter     todo,ideas,waiting,mood,wip.md redraw | echo 'You are doing great <3'
-	autocmd BufWritePost todo,ideas,waiting,mood,wip.md redraw | echo 'Nice :)'
 	autocmd BufEnter     todo,ideas,waiting,mood,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
 	autocmd TextChanged  todo,ideas,waiting,mood,wip.md set buftype= | silent write!
 	autocmd BufEnter                             wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
@@ -2302,7 +2299,7 @@ augroup csharpfiles
 	au!
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :Ados<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :<C-U>Ados<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :!dotnet run -p Startup<CR>
+	autocmd FileType cs nnoremap <buffer> <LocalLeader>m :BuildTestCommit<CR>
 	autocmd FileType cs nmap <buffer> zk <Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
 	autocmd FileType cs nmap <buffer> zK ggzj
@@ -2585,6 +2582,7 @@ function! ParseReferenceFromCsproj(index, item)
 	return res
 endfunction
 
+let g:csfilesWithChanges=['C:/Users/c_mtran/Desktop/projects/SmartLinx/Server/Cortex/Services/CortexHubManager/GatewayController.cs']
 let g:csprojsWithChanges=['C:/Users/c_mtran/Desktop/projects/SmartLinx/Server/Cortex/Services/Capsule.Server.Cortex.WebServices.csproj']
 
 function! FindAndOrderCsprojsToBuild(csprojsWithChanges, reverseDependencyTree)
@@ -2616,7 +2614,7 @@ function! FillConsumers(csproj, consumers, reverseDependencyTree)
 endfunction
 
 function! ParallelBuild(csprojs)
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Build')
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuild')
 	call StartParallelBuild(a:csprojs, scratchbufnr)
 endfunction
 
@@ -2664,8 +2662,8 @@ function! StartTestAndParallelBuild(csproj, remainingcsprojs, scratchbufnr, job,
 		echomsg 'Could not find' assemblyName.'.dll inside /bin, /Debug folders'
 		return
 	endif
-	let scratchbufnr = ResetScratchBuffer($tmp.'/Test')
- let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal %s', assemblyToTest)
+	let scratchbufnr = ResetScratchBuffer($tmp.'/JobTest')
+	let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal %s --testcasefilter:%s', assemblyToTest, join(map(copy(g:csfilesWithChanges), {_,x -> 'FullyQualifiedName~'.fnamemodify(x, ':t:r')}), '|'))
 	call add(g:jobs, job_start(
 		\cmd,
 		\{
@@ -2683,8 +2681,8 @@ function! StartTestAndParallelBuild(csproj, remainingcsprojs, scratchbufnr, job,
 endfunction
 
 function! VsTestCB(scratchbufnr, job, status)
+	echomsg getbufline(a:scratchbufnr, '$')[0]
 	if a:status
-		echomsg 'Tests failed.'
 		set errorformat=%f\ :\ error\ %*\\a%l:\ %m
 		set errorformat+=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
 		set errorformat+=%A\ %#Failed\ %.%#
@@ -2700,6 +2698,7 @@ function! VsTestCB(scratchbufnr, job, status)
 		set errorformat+=%-G%.%#
 		set errorformat=%m
 		exec 'cgetbuffer' a:scratchbufnr
+		let w:quickfix_title = 'Tests'
 	else
 		call OpenDashboard()
 	endif
@@ -2711,4 +2710,4 @@ function! BuildCurrentSolution(...)
 	let actualCsProjsToBuildInOrder = FindAndOrderCsprojsToBuild(g:csprojsWithChanges, reverseDependencyTree)
 	call ParallelBuild(actualCsProjsToBuildInOrder)
 endfunc
-command! -nargs=? Build call BuildCurrentSolution(<f-args>)
+command! -nargs=? BuildTestCommit call BuildCurrentSolution(<f-args>)
