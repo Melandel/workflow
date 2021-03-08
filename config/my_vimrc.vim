@@ -2492,13 +2492,13 @@ function! LocListTerminalBuffers(bang)
 		if(&ft == 'qf')
 			call matchadd('Conceal', '!\?cmd /k ')
 			set conceallevel=3 concealcursor=nvic
+			nmap <buffer> l <CR>
+			nnoremap <buffer> o :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'vertical sbuffer'.bufnr<CR>
+			nnoremap <buffer> a :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'sbuffer'.bufnr<CR>
+			nnoremap <buffer> t :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'tabnew \| b'.bufnr<CR>
+			nnoremap <buffer> - :quit \| Dirvish $s<CR>
+			nnoremap <buffer> <CR> <CR>:lclose<CR>
 		endif
-		nnoremap <buffer> i <CR>
-		nnoremap <buffer> o :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'vertical sbuffer'.bufnr<CR>
-		nnoremap <buffer> a :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'sbuffer'.bufnr<CR>
-		nnoremap <buffer> t :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'tabnew \| b'.bufnr<CR>
-		nnoremap <buffer> - :quit \| Dirvish $s<CR>
-		nnoremap <buffer> <CR> <CR>:lclose<CR>
 	else
 		let terminalbuffers= map(filter(getbufinfo({'buflisted':1}), {_,x->getbufvar(x.bufnr, '&bt') == 'terminal' && stridx(term_getstatus(x.bufnr), 'running') != -1 }), {_,x -> x.bufnr})
 		let bufnb = len(terminalbuffers)
