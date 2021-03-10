@@ -2312,7 +2312,7 @@ augroup csharpfiles
 	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csprojsWithChanges, substitute(GetCsproj(), '\\', '/', 'g'))))
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :Ados<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :<C-U>Ados<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>m :BuildTestCommit<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
 	autocmd FileType cs nmap <buffer> zk <Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
 	autocmd FileType cs nmap <buffer> zK ggzj
@@ -2513,6 +2513,10 @@ endfunction
 
 function! BuildReverseDependencyTree(...)
 	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
+	let cache = get(get(g:, 'reverseDependencyTrees', {}), sln, {})
+	if !empty(cache)
+		return cache
+	endif
 	let slndir = fnamemodify(sln, ':h:p')
 	let slnprojs = map(filter(readfile(sln), {_,x -> x =~ '"[^"]\+\.\a\{1,3}proj"'}), function("ParseCsprojFromSln", [slndir]))
 	let rgGlobs = join(map(copy(slnprojs), '"-g ".fnamemodify(v:val, ":t")'), ' ')
@@ -2526,6 +2530,8 @@ function! BuildReverseDependencyTree(...)
 		let reference = csprojs[i].reference
 		call add(reverseDependencyTree[reference],csprojs[i].project) 
 	endfor
+	let g:reverseDependencyTrees = get(g:, 'reverseDependencyTrees', {})
+	let g:reverseDependencyTrees[sln] = reverseDependencyTree
 	return reverseDependencyTree
 endfunction
 
@@ -2559,7 +2565,7 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
 	if stridx(report, ' - ') < 0
 		return
 	endif
-	let reportStats = split(report, ' - ')[1]
+	let reportStats = substitute(split(report, ' - ')[1], ':\s\+', ': ', 'g')
 	if a:0 && a:2
 		echomsg '🚫🚫' fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
 		set errorformat =%A\ %#Failed\ %.%#
@@ -2602,7 +2608,8 @@ endfunction
 
 function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, previouslyBuiltCsproj)
 	if a:csprojsWithNbOccurrences[a:csproj] > 1
-		for i in range(len(uniq(sort(FillConsumers(a:csproj, a:reverseDependencyTree)))))
+		let reduced = uniq(sort(FillConsumers(a:csproj, a:reverseDependencyTree)))
+		for i in range(len(reduced))
 			let a:csprojsWithNbOccurrences[reduced[i]] -= 1
 		endfor
 		return
@@ -2659,7 +2666,8 @@ function! TestCsproj(path, csprojsWithNbOccurrences)
 		return
 	endif
 	let scratchbufnr = ResetScratchBuffer($tmp.'/JobTest')
-	let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal %s --testcasefilter:%s', assemblyToTest, join(map(copy(g:csfilesWithChanges), {_,x -> 'FullyQualifiedName~'.fnamemodify(x, ':t:r')}), '|'))
+	let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal /TestCaseFilter:"%s" %s', join(map(copy(g:csfilesWithChanges), {_,x -> 'FullyQualifiedName~'.fnamemodify(x, ':t:r')}), '|'), assemblyToTest)
+	echomsg '🗡' fnamemodify(assemblyToTest, ':t:r') '['.join(map(copy(g:csfilesWithChanges), 'fnamemodify(v:val, ":t:r")'), ", ").']'
 	call add(g:buildAndTestJobs, job_start(
 		\cmd,
 		\{
@@ -2688,12 +2696,14 @@ function! GetPathOfAssemblyToTest(csproj)
 endfunction
 
 function! BuildTestCommit(...)
+	silent write
 	if empty(g:csprojsWithChanges)
 		echomsg 'No changes since last build. You may need to call MSBuild by hand.'
 		return
 	endif
 	let g:buildAndTestJobs=[]
-	let reverseDependencyTree = BuildReverseDependencyTree()
+	let sln = GetNearestPathInCurrentFileParents('*.sln')
+	let reverseDependencyTree = BuildReverseDependencyTree(sln)
 	let csprojsToBuild = map(copy(g:csprojsWithChanges), {_,x -> FillConsumers(x, reverseDependencyTree)})
 	let csprojsToBuildFlat = flatten(copy(csprojsToBuild))
 	let csprojsToBuildMin = uniq(sort(flatten(copy(csprojsToBuild))))
@@ -2707,5 +2717,6 @@ function! BuildTestCommit(...)
 		let csproj = g:csprojsWithChanges[i]
 		call CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, '')
 	endfor
+	echomsg '🔨' '['.join(map(copy(g:csprojsWithChanges), 'fnamemodify(v:val, ":t:r")'), ", ").']'
 endfunc
 command! -nargs=? BuildTestCommit call BuildTestCommit(<f-args>)
