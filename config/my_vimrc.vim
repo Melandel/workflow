@@ -2304,8 +2304,8 @@ command! Ados call OpenCodeOnAzureDevops()
 
 augroup csharpfiles
 	au!
-	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csfilesWithChanges, expand('%:p'))))
-	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csprojsWithChanges, GetCsproj())))
+	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csfilesWithChanges, substitute(expand('%:p'), '\\', '/', 'g'))))
+	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csprojsWithChanges, substitute(GetCsproj(), '\\', '/', 'g'))))
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :Ados<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :<C-U>Ados<CR>
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>m :BuildTestCommit<CR>
@@ -2508,11 +2508,12 @@ function! FileNameorQfTitle()
 endfunction
 
 function! BuildReverseDependencyTree(...)
-	let csproj = GetCsproj()
 	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
 	let slndir = fnamemodify(sln, ':h:p')
 	let slnprojs = map(filter(readfile(sln), {_,x -> x =~ '"[^"]\+\.\a\{1,3}proj"'}), function("ParseCsprojFromSln", [slndir]))
-	let csprojs = map(systemlist('rg "<ProjectReference Include=(.*)>" '. join(map(copy(slnprojs), {_,x -> '-g '.fnamemodify(x, ':t')}), ' ') . ' -r "$1"'), function("ParseReferenceFromCsproj"))
+	let rgGlobs = join(map(copy(slnprojs), '"-g ".fnamemodify(v:val, ":t")'), ' ')
+	let rgCmd = printf('rg "<ProjectReference Include=(.*)>" %s -r "$1"', rgGlobs)
+	let csprojs = map(systemlist(rgCmd), function("ParseReferenceFromCsproj"))
 	let reverseDependencyTree = {}
 	for i in range(len(slnprojs))
 		let reverseDependencyTree[slnprojs[i]] = []
@@ -2520,9 +2521,6 @@ function! BuildReverseDependencyTree(...)
 	for i in range(len(csprojs))
 		let reference = csprojs[i].reference
 		call add(reverseDependencyTree[reference],csprojs[i].project) 
-	endfor
-	for k in keys(reverseDependencyTree)
-		call sort(reverseDependencyTree[k], {a,b -> index(reverseDependencyTree[b], a)})
 	endfor
 	return reverseDependencyTree
 endfunction
