@@ -1175,15 +1175,19 @@ function! QuickFixVerticalAlign(info)
 	let efm_type = {'e': 'error', 'w': 'warning', 'i': 'info', 'n': 'note'}
 	let lnum_width =   len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), { _,v -> qfl[v].lnum })))
 	let col_width =    len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> qfl[v].col})))
-	let fname_width =  max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), modules_are_used ? {_, v -> strchars(qfl[v].module, 1)} : {_, v -> strchars(bufname(qfl[v].bufnr), 1)}))
+	let fname_width =  max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), modules_are_used ? {_, v -> strchars(qfl[v].module, 1)} : {_, v -> strchars(substitute(fnamemodify(bufname(qfl[v].bufnr), ':.'), '\\', '/', 'g'), 1)}))
 	let type_width =   max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> strlen(get(efm_type, qfl[v].type, ''))}))
 	let errnum_width = len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1),{_, v -> qfl[v].nr})))
 	for idx in range(a:info.start_idx - 1, a:info.end_idx - 1)
 		let e = qfl[idx]
+		let e.text = substitute(e.text, '\%x00', ' ', 'g')
+		if stridx(e.text, ' Expected: ') >= 0
+			let e.text = substitute(e.text, ' Actual:   ', '   Actual: ', '')
+		endif
 		if !e.valid
 			call add(l, '|| '.e.text)
 		else
-			let fname = printf('%-*S', fname_width, modules_are_used ? e.module : substitute(fnamemodify(bufname(e.bufnr), ':.'), '\', '/', 'g'))
+			let fname = printf('%-*S', fname_width, modules_are_used ? e.module : substitute(fnamemodify(bufname(e.bufnr), ':.'), '\\', '/', 'g'))
 			if e.lnum == 0 && e.col == 0
 				call add(l, printf('%s|| %s', fname, e.text))
 			else
@@ -2550,46 +2554,39 @@ endfunction
 let g:csfilesWithChanges=[]
 let g:csprojsWithChanges=[]
 
-function! VsTestCB(scratchbufnr, job, status)
-	echomsg getbufline(a:scratchbufnr, '$')[0]
-	if a:status
-		set errorformat=%f\ :\ error\ %*\\a%l:\ %m
-		set errorformat+=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
-		set errorformat+=%A\ %#Failed\ %.%#
+function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
+	let report = getbufline(a:scratchbufnr, '$')[0]
+	if stridx(report, ' - ') < 0
+		return
+	endif
+	let reportStats = split(report, ' - ')[1]
+	if a:0 && a:2
+		echomsg '🚫🚫' fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
+		set errorformat =%A\ %#Failed\ %.%#
 		set errorformat+=%Z\ %#Failed\ %.%#
 		set errorformat+=%-C\ %#Stack\ Trace:
-		set errorformat+=%-C\ %#at%.%#\ in\ %.%#ValidationResultExtention.cs%.%#
 		set errorformat+=%C\ %#at%.%#\ in\ %f:line\ %l
+		set errorformat+=%-C\ %#at\ %.%#
+		set errorformat+=%-C---\ %.%#
+		set errorformat+=%-C%.%#[FAIL]
 		set errorformat+=%-C%.%#\ Error\ Message%.%#
 		set errorformat+=%-C%.%#\ (pos\ %.%#
 		set errorformat+=%-G%*\\d-%*\\d-%*\\d\ %.%#
-		set errorformat+=%C\ %#%m\ Failure
+		set errorformat+=%C\ %#Assert\.%m\ Failure
 		set errorformat+=%C\ %#%m
 		set errorformat+=%-G%.%#
-		set errorformat=%m
-		exec 'cgetbuffer' a:scratchbufnr
+		silent exec 'cgetbuffer' a:scratchbufnr
 		if &ft == 'qf'
 			let w:quickfix_title = 'Tests'
 		endif
 	else
-	if empty(filter(copy(g:jobCounts), {_,x -> x > 0}))
+		echomsg '✅✅' fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
+		if empty(filter(copy(a:csprojsWithNbOccurrences), {_,x -> x > 0})) && empty(filter(copy(g:buildAndTestJobs), 'v:val =~ "running"'))
+			let g:csprojsWithChanges = []
+			let g:csfilesWithChanges = []
 			call OpenDashboard()
 		endif
 	endif
-endfunction
-
-function! FindAndOrderCsprojsToBuild(csprojsWithChanges, reverseDependencyTree)
-	return map(copy(a:csprojsWithChanges), function("GetTopologicallySortedCsprojsToBuild", [a:reverseDependencyTree]))
-endfunction
-
-function! GetTopologicallySortedCsprojsToBuild(reverseDependencyTree, index, csprojWithChanges)
-	let naive = FillConsumers(a:csprojWithChanges, a:reverseDependencyTree)
-	if len(naive) < 2
-		return naive
-	endif
-	let reduced = uniq(sort(naive))
-	let dependenciesDeclaration = flatten(map(copy(reduced), {_,x -> map(copy(a:reverseDependencyTree[x]), {_,y -> x.' '.y})}))
-	return map(systemlist($gtools.'/tsort.exe', dependenciesDeclaration), 'trim(v:val)')
 endfunction
 
 function! FillConsumers(csproj, reverseDependencyTree)
@@ -2603,91 +2600,67 @@ function! FillConsumers(csproj, reverseDependencyTree)
 	return consumers
 endfunction
 
-function! ParallelBuild(csprojsOrdered, reverseDependencyTree)
-	let g:jobCounts = {}
-	let csprojs = flatten(copy(a:csprojsOrdered))
-	for i in range(len(csprojs))
-		let csproj = csprojs[i]
-		let g:jobCounts[csproj] = len(filter(copy(csprojs), {_,x -> x == csproj}))
-	endfor
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuild')
-	for i in range(len(a:csprojsOrdered))
-		let csprojsToBuild = a:csprojsOrdered[i]
-		call StartParallelBuild(csprojsToBuild, scratchbufnr, '', a:reverseDependencyTree)
-	endfor
+function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, previouslyBuiltCsproj)
+	if a:csprojsWithNbOccurrences[a:csproj] > 1
+		for i in range(len(uniq(sort(FillConsumers(a:csproj, a:reverseDependencyTree)))))
+			let a:csprojsWithNbOccurrences[reduced[i]] -= 1
+		endfor
+		return
+	endif
+	let a:csprojsWithNbOccurrences[a:csproj] -= 1
+	let consumers = a:reverseDependencyTree[a:csproj]
+	let cmd = printf('MSBuild.exe -nologo -p:BuildProjectReferences=false -v:quiet %s', a:csproj)
+	call add(g:buildAndTestJobs, job_start(
+		\cmd,
+		\{
+			\'out_io': 'buffer',
+			\'out_buf': a:scratchbufnr,
+			\'out_modifiable': 0,
+			\'err_io': 'buffer',
+			\'err_buf': a:scratchbufnr,
+			\'err_modifiable': 0,
+			\'in_io': 'null',
+			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
+			\'exit_cb': function("CascadeReferences", [a:reverseDependencyTree[a:csproj], a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:csproj])
+		\}
+	\))
 endfunction
 
-let g:jobs=[]
-function! StartParallelBuild(remainingcsprojs, scratchbufnr, csprojName,reverseDependencyTree,...)
-	if (a:0 && a:2)
-		echomsg printf('Build failed: %s', a:csprojName)
+function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, previouslyBuiltCsproj, ...)
+	if a:0 && a:2
+		echomsg '🚫' fnamemodify(a:previouslyBuiltCsproj, ':t:r')
 		set errorformat=CSC\ :\ error\ %*\\a%n:\ %m\ [%f]
 		set errorformat+=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
 		set errorformat+=%f\ :\ error\ %*\\a%n:\ %m\ [%.%#
 		set errorformat+=%.%#error\ %*\\a%n:\ %m
 		set errorformat+=%-G%.%#
-		exec 'cgetbuffer' a:scratchbufnr
-		let w:quickfix_title='Build'
-	endif
-	if empty(a:remainingcsprojs)
-		return
-	endif
-	let csproj = a:remainingcsprojs[0]
-	let remaining = len(a:remainingcsprojs) ? a:remainingcsprojs[1:] : []
-	let cmd = printf('MSBuild.exe -nologo -p:BuildProjectReferences=false -v:quiet %s', csproj)
-	if g:jobCounts[csproj] == 1
-	echomsg printf('Building %s...', fnamemodify(csproj, ':t'))
-		call add(g:jobs, job_start(
-			\cmd,
-			\{
-				\'out_io': 'buffer',
-				\'out_buf': a:scratchbufnr,
-				\'out_modifiable': 0,
-				\'err_io': 'buffer',
-				\'err_buf': a:scratchbufnr,
-				\'err_modifiable': 0,
-				\'in_io': 'null',
-				\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
-				\'exit_cb': csproj =~# 'Test' ? function("StartTestAndParallelBuild", [csproj, remaining, a:scratchbufnr, csproj, a:reverseDependencyTree]) : function("StartParallelBuild", [remaining, a:scratchbufnr, csproj, a:reverseDependencyTree])
-			\}
-		\))
-	endif
-	let g:jobCounts[csproj] -= 1
-	if g:jobCounts[csproj] >= 1
-		let consumers = FillConsumers(csproj, a:reverseDependencyTree)
-		if len(consumers) > 1
-			let consumers = consumers[1:]
-		else
-			let consumers = []
+		silent exec 'cgetbuffer' a:scratchbufnr
+		if &ft = 'qf'
+			let w:quickfix_title='Build'
+			return
 		endif
-		let reduced = uniq(sort(consumers))
-		for i in range(len(reduced))
-			let g:jobCounts[reduced[i]] -= 1
-		endfor
 	endif
-	if empty(filter(copy(g:jobCounts), {_,x -> x > 0}))
-		call OpenDashboard()
+	if !empty(a:previouslyBuiltCsproj)
+		echomsg '✅' fnamemodify(a:previouslyBuiltCsproj, ':t:r')
 	endif
+	if a:previouslyBuiltCsproj =~# 'Test'
+		call TestCsproj(a:previouslyBuiltCsproj, a:csprojsWithNbOccurrences)
+	endif
+	for i in range(len(a:csprojs))
+		let csproj = a:csprojs[i]
+		call CascadeBuild(csproj, a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:previouslyBuiltCsproj)
+	endfor
 endfunction
 
-function! StartTestAndParallelBuild(csproj, remainingcsprojs, scratchbufnr, csprojName, reverseDependencyTree, job, status)
-	call StartParallelBuild(a:remainingcsprojs, a:scratchbufnr, a:csprojName, a:reverseDependencyTree)
-	let assemblyNames = map(filter(readfile(a:csproj), {_,x->stridx(x, '<AssemblyName>') != -1}), {_,x -> x[stridx(x,'>')+1:stridx(x,'<', stridx(x, '>'))-1]})
-	let assemblyName = empty(assemblyNames) ? fnamemodify(a:csproj, 't:r') : assemblyNames[0]
-	if empty(assemblyNames)
-		let assemblyName = fnamemodify(a:csproj, ':t:r')
-	else
-		let assemblyName = assemblyNames[0]
-	endif
-	let paths = filter(glob(fnamemodify(a:csproj, ':h').'/**/'.assemblyName.'.dll', 0, 1), {_,x -> stridx(x, 'bin') != -1 && stridx(x,'Debug') != -1})
-	let assemblyToTest = empty(paths) ? '' : paths[0]
+function! TestCsproj(path, csprojsWithNbOccurrences)
+	let assemblyToTest = GetPathOfAssemblyToTest(a:path)
 	if empty(assemblyToTest)
 		echomsg 'Could not find' assemblyName.'.dll inside /bin, /Debug folders'
 		return
 	endif
 	let scratchbufnr = ResetScratchBuffer($tmp.'/JobTest')
 	let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal %s --testcasefilter:%s', assemblyToTest, join(map(copy(g:csfilesWithChanges), {_,x -> 'FullyQualifiedName~'.fnamemodify(x, ':t:r')}), '|'))
-	call add(g:jobs, job_start(
+	call add(g:buildAndTestJobs, job_start(
 		\cmd,
 		\{
 			\'out_io': 'buffer',
@@ -2697,10 +2670,21 @@ function! StartTestAndParallelBuild(csproj, remainingcsprojs, scratchbufnr, cspr
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
-			\'exit_cb': function("VsTestCB", [scratchbufnr])
+			\'exit_cb': function("VsTestCB", [assemblyToTest, a:csprojsWithNbOccurrences, scratchbufnr])
 		\}
 	\))
+endfunction
+
+function! GetPathOfAssemblyToTest(csproj)
+	let assemblyNames = map(filter(readfile(a:csproj), {_,x->stridx(x, '<AssemblyName>') != -1}), {_,x -> x[stridx(x,'>')+1:stridx(x,'<', stridx(x, '>'))-1]})
+	let assemblyName = empty(assemblyNames) ? fnamemodify(a:csproj, 't:r') : assemblyNames[0]
+	if empty(assemblyNames)
+		let assemblyName = fnamemodify(a:csproj, ':t:r')
+	else
+		let assemblyName = assemblyNames[0]
+	endif
+	let paths = filter(glob(fnamemodify(a:csproj, ':h').'/**/'.assemblyName.'.dll', 0, 1), {_,x -> stridx(x, 'bin') != -1 && stridx(x,'Debug') != -1})
+	return empty(paths) ? '' : paths[0]
 endfunction
 
 function! BuildTestCommit(...)
@@ -2708,8 +2692,20 @@ function! BuildTestCommit(...)
 		echomsg 'No changes since last build. You may need to call MSBuild by hand.'
 		return
 	endif
+	let g:buildAndTestJobs=[]
 	let reverseDependencyTree = BuildReverseDependencyTree()
-	let actualCsProjs = FindAndOrderCsprojsToBuild(g:csprojsWithChanges, reverseDependencyTree)
-	call ParallelBuild(actualCsProjs, reverseDependencyTree)
+	let csprojsToBuild = map(copy(g:csprojsWithChanges), {_,x -> FillConsumers(x, reverseDependencyTree)})
+	let csprojsToBuildFlat = flatten(copy(csprojsToBuild))
+	let csprojsToBuildMin = uniq(sort(flatten(copy(csprojsToBuild))))
+	let csprojsWithNbOccurrences = {}
+	for i in range(len(csprojsToBuildMin))
+		let csproj = csprojsToBuildMin[i]
+		let csprojsWithNbOccurrences[csproj] = len(filter(copy(csprojsToBuildFlat), {_,x -> x == csproj}))
+	endfor
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuild')
+	for i in range(len(g:csprojsWithChanges))
+		let csproj = g:csprojsWithChanges[i]
+		call CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, '')
+	endfor
 endfunc
 command! -nargs=? BuildTestCommit call BuildTestCommit(<f-args>)
