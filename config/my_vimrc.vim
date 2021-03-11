@@ -147,7 +147,13 @@ let g:lcd_qf = getcwd()
 
 function! GetInterestingParentDirectory()
 	if IsOmniSharpRelated()
-		return fnamemodify(b:OmniSharp_host.sln_or_dir, isdirectory(b:OmniSharp_host.sln_or_dir) ? ':p' : ':p:h')
+		let sln_or_dir = fnamemodify(b:OmniSharp_host.sln_or_dir, isdirectory(b:OmniSharp_host.sln_or_dir) ? ':p' : ':p:h')
+		if IsInsideGitClone()
+			let gitRootFolder = fnamemodify(gitbranch#dir(expand('%:p')), ':h')
+			return gitRootFolder =~ 'Desktop$' ? sln_or_dir : gitRootFolder
+		else
+			return sln_or_dir
+		endif
 	elseif &ft == 'qf'
 		return g:lcd_qf
 	elseif IsInsideGitClone()
