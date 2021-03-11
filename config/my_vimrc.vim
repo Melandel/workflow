@@ -1675,7 +1675,7 @@ function! OpenDashboard()
 	let cwd = getcwd()
 	silent tab G
 	-tabmove
-	normal gu
+	normal gU
 	silent exec winheight(0)/4.'new'
 		silent exec 'edit' $desktop.'/todo'
 	silent exec winwidth(0)*2/3.'vnew'
