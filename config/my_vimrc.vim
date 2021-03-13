@@ -280,6 +280,14 @@ function! IsQuickFixWindowOpen()
 	return len(filter(range(1, winnr('$')), {_,x -> getwinvar(x, '&syntax') == 'qf'}))
 endfunction
 
+function! IsLocListWindow()
+	return &ft == 'qf' && getwininfo(win_getid())[0].loclist
+endfunction
+
+function! IsQuickFixWindow()
+	return &ft == 'qf' && !getwininfo(win_getid())[0].loclist
+endfunction
+
 function! IsInsideDashboard()
 	return len(filter(range(1, winnr('$')), {_,x -> bufname(winbufnr(x)) =~ '^\.git.index'}))
 endfunction
@@ -588,6 +596,7 @@ augroup windows
 	autocmd WinEnter * if !pumvisible() | setlocal relativenumber   foldcolumn=1 | endif
 	" Safety net if I close a window accidentally
 	autocmd QuitPre * mark K
+	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
 	" Make sure Vim returns to the same line when you reopen a file.
  autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | exec 'normal! g`"zvzz' | endif
 augroup end
@@ -1135,17 +1144,38 @@ augroup end
 
 " QuickFix, Preview, Location window" -{{{
 let g:ale_set_loclist = 0
-" Always show at the bottom of other windows
+
+function! GetQfListCurrentItemBufNr()
+	return getloclist(0)[line('.')-1].bufnr
+endfunction
+
+function! OpenQfListCurrentItem(openCmd)
+	let bufnr = GetQfListCurrentItemBufNr()
+	quit
+	exec a:openCmd bufnr
+endfunction
+command! -bar SplitQfItemBelow call OpenQfListCurrentItem('sbuffer')
+command! -bar SplitQfItemAbove SplitQfItemBelow | wincmd x | wincmd k
+command! -bar VSplitQfItemRight call OpenQfListCurrentItem('vertical sbuffer')
+command! -bar VSplitQfItemLeft VSplitQfItemRight | wincmd x | wincmd h
+command! -bar TSplitQfItemBefore call OpenQfListCurrentItem('-tab sbuffer')
+command! -bar TSplitQfItemAfter call OpenQfListCurrentItem('tab sbuffer')
+
 augroup quickfix
 	au!
-" Automatically open, but do not go to (if there are errors).Also close it when is has become empty.
 	autocmd FileType qf set nowrap
 	autocmd FileType qf call SetParticularQuickFixBehaviour()
-	autocmd FileType qf if !getwininfo(win_getid())[0].loclist | wincmd J | endif
+	autocmd FileType qf if IsQuickFixWindow() | wincmd J | endif
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | silent! pclose | endif
 	autocmd QuickFixCmdPost l*    nested lwindow
 	autocmd QuickFixCmdPost [^l]* nested cwindow
-	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
+	autocmd FileType qf nnoremap <buffer> <silent> o :VSplitQfItemRight<CR>
+	autocmd FileType qf nnoremap <buffer> <silent> O :VSplitQfItemLeft<CR>
+	autocmd FileType qf nnoremap <buffer> <silent> a :SplitQfItemBelow<CR>
+	autocmd FileType qf nnoremap <buffer> <silent> A :SplitQfItemAbove<CR>
+	autocmd FileType qf nnoremap <buffer> <silent> t :TSplitQfItemBefore<CR>
+	autocmd FileType qf nnoremap <buffer> <silent> T :TSplitQfItemAfter<CR>
+	autocmd FileType qf     nmap <buffer> <silent> <expr> i IsLocListWindow() ? "\<CR>:lcl\<CR>" : "\<CR>"
 augroup end
 
 function! SetParticularQuickFixBehaviour()
@@ -1756,10 +1786,6 @@ nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
 " Drafts (Diagrams & Notes)"-----------{{{
 function! LocListNotes()
 	silent exec 'lgrep! "^\# "' $n '-g "*.md"' '-g "!*.withsvgs.md" --sort path'
-	if(&ft == 'qf')
-		nnoremap <buffer> <CR> <CR>:lclose<CR>
-		nmap <buffer> l <CR>
-	endif
 endfunction
 nnoremap <silent> <leader>en :call LocListNotes()<CR>
 
@@ -1770,13 +1796,6 @@ function! LocListToDirectory(dir, title)
 	if(&ft == 'qf')
 		call matchadd('Conceal', '^[^/|]\+/')
 		set conceallevel=3 concealcursor=nvic
-		nnoremap <buffer> <CR> <CR>:lclose<CR>
-		nmap <buffer> l <CR>
-		nnoremap <buffer> o :let filename = GetFilename() \| wincmd q \| exec 'vsplit'  filename<CR>
-		nnoremap <buffer> a :let filename = GetFilename() \| wincmd q \| exec 'split'   filename<CR>
-		nnoremap <buffer> t :let filename = GetFilename() \| wincmd q \| exec 'tabedit' filename<CR>
-		nnoremap <buffer> f :let filename = GetFilename() \| wincmd q \| exec 'Files'   filename<CR>
-		nnoremap <buffer> - :let filename = GetFilename() \| wincmd q \| exec 'Dirvish' filename<CR>:silent! exec '/'.fnamemodify(filename, ':t').'$'<CR>:noh<CR>
 	endif
 endfunction
 nnoremap <silent> <leader>ep :call LocListToDirectory($projects,  'Projects')<CR>
@@ -2469,12 +2488,6 @@ function! LocListTerminalBuffers(bang)
 		if(&ft == 'qf')
 			call matchadd('Conceal', '!\?cmd /k ')
 			set conceallevel=3 concealcursor=nvic
-			nmap <buffer> l <CR>
-			nnoremap <buffer> o :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'vertical sbuffer'.bufnr<CR>
-			nnoremap <buffer> a :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'sbuffer'.bufnr<CR>
-			nnoremap <buffer> t :let bufnr = getloclist(0)[line('.')-1].bufnr \| wincmd q \| exec 'tabnew \| b'.bufnr<CR>
-			nnoremap <buffer> - :quit \| Dirvish $s<CR>
-			nnoremap <buffer> <CR> <CR>:lclose<CR>
 		endif
 	else
 		let terminalbuffers= map(filter(getbufinfo({'buflisted':1}), {_,x->getbufvar(x.bufnr, '&bt') == 'terminal' && stridx(term_getstatus(x.bufnr), 'running') != -1 }), {_,x -> x.bufnr})
