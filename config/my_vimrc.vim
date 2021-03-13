@@ -1737,9 +1737,9 @@ augroup dashboard
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>n gt
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>p gT
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>o :only<CR>
-	autocmd FileType gitcommit    set omnifunc=GetCommitTypes
+	autocmd FileType gitcommit    set completefunc=GetCommitTypes
 	autocmd FileType gitcommit    set textwidth=0
-	autocmd FileType gitcommit    call feedkeys("i\<C-X>\<C-O>")
+	autocmd FileType gitcommit    call feedkeys("i\<C-X>\<C-U>")
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
 	autocmd BufEnter     todo,ideas,waiting,mood,wip.md set buftype=nofile nowrap
