@@ -652,7 +652,6 @@ let g:lightline = {
 	\ 'component_function': {
 	\    'filesize_and_rows': 'FileSizeAndRows',
 	\    'winnr': 'WinNr',
-	\    'filename_or_qftitle': 'FileNameorQfTitle',
 	\    'tabinfo': 'TabInfo'
 	\ },
 	\ 'component': {
@@ -671,7 +670,7 @@ let g:lightline = {
 	\        [ 'tabinfo', 'time' ]
 	\    ],
 	\    'right': [
-	\        ['filename_or_qftitle', 'readonly', 'modified' ],
+	\        ['filename', 'readonly', 'modified' ],
 	\        [ 'gitinfo', 'sharpenup' ]
 	\    ]
 	\ },
@@ -680,7 +679,7 @@ let g:lightline = {
 	\        ['winnr']
 	\    ],
 	\    'right': [
-	\        [ 'filename_or_qftitle', 'readonly', 'modified' ],
+	\        [ 'filename', 'readonly', 'modified' ],
 	\        [ 'gitinfo', 'sharpenup' ]
 	\    ]
 	\ }
@@ -995,14 +994,49 @@ augroup vimsourcing
 augroup end
 
 " Find, Grep, Make, Equal" ------------{{{
-set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case\ --no-ignore-parent\ --no-column\ 
+function! Grep(qf_or_loclist, ...)
+	let pattern = a:1
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/'.substitute(pattern, '\s', '_', 'g'))
+	let cmd = 'rg --vimgrep --no-heading --smart-case --no-ignore-parent '.join(a:000, ' ')
+	echomsg "<start> ".cmd
+	if g:isWindows
+		let cmd = 'cmd /C '.cmd
+	endif
+	let s:job = job_start(
+		\cmd,
+		\{
+			\'cwd': getcwd(),
+			\'out_io': 'buffer',
+			\'out_buf': scratchbufnr,
+			\'out_modifiable': 1,
+			\'err_io': 'buffer',
+			\'err_buf': scratchbufnr,
+			\'err_modifiable': 1,
+			\'in_io': 'null',
+			\'close_cb': function("GrepCB", [pattern, scratchbufnr, a:qf_or_loclist])
+		\}
+	\)
+endfunction
+
+function! GrepCB(pattern, scratchbufnr, qf_or_loclist,...)
+	set errorformat=%f:%l:%c:%m
+	let prefix = (a:qf_or_loclist == 'qf' ? 'c' : 'l')
+	silent exec prefix.'getbuffer' a:scratchbufnr
+	silent exec prefix.'window'
+	if &ft == 'qf'
+		let w:quickfix_title = printf('[grep] %s', a:pattern)
+	endif
+endfunction
+command! -nargs=+ Grep  call Grep('qf',     <f-args>)
+command! -nargs=+ Lgrep call Grep('loclist',<f-args>)
+
 set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :Files<CR>
 nnoremap <leader>F :Files $git<CR>
-nnoremap <Leader>r :Rg <C-R><C-W><CR>
-vnoremap <Leader>r "vy:let cmd = printf('Rg! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
-nnoremap <Leader>R :Rg 
+nnoremap <Leader>r :Grep <C-R><C-W><CR>
+vnoremap <Leader>r "vy:let cmd = printf('Grep! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
+nnoremap <Leader>R :Grep
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
@@ -1146,12 +1180,16 @@ augroup end
 let g:ale_set_loclist = 0
 
 function! GetQfListCurrentItemBufNr()
-	return getloclist(0)[line('.')-1].bufnr
+	if &ft != 'qf'
+		return -1
+	endif
+	let list = IsLocListWindow() ? getloclist(0) : getqflist()
+	return list[line('.')-1].bufnr
 endfunction
 
 function! OpenQfListCurrentItem(openCmd)
 	let bufnr = GetQfListCurrentItemBufNr()
-	quit
+	exec IsLocListWindow() ? "quit" : "wincmd p"
 	exec a:openCmd bufnr
 endfunction
 command! -bar SplitQfItemBelow call OpenQfListCurrentItem('sbuffer')
@@ -2520,17 +2558,6 @@ endfunction
 command! -bang LocListTerminalBuffers call LocListTerminalBuffers("<bang>")
 nnoremap <silent> <Leader>et :LocListTerminalBuffers<CR>
 nnoremap <silent> <Leader>eT :LocListTerminalBuffers!<CR>
-
-function! FileNameorQfTitle()
-	let title = get(w:, 'quickfix_title', fnamemodify(bufname(), ':t'))
-	if title =~ '^k '
-		let title = title[2:]
-	endif
-	if stridx(title, &grepprg) >= 0
-		let title = '[grep] '. title[strlen(&grepprg):]
-	endif
-	return title
-endfunction
 
 function! BuildReverseDependencyTree(...)
 	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
