@@ -1798,7 +1798,7 @@ endfunc
 
 augroup dashboard
 	au!
-	autocmd FileType fugitive,git nnoremap <buffer> <LocalLeader>m :Git push --force-with-lease<CR>
+	autocmd FileType fugitive,git nnoremap <buffer> <silent> <LocalLeader>m :Git push --force-with-lease<CR>
 	autocmd FileType fugitive     nmap <silent> <buffer> <space> =
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>l <C-W>l
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>h <C-W>h
