@@ -1095,6 +1095,7 @@ let g:UltiSnipsEditSplit="horizontal"
 inoremap <C-I> <C-R>=ExpandSnippetOrValidateAutocompletionSelection()<CR>
 xnoremap <C-I> :call UltiSnips#SaveLastVisualSelection()<cr>gvs
 snoremap <C-I> <esc>:call UltiSnips#ExpandSnippetOrJump()<CR>
+snoremap <C-O> <esc>:call UltiSnips#JumpBackwards()<CR>
 nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 nnoremap <Leader>U :call UltiSnips#RefreshSnippets()<CR>
 inoremap <C-O> <C-X><C-O>
@@ -1738,6 +1739,7 @@ augroup dashboard
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>o :only<CR>
 	autocmd FileType gitcommit    set omnifunc=GetCommitTypes
 	autocmd FileType gitcommit    set textwidth=0
+	autocmd FileType gitcommit    call feedkeys("i\<C-X>\<C-O>")
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
 	autocmd BufEnter     todo,ideas,waiting,mood,wip.md set buftype=nofile nowrap
