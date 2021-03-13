@@ -6,6 +6,7 @@ if !g:isWindows && !g:isWsl
 endif
 
 if g:isWindows
+let $HOME = substitute($HOME, '\\', '/', 'g')
 let $config    = $HOME.'/Desktop/config'
 let $desktop   = $HOME.'/Desktop'                    | let $d = $desktop
 let $downloads = $HOME.'/Downloads'
@@ -146,21 +147,22 @@ let maplocalleader = 'q'
 let g:lcd_qf = getcwd()
 
 function! GetInterestingParentDirectory()
-	if IsOmniSharpRelated()
-		let sln_or_dir = fnamemodify(b:OmniSharp_host.sln_or_dir, isdirectory(b:OmniSharp_host.sln_or_dir) ? ':p' : ':p:h')
-		if IsInsideGitClone()
-			let gitRootFolder = fnamemodify(gitbranch#dir(expand('%:p')), ':h')
-			return gitRootFolder =~ 'Desktop$' ? sln_or_dir : gitRootFolder
-		else
-			return sln_or_dir
-		endif
-	elseif &ft == 'qf'
+	if &ft == 'qf'
 		return g:lcd_qf
-	elseif IsInsideGitClone()
-		return fnamemodify(gitbranch#dir(expand('%:p')), ':h')
-	else
-		return getcwd()
+	elseif &ft == 'dirvish'
+		return trim(expand('%:p'), '\')
 	endif
+	let dir = substitute(expand('%:p:h'), '\\', '/', 'g')
+	if stridx(dir, $projects) >= 0
+		let dir = dir[:stridx(dir, '/', len($projects)+1)]
+	elseif IsInsideGitClone()
+		let dir = substitute(fnamemodify(gitbranch#dir(expand('%:p')), ':h'), '\\', '/', 'g')
+	elseif IsOmniSharpRelated()
+		let dir = fnamemodify(b:OmniSharp_host.sln_or_dir, isdirectory(b:OmniSharp_host.sln_or_dir) ? ':p' : ':p:h')
+	else
+		let dir = getcwd()
+	endif
+	return dir
 endfunction
 
 function! UpdateLocalCurrentDirectory()
