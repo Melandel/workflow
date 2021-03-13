@@ -448,7 +448,7 @@ inoremap ^k <End>|  cnoremap ^k <End>|  tnoremap ^k <End>
 
 " Backspace,Delete" -------------------{{{
 tnoremap <C-L> <Del>
-inoremap <C-L> <Del>|   cnoremap <C-L> <Del>
+inoremap <C-L> <Del>|   cnoremap <C-L> <Del>| smap <C-L> <Del>
 
 " Graphical Layout:--------------------{{{
 " Colorscheme, Highlight groups" ------{{{
