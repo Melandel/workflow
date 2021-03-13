@@ -1716,7 +1716,7 @@ function! GetCommitTypes(findstart, base)
 			\{ 'word': 'build',    'menu': 'Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)' },
 			\{ 'word': 'ci',       'menu': 'Changes to our CI configuration files and scripts (example scopes: Circle, BrowserStack, SauceLabs)' },
 			\{ 'word': 'docs',     'menu': 'Documentation only changes' },
-			\{ 'word': 'feat',     'menu': 'A new feature' },
+			\{ 'word': 'feature',  'menu': 'A new feature' },
 			\{ 'word': 'fix',      'menu': 'A bug fix' },
 			\{ 'word': 'perf',     'menu': 'A code change that improves performance' },
 			\{ 'word': 'refactor', 'menu': 'A code change that neither fixes a bug nor adds a feature' },
