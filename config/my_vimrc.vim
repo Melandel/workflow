@@ -57,6 +57,7 @@ function! MinpacInit()
 	call minpac#add('tpope/vim-obsession')
 	call minpac#add('ap/vim-css-color')
 	call minpac#add('wellle/targets.vim')
+	call minpac#add('bfrg/vim-qf-preview')
 	call minpac#add('Melandel/vim-empower')
 	call minpac#add('Melandel/fzfcore.vim')
 	call minpac#add('Melandel/gvimtweak')
@@ -1180,6 +1181,21 @@ augroup end
 
 " QuickFix, Preview, Location window" -{{{
 let g:ale_set_loclist = 0
+let g:qfpreview = {
+	\'top': "\<Home>",
+	\'bottom': "\<End>",
+	\'scrolldown': "\<Down>",
+	\'scrollup': "\<Up>",
+	\'next': "\<C-j>",
+	\'previous': "\<C-k>",
+	\'reset': "\<space>",
+	\'height': "30",
+	\'offset': "10",
+	\'close': "p",
+	\'number': 1,
+	\'sign': {'texthl': 'PmenuSel', 'linehl': 'PmenuSel'}
+\}
+hi link QfPreviewTitle Visual
 
 function! GetQfListCurrentItemBufNr()
 	if &ft != 'qf'
@@ -1216,6 +1232,7 @@ augroup quickfix
 	autocmd FileType qf nnoremap <buffer> <silent> t :TSplitQfItemBefore<CR>
 	autocmd FileType qf nnoremap <buffer> <silent> T :TSplitQfItemAfter<CR>
 	autocmd FileType qf     nmap <buffer> <silent> <expr> i IsLocListWindow() ? "\<CR>:lcl\<CR>" : "\<CR>"
+	autocmd FileType qf     nmap <buffer> p <plug>(qf-preview-open)
 augroup end
 
 function! SetParticularQuickFixBehaviour()
