@@ -2414,20 +2414,20 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
 	autocmd FileType cs nmap <buffer> zK ggzj
 	autocmd FileType cs nmap <buffer> zJ Gzk
-	autocmd FileType cs nmap <buffer> z! <Plug>(omnisharp_find_members)
+	autocmd FileType cs nmap <buffer> z! :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_members)
 	autocmd FileType cs nmap <buffer> gd <Plug>(omnisharp_go_to_definition)
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
-	autocmd FileType cs nmap <buffer> <LocalLeader>i <Plug>(omnisharp_find_implementations)
-	autocmd FileType cs nmap <buffer> <LocalLeader>I <Plug>(omnisharp_preview_implementations)
-	autocmd FileType cs nmap <buffer> <LocalLeader>s <Plug>(omnisharp_find_type)
-	autocmd FileType cs nmap <buffer> <LocalLeader>S <Plug>(omnisharp_find_symbol)
-	autocmd FileType cs nmap <buffer> <LocalLeader>u <Plug>(omnisharp_find_usages)
-	autocmd FileType qf nnoremap <buffer> <silent> <space> :call RemoveTestsFromUsages()<CR>
+	autocmd FileType cs nmap <buffer> <LocalLeader>i :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_implementations)
+	autocmd FileType cs nmap <buffer> <LocalLeader>I :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_preview_implementations)
+	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_type)
+	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_symbol)
+	autocmd FileType cs nmap <buffer> <LocalLeader>u :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_usages)
+	autocmd FileType qf nnoremap <buffer> <silent> <space> :call RemoveSomeEntries()<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_type_lookup)
 	autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
 	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
-	autocmd FileType cs nmap <buffer> <LocalLeader>q <Plug>(omnisharp_code_actions)
-	autocmd FileType cs xmap <buffer> <LocalLeader>q <Plug>(omnisharp_code_actions)
+	autocmd FileType cs nmap <buffer> <LocalLeader>q :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_code_actions)
+	autocmd FileType cs xmap <buffer> <LocalLeader>q :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_code_actions)
 	autocmd FileType cs nmap <buffer> <LocalLeader>r <Plug>(omnisharp_rename)
 	autocmd FileType cs nmap <buffer> <LocalLeader>= <Plug>(omnisharp_code_format)
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
@@ -2444,10 +2444,17 @@ augroup csharpfiles
 	autocmd FileType cs cnoremap <buffer> <expr> <C-G> GetDirOrSln()
 augroup end
 
-function! RemoveTestsFromUsages()
+function! RemoveSomeEntries()
 	let qftitle = w:quickfix_title
-	Cfilter! /Test.\?\.cs/
-	let w:quickfix_title = qftitle.' [No Test]'
+	if qftitle =~ '^Usages: '
+		Cfilter! /Test.\?\.cs/
+		let w:quickfix_title = qftitle.' [no_test]'
+	elseif qftitle == 'Members'
+		Cfilter +
+		call matchadd('Conceal', '^\([^/|]\+/\)*')
+		set conceallevel=3 concealcursor=nvic
+		let w:quickfix_title = qftitle.' [public]'
+	endif
 endfunction
 
 let g:OmniSharp_highlight_groups = {
