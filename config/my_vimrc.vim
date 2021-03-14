@@ -292,6 +292,11 @@ function! IsQuickFixWindow()
 	return &ft == 'qf' && !getwininfo(win_getid())[0].loclist
 endfunction
 
+
+function! FileNameorQfTitle()
+	return &ft == 'qf' ? get(w:, 'quickfix_title', fnamemodify(bufname(), ':t')) : fnamemodify(bufname(), ':t')
+endfunction
+
 function! IsInsideDashboard()
 	return len(filter(range(1, winnr('$')), {_,x -> bufname(winbufnr(x)) =~ '^\.git.index'}))
 endfunction
@@ -656,6 +661,7 @@ let g:lightline = {
 	\ 'component_function': {
 	\    'filesize_and_rows': 'FileSizeAndRows',
 	\    'winnr': 'WinNr',
+	\    'filename_or_qftitle': 'FileNameorQfTitle',
 	\    'tabinfo': 'TabInfo'
 	\ },
 	\ 'component': {
@@ -674,7 +680,7 @@ let g:lightline = {
 	\        [ 'tabinfo', 'time' ]
 	\    ],
 	\    'right': [
-	\        ['filename', 'readonly', 'modified' ],
+	\        ['filename_or_qftitle', 'readonly', 'modified' ],
 	\        [ 'gitinfo', 'sharpenup' ]
 	\    ]
 	\ },
@@ -683,7 +689,7 @@ let g:lightline = {
 	\        ['winnr']
 	\    ],
 	\    'right': [
-	\        [ 'filename', 'readonly', 'modified' ],
+	\        [ 'filename_or_qftitle', 'readonly', 'modified' ],
 	\        [ 'gitinfo', 'sharpenup' ]
 	\    ]
 	\ }
@@ -1000,6 +1006,11 @@ augroup end
 " Find, Grep, Make, Equal" ------------{{{
 function! Grep(qf_or_loclist, ...)
 	let pattern = a:1
+	let i = 1
+	while ((count(pattern, '"') - count(pattern, '\"')) % 2) == 1
+		let pattern .= a:000[i]
+		let i+=1
+	endwhile
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/'.substitute(pattern, '\s', '_', 'g'))
 	let cmd = 'rg --vimgrep --no-heading --smart-case --no-ignore-parent '.join(a:000, ' ')
 	echomsg "<start> ".cmd
@@ -1843,7 +1854,7 @@ nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
 
 " Drafts (Diagrams & Notes)"-----------{{{
 function! LocListNotes()
-	silent exec 'lgrep! "^\# "' $n '-g "*.md"' '-g "!*.withsvgs.md" --sort path'
+	Lgrep "^# " C:/Users/tranm/Desktop/notes -g "*.md" -g "!*.withsvgs.md" --sort path
 endfunction
 nnoremap <silent> <leader>en :call LocListNotes()<CR>
 
