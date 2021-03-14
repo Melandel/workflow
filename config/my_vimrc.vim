@@ -1050,7 +1050,7 @@ set errorformat=%m
 nnoremap <Leader>f :Files<CR>
 nnoremap <leader>F :Files $git<CR>
 nnoremap <Leader>r :Grep <C-R><C-W><CR>
-vnoremap <Leader>r "vy:let cmd = printf('Grep! %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
+vnoremap <Leader>r "vy:let cmd = printf('Grep %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <Leader>R :Grep 
 nnoremap <LocalLeader>m :silent make<CR>
 
@@ -1238,6 +1238,7 @@ augroup quickfix
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | silent! pclose | endif
 	autocmd QuickFixCmdPost l*    nested lwindow
 	autocmd QuickFixCmdPost [^l]* nested cwindow
+	autocmd FileType qf nnoremap <buffer> <space> :call FilterQf()<CR>
 	autocmd FileType qf nnoremap <buffer> <silent> o :VSplitQfItemRight<CR>
 	autocmd FileType qf nnoremap <buffer> <silent> O :VSplitQfItemLeft<CR>
 	autocmd FileType qf nnoremap <buffer> <silent> a :SplitQfItemBelow<CR>
@@ -1247,6 +1248,21 @@ augroup quickfix
 	autocmd FileType qf     nmap <buffer> <silent> <expr> i IsLocListWindow() ? "\<CR>:lcl\<CR>" : "\<CR>"
 	autocmd FileType qf     nmap <buffer> p <plug>(qf-preview-open)
 augroup end
+
+function! FilterQf()
+	let qftitle = w:quickfix_title
+	if qftitle =~ '^Usages: '
+		Cfilter! /Test.\?\.cs/
+		let w:quickfix_title = qftitle.' [no_test]'
+	elseif qftitle == 'Members'
+		Cfilter +
+		call matchadd('Conceal', '^\([^/|]\+/\)*')
+		set conceallevel=3 concealcursor=nvic
+		let w:quickfix_title = qftitle.' [public]'
+	else
+		call feedkeys(':Cfilter')
+	endif
+endfunction
 
 function! SetParticularQuickFixBehaviour()
 	if empty(get(w:, 'quickfix_title'))
@@ -2422,7 +2438,6 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_type)
 	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_symbol)
 	autocmd FileType cs nmap <buffer> <LocalLeader>u :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_usages)
-	autocmd FileType qf nnoremap <buffer> <silent> <space> :call RemoveSomeEntries()<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_type_lookup)
 	autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
 	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
@@ -2441,19 +2456,6 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <localleader>h :call vimspector#Restart()<CR>
 	autocmd FileType cs cnoremap <buffer> <expr> <C-G> GetDirOrSln()
 augroup end
-
-function! RemoveSomeEntries()
-	let qftitle = w:quickfix_title
-	if qftitle =~ '^Usages: '
-		Cfilter! /Test.\?\.cs/
-		let w:quickfix_title = qftitle.' [no_test]'
-	elseif qftitle == 'Members'
-		Cfilter +
-		call matchadd('Conceal', '^\([^/|]\+/\)*')
-		set conceallevel=3 concealcursor=nvic
-		let w:quickfix_title = qftitle.' [public]'
-	endif
-endfunction
 
 let g:OmniSharp_highlight_groups = {
 	\ 'Comment': 'Comment',
