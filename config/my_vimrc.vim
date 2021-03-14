@@ -1234,6 +1234,7 @@ augroup quickfix
 	autocmd FileType qf set nowrap
 	autocmd FileType qf call SetParticularQuickFixBehaviour()
 	autocmd FileType qf if IsQuickFixWindow() | wincmd J | endif
+	autocmd FileType qf exec 'resize' min([15, line('$')])
 	autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | silent! pclose | endif
 	autocmd QuickFixCmdPost l*    nested lwindow
 	autocmd QuickFixCmdPost [^l]* nested cwindow
@@ -1860,7 +1861,7 @@ nnoremap <silent> <leader>en :call LocListNotes()<CR>
 
 function! LocListToDirectory(dir, title)
 	let items = expand(fnamemodify(a:dir, ':.').'/*', 0, 1)
-	call setloclist(0, [], " ", {'nr': '$', 'efm': '%f', 'lines': items, 'title': '[Location List] '.a:title})
+	call setloclist(0, [], " ", {'nr': '$', 'efm': '%f', 'lines': items, 'title': a:title})
 	lwindow
 	if(&ft == 'qf')
 		call matchadd('Conceal', '^[^/|]\+/')
