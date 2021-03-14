@@ -1050,7 +1050,7 @@ set errorformat=%m
 nnoremap <Leader>f :Files<CR>
 nnoremap <leader>F :Files $git<CR>
 nnoremap <Leader>r :Grep <C-R><C-W><CR>
-vnoremap <Leader>r "vy:let cmd = printf('Grep %s',@v)\|echo cmd\|call histadd('cmd',cmd)\|exec cmd<CR>
+vnoremap <Leader>r "vy:let cmd = printf('Grep %s',@v)\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <Leader>R :Grep 
 nnoremap <LocalLeader>m :silent make<CR>
 
