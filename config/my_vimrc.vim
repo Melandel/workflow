@@ -2422,6 +2422,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>s <Plug>(omnisharp_find_type)
 	autocmd FileType cs nmap <buffer> <LocalLeader>S <Plug>(omnisharp_find_symbol)
 	autocmd FileType cs nmap <buffer> <LocalLeader>u <Plug>(omnisharp_find_usages)
+	autocmd FileType qf nnoremap <buffer> <silent> <space> :call RemoveTestsFromUsages()<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_type_lookup)
 	autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
 	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
@@ -2443,6 +2444,11 @@ augroup csharpfiles
 	autocmd FileType cs cnoremap <buffer> <expr> <C-G> GetDirOrSln()
 augroup end
 
+function! RemoveTestsFromUsages()
+	let qftitle = w:quickfix_title
+	Cfilter! /Test.\?\.cs/
+	let w:quickfix_title = qftitle.' [No Test]'
+endfunction
 
 let g:OmniSharp_highlight_groups = {
 	\ 'Comment': 'Comment',
