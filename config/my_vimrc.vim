@@ -1255,7 +1255,7 @@ function! FilterQf()
 		let w:quickfix_title = qftitle.' [no_test]'
 	elseif qftitle == 'Members'
 		Cfilter +
-		call matchadd('Conceal', '^\([^/|]\+/\)*')
+		call matchadd('Conceal', '^\([^/|]\+\/\)*')
 		set conceallevel=3 concealcursor=nvic
 		let w:quickfix_title = qftitle.' [public]'
 	else
