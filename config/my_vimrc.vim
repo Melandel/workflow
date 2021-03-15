@@ -722,6 +722,8 @@ endfunction
 function! BrowseLayoutDown()
 	if &diff
 		silent! normal! ]czxzz
+	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
+		ALENext
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
@@ -743,6 +745,8 @@ nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 function! BrowseLayoutUp()
 	if &diff
 		silent! normal! [czxzz
+	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
+		ALEPrevious
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
