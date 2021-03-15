@@ -1256,6 +1256,8 @@ function! FilterQf()
 	let qftitle = w:quickfix_title
 	if qftitle =~ '^Usages: '
 		Cfilter! /Test.\?\.cs/
+		call matchadd('Conceal', '^\([^/|]\+\/\)*')
+		set conceallevel=3 concealcursor=nvic
 		let w:quickfix_title = qftitle.' [no_test]'
 	elseif qftitle == 'Members'
 		Cfilter +
