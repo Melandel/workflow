@@ -1730,9 +1730,15 @@ endif
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> t :VTree<CR>
 	autocmd FileType dirvish nnoremap <buffer> T :VTree <C-R>=expand('%:p')<CR><CR>
-	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :Lcd \| e .<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :call GoToGitRoot()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> <leader>w :exec 'Firefox' GetCurrentLineAsPath()<CR>
 augroup end
+
+function! GoToGitRoot()
+	let gitroot = fnamemodify(gitbranch#dir(expand('%:p')), ':h')
+	exec 'Dirvish' gitroot
+	exec 'lcd' gitroot
+endfunction
 
 " Web Browsing" -----------------------{{{
 function! BuildFirefoxUrl(path)
