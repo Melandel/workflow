@@ -1346,7 +1346,7 @@ nnoremap <silent> L :CycleForward<CR>
 " Makes Omnishahrp-vim code actions select both two elements
 "let g:fzf_layout = { 'window': { 'width': 0.39, 'height': 0.25 } }
 "let g:fzf_preview_window = []
-let $FZF_DEFAULT_OPTS="--expect=ctrl-t,ctrl-v,ctrl-x,ctrl-j,ctrl-k,ctrl-o,ctrl-b --bind up:preview-up,down:preview-down"
+let $FZF_DEFAULT_OPTS="--bind up:preview-up,down:preview-down"
 
 augroup my_fzf"------------------------{{{
 	au!
