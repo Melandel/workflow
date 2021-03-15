@@ -2815,3 +2815,7 @@ function! BuildTestCommit(...)
 	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) join(map(copy(g:csprojsWithChanges), 'fnamemodify(v:val, ":t:r")'), ", ")
 endfunc
 command! -nargs=? BuildTestCommit call BuildTestCommit(<f-args>)
+
+if !empty(glob($config.'/my_vimworkenv.vim'))
+	source $config/my_vimworkenv.vim
+endif
