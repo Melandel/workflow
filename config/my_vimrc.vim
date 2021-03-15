@@ -1870,7 +1870,7 @@ nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
 
 " Drafts (Diagrams & Notes)"-----------{{{
 function! LocListNotes()
-	Lgrep "^# " C:/Users/tranm/Desktop/notes -g "*.md" -g "!*.withsvgs.md" --sort path
+	exec 'Lgrep' '"^# "' $n '-g "*.md" -g "!*.withsvgs.md"' '--sort path'
 endfunction
 nnoremap <silent> <leader>en :call LocListNotes()<CR>
 
