@@ -2819,8 +2819,9 @@ function! BuildTestCommit(...)
 		return
 	endif
 	let g:buildAndTestJobs=[]
+	let sln = GetNearestPathInCurrentFileParents('*.sln')
 	let g:btcStartTime = reltime()
-	let reverseDependencyTree = BuildReverseDependencyTree($sln)
+	let reverseDependencyTree = BuildReverseDependencyTree(sln)
 	let csprojsToBuild = map(copy(g:csprojsWithChanges), {_,x -> FillConsumers(x, reverseDependencyTree)})
 	let csprojsToBuildFlat = flatten(copy(csprojsToBuild))
 	let csprojsToBuildMin = uniq(sort(flatten(copy(csprojsToBuild))))
