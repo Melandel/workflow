@@ -2685,8 +2685,11 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
 		echomsg '🚫🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
 		set errorformat =%A\ %#Failed\ %.%#
 		set errorformat+=%Z\ %#Failed\ %.%#
+		set errorformat+=%C\ %#NSubstitute\.Exceptions%.%#\ :\ %m
+		set errorformat+=%C%\\%%(Actually%\\\)%\\@=%m
+		set errorformat+=%C\%.%#\ at\ %.%#\ in\ %f:line\ %l
+		set errorformat+=%C\	%m
 		set errorformat+=%-C\ %#Stack\ Trace:
-		set errorformat+=%C\ %#at%.%#\ in\ %f:line\ %l
 		set errorformat+=%-C\ %#at\ %.%#
 		set errorformat+=%-C---\ %.%#
 		set errorformat+=%-C%.%#[FAIL]
@@ -2694,7 +2697,7 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
 		set errorformat+=%-C%.%#\ (pos\ %.%#
 		set errorformat+=%-G%*\\d-%*\\d-%*\\d\ %.%#
 		set errorformat+=%C\ %#Assert\.%m\ Failure
-		set errorformat+=%C\ %#%m
+		set errorformat+=%C%.%#
 		set errorformat+=%-G%.%#
 		silent exec 'cgetbuffer' a:scratchbufnr
 		if &ft == 'qf'
