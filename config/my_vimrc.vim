@@ -168,6 +168,9 @@ endfunction
 
 function! UpdateLocalCurrentDirectory()
 	let dir = GetInterestingParentDirectory()
+	if dir =~ '^fugitive://'
+		return
+	endif
 	let current_wd = getcwd()
 	if current_wd != dir
 		redraw
