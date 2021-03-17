@@ -2,6 +2,35 @@
 
 An attempt at formulating a _direction_ I want to lean towards. Not to be used as _expectations_.
 
+## Logs
+
+Given the following architecture
+
+```puml_sequence
+@startuml
+actor "User/UI" as User
+participant "Controller" as Controller
+participant "Module1" as M1
+participant "Module2" as M2
+participant "Module3" as M3
+
+User -> Controller
+Controller -> M1
+M1 -> M2
+Controller -> M3
+Controller --> User
+@enduml
+```
+
+The exhaustive list of logs should be:
+* At the Controller level:
+	* [INFO] Requests received **as a result of a User action**
+	* [INFO] Requests received that happen only occasionally (initialization typically)
+* At every level:
+	* [INFO]  Information about the runtime lifetime (boot/reboot/initialization typically)
+	* [ERROR] Runtime exceptions
+	* [WARN]  Other non-happypath turns of events
+
 ## Architecture
 
 ```puml_sequence
