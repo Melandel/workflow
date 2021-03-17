@@ -705,6 +705,24 @@ endfunction
 " Motions:-----------------------------{{{
 " Browsing File Architecture" ---------{{{
 let g:qfprio = 'c'
+let g:framingoffset = 5
+
+function! Reframe()
+	let cursor = winline()
+	let target = g:framingoffset
+	let diff = cursor - target
+	echomsg 'diff' diff
+	if diff == 0
+		return
+	elseif diff > 0
+		exec 'normal!' diff."\<C-E>"
+	else
+		exec 'normal!' abs(diff)."\<C-Y>"
+	endif
+endfunction
+command! -bar Reframe call Reframe()
+nnoremap <silent> zt :Reframe<CR>
+nnoremap <silent> zT zt
 
 function! Qfnext()
 	if g:qfprio == 'l'
