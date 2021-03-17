@@ -2778,7 +2778,7 @@ function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependency
 		set errorformat+=%.%#error\ %*\\a%n:\ %m
 		set errorformat+=%-G%.%#
 		silent exec 'cgetbuffer' a:scratchbufnr
-		if &ft = 'qf'
+		if &ft == 'qf'
 			let w:quickfix_title='Build'
 			return
 		endif
