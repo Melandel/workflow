@@ -708,16 +708,15 @@ let g:qfprio = 'c'
 let g:framingoffset = 5
 
 function! Reframe()
-	let cursor = winline()
-	let target = g:framingoffset
-	let diff = cursor - target
-	echomsg 'diff' diff
+	let diff = line('.') - line('w0') +1 - g:framingoffset
 	if diff == 0
 		return
-	elseif diff > 0
-		exec 'normal!' diff."\<C-E>"
 	else
-		exec 'normal!' abs(diff)."\<C-Y>"
+		if diff > 0
+			exec 'normal!' diff."\<C-E>"
+		else
+			exec 'normal!' abs(diff)."\<C-Y>"
+		endif
 	endif
 endfunction
 command! -bar Reframe call Reframe()
@@ -1238,13 +1237,18 @@ function! GetQfListCurrentItemBufNr()
 		return -1
 	endif
 	let list = IsLocListWindow() ? getloclist(0) : getqflist()
-	return list[line('.')-1].bufnr
+	return list[line('.')-1]
 endfunction
 
 function! OpenQfListCurrentItem(openCmd)
-	let bufnr = GetQfListCurrentItemBufNr()
-	exec IsLocListWindow() ? "quit" : "wincmd p"
-	exec a:openCmd bufnr
+	let item = GetQfListCurrentItemBufNr()
+	let isLocList = IsLocListWindow()
+	exec isLocList ? "quit" : "wincmd p"
+		exec a:openCmd '+'.item.lnum item.bufnr
+	if item.lnum
+		call cursor(item.lnum, item.col)
+		Reframe
+	endif
 endfunction
 command! -bar SplitQfItemBelow call OpenQfListCurrentItem('sbuffer')
 command! -bar SplitQfItemAbove SplitQfItemBelow | wincmd x | wincmd k
@@ -1271,6 +1275,7 @@ augroup quickfix
 	autocmd FileType qf nnoremap <buffer> <silent> T :TSplitQfItemAfter<CR>
 	autocmd FileType qf     nmap <buffer> <silent> <expr> i IsLocListWindow() ? "\<CR>:lcl\<CR>" : "\<CR>"
 	autocmd FileType qf     nmap <buffer> p <plug>(qf-preview-open)
+	autocmd FileType qf if IsQuickFixWindow() | nnoremap <buffer> <CR> <CR>:Reframe<CR> | endif
 augroup end
 
 function! FilterQf()
