@@ -28,8 +28,9 @@ The exhaustive list of logs should be:
 	* [INFO] Requests received that happen only occasionally (initialization typically)
 * At every level:
 	* [INFO]  Information about the runtime lifetime (boot/reboot/initialization typically)
-	* [ERROR] Runtime exceptions
-	* [WARN]  Other non-happypath turns of events
+	* [ERROR] Runtime exceptions regarding the system's behaviour
+	* [WARN]  Exceptions linked to something else (the system's configuration or the availability of its dependencies typically)
+	* [WARN]  Non-happypath turns of events that are not exceptions
 
 ## Architecture
 
