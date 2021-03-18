@@ -2464,6 +2464,14 @@ command! -bar CopyAdosUrl let @+=GetCodeUrlOnAzureDevops()
 
 augroup csharpfiles
 	au!
+	autocmd FileType cs silent! nunmap <buffer> [[
+	autocmd FileType cs silent! nunmap <buffer> ]]
+	autocmd FileType cs silent! nunmap [%
+	autocmd FileType cs silent! nunmap ]%
+
+	autocmd FileType cs nnoremap <buffer> <silent> [ :set nois nohls<CR>/\%<C-R>=line('.')<CR>l\(\U\zs\u\\|_\zs\w\)<CR>:set hls is\|noh<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> ] :set nois nohls<CR>?\%<C-R>=line('.')<CR>l\(\U\zs\u\\|_\zs\w\)<CR>:set hls is\|noh<CR>
+
 	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csfilesWithChanges, substitute(expand('%:p'), '\\', '/', 'g'))))
 	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csprojsWithChanges, substitute(GetCsproj(), '\\', '/', 'g'))))
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
