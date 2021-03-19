@@ -1140,6 +1140,30 @@ nnoremap <Leader>P :let @y=join(map(copy(y), {_,x -> printf("%s", x) }), ", ")\|
 inoremap <C-Y> <C-R>=join(map(copy(y), {_,x -> printf("%s", x) }), ", ")<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
 let Y=[]
 
+augroup quicksearch
+	au!
+	autocmd BufEnter * nnoremap          <buffer> [( /\w\+\s*(<home>
+	autocmd BufEnter * nnoremap          <buffer> ]( /\w\+\s*(
+	autocmd BufEnter * nnoremap          <buffer> [s /\w\+\s*[<home>
+	autocmd BufEnter * nnoremap          <buffer> ]d /\w\+\s*[
+	autocmd BufEnter * nnoremap          <buffer> [q /\w\+\s*{<home>
+	autocmd BufEnter * nnoremap          <buffer> ]f /\w\+\s*{
+	autocmd BufEnter * nnoremap          <buffer> [< /\w\+\s*<<home>
+	autocmd BufEnter * nnoremap          <buffer> ]< /\w\+\s*<
+	autocmd BufEnter * nnoremap          <buffer> [= /\w\+\s*=\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ]= /\w\+\s*=\s*
+	autocmd BufEnter * nnoremap          <buffer> [: /\w\+\s*:\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ]: /\w\+\s*:\s*
+	autocmd BufEnter * nnoremap          <buffer> [, /\w\+\s*,\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ], /\w\+\s*,\s*
+	autocmd BufEnter * nnoremap <silent> <buffer> [" /\(\s\|\[\|\(\|"\|`\)(\$\|@\|\s\)*"\zs\(\s\)*\w\+.*\ze"<CR>
+	autocmd BufEnter * nnoremap          <buffer> ]" /\(\s\|\[\|\(\|"\|`\)(\$\|@\|\s\)*"\zs\(\s\)*\w\+.*\ze"
+	autocmd BufEnter * nnoremap <silent> <buffer> [' /\(\s\|\[\|\(\|"\|'\)(\s\|\[\|(\|"\|`\)'\zs\(\s\)*\w\+.*\ze'<CR>
+	autocmd BufEnter * nnoremap          <buffer> ]' /\(\s\|\[\|\(\|"\|'\)\(\s\|\[\|(\|"\|`\)'\zs\(\s\)*\w\+.*\ze'
+	autocmd BufEnter * nnoremap <silent> <buffer> [` /\(\s\|\[\|\(\|"\|'\)`\zs\s*\w\+.*\ze`<CR>
+	autocmd BufEnter * nnoremap          <buffer> ]` /\(\s\|\[\|\(\|"\|'\)`\zs\s*\w\+.*\ze`
+augroup end
+
 " Sort" -------------------------------{{{
 function! SortLinesByLength() range
 	let range = a:firstline.','.a:lastline
@@ -2464,14 +2488,6 @@ command! -bar CopyAdosUrl let @+=GetCodeUrlOnAzureDevops()
 
 augroup csharpfiles
 	au!
-	autocmd FileType cs silent! nunmap <buffer> [[
-	autocmd FileType cs silent! nunmap <buffer> ]]
-	autocmd FileType cs silent! nunmap [%
-	autocmd FileType cs silent! nunmap ]%
-
-	autocmd FileType cs nnoremap <buffer> <silent> [ :set nois nohls<CR>/\%<C-R>=line('.')<CR>l\(\U\zs\u\\|_\zs\w\)<CR>:set hls is\|noh<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> ] :set nois nohls<CR>?\%<C-R>=line('.')<CR>l\(\U\zs\u\\|_\zs\w\)<CR>:set hls is\|noh<CR>
-
 	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csfilesWithChanges, substitute(expand('%:p'), '\\', '/', 'g'))))
 	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csprojsWithChanges, substitute(GetCsproj(), '\\', '/', 'g'))))
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
@@ -2507,7 +2523,6 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <localleader>k :call vimspector#StepOut()<CR>
 	autocmd FileType cs nnoremap <buffer> <localleader>l :call vimspector#Continue()<CR>
 	autocmd FileType cs nnoremap <buffer> <localleader>h :call vimspector#Restart()<CR>
-	autocmd FileType cs cnoremap <buffer> <expr> <C-G> GetDirOrSln()
 augroup end
 
 let g:OmniSharp_highlight_groups = {
