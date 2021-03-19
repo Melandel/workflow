@@ -1142,26 +1142,27 @@ let Y=[]
 
 augroup quicksearch
 	au!
-	autocmd BufEnter * nnoremap          <buffer> [( /\w\+\s*(<home>
-	autocmd BufEnter * nnoremap          <buffer> ]( /\w\+\s*(
-	autocmd BufEnter * nnoremap          <buffer> [s /\w\+\s*[<home>
-	autocmd BufEnter * nnoremap          <buffer> ]d /\w\+\s*[
-	autocmd BufEnter * nnoremap          <buffer> [q /\w\+\s*{<home>
-	autocmd BufEnter * nnoremap          <buffer> ]f /\w\+\s*{
-	autocmd BufEnter * nnoremap          <buffer> [< /\w\+\s*<<home>
-	autocmd BufEnter * nnoremap          <buffer> ]< /\w\+\s*<
-	autocmd BufEnter * nnoremap          <buffer> [= /\w\+\s*=\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ]= /\w\+\s*=\s*
-	autocmd BufEnter * nnoremap          <buffer> [: /\w\+\s*:\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ]: /\w\+\s*:\s*
-	autocmd BufEnter * nnoremap          <buffer> [, /\w\+\s*,\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ], /\w\+\s*,\s*
+	autocmd BufEnter * nnoremap          <buffer> [( /\w\+\s*(\ze\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ]( /\w\+\s*(\s*\zs
+	autocmd BufEnter * nnoremap          <buffer> [s /\w\+\s*[\ze\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ]d /\w\+\s*[\s*\zs
+	autocmd BufEnter * nnoremap          <buffer> [q /\w\+\s*{\ze\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ]f /\w\+\s*{\s*\zs
+	autocmd BufEnter * nnoremap          <buffer> [< /\w\+\s*<\ze\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ]< /\w\+\s*<\s*\zs
+	autocmd BufEnter * nnoremap          <buffer> [= /\w\+\s*=\ze\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ]= /\w\+\s*=\s*\zs
+	autocmd BufEnter * nnoremap          <buffer> [: /\w\+\s*:\ze\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ]: /\w\+\s*:\s*\zs
+	autocmd BufEnter * nnoremap          <buffer> [, /\w\+\s*,\ze\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ], /\w\+\s*,\s*\zs
+	autocmd BufEnter * nnoremap          <buffer> [& /\w\+\s*&\ze\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ]& /\w\+\s*&\s*\zs
+	autocmd BufEnter * nnoremap          <buffer> [\| /\w\+\s*\|\ze\s*<home>
+	autocmd BufEnter * nnoremap          <buffer> ]\| /\w\+\s*\|\s*\zs
 	autocmd BufEnter * nnoremap <silent> <buffer> [" /\(\s\|\[\|\(\|"\|`\)(\$\|@\|\s\)*"\zs\(\s\)*\w\+.*\ze"<CR>
-	autocmd BufEnter * nnoremap          <buffer> ]" /\(\s\|\[\|\(\|"\|`\)(\$\|@\|\s\)*"\zs\(\s\)*\w\+.*\ze"
 	autocmd BufEnter * nnoremap <silent> <buffer> [' /\(\s\|\[\|\(\|"\|'\)(\s\|\[\|(\|"\|`\)'\zs\(\s\)*\w\+.*\ze'<CR>
-	autocmd BufEnter * nnoremap          <buffer> ]' /\(\s\|\[\|\(\|"\|'\)\(\s\|\[\|(\|"\|`\)'\zs\(\s\)*\w\+.*\ze'
 	autocmd BufEnter * nnoremap <silent> <buffer> [` /\(\s\|\[\|\(\|"\|'\)`\zs\s*\w\+.*\ze`<CR>
-	autocmd BufEnter * nnoremap          <buffer> ]` /\(\s\|\[\|\(\|"\|'\)`\zs\s*\w\+.*\ze`
 augroup end
 
 " Sort" -------------------------------{{{
