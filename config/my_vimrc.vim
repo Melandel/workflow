@@ -746,43 +746,6 @@ function! IsQListVisible()
 	return !empty(GetVisibleQListWinNrs())
 endfunction
 
-function! LocListOlder()
-	if IsLocListVisible()
-		try | lolder | catch | finally | let g:qfprio='l' | endtry
-	else
-		lwindow
-	endif
-endfunction
-
-function! LocListNewer()
-	if IsLocListVisible()
-		try | lnewer | catch | finally | let g:qfprio='l' | endtry
-	else
-		lwindow
-	endif
-endfunction
-
-function! QListOlder()
-	if IsQListVisible()
-		try | colder | catch | finally | let g:qfprio='c' | endtry
-	else
-		cwindow
-	endif
-endfunction
-
-function! QListNewer()
-	if IsQListVisible()
-		try | cnewer | catch | finally | let g:qfprio='c' | endtry
-	else
-		cwindow
-	endif
-endfunction
-
-nnoremap <silent> <C-H> :call LocListOlder()<CR>
-nnoremap <silent> <C-L> :call LocListNewer()<CR>
-nnoremap <silent> <C-N> :call QListOlder()<CR>
-nnoremap <silent> <C-P> :call QListNewer()<CR>
-
 " Jump to last insert mode
 augroup lastinsert
 	au!
@@ -1227,6 +1190,56 @@ command! -bar VSplitQfItemLeft VSplitQfItemRight | wincmd x | wincmd h
 command! -bar TSplitQfItemBefore call OpenQfListCurrentItem('-tab sbuffer')
 command! -bar TSplitQfItemAfter call OpenQfListCurrentItem('tab sbuffer')
 
+function! LocListOlder()
+	if IsLocListVisible()
+		try | lolder | catch | finally | let g:qfprio='l' | endtry
+	else
+		lwindow
+	endif
+endfunction
+
+function! LocListNewer()
+	if IsLocListVisible()
+		try | lnewer | catch | finally | let g:qfprio='l' | endtry
+	else
+		lwindow
+	endif
+endfunction
+
+function! QListOlder()
+	if IsQListVisible()
+		try | colder | catch | finally | let g:qfprio='c' | endtry
+	else
+		cwindow
+	endif
+endfunction
+
+function! QListNewer()
+	if IsQListVisible()
+		try | cnewer | catch | finally | let g:qfprio='c' | endtry
+	else
+		cwindow
+	endif
+endfunction
+
+function! QfOlder()
+	if IsLocListWindow()
+		call LocListOlder()
+	else
+		call QListOlder()
+	endif
+endfunction
+command! QfOlder call QfOlder()
+
+function! QfNewer()
+	if IsLocListWindow()
+		call LocListNewer()
+	else
+		call QListNewer()
+	endif
+endfunction
+command! QfNewer call QfNewer()
+
 augroup quickfix
 	au!
 	autocmd FileType qf set nowrap
@@ -1246,6 +1259,8 @@ augroup quickfix
 	autocmd FileType qf     nmap <buffer> <silent> <expr> i IsLocListWindow() ? "\<CR>:lcl\<CR>" : "\<CR>"
 	autocmd FileType qf     nmap <buffer> p <plug>(qf-preview-open)
 	autocmd FileType qf if IsQuickFixWindow() | nnoremap <buffer> <CR> <CR>:Reframe<CR> | endif
+	autocmd FileType qf nnoremap <silent> <buffer> H :QfOlder<CR>
+	autocmd FileType qf nnoremap <silent> <buffer> L :QfNewer<CR>
 augroup end
 
 function! FilterQf()
