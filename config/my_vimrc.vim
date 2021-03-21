@@ -1586,68 +1586,9 @@ function! RenameItemUnderCursor()
 	endif
 endfunction
 
-function! BuildTreeCommand(path, flags)
-	let path = trim(a:path, '\')
-	let flags = (a:flags != '' ? ('-'.a:flags) : '')
-	if has('win32')
-		return printf('tree.exe --noreport -I "bin|obj" "%s" %s', path, flags)
-	else
-		return printf('tree --charset=ascii --noreport -I "bin|obj" "%s" %s', path, flags)
-	endif
-endfunction
-
-function! Tree(...)
-	let args = ParseArgs(a:000, ['path', GetCurrentLineAsPath()], ['flags', ''], ['where', ''])
-	call OpenTreeView(args.path, args.flags, args.where)
-endfunc
-
-function! STree(...)
-	let args = ParseArgs(a:000, ['path', GetCurrentLineAsPath()], ['flags', ''])
-	call OpenTreeView(args.path, args.flags, 's')
-endfunc
-
-function! VTree(...)
-	let args = ParseArgs(a:000, ['path', GetCurrentLineAsPath()], ['flags', ''])
-	call OpenTreeView(args.path, args.flags, 'v')
-endfunc
-
-function! TTree(...)
-	let args = ParseArgs(a:000, ['path', GetCurrentLineAsPath()], ['flags', ''])
-	call OpenTreeView(args.path, args.flags, 't')
-endfunc
-
 function! GetCurrentLineAsPath()
 	return trim(getline('.'), '\')
 endfunc
-
-function! OpenTreeView(path, flags, where)
-	exec get({
-		\ 'v': "Vnew",
-		\ 's': 'New',
-		\ 't': 'tabedit'
-	\}, a:where, 'Enew')
-	call EditFilesystemTree(a:path, a:flags)
-endfunc
-
-function! EditFilesystemTree(path, flags)
-	let path = glob(a:path)
-	set buftype=nofile nowrap ft=tree
-	set conceallevel=3 concealcursor=n | syn match Todo /\v(\a|\:|\\|\/|\.)*(\/|\\)/ conceal
-	exec 'silent 0read !'.BuildTreeCommand(path, a:flags)
-	silent %s,\\,/,ge
-	normal gg
-	nnoremap <buffer> yy :let p = match(getline('.'), '\a\\|\d')<CR>:exec 'normal!' (p+1).'\|'<CR>y$
-	nnoremap <buffer> gf :exec 'edit' GetCurrentLinePath()<CR>
-	nnoremap <buffer> gF :exec 'tabedit' GetCurrentLinePath()<CR>
-	nnoremap <buffer> <silent> f :let path = GetCurrentLinePath()<CR>:exec 'edit' fnamemodify(path, ':h')<CR>:silent! exec '/'.escape(path, '\')<CR>
-	nnoremap <buffer> <leader>w :call Firefox('', GetCurrentLinePath())<CR>
-endfunction
-
-command! -bar -nargs=* -complete=file  Tree call  Tree(<f-args>)
-command! -bar -nargs=* -complete=file STree call STree(<f-args>)
-command! -bar -nargs=* -complete=file VTree call VTree(<f-args>)
-command! -bar -nargs=* -complete=file TTree call TTree(<f-args>)
-
 
 function! GetCurrentLinePath()
 	let line = getline('.')
@@ -1779,8 +1720,6 @@ endif
 	autocmd FileType dirvish nmap <silent> <buffer> p :call CopyPreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
-	autocmd FileType dirvish nnoremap <silent> <buffer> t :VTree<CR>
-	autocmd FileType dirvish nnoremap <buffer> T :VTree <C-R>=expand('%:p')<CR><CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :call GoToGitRoot()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> <leader>w :exec 'Firefox' GetCurrentLineAsPath()<CR>
 augroup end
