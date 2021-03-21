@@ -526,12 +526,26 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-nnoremap <silent> <Leader>s :silent! split \| call cursor(getcurpos(win_getid(winnr('#')))[1:]) \| let w:buffers=getwinvar(winnr('#'), 'buffers', []) <CR>
-nnoremap <silent> <Leader>v :silent! vsplit \| call cursor(getcurpos(win_getid(winnr('#')))[1:]) \| let w:buffers=getwinvar(winnr('#'), 'buffers', []) <CR>
+nnoremap <silent> <Leader>s :silent! split<CR>
+nnoremap <silent> <Leader>v :silent! vsplit<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
 nnoremap <silent> <Leader>O mW:-tabnew<CR>`W
 nnoremap <silent> <Leader>x :if !IsDebuggingTab() \| tabclose \| else \| unlet g:vimspector_session_windows.tabpage \| call vimspector#Reset() \| endif<CR>
+
+function SynchronizeBufferHistoryWithLastWindow()
+	let lastWinNr = winnr('#')
+	let lastBufNr = winbufnr(lastWinNr)
+	if fnamemodify(bufname(), ':p') == fnamemodify(bufname(lastBufNr), ':p')
+		call cursor(getcurpos(win_getid(winnr('#')))[1:])
+		let w:buffers=getwinvar(winnr('#'), 'buffers', [])
+	endif
+endfunction
+
+augroup splits
+	au!
+	autocmd! WinNew * call SynchronizeBufferHistoryWithLastWindow()
+augroup end
 
 " Browse to Window or Tab
 nnoremap <silent> <Leader>h <C-W>h
@@ -2395,10 +2409,10 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :Ados<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :<C-U>Ados<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
-	autocmd FileType cs nmap <buffer> zk <Plug>(omnisharp_navigate_up)
-	autocmd FileType cs nmap <buffer> zj <Plug>(omnisharp_navigate_down)
-	autocmd FileType cs nmap <buffer> zK ggzj
-	autocmd FileType cs nmap <buffer> zJ Gzk
+	autocmd FileType cs nmap <buffer> <C-P> <Plug>(omnisharp_navigate_up)
+	autocmd FileType cs nmap <buffer> <C-N> <Plug>(omnisharp_navigate_down)
+	autocmd FileType cs nmap <buffer> <C-H> gg<Plug>(omnisharp_navigate_down)
+	autocmd FileType cs nmap <buffer> <C-L> G<Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> z! :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_members)
 	autocmd FileType cs nmap <buffer> gd <Plug>(omnisharp_go_to_definition)
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
