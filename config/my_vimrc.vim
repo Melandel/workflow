@@ -526,67 +526,12 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-command! -bar Enew    exec(' enew | call DeleteEmptyScratchBuffers() | setlocal buftype=nofile bufhidden=hide noswapfile| silent lcd '.$desktop.'/tmp')
-command! -bar Split   call SplitWindow(0)
-command! -bar Vsplit  call SplitWindow(1)
-command! -bar New     call NewWindow(0)
-command! -bar Vnew    call NewWindow(1)
-nnoremap <silent> <Leader><space> :Enew<CR>
-nnoremap <silent> <Leader>s :silent! Split<CR>
-nnoremap <silent> <Leader>v :silent! Vsplit<CR>
+nnoremap <silent> <Leader>s :silent! split \| call cursor(getcurpos(win_getid(winnr('#')))[1:]) \| let w:buffers=getwinvar(winnr('#'), 'buffers', []) <CR>
+nnoremap <silent> <Leader>v :silent! vsplit \| call cursor(getcurpos(win_getid(winnr('#')))[1:]) \| let w:buffers=getwinvar(winnr('#'), 'buffers', []) <CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
 nnoremap <silent> <Leader>O mW:-tabnew<CR>`W
 nnoremap <silent> <Leader>x :if !IsDebuggingTab() \| tabclose \| else \| unlet g:vimspector_session_windows.tabpage \| call vimspector#Reset() \| endif<CR>
-
-function! ComputeRemainingHeight()
-	let screenrow = screenrow()
-	let res = &lines - screenrow - min([line('$')-line('.'), winheight(0)-winline()]) - (&cmdheight+1)
-	return res
-endfunction
-
-function! SplitWindow(isVertical)
-	let currentPath = expand('%:p')
-	call NewWindow(a:isVertical)
-	exec 'edit' currentPath
-endfunction
-
-function! NewWindow(isVertical)
-	let bufferHistory = get(w:, 'buffers', [])
-	let useRemainingSpace = 0
-	if a:isVertical
-		vnew
-	else
-		let minheight = 2
-		let remainingheight = ComputeRemainingHeight()
-		let useRemainingSpace = 0
-		let currentwinnr = winnr()
-		wincmd j
-		if winnr() != currentwinnr
-			call win_gotoid(win_getid(currentwinnr))
-		else
-			let useRemainingSpace = 1
-			let remaininglines = getline('.', line('.')+remainingheight)
-			let winwidth = WinTextWidth()
-			let nbRemainingLinesRequiringWrapping = len(filter(remaininglines, { _,x -> len(x) > winwidth }))
-			let remainingheight -= nbRemainingLinesRequiringWrapping
-		endif
-		let useRemainingSpace = useRemainingSpace && remainingheight > (minheight+1)
-		if useRemainingSpace
-			mark k
-			normal! H
-		endif
-		exec (useRemainingSpace ? (remainingheight-1) : '').'new'
-		if useRemainingSpace
-			wincmd k
-			normal! `k
-			delmarks k
-			wincmd j
-		endif
-	endif
-	set bufhidden=hide buftype=nofile buflisted nowrap
-	let w:buffers = bufferHistory + [bufnr()]
-endfunc
 
 " Browse to Window or Tab
 nnoremap <silent> <Leader>h <C-W>h
