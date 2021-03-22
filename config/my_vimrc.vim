@@ -533,7 +533,7 @@ nnoremap <silent> <Leader>o <C-W>_<C-W>\|
 nnoremap <silent> <Leader>O mW:-tabnew<CR>`W
 nnoremap <silent> <Leader>x :if !IsDebuggingTab() \| tabclose \| else \| unlet g:vimspector_session_windows.tabpage \| call vimspector#Reset() \| endif<CR>
 
-function SynchronizeBufferHistoryWithLastWindow()
+function! SynchronizeBufferHistoryWithLastWindow()
 	let lastWinNr = winnr('#')
 	let lastBufNr = winbufnr(lastWinNr)
 	if fnamemodify(bufname(), ':p') == fnamemodify(bufname(lastBufNr), ':p')
