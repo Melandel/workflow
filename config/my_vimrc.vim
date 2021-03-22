@@ -1955,8 +1955,11 @@ function! CompileDiagramAndShowImage(outputExtension, ...)
 endfunction
 
 function! RenderMarkdownFile()
-	write
 	let inputfile =expand('%:p')
+	if empty(inputfile)
+		let inputfile = $tmp.'/markdown.md'
+		exec 'write!' inputfile
+	endif
 	if (FileContainsPlantumlSnippets())
 		let inputfile = CreateFileWithRenderedSvgs()
 	endif
