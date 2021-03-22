@@ -1482,17 +1482,15 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 		endif
 	endif
 	if has('win32')
-		if cwd == item_folder
-			let cmd = printf( (isdirectory(item)? 'xcopy %s %s /E /I' : 'copy %s %s'), WindowsPath(item), item_finalname)
-		else
-			let cmd = 'robocopy '
-			if isdirectory(item)
-				let cmd .= printf('/e "%s" "%s\%s"', WindowsPath(item), cwd, item_finalname)
-			else
-				let cmd .= printf('"%s" "%s" "%s"', WindowsPath(item_folder), cwd, item_finalname)
-			endif
-			silent exec '!start /b' cmd
-		endif
+		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/cp', item, item_finalname)
+		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let s:job = job_start(
+			\cmd,
+			\{
+				\'cwd': getcwd(),
+				\'exit_cb':  function('RefreshBufferAndMoveToPath', [item_finalname])
+			\}
+		\)
 	else
 		let item = '/'.item
 		let cmd = printf('cp '.(isdirectory(item)?'-r ':'').'%s %s', item, item_finalname)
@@ -1504,14 +1502,21 @@ function! DeleteItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
 	if has('win32')
-		let cmd = (isdirectory(target)) ?  printf('rmdir "%s" /s /q',target) : printf('del "%s"', target)
-		silent exec '!start /b' cmd
+		let cmd = printf('cmd /C %s %s', $gtools.'/rm -r "%s"', target)
+		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let s:job = job_start(
+			\cmd,
+			\{
+				\'cwd': getcwd(),
+				\'exit_cb':  function('RefreshBufferAndMoveToPath')
+			\}
+		\)
 	else
 		let target = '/'.target
 		let cmd = (isdirectory(target)) ?  printf('rm -r "%s"',target) : printf('rm "%s"', target)
 		silent exec '!'.cmd '&' | redraw!
+		normal R
 	endif
-	normal R
 endfunction
 
 function! MovePreviouslyYankedItemToCurrentDirectory()
@@ -1531,11 +1536,16 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 		endif
 	endif
 	if has('win32')
-		let cmd = printf('move "%s" "%s\%s"', item, cwd, item_finalname)
-		silent exec '!start /b' cmd
-		normal R
-		exec '/'.escape(getcwd(), '\').'\\'.item_finalname.'$'
-	nohlsearch
+		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', item, item_finalname)
+		echomsg cmd
+		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let s:job = job_start(
+			\cmd,
+			\{
+				\'cwd': getcwd(),
+				\'exit_cb':  function('RefreshBufferAndMoveToPath', [item_finalname])
+			\}
+		\)
 	else
 		let item = '/'.item
 		let cmd = printf('mv "%s" "%s/%s"', item, cwd, item_finalname)
@@ -1551,8 +1561,15 @@ function! RenameItemUnderCursor()
 	let filename = fnamemodify(target, ':t')
 	let newname = input('Rename into:', filename)
 	if has('win32')
-		silent exec '!start /b rename' WindowsPath(filename) WindowsPath(newname)
-		normal R
+		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', filename, newname)
+		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let s:job = job_start(
+			\cmd,
+			\{
+				\'cwd': getcwd(),
+				\'exit_cb':  function('RefreshBufferAndMoveToPath', [newname])
+			\}
+		\)
 	else
 		let cmd = printf('mv "%s" "%s"', filename, newname)
 		silent exec '!'.cmd '&' | redraw!
@@ -1611,9 +1628,15 @@ function! CreateDirectory()
 		return
 	endif
 	if has('win32')
-		silent exec '!start /b mkdir' shellescape(dirname)
-		normal R
-		exec '/'.escape(getcwd(), '\').'\\'.dirname.'\\$'
+		let cmd = printf('cmd /C %s %s', $gtools.'/mkdir', shellescape(dirname))
+		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let s:job = job_start(
+			\cmd,
+			\{
+				\'cwd': getcwd(),
+				\'exit_cb':  function('RefreshBufferAndMoveToPath', [dirname])
+			\}
+		\)
 	else
 		silent exec '!mkdir' dirname '&' | redraw!
 		normal R
@@ -1622,15 +1645,31 @@ function! CreateDirectory()
 	nohlsearch
 endf
 
+function! RefreshBufferAndMoveToPath(path, ...)
+	normal R
+	if empty(a:path)
+		return
+	endif
+	let search = escape(getcwd(), '\').'\\'.a:path.(isdirectory(a:path) ? '\\$' : '$')
+	silent! exec '/'.search
+	let @/=search
+endfunction
+
 function! CreateFile()
 	let filename = PromptUserForFilename('File name:')
 	if trim(filename) == ''
 		return
 	endif
 	if has('win32')
-		exec '!start /b copy /y NUL' shellescape(filename) '>NUL'
-		normal R
-		exec '/'.escape(getcwd(), '\').'\\'.filename.'$'
+		let cmd = printf('cmd /C %s %s', $gtools.'/touch', shellescape(filename))
+		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let s:job = job_start(
+			\cmd,
+			\{
+				\'cwd': getcwd(),
+				\'exit_cb':  function('RefreshBufferAndMoveToPath', [filename])
+			\}
+		\)
 	else
 		exec '!touch' filename '&' | redraw!
 		normal R
