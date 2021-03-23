@@ -111,6 +111,7 @@ if has("gui_running")
 	augroup emojirendering
 		au!
 		autocmd FileType fzf  set renderoptions=
+		autocmd TerminalWinOpen * set renderoptions=
 		autocmd BufEnter *    if &buftype == 'terminal' | set renderoptions= | endif
 		autocmd BufLeave *    if len(&renderoptions) == 0 | set renderoptions=type:directx,level:0.75,gamma:1.25,contrast:0.25,geom:1,renmode:5,taamode:1 | endif
 	augroup end
