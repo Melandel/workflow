@@ -685,17 +685,33 @@ nnoremap <silent> zT zt
 
 function! Qfnext()
 	if g:qfprio == 'l'
-		try | lnext | catch | ll | endtry
+		try
+			lnext
+		catch
+			silent! ll
+		endtry
 	elseif g:qfprio == 'c'
-		try | cnext | catch | cc | endtry
+		try
+			cnext
+		catch
+			silent! cc
+		endtry
 	endif
 endfunction
 
 function! Qfprev()
 	if g:qfprio == 'l'
-		try | lprev | catch | ll | endtry
+		try
+			lprev
+		catch
+			silent! ll
+		endtry
 	elseif g:qfprio == 'c'
-		try | cprev | catch | cc | endtry
+		try
+			cprev
+		catch
+			silent! cc
+		endtry
 	endif
 endfunction
 
