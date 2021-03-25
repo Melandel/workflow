@@ -1290,7 +1290,7 @@ augroup quickfix
 	autocmd FileType qf nnoremap <buffer> <silent> T :TSplitQfItemAfter<CR>
 	autocmd FileType qf     nmap <buffer> <silent> <expr> i IsLocListWindow() ? "\<CR>:lcl\<CR>" : "\<CR>"
 	autocmd FileType qf     nmap <buffer> p <plug>(qf-preview-open)
-	autocmd FileType qf if IsQuickFixWindow() | nnoremap <buffer> <CR> <CR>:Reframe<CR> | endif
+	autocmd FileType qf if IsQuickFixWindow() | nnoremap <buffer> <CR> <CR>:Reframe<CR>| endif
 	autocmd FileType qf nnoremap <silent> <buffer> H :QfOlder<CR>
 	autocmd FileType qf nnoremap <silent> <buffer> L :QfNewer<CR>
 augroup end
