@@ -980,6 +980,7 @@ function! Grep(qf_or_loclist, ...)
 endfunction
 
 function! GrepCB(pattern, scratchbufnr, qf_or_loclist,...)
+	echomsg 'grep has finished.'
 	set errorformat=%f:%l:%c:%m
 	let prefix = (a:qf_or_loclist == 'qf' ? 'c' : 'l')
 	silent exec prefix.'getbuffer' a:scratchbufnr
