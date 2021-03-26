@@ -1121,7 +1121,7 @@ set completeopt+=menuone,noselect,noinsert
 
 function! AsyncAutocomplete()
 	if PreviousCharacter() =~ '\w\|\.'
-		call feedkeys("\<C-X>".(&omnifunc!='' ? "\<C-O>" : "\<C-N>"), 't')
+		call feedkeys(&omnifunc!='' ? "\<C-X>\<C-O>" : "\<C-N>", 't')
 	endif
 endfunction
 command! AsyncAutocomplete call AsyncAutocomplete()
