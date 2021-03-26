@@ -1117,6 +1117,7 @@ command! -range=% SortByLength <line1>,<line2>call SortLinesByLength()
 
 " Autocompletion (Insert Mode)" -------{{{
 set updatetime=250
+set complete=.,b
 set completeopt+=menuone,noselect,noinsert
 
 function! AsyncAutocomplete()
