@@ -990,13 +990,19 @@ function! Grep(qf_or_loclist, ...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'close_cb': function("GrepCB", [pattern, scratchbufnr, a:qf_or_loclist])
+			\'exit_cb': function("GrepCB", [pattern, scratchbufnr, a:qf_or_loclist])
 		\}
 	\)
 endfunction
 
 function! GrepCB(pattern, scratchbufnr, qf_or_loclist,...)
-	echomsg 'grep has finished.'
+	let result = getbufline(a:scratchbufnr, 1, '$')
+	let nb = len(result)
+	if nb == 1 && empty(result[0])
+		echomsg printf('[%s] 0 found.', a:pattern)
+		return
+	endif
+	echomsg printf('[%s] %d found.', a:pattern, nb)
 	set errorformat=%f:%l:%c:%m
 	let prefix = (a:qf_or_loclist == 'qf' ? 'c' : 'l')
 	silent exec prefix.'getbuffer' a:scratchbufnr
@@ -1336,6 +1342,10 @@ function! GetFileVersionID(...)
 	return line[:stridx(line,'|')-1] 
 endfunction
 
+function! QuickFixTextFunc(info)
+	return len(a:info) > 500 ? a:info : QuickFixVerticalAlign(a:info)
+endfunc
+
 function! QuickFixVerticalAlign(info)
 	if a:info.quickfix
 		let qfl = getqflist({'id': a:info.id, 'items': 0}).items
@@ -1376,7 +1386,7 @@ function! QuickFixVerticalAlign(info)
 	endfor
 	return l
 endfunction
-set quickfixtextfunc=QuickFixVerticalAlign
+set quickfixtextfunc=QuickFixTextFunc
 
 " Marks"-------------------------------{{{
 " H and L are used for cycling between buffers and `A is a pain to type
