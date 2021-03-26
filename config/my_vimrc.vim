@@ -1018,6 +1018,7 @@ nnoremap <Leader>R :Grep
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
+nnoremap :! :term 
 tnoremap <silent> <Leader>hh <C-W>h
 tnoremap <silent> <Leader>jj <C-W>j
 tnoremap <silent> <Leader>kk <C-W>k
