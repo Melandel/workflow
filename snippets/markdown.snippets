@@ -133,11 +133,10 @@ snippet img "Image" b
 [![${1:filename}](${3:\{\{ site.baseurl \}\}/assets/img}/$1.${2:png})]($3/$1.$2)
 endsnippet
 
-snippet spoiler "spoiler" b
+snippet "spoil(er)?" "spoiler" br
 <details><summary>${2:Title}</summary>
 
-${1:Content}
-
+${VISUAL:Content}
 </details>
 
 endsnippet
@@ -150,7 +149,7 @@ ${1:###} ${2:Verb Noun}
 ```
 curl -X GET $api
 --verbose --silent --location
--H "Authorization: Bearer $token" 
+-H "Authorization: Bearer $token"
 ```
 
 
