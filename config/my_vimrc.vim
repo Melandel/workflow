@@ -1024,7 +1024,6 @@ nnoremap <Leader>R :Grep
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
-nnoremap :! :term 
 tnoremap <silent> <Leader>hh <C-W>h
 tnoremap <silent> <Leader>jj <C-W>j
 tnoremap <silent> <Leader>kk <C-W>k
@@ -2497,7 +2496,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
 	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
 	autocmd FileType cs nmap <buffer> <LocalLeader>q :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_code_actions)
-	autocmd FileType cs xmap <buffer> <LocalLeader>q :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_code_actions)
+	autocmd FileType cs xmap <buffer> <LocalLeader>q :<C-U>let g:lcd_qf = getcwd()<CR>gv<Plug>(omnisharp_code_actions)
 	autocmd FileType cs nmap <buffer> <LocalLeader>r <Plug>(omnisharp_rename)
 	autocmd FileType cs nmap <buffer> <LocalLeader>= <Plug>(omnisharp_code_format)
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
