@@ -1517,6 +1517,7 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 			\cmd,
 			\{
 				\'cwd': getcwd(),
+				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath', [item_finalname])
 			\}
 		\)
@@ -1531,12 +1532,13 @@ function! DeleteItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
 	if has('win32')
-		let cmd = printf('cmd /C %s %s', $gtools.'/rm -r "%s"', target)
+		let cmd = printf('cmd /C %s "%s"', $gtools.'/rm -r', target)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
 			\{
 				\'cwd': getcwd(),
+				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath')
 			\}
 		\)
@@ -1566,12 +1568,12 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 	endif
 	if has('win32')
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', item, item_finalname)
-		echomsg cmd
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
 			\{
 				\'cwd': getcwd(),
+				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath', [item_finalname])
 			\}
 		\)
@@ -1596,6 +1598,7 @@ function! RenameItemUnderCursor()
 			\cmd,
 			\{
 				\'cwd': getcwd(),
+				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath', [newname])
 			\}
 		\)
@@ -1663,6 +1666,7 @@ function! CreateDirectory()
 			\cmd,
 			\{
 				\'cwd': getcwd(),
+				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath', [dirname])
 			\}
 		\)
@@ -1696,6 +1700,7 @@ function! CreateFile()
 			\cmd,
 			\{
 				\'cwd': getcwd(),
+				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath', [filename])
 			\}
 		\)
