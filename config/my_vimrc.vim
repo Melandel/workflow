@@ -2670,8 +2670,12 @@ function! BuildReverseDependencyTree(...)
 		let reference = csprojs[i].reference
 		call add(reverseDependencyTree[reference],csprojs[i].project) 
 	endfor
-	let g:reverseDependencyTrees = get(g:, 'reverseDependencyTrees', {})
+	let projectsWithReferences = uniq(sort(map(csprojs, {_,x -> x.project})))
+	let leafProjects = filter(copy(slnprojs), {_,x -> index(projectsWithReferences, x) == -1})
 	let g:reverseDependencyTrees[sln] = reverseDependencyTree
+	let g:leafProjects = get(g:, 'leafProjects', {})
+	let g:leafProjects[sln] = leafProjects
+	let g:reverseDependencyTrees = get(g:, 'reverseDependencyTrees', {})
 	return reverseDependencyTree
 endfunction
 
@@ -2730,6 +2734,7 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
 		endif
 	else
 		echomsg '✅✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
+		echomsg filter(copy(a:csprojsWithNbOccurrences), {_,x -> x > 0})
 		if empty(filter(copy(a:csprojsWithNbOccurrences), {_,x -> x > 0})) && empty(filter(copy(g:buildAndTestJobs), 'v:val =~ "running"'))
 			let g:csprojsWithChanges = []
 			let g:csfilesWithChanges = []
@@ -2805,7 +2810,7 @@ endfunction
 function! TestCsproj(path, csprojsWithNbOccurrences)
 	let assemblyToTest = GetPathOfAssemblyToTest(a:path)
 	if empty(assemblyToTest)
-		echomsg 'Could not find' assemblyName.'.dll inside /bin, /Debug folders'
+		echomsg 'Could not find' assemblyToTest.'.dll inside /bin, /Debug folders'
 		return
 	endif
 	let scratchbufnr = ResetScratchBuffer($tmp.'/JobTest')
@@ -2867,7 +2872,7 @@ function! BuildTestCommitAll(...)
 		let g:csprojsWithChanges = []
 		let g:btcStartTime = reltime()
 		let reverseDependencyTree = BuildReverseDependencyTree(sln)
-		let csprojsToBuild = keys(reverseDependencyTree)
+		let csprojsToBuild = map(copy(g:leafProjects[sln]), {_,x -> FillConsumers(x, reverseDependencyTree)})
 	endif
 	let csprojsToBuildFlat = flatten(copy(csprojsToBuild))
 	let csprojsToBuildMin = uniq(sort(flatten(copy(csprojsToBuild))))
@@ -2877,12 +2882,11 @@ function! BuildTestCommitAll(...)
 		let csprojsWithNbOccurrences[csproj] = len(filter(copy(csprojsToBuildFlat), {_,x -> x == csproj}))
 	endfor
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuild')
-	let firstCsprojsToBuild = map(filter(copy(reverseDependencyTree), {x,y -> empty(y)}), {x,y -> x})
-	for i in range(len(firstCsprojsToBuild))
-		let csproj = firstCsprojsToBuild[i]
+	for i in range(len(g:leafProjects[sln]))
+		let csproj = g:leafProjects[sln][i]
 		call CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, '')
 	endfor
-	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) join(map(copy(firstCsprojsToBuild), 'fnamemodify(v:val, ":t:r")'), ", ")
+	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) '['.len(g:leafProjects[sln]).' base projects]' 
 endfunc
 command! -nargs=? BuildTestCommitAll call BuildTestCommitAll(<f-args>)
 
