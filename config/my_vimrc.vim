@@ -2473,6 +2473,7 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :Ados<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :<C-U>Ados<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll<CR>
 	autocmd FileType cs nmap <buffer> <C-P> <Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> <C-N> <Plug>(omnisharp_navigate_down)
 	autocmd FileType cs nmap <buffer> <C-H> gg<Plug>(omnisharp_navigate_down)
@@ -2808,8 +2809,13 @@ function! TestCsproj(path, csprojsWithNbOccurrences)
 		return
 	endif
 	let scratchbufnr = ResetScratchBuffer($tmp.'/JobTest')
-	let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal /TestCaseFilter:"%s" %s', join(map(copy(g:csfilesWithChanges), {_,x -> 'FullyQualifiedName~'.fnamemodify(x, ':t:r')}), '|'), assemblyToTest)
-	echomsg '🗡' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(assemblyToTest, ':t:r') '-->' join(map(copy(g:csfilesWithChanges), 'fnamemodify(v:val, ":t:r")'), ", ")
+	if empty(g:csfilesWithChanges)
+		let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal %s', assemblyToTest)
+		echomsg '🗡' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(assemblyToTest, ':t:r') '-->' '[all]'
+	else
+		let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal /TestCaseFilter:"%s" %s', join(map(copy(g:csfilesWithChanges), {_,x -> 'FullyQualifiedName~'.fnamemodify(x, ':t:r')}), '|'), assemblyToTest)
+		echomsg '🗡' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(assemblyToTest, ':t:r') '-->' join(map(copy(g:csfilesWithChanges), 'fnamemodify(v:val, ":t:r")'), ", ")
+	endif
 	call add(g:buildAndTestJobs, job_start(
 		\cmd,
 		\{
@@ -2837,6 +2843,48 @@ function! GetPathOfAssemblyToTest(csproj)
 	let paths = filter(glob(fnamemodify(a:csproj, ':h').'/**/'.assemblyName.'.dll', 0, 1), {_,x -> stridx(x, 'bin') != -1 && stridx(x,'Debug') != -1 && stridx(x, '\ref\') == -1})
 	return empty(paths) ? '' : paths[0]
 endfunction
+
+function! BuildTestCommitAll(...)
+	if !executable('MSBuild.exe')
+		echomsg 'MSBuild.exe was not found. Please add it to $PATH.'
+		return
+	endif
+	if !executable('vstest.console.exe')
+		echomsg 'vstest.console.exe was not found. Please add it to $PATH.'
+		return
+	endif
+	if &modified
+		silent write
+	endif
+	let g:buildAndTestJobs=[]
+	let sln = GetNearestPathInCurrentFileParents('*.sln')
+	if empty(sln)
+		return BuildTestCommit(a:000)
+	else
+		let g:csfilesWithChanges_tmp = g:csfilesWithChanges
+		let g:csprojsWithChanges_tmp = g:csprojsWithChanges
+		let g:csfilesWithChanges = []
+		let g:csprojsWithChanges = []
+		let g:btcStartTime = reltime()
+		let reverseDependencyTree = BuildReverseDependencyTree(sln)
+		let csprojsToBuild = keys(reverseDependencyTree)
+	endif
+	let csprojsToBuildFlat = flatten(copy(csprojsToBuild))
+	let csprojsToBuildMin = uniq(sort(flatten(copy(csprojsToBuild))))
+	let csprojsWithNbOccurrences = {}
+	for i in range(len(csprojsToBuildMin))
+		let csproj = csprojsToBuildMin[i]
+		let csprojsWithNbOccurrences[csproj] = len(filter(copy(csprojsToBuildFlat), {_,x -> x == csproj}))
+	endfor
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuild')
+	let firstCsprojsToBuild = map(filter(copy(reverseDependencyTree), {x,y -> empty(y)}), {x,y -> x})
+	for i in range(len(firstCsprojsToBuild))
+		let csproj = firstCsprojsToBuild[i]
+		call CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, '')
+	endfor
+	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) join(map(copy(firstCsprojsToBuild), 'fnamemodify(v:val, ":t:r")'), ", ")
+endfunc
+command! -nargs=? BuildTestCommitAll call BuildTestCommitAll(<f-args>)
 
 function! BuildTestCommit(...)
 	if !executable('MSBuild.exe')
