@@ -1064,7 +1064,7 @@ nnoremap q! q/
 nnoremap / !
 vnoremap / !
 
-nnoremap z! :BLines<CR>
+nnoremap z! m`:BLines<CR>
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
 nnoremap <silent> n :keepjumps normal! n<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> N :keepjumps normal! N<CR>:UnderlineCurrentSearchItem<CR>
