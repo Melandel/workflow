@@ -2820,6 +2820,7 @@ function! TestCsproj(path, csprojsWithNbOccurrences)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
+				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 			\'exit_cb': function("VsTestCB", [assemblyToTest, a:csprojsWithNbOccurrences, scratchbufnr])
 		\}
 	\))
@@ -2833,11 +2834,19 @@ function! GetPathOfAssemblyToTest(csproj)
 	else
 		let assemblyName = assemblyNames[0]
 	endif
-	let paths = filter(glob(fnamemodify(a:csproj, ':h').'/**/'.assemblyName.'.dll', 0, 1), {_,x -> stridx(x, 'bin') != -1 && stridx(x,'Debug') != -1})
+	let paths = filter(glob(fnamemodify(a:csproj, ':h').'/**/'.assemblyName.'.dll', 0, 1), {_,x -> stridx(x, 'bin') != -1 && stridx(x,'Debug') != -1 && stridx(x, '\ref\') == -1})
 	return empty(paths) ? '' : paths[0]
 endfunction
 
 function! BuildTestCommit(...)
+	if !executable('MSBuild.exe')
+		echomsg 'MSBuild.exe was not found. Please add it to $PATH.'
+		return
+	endif
+	if !executable('vstest.console.exe')
+		echomsg 'vstest.console.exe was not found. Please add it to $PATH.'
+		return
+	endif
 	if &modified
 		silent write
 	endif
@@ -2847,9 +2856,17 @@ function! BuildTestCommit(...)
 	endif
 	let g:buildAndTestJobs=[]
 	let sln = GetNearestPathInCurrentFileParents('*.sln')
-	let g:btcStartTime = reltime()
-	let reverseDependencyTree = BuildReverseDependencyTree(sln)
-	let csprojsToBuild = map(copy(g:csprojsWithChanges), {_,x -> FillConsumers(x, reverseDependencyTree)})
+	if empty(sln)
+		let csproj = substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g')
+		let g:btcStartTime = reltime()
+		let reverseDependencyTree = {}
+		let reverseDependencyTree[csproj] = []
+		let csprojsToBuild = [csproj]
+	else
+		let g:btcStartTime = reltime()
+		let reverseDependencyTree = BuildReverseDependencyTree(sln)
+		let csprojsToBuild = map(copy(g:csprojsWithChanges), {_,x -> FillConsumers(x, reverseDependencyTree)})
+	endif
 	let csprojsToBuildFlat = flatten(copy(csprojsToBuild))
 	let csprojsToBuildMin = uniq(sort(flatten(copy(csprojsToBuild))))
 	let csprojsWithNbOccurrences = {}
