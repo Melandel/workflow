@@ -1,107 +1,120 @@
 snippet madr "Description" b
-# ${1:Do Things This Way}
+problem$0
+drivers
+options
+decision
+prosConsUnknowns
+extra
+endsnippet
 
-| Author / Modifier           | Status        | Deciders                                     | Date                      |
-| :-------------------------- | :---------    | :---------                                   | :-----------              |
-| ${2:Minh-Tâm TRAN}          | ${3:proposed/rejected/accepted/deprecated/…/superseded by [ADR-0005](0005-example.md)} | ${4:list everyone involved in the decision} | `!v strftime('%Y-%m-%d')` |
+snippet problem "Context & Problem Statement" b
 
-## 👀 Context and Problem Statement
+## 📋 Context and Problem Statement
+> **${1:Which format and structure should our architectural records follow?}**
+${2:
+We lost entire days tracking why some code was written this way on the following items:
+<details><summary>Item 1</summary>
 
-<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
+\`\`\`
+Time lost: 5 days
+\`\`\`
+</details>
 
-**In order to** uphold a professional standard regarding the ease of creation and modification of features in the existing systems,
+<details><summary>Item 2</summary>
 
-**As** software developers,
+\`\`\`
+Time lost: 4 days
+\`\`\`
+</details>}
+endsnippet
 
-**We want to** ${5:do something}.
+snippet drivers "Decision Drivers" b
 
-> **${8:How/What stuff should we do?}**
+## 🔰 Decision Drivers
+* $0Impact on existing API
+* Impact on existing workflow
+* Impact on future decisions
+* Maintenability
+* Testability
+* Security
+* Performances
 
-</div><div style="flex: 50%; max-width: 50%;">
+endsnippet
 
-Measurement of ${9:some metrics about current situation}:
-
-A few key things we identified:
-* ${10:Some pain point}
-
-</div></div>
-
-## 🚦 Decision Drivers
-
-<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
-
-* ${11:(put words on the main "relevance" aspects of a solution)}
-* Initial Cost
-* Maintenance Cost
-
-</div><div style="flex: 50%; max-width: 50%;">
-
-* Constraints generated on future decisions
-* Consistently-up-to-date-documentation Cost
-* Integration cost with current tooling
-
-</div></div>
+snippet options "Considered Options" b
 
 ## 💡 Considered Options
+* **Option 1:** $0Use Markdown Architectural Decision Record
+* **Option 2:** Create custom architectural decision record format
+* **Option 3:** Do not use any form of template
 
-* Option 1: ${12:Do something}
-* Option 2: ${14:Do something else}
+endsnippet
+
+snippet decision "Decision Outcome" b
 
 ## 🎯 Decision Outcome
-* **Option ${15:1} : description**
-* Because ${16:justification}.
+* **Option ${0}1:** Use Markdown Architectural Decision Record
+	* best compromise regarding cost and maintenance
+	* established
+* **Positive Consequences:**
+	* We now have resources to speed up newcomers' training
+* **Negative Consequences:**
+	* Need to create records for existing records
+	* Need to train other teams
 
-## 🎭 Pros and Cons of the Options
+endsnippet
 
-<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
+snippet prosConsUnknowns "Pros, Cons & Unknowns" b
 
-### Option 1: $12
+## 🎭 Pros, Cons & Unknowns of the Options
 
-* ✅ ${17:pro regarding first decision driver}
-* 🚫 ${18:cons regarding first or second decision driver}
-* 🤷 ${19:unknown regarding first or second decision driver}
+* **Option 1:** $0Use Markdown Architectural Decision Record
+	* ✅✅ Easy
+	* ✅ Structured, Established
+	* 🚫 Markdown is limited in features
+	* 🚫 Requires markdown viewer
+	* 🤷 Unmeasured effectiveness
+<!-- -->
+* **Option 2:** Create custom architectural decision record format
+	* ✅ Most adapted
+	* 🚫 Not Established
+	* 🤷 Cost, Impact
+<!-- -->
+* **Option 3:** Do not use any form of template
+	* ✅ No cost
+	* 🚫 No time saved
+	* 🤷 May bite us later
+<!-- -->
 
-</div><div style="flex: 50%; max-width: 50%;">
+endsnippet
 
-${20:\`\`\`
-Example
-\`\`\`}
+snippet extra "Additional Information" b
 
-</div></div>
+## 📎 Additional Information
+* $0[some link]()
+* [some other link]()
+endsnippet
 
-<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
+snippet "spoil(er)?" "spoiler" br
+<details><summary>${2:Title}</summary>
 
-### Option 2: $14
-
-* ✅ ${21:pro regarding first decision driver}
-* 🚫 ${22:cons regarding first or second decision driver}
-* 🤷 ${23:unknown regarding first or second decision driver}
-
-</div><div style="flex: 50%; max-width: 50%;">
-
-${24:\`\`\`
-Example
-\`\`\`}
-
-</div></div>
-
-## More
-
-* [${25:Some link}](${26:some_url})
-$0
+${VISUAL:Content}
+</details>
 
 endsnippet
 
 snippet cols "columns" b
+
 <div style="display: flex"><div style="flex: ${1:50}%; max-width: $1%;">
 
-${2:####} ${3:Request}
-${VISUAL}
+$0${VISUAL}
 </div><div style="flex: $1%; max-width: $1%;">
 
-$2 ${4:Response}
-$0
+\`\`\`
+Example
+\`\`\`
 </div></div>
+
 endsnippet
 
 snippet blog "blog post" b
@@ -129,48 +142,33 @@ Let's talk about ${5:stuff.}
 $0
 endsnippet
 
-snippet img "Image" b
-[![${1:filename}](${3:\{\{ site.baseurl \}\}/assets/img}/$1.${2:png})]($3/$1.$2)
-endsnippet
-
-snippet "spoil(er)?" "spoiler" br
-<details><summary>${2:Title}</summary>
-
-${VISUAL:Content}
-</details>
-
-endsnippet
-
 snippet rq "REST exhange" b
 ${1:###} ${2:Verb Noun}
 <div style="display: flex"><div style="flex: 50%; max-width: 50%;">
 
 **Request**
-```
-curl -X GET $api
+\`\`\`
+$0curl -X GET $api
 --verbose --silent --location
 -H "Authorization: Bearer $token"
-```
+\`\`\`
 
 
 </div><div style="flex: 50%; max-width: 50%;">
 
 **Response**
 
-$0🚫 401 Unauthorized
-```
+🚫 401 Unauthorized
+\`\`\`
 []
-```
+\`\`\`
 * Caused by this
 * Caused also by that
 
 ✅ 200 OK
-```
+\`\`\`
 []
-```
+\`\`\`
 </div></div>
-${3:
-**Additional Information**
-* This
-* That}
+
 endsnippet
