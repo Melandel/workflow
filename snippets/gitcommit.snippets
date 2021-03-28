@@ -2,7 +2,7 @@ clearsnippets
 priority 10
 
 snippet "feature|refactor|test|fix|docs|perf|build|ci" "Description" br
-`!p snip.rv='{s:{c}<{n}}'.format(s=match.group(0),n=8,c=' ')` (${2:scope})${3:[BREAKING CHANGE]}: ${1:behavior}
+`!p snip.rv='{s:{c}<{n}}'.format(s=match.group(0),n=8,c=' ')` (${1:scope})${3:[BREAKING CHANGE]}: $2
 endsnippet
 
 snippet break "Breaking Change" b
