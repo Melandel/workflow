@@ -1071,20 +1071,8 @@ nnoremap <silent> N :keepjumps normal! N<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> * :call ExecuteAndAddIntoSearchHistory('<C-R>='\V'.expand('<cword>')<CR>')<CR>
 vnoremap <silent> * "vy:call ExecuteAndAddIntoSearchHistory('<C-R>='\V'.@v<CR>')<CR>
 
-function! CopyAllMatches(...)
-  let reg= a:0 ? a:1 : '+'
-  let hits = []
-  %s//\=len(add(hits, submatch(0))) ? submatch(0) : ''/gne
-  exec 'let @'.reg.' = join(hits, "\n") . "\n"'
-endfunction
-command! -nargs=? CopyAllMatches :call CopyAllMatches(<f-args>)
-nnoremap <Leader>y :let y=[]\|%s//\=add(y, submatch(0))/gne\|echomsg y<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
-vnoremap <Leader>y y:let y=[]\|%s/<C-R>"/\=add(y, submatch(0))/gne\|echomsg y<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
-nnoremap <Leader>Y :%s//\=add(Y, submatch(0))/gne\|echomsg Y<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
-vnoremap <Leader>Y y:%s/<C-R>"/\=add(Y, submatch(0))/gne\|echomsg Y<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
-nnoremap <Leader>P :let @y=join(map(copy(y), {_,x -> printf("%s", x) }), ", ")\|put y<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
-inoremap <C-Y> <C-R>=join(map(copy(y), {_,x -> printf("%s", x) }), ", ")<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
-let Y=[]
+let hits=[]
+cnoremap <C-S> <C-U>%s//\=add(hits, submatch(0))/gne\|echomsg hits<Home><Right><Right><Right><C-R>=@/<CR>
 
 augroup quicksearch
 	au!
