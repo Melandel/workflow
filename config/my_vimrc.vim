@@ -325,12 +325,6 @@ function! ExecuteAndAddIntoHistory(script)
 	execute(a:script)
 endfunction
 
-function! ExecuteAndAddIntoSearchHistory(searched)
-	call histadd('search', a:searched)
-	let @/=a:searched
-	set hls
-endfunction
-
 function! ClearTrailingWhiteSpaces()
 	%s/\s\+$//e
 endfunction
@@ -1068,11 +1062,22 @@ nnoremap z! m`:BLines<CR>
 command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
 nnoremap <silent> n :keepjumps normal! n<CR>:UnderlineCurrentSearchItem<CR>
 nnoremap <silent> N :keepjumps normal! N<CR>:UnderlineCurrentSearchItem<CR>
-nnoremap <silent> * :call ExecuteAndAddIntoSearchHistory('<C-R>='\V'.expand('<cword>')<CR>')<CR>
-vnoremap <silent> * "vy:call ExecuteAndAddIntoSearchHistory('<C-R>='\V'.@v<CR>')<CR>
+nnoremap <silent> * :let w=escape(expand('<cword>'), '\*[]~')\|call histadd('search', w)\|let @/=w\|set hls<CR>
+vnoremap <silent> * "vy:let w=escape(@v, '\*[]~')\|call histadd('search', w)\|let @/=w\|set hls<CR>
 
 let hits=[]
-cnoremap <C-S> <C-U>%s//\=add(hits, submatch(0))/gne\|echomsg hits<Home><Right><Right><Right><C-R>=@/<CR>
+cnoremap <expr> <C-S> SubstituteIntoArray()
+
+function! SubstituteIntoArray()
+	let range = getcmdline()
+	if empty(range) || range != "'<,'>"
+		let range = '%'
+	endif
+	let sep = (stridx(@/, '/') >= 0) ? (stridx(@/, '#') >= 0) ? (stridx(@/, ':') >= 0) ? '~' : ':' : '#' : '/'
+	let cmd = "\<C-U>".range."s".sep."\<C-R>=@/\<CR>".sep."/\=add(hits, submatch(0))".sep."gne\|echomsg hits"
+	let cmd .= "\<Home>".repeat("\<Right>", len(range.'s/'))
+	return cmd
+endfunction
 
 augroup quicksearch
 	au!
