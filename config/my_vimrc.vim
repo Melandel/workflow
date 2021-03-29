@@ -2679,10 +2679,10 @@ function! BuildReverseDependencyTree(...)
 	endfor
 	let projectsWithReferences = uniq(sort(map(csprojs, {_,x -> x.project})))
 	let leafProjects = filter(copy(slnprojs), {_,x -> index(projectsWithReferences, x) == -1})
+	let g:reverseDependencyTrees = get(g:, 'reverseDependencyTrees', {})
 	let g:reverseDependencyTrees[sln] = reverseDependencyTree
 	let g:leafProjects = get(g:, 'leafProjects', {})
 	let g:leafProjects[sln] = leafProjects
-	let g:reverseDependencyTrees = get(g:, 'reverseDependencyTrees', {})
 	return reverseDependencyTree
 endfunction
 
@@ -2914,33 +2914,45 @@ function! BuildTestCommit(...)
 		return
 	endif
 	let g:buildAndTestJobs=[]
-	let sln = GetNearestPathInCurrentFileParents('*.sln')
+	let g:btcStartTime = reltime()
+	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
 	if empty(sln)
 		let csproj = substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g')
-		let g:btcStartTime = reltime()
-		let reverseDependencyTree = {}
-		let reverseDependencyTree[csproj] = []
-		let csprojsToBuild = [csproj]
+		call BuildTestCommitCsproj(csproj, g:csfilesWithChanges)
 	else
-		let g:btcStartTime = reltime()
-		let reverseDependencyTree = BuildReverseDependencyTree(sln)
-		let csprojsToBuild = map(copy(g:csprojsWithChanges), {_,x -> FillConsumers(x, reverseDependencyTree)})
+		call BuildTestCommitSln(sln, g:csprojsWithChanges, g:csfilesWithChanges)
 	endif
-	let csprojsToBuildFlat = flatten(copy(csprojsToBuild))
-	let csprojsToBuildMin = uniq(sort(flatten(copy(csprojsToBuild))))
+endfunc
+command! -nargs=? BuildTestCommit call BuildTestCommit(<f-args>)
+
+function! BuildTestCommitSln(sln, modifiedCsprojs, modifiedClasses)
+	let reverseDependencyTree = BuildReverseDependencyTree(a:sln)
+	let csprojsToBuild = map(copy(a:modifiedCsprojs), {_,x -> FillConsumers(x, reverseDependencyTree)})
+	call BuildTestCommitCsharp(a:modifiedCsprojs, csprojsToBuild, reverseDependencyTree)
+endfunction
+
+function! BuildTestCommitCsproj(csproj, modifiedClasses)
+	let reverseDependencyTree = {}
+	let reverseDependencyTree[a:csproj] = []
+	let csprojsToBuild = [a:csproj]
+	call BuildTestCommitCsharp([a:csproj], [a:csproj], reverseDependencyTree)
+endfunction
+
+function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDependencyTree)
+	let csprojsToBuildFlat = flatten(copy(a:allCsprojsToBuild))
+	let csprojsToBuildMin = uniq(sort(flatten(copy(a:allCsprojsToBuild))))
 	let csprojsWithNbOccurrences = {}
 	for i in range(len(csprojsToBuildMin))
 		let csproj = csprojsToBuildMin[i]
 		let csprojsWithNbOccurrences[csproj] = len(filter(copy(csprojsToBuildFlat), {_,x -> x == csproj}))
 	endfor
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuild')
-	for i in range(len(g:csprojsWithChanges))
+	for i in range(len(copy(a:modifiedCsprojs)))
 		let csproj = g:csprojsWithChanges[i]
-		call CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, '')
+		call CascadeBuild(csproj, csprojsWithNbOccurrences, a:reverseDependencyTree, scratchbufnr, '')
 	endfor
 	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) join(map(copy(g:csprojsWithChanges), 'fnamemodify(v:val, ":t:r")'), ", ")
-endfunc
-command! -nargs=? BuildTestCommit call BuildTestCommit(<f-args>)
+endfunction
 
 if !empty(glob($config.'/my_vimworkenv.vim'))
 	source $config/my_vimworkenv.vim
