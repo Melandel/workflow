@@ -2868,32 +2868,21 @@ function! BuildTestCommitAll(...)
 	if &modified
 		silent write
 	endif
-	let g:buildAndTestJobs=[]
-	let sln = GetNearestPathInCurrentFileParents('*.sln')
-	if empty(sln)
-		return BuildTestCommit(a:000)
-	else
-		let g:csfilesWithChanges_tmp = g:csfilesWithChanges
-		let g:csprojsWithChanges_tmp = g:csprojsWithChanges
-		let g:csfilesWithChanges = []
-		let g:csprojsWithChanges = []
-		let g:btcStartTime = reltime()
-		let reverseDependencyTree = BuildReverseDependencyTree(sln)
-		let csprojsToBuild = map(copy(g:leafProjects[sln]), {_,x -> FillConsumers(x, reverseDependencyTree)})
+	if empty(g:csprojsWithChanges)
+		echomsg 'No changes since last build. You may need to call MSBuild by hand.'
+		return
 	endif
-	let csprojsToBuildFlat = flatten(copy(csprojsToBuild))
-	let csprojsToBuildMin = uniq(sort(flatten(copy(csprojsToBuild))))
-	let csprojsWithNbOccurrences = {}
-	for i in range(len(csprojsToBuildMin))
-		let csproj = csprojsToBuildMin[i]
-		let csprojsWithNbOccurrences[csproj] = len(filter(copy(csprojsToBuildFlat), {_,x -> x == csproj}))
-	endfor
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuild')
-	for i in range(len(g:leafProjects[sln]))
-		let csproj = g:leafProjects[sln][i]
-		call CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, '')
-	endfor
-	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) '['.len(g:leafProjects[sln]).' base projects]' 
+	let g:buildAndTestJobs=[]
+	let g:btcStartTime = reltime()
+	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
+	if empty(sln)
+		let csproj = substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g')
+		call BuildTestCommitCsproj(csproj, g:csfilesWithChanges)
+	else
+		let slndir = fnamemodify(sln, ':h:p')
+		let allCsprojsInSln = map(filter(readfile(sln), {_,x -> x =~ '"[^"]\+\.\a\{1,3}proj"'}), function("ParseCsprojFromSln", [slndir]))
+		call BuildTestCommitSln(sln, allCsprojsInSln, [])
+	endif
 endfunc
 command! -nargs=? BuildTestCommitAll call BuildTestCommitAll(<f-args>)
 
@@ -2948,10 +2937,10 @@ function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDepen
 	endfor
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuild')
 	for i in range(len(copy(a:modifiedCsprojs)))
-		let csproj = g:csprojsWithChanges[i]
+		let csproj = a:modifiedCsprojs[i]
 		call CascadeBuild(csproj, csprojsWithNbOccurrences, a:reverseDependencyTree, scratchbufnr, '')
 	endfor
-	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) join(map(copy(g:csprojsWithChanges), 'fnamemodify(v:val, ":t:r")'), ", ")
+	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) join(map(copy(a:modifiedCsprojs), 'fnamemodify(v:val, ":t:r")'), ", ")
 endfunction
 
 if !empty(glob($config.'/my_vimworkenv.vim'))
