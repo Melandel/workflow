@@ -93,7 +93,7 @@ CapsLock & vkBE::Send {Up}
 
 ; ² -> Screenshot
 #If !WinActive("Warcraft III")
-vkDE::Send #+S
+vkDE::Send {PrintScreen}
 #If
 
 #If !(WinActive("GVIM") || WinActive("Ubuntu") || WinActive("melandel@") || WinActive(" - VIM"))
@@ -260,12 +260,12 @@ t::
 	waitingfornextkey := false
 return
 p::
-	SendInput, {LCtrl down}{RAlt down}{vk30}{vk30}
+	SendInput, {LCtrl down}{RAlt down}{vk30}{vk30}{RAlt up}{LCtrl up}
 	waitingfornextkey := false
 	;@@
 return
 m::
-	Send, {PrintScreen}
+	SendInput, {LCtrl down}{RAlt down}{vk03up}{RAlt up}{LCtrl up}
 	waitingfornextkey := false
 return
 #If
