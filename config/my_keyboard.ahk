@@ -265,7 +265,7 @@ p::
 	;@@
 return
 m::
-	SendInput, {LCtrl down}{RAlt down}{vk03 down}{vk03 up}{RAlt up}{LCtrl up}
+	SendInput, {LCtrl down}{RAlt down}{vk03up}{RAlt up}{LCtrl up}
 	waitingfornextkey := false
 return
 #If
