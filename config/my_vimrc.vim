@@ -1949,13 +1949,15 @@ function! SaveInFolderAs(folder, ...)
 	call setbufvar(bufnr(), '&bt', '')
 	call setbufvar(bufnr(), '&ft', args.filetype)
 	let newpath = a:folder.'/'.filename.get({
-			\'markdown':          '.md',
-			\'plaintext':         '',
-			\'plantuml_mindmap':  '.puml_mindmap',
-			\'plantuml_activity': '.puml_activity',
-			\'plantuml_sequence': '.puml_sequence',
-			\'plantuml_json':     '.puml_json'
-		\}, args.filetype,     '.md')
+			\'markdown':      '.md',
+			\'plaintext':     '',
+			\'json':          '.json',
+			\'xml':           'xml',
+			\'puml_mindmap':  '.puml_mindmap',
+			\'puml_activity': '.puml_activity',
+			\'puml_sequence': '.puml_sequence',
+			\'puml_json':     '.puml_json'
+		\}, args.filetype, '.md')
 	call Move(newpath)
 	if fnamemodify(newpath, ':t:e') == 'md' && getline(1) !~ '^#'
 		execute 'normal!' 'ggO# '.filename."\<CR>\<esc>:w\<CR>"
@@ -1965,11 +1967,11 @@ command! -nargs=? -complete=customlist,GetNoteFileTypes Note call SaveInFolderAs
 command! -nargs=? -complete=customlist,GetTmpFileTypes  Tmp  call SaveInFolderAs($tmp,   <q-args>)
 
 function! GetNoteFileTypes(argLead, cmdLine, cursorPos)
-	return ['markdown', 'plantuml_mindmap', 'plantuml_activity', 'plantuml_sequence', 'plantuml_json']
+	return ['markdown', 'puml_mindmap', 'puml_activity', 'puml_sequence', 'puml_json']
 endfunc
 
 function! GetTmpFileTypes(argLead, cmdLine, cursorPos)
-	return [ 'markdown', 'json', 'xml', 'plantuml_mindmap', 'plantuml_activity', 'plantuml_sequence', 'plantuml_json']
+	return [ 'markdown', 'json', 'xml', 'puml_mindmap', 'puml_activity', 'puml_sequence', 'puml_json']
 endfunc
 
 function! Move(newpath)
