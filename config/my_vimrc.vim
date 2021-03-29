@@ -2741,7 +2741,6 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
 		endif
 	else
 		echomsg '✅✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
-		echomsg filter(copy(a:csprojsWithNbOccurrences), {_,x -> x > 0})
 		if empty(filter(copy(a:csprojsWithNbOccurrences), {_,x -> x > 0})) && empty(filter(copy(g:buildAndTestJobs), 'v:val =~ "running"'))
 			let g:csprojsWithChanges = []
 			let g:csfilesWithChanges = []
@@ -2763,29 +2762,30 @@ endfunction
 
 function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, previouslyBuiltCsproj)
 	if a:csprojsWithNbOccurrences[a:csproj] > 1
-		let reduced = uniq(sort(FillConsumers(a:csproj, a:reverseDependencyTree)))
-		for i in range(len(reduced))
-			let a:csprojsWithNbOccurrences[reduced[i]] -= 1
+		let consumers = FillConsumers(a:csproj, a:reverseDependencyTree)
+		for i in range(len(copy(consumers)))
+			let a:csprojsWithNbOccurrences[consumers[i]] -= 1
 		endfor
 		return
+	else
+		let a:csprojsWithNbOccurrences[a:csproj] -= 1
+		let consumers = a:reverseDependencyTree[a:csproj]
+		let cmd = printf('MSBuild.exe -nologo -p:BuildProjectReferences=false -v:quiet %s', a:csproj)
+		call add(g:buildAndTestJobs, job_start(
+			\cmd,
+			\{
+				\'out_io': 'buffer',
+				\'out_buf': a:scratchbufnr,
+				\'out_modifiable': 0,
+				\'err_io': 'buffer',
+				\'err_buf': a:scratchbufnr,
+				\'err_modifiable': 0,
+				\'in_io': 'null',
+				\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
+				\'exit_cb': function("CascadeReferences", [a:reverseDependencyTree[a:csproj], a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:csproj])
+			\}
+		\))
 	endif
-	let a:csprojsWithNbOccurrences[a:csproj] -= 1
-	let consumers = a:reverseDependencyTree[a:csproj]
-	let cmd = printf('MSBuild.exe -nologo -p:BuildProjectReferences=false -v:quiet %s', a:csproj)
-	call add(g:buildAndTestJobs, job_start(
-		\cmd,
-		\{
-			\'out_io': 'buffer',
-			\'out_buf': a:scratchbufnr,
-			\'out_modifiable': 0,
-			\'err_io': 'buffer',
-			\'err_buf': a:scratchbufnr,
-			\'err_modifiable': 0,
-			\'in_io': 'null',
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
-			\'exit_cb': function("CascadeReferences", [a:reverseDependencyTree[a:csproj], a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:csproj])
-		\}
-	\))
 endfunction
 
 function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, previouslyBuiltCsproj, ...)
