@@ -1,8 +1,15 @@
 clearsnippets
 priority 10
 
-snippet "feature|refactor|test|fix|docs|perf|build|ci" "Description" br
-`!p snip.rv='{s:{c}<{n}}'.format(s=match.group(0),n=8,c=' ')` (${1:scope})${3:[BREAKING CHANGE]}: $2
+snippet "feature|refactor|test|fix|docs|perf|build|ci" "Conventional Commit" br
+`!p snip.rv='{s:{c}<{n}}'.format(s=match.group(0),n=8,c=' ')` (${1:scope}): $2
+endsnippet
+
+snippet "(feature|refactor|test|fix|docs|perf|build|ci)!" "Convention Commit with breaking changes" br
+`!p snip.rv='{s:{c}<{n}}'.format(s=match.group(1),n=8,c=' ')` (${1:scope})[BREAKING CHANGE]: $2
+
+BREAKING CHANGE: ${3:stuff is not available on version X/contract changed from A to B}
+
 endsnippet
 
 snippet break "Breaking Change" b
