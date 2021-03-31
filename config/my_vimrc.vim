@@ -1831,6 +1831,8 @@ augroup lynx
 augroup end
 
 " Dashboard" --------------------------{{{
+cnoremap <C-B> <C-R>=gitbranch#name()<CR>
+
 function! OpenDashboard()
 	if IsInsideDashboard()
 		return
