@@ -1468,6 +1468,9 @@ if has('win32') && has('gui_running')
 	nnoremap <silent> <A-n> :GvimTweakToggleTransparency<CR>
 	nnoremap <silent> <A-i> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-o> <C-W>N:GvimTweakSetAlpha -10<CR>i
 	nnoremap <silent> <A-o> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
+	inoremap <silent> <A-n> <C-O>:GvimTweakToggleTransparency<CR>
+	inoremap <silent> <A-i> <C-O>:GvimTweakSetAlpha -10<CR>
+	inoremap <silent> <A-o> <C-O>:GvimTweakSetAlpha 10<CR>
 endif
 " File explorer (graphical)" ----------{{{
 function! IsPreviouslyYankedItemValid()
