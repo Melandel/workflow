@@ -2149,11 +2149,11 @@ function! StartPlantumlToSvg(diagram, diagramtype, array, pos)
 endfunction
 
 function! StartPlantumlToSvgCB(array, pos, scratchbufnr, job, status)
+	call setbufvar(a:scratchbufnr, '&buftype', 'nofile')
 	let new = join(getbufline(a:scratchbufnr, 1, '$'), '\n')
 	let new = substitute(new, ' style="', ' style="padding:8px;', '')
 	let new = substitute(new, '\/svg>.*$', '/svg>', '')
 	let a:array[a:pos] = new
-	silent! exec 'bdelete!' a:scratchbufnr
 endfunction
 
 function! GetPlantumlDelimiter(plantuml_type)
