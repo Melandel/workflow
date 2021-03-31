@@ -845,7 +845,6 @@ nnoremap gA vip:Tabular /\|<CR>
 " Command Line"------------------------{{{
 set cmdwinheight=40
 set cedit=<C-S>
-cnoremap !! Start
 
 " Wild Menu" --------------------------{{{
 set wildmenu
