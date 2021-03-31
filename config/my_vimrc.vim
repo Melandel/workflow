@@ -2067,7 +2067,7 @@ function! GetPlantumlConfigFile(fileext)
 		\puml_state:         'skinparams',
 		\puml_usecase:       'skinparams',
 		\puml_dot:           'graphviz',
-		\puml_json:          ''
+		\puml_json:          'styles'
 	\}
 		if empty(configfilebyft[a:fileext])
 			return ''
@@ -2115,8 +2115,6 @@ function! StartPlantumlToSvg(diagram, diagramtype, array, pos)
 	let diagram = a:diagram
 	if diagram[0] !~ '\s*@'
 		let diagram = flatten(['@start'.pumlDelimiter, diagram, '@end'.pumlDelimiter])
-		if stridx(diagram[0], 'json') >= 0
-		endif
 	endif
 	let plantumlbufnr = bufadd(a:pos.'.puml_'.a:diagramtype)
 	call bufload(plantumlbufnr)
@@ -2153,6 +2151,10 @@ function! StartPlantumlToSvgCB(array, pos, scratchbufnr, job, status)
 	let new = join(getbufline(a:scratchbufnr, 1, '$'), '\n')
 	let new = substitute(new, ' style="', ' style="padding:8px;', '')
 	let new = substitute(new, '\/svg>.*$', '/svg>', '')
+	let new = substitute(new, '', '', 'g')
+	if stridx(new, '--></g></svg>') == -1
+		let new .= '--></g></svg>'
+	endif
 	let a:array[a:pos] = new
 endfunction
 
