@@ -657,6 +657,11 @@ function! UpdateStatusBar(timer)
 endfunction
 
 " Motions:-----------------------------{{{
+nnoremap zl zL
+nnoremap zL zl
+nnoremap zH zh
+nnoremap zh zH
+
 " Browsing File Architecture" ---------{{{
 let g:qfprio = 'c'
 let g:framingoffset = 5
