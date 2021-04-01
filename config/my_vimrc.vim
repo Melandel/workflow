@@ -2827,11 +2827,12 @@ function! TestCsproj(path, csprojsWithNbOccurrences, modifiedClasses)
 	let scratchbufnr = ResetScratchBuffer($tmp.'/JobTest')
 	if empty(a:modifiedClasses)
 		let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal %s', assemblyToTest)
-		echomsg '🗡' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(assemblyToTest, ':t:r') '-->' '[all]'
+		let testedClasses = '[all]'
 	else
 		let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal /TestCaseFilter:"%s" %s', join(map(copy(a:modifiedClasses), {_,x -> 'FullyQualifiedName~'.fnamemodify(x, ':t:r')}), '|'), assemblyToTest)
-		echomsg '🗡' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(assemblyToTest, ':t:r') '-->' join(map(copy(a:modifiedClasses), 'fnamemodify(v:val, ":t:r")'), ", ")
+		let testedClasses = join(map(copy(a:modifiedClasses), 'fnamemodify(v:val, ":t:r")'), ", ")
 	endif
+	echomsg '🗡' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(assemblyToTest, ':t:r') '-->' testedClasses
 	call add(g:buildAndTestJobs, job_start(
 		\cmd,
 		\{
