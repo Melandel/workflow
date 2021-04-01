@@ -97,6 +97,7 @@ set backspace=indent,start,eol
 set listchars=tab:▸\ ,eol:¬,extends:>,precedes:<
 set list
 set fillchars=vert:\|,fold:\ 
+set nowrap
 set noswapfile
 set directory=$desktop/tmp/vim
 set backup
@@ -540,6 +541,7 @@ endfunction
 augroup splits
 	au!
 	autocmd! WinNew * call SynchronizeBufferHistoryWithLastWindow()
+	autocmd! WinNew * set nowrap
 augroup end
 
 " Browse to Window or Tab
