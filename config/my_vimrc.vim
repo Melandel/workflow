@@ -2810,7 +2810,7 @@ function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependency
 		echomsg '✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
 	endif
 	if a:previouslyBuiltCsproj =~# 'Test'
-		call TestCsproj(a:previouslyBuiltCsproj, a:csprojsWithNbOccurrences, a:modifiedClasses)
+		call TestCsproj(a:previouslyBuiltCsproj, a:csprojsWithNbOccurrences, a:scratchbufnr, a:modifiedClasses)
 	endif
 	for i in range(len(a:csprojs))
 		let csproj = a:csprojs[i]
@@ -2818,13 +2818,12 @@ function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependency
 	endfor
 endfunction
 
-function! TestCsproj(path, csprojsWithNbOccurrences, modifiedClasses)
+function! TestCsproj(path, csprojsWithNbOccurrences, scratchbufnr, modifiedClasses)
 	let assemblyToTest = GetPathOfAssemblyToTest(a:path)
 	if empty(assemblyToTest)
 		echomsg 'Could not find' assemblyToTest.'.dll inside /bin, /Debug folders'
 		return
 	endif
-	let scratchbufnr = ResetScratchBuffer($tmp.'/JobTest')
 	if empty(a:modifiedClasses)
 		let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal %s', assemblyToTest)
 		let testedClasses = '[all]'
@@ -2837,14 +2836,14 @@ function! TestCsproj(path, csprojsWithNbOccurrences, modifiedClasses)
 		\cmd,
 		\{
 			\'out_io': 'buffer',
-			\'out_buf': scratchbufnr,
+			\'out_buf': a:scratchbufnr,
 			\'out_modifiable': 0,
 			\'err_io': 'buffer',
-			\'err_buf': scratchbufnr,
+			\'err_buf': a:scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
-			\'exit_cb': function("VsTestCB", [assemblyToTest, a:csprojsWithNbOccurrences, scratchbufnr])
+			\'exit_cb': function("VsTestCB", [assemblyToTest, a:csprojsWithNbOccurrences, a:scratchbufnr])
 		\}
 	\))
 endfunction
@@ -2940,7 +2939,7 @@ function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDepen
 		let csproj = csprojsToBuildMin[i]
 		let csprojsWithNbOccurrences[csproj] = len(filter(copy(csprojsToBuildFlat), {_,x -> x == csproj}))
 	endfor
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuild')
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuildTestCommit')
 	for i in range(len(copy(a:modifiedCsprojs)))
 		let csproj = a:modifiedCsprojs[i]
 		call CascadeBuild(csproj, csprojsWithNbOccurrences, a:reverseDependencyTree, scratchbufnr, a:modifiedClasses, '')
