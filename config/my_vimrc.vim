@@ -1073,7 +1073,7 @@ function! SubstituteIntoArray()
 		let range = '%'
 	endif
 	let sep = (stridx(@/, '/') >= 0) ? (stridx(@/, '#') >= 0) ? (stridx(@/, ':') >= 0) ? '~' : ':' : '#' : '/'
-	let cmd = "\<C-U>".range."s".sep."\<C-R>=@/\<CR>".sep."/\=add(hits, submatch(0))".sep."gne\|echomsg hits"
+	let cmd = "\<C-U>".range."s".sep."\<C-R>=@/\<CR>".sep."\=add(hits, submatch(0))".sep."gne\|echomsg hits"
 	let cmd .= "\<Home>".repeat("\<Right>", len(range.'s/'))
 	return cmd
 endfunction
