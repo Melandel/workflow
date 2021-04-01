@@ -2766,7 +2766,7 @@ function! FillConsumers(csproj, reverseDependencyTree)
 	return consumers
 endfunction
 
-function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, previouslyBuiltCsproj)
+function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, modifiedClasses, previouslyBuiltCsproj)
 	if a:csprojsWithNbOccurrences[a:csproj] > 1
 		let consumers = FillConsumers(a:csproj, a:reverseDependencyTree)
 		for i in range(len(copy(consumers)))
@@ -2788,13 +2788,13 @@ function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, 
 				\'err_modifiable': 0,
 				\'in_io': 'null',
 				\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
-				\'exit_cb': function("CascadeReferences", [a:reverseDependencyTree[a:csproj], a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:csproj])
+				\'exit_cb': function("CascadeReferences", [a:reverseDependencyTree[a:csproj], a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:modifiedClasses, a:csproj])
 			\}
 		\))
 	endif
 endfunction
 
-function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, previouslyBuiltCsproj, ...)
+function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, modifiedClasses, previouslyBuiltCsproj, ...)
 	if a:0 && a:2
 		echomsg '🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
 		set errorformat=CSC\ :\ error\ %*\\a%n:\ %m\ [%f]
@@ -2812,27 +2812,27 @@ function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependency
 		echomsg '✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
 	endif
 	if a:previouslyBuiltCsproj =~# 'Test'
-		call TestCsproj(a:previouslyBuiltCsproj, a:csprojsWithNbOccurrences)
+		call TestCsproj(a:previouslyBuiltCsproj, a:csprojsWithNbOccurrences, a:modifiedClasses)
 	endif
 	for i in range(len(a:csprojs))
 		let csproj = a:csprojs[i]
-		call CascadeBuild(csproj, a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:previouslyBuiltCsproj)
+		call CascadeBuild(csproj, a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:modifiedClasses, a:previouslyBuiltCsproj)
 	endfor
 endfunction
 
-function! TestCsproj(path, csprojsWithNbOccurrences)
+function! TestCsproj(path, csprojsWithNbOccurrences, modifiedClasses)
 	let assemblyToTest = GetPathOfAssemblyToTest(a:path)
 	if empty(assemblyToTest)
 		echomsg 'Could not find' assemblyToTest.'.dll inside /bin, /Debug folders'
 		return
 	endif
 	let scratchbufnr = ResetScratchBuffer($tmp.'/JobTest')
-	if empty(g:csfilesWithChanges)
+	if empty(a:modifiedClasses)
 		let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal %s', assemblyToTest)
 		echomsg '🗡' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(assemblyToTest, ':t:r') '-->' '[all]'
 	else
-		let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal /TestCaseFilter:"%s" %s', join(map(copy(g:csfilesWithChanges), {_,x -> 'FullyQualifiedName~'.fnamemodify(x, ':t:r')}), '|'), assemblyToTest)
-		echomsg '🗡' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(assemblyToTest, ':t:r') '-->' join(map(copy(g:csfilesWithChanges), 'fnamemodify(v:val, ":t:r")'), ", ")
+		let cmd = printf('vstest.console.exe /logger:console;verbosity=minimal /TestCaseFilter:"%s" %s', join(map(copy(a:modifiedClasses), {_,x -> 'FullyQualifiedName~'.fnamemodify(x, ':t:r')}), '|'), assemblyToTest)
+		echomsg '🗡' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(assemblyToTest, ':t:r') '-->' join(map(copy(a:modifiedClasses), 'fnamemodify(v:val, ":t:r")'), ", ")
 	endif
 	call add(g:buildAndTestJobs, job_start(
 		\cmd,
@@ -2923,17 +2923,17 @@ command! -nargs=? BuildTestCommit call BuildTestCommit(<f-args>)
 function! BuildTestCommitSln(sln, modifiedCsprojs, modifiedClasses)
 	let reverseDependencyTree = BuildReverseDependencyTree(a:sln)
 	let csprojsToBuild = map(copy(a:modifiedCsprojs), {_,x -> FillConsumers(x, reverseDependencyTree)})
-	call BuildTestCommitCsharp(a:modifiedCsprojs, csprojsToBuild, reverseDependencyTree)
+	call BuildTestCommitCsharp(a:modifiedCsprojs, csprojsToBuild, reverseDependencyTree, a:modifiedClasses)
 endfunction
 
 function! BuildTestCommitCsproj(csproj, modifiedClasses)
 	let reverseDependencyTree = {}
 	let reverseDependencyTree[a:csproj] = []
 	let csprojsToBuild = [a:csproj]
-	call BuildTestCommitCsharp([a:csproj], [a:csproj], reverseDependencyTree)
+	call BuildTestCommitCsharp([a:csproj], [a:csproj], reverseDependencyTree, a:modifiedClasses)
 endfunction
 
-function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDependencyTree)
+function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDependencyTree, modifiedClasses)
 	let csprojsToBuildFlat = flatten(copy(a:allCsprojsToBuild))
 	let csprojsToBuildMin = uniq(sort(flatten(copy(a:allCsprojsToBuild))))
 	let csprojsWithNbOccurrences = {}
@@ -2944,7 +2944,7 @@ function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDepen
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuild')
 	for i in range(len(copy(a:modifiedCsprojs)))
 		let csproj = a:modifiedCsprojs[i]
-		call CascadeBuild(csproj, csprojsWithNbOccurrences, a:reverseDependencyTree, scratchbufnr, '')
+		call CascadeBuild(csproj, csprojsWithNbOccurrences, a:reverseDependencyTree, scratchbufnr, a:modifiedClasses, '')
 	endfor
 	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) join(map(copy(a:modifiedCsprojs), 'fnamemodify(v:val, ":t:r")'), ", ")
 endfunction
