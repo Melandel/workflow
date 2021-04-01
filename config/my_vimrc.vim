@@ -2477,7 +2477,7 @@ command! -bar CopyAdosUrl let @+=GetCodeUrlOnAzureDevops()
 
 augroup csharpfiles
 	au!
-	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csfilesWithChanges, substitute(expand('%:p'), '\\', '/', 'g'))))
+	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
 	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csprojsWithChanges, substitute(GetCsproj(), '\\', '/', 'g'))))
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :<C-U>CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
@@ -2712,7 +2712,7 @@ function! ParseReferenceFromCsproj(index, item)
 	return res
 endfunction
 
-let g:csfilesWithChanges=[]
+let g:csClassesInChangedFiles=[]
 let g:csprojsWithChanges=[]
 
 function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
@@ -2747,7 +2747,7 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
 		echomsg '✅✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
 		if empty(filter(copy(a:csprojsWithNbOccurrences), {_,x -> x > 0})) && empty(filter(copy(g:buildAndTestJobs), 'v:val =~ "running"'))
 			let g:csprojsWithChanges = []
-			let g:csfilesWithChanges = []
+			let g:csClassesInChangedFiles = []
 			call OpenDashboard()
 		endif
 	endif
@@ -2881,7 +2881,7 @@ function! BuildTestCommitAll(...)
 	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
 	if empty(sln)
 		let csproj = substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g')
-		call BuildTestCommitCsproj(csproj, g:csfilesWithChanges)
+		call BuildTestCommitCsproj(csproj, g:csClassesInChangedFiles)
 	else
 		let slndir = fnamemodify(sln, ':h:p')
 		let allCsprojsInSln = map(filter(readfile(sln), {_,x -> x =~ '"[^"]\+\.\a\{1,3}proj"'}), function("ParseCsprojFromSln", [slndir]))
@@ -2911,9 +2911,9 @@ function! BuildTestCommit(...)
 	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
 	if empty(sln)
 		let csproj = substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g')
-		call BuildTestCommitCsproj(csproj, g:csfilesWithChanges)
+		call BuildTestCommitCsproj(csproj, g:csClassesInChangedFiles)
 	else
-		call BuildTestCommitSln(sln, g:csprojsWithChanges, g:csfilesWithChanges)
+		call BuildTestCommitSln(sln, g:csprojsWithChanges, g:csClassesInChangedFiles)
 	endif
 endfunc
 command! -nargs=? BuildTestCommit call BuildTestCommit(<f-args>)
