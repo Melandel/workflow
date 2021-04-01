@@ -1335,7 +1335,7 @@ function! GetFileVersionID(...)
 endfunction
 
 function! QuickFixTextFunc(info)
-	return len(a:info) > 500 ? a:info : QuickFixVerticalAlign(a:info)
+	return len(a:info) > 42 ? a:info : QuickFixVerticalAlign(a:info)
 endfunc
 
 function! QuickFixVerticalAlign(info)
