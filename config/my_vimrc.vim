@@ -2741,11 +2741,11 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
 		set errorformat+=%-G%.%#
 		silent exec 'cgetbuffer' a:scratchbufnr
 		if &ft == 'qf'
-			let w:quickfix_title = 'Tests'
+			let w:quickfix_title = 'Build & Tests'
 		endif
 	else
 		echomsg '✅✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
-		if empty(filter(copy(a:csprojsWithNbOccurrences), {_,x -> x > 0})) && empty(filter(copy(g:buildAndTestJobs), 'v:val =~ "running"'))
+		if empty(filter(copy(a:csprojsWithNbOccurrences), {_,x -> x > 0})) && empty(filter(copy(g:buildAndTestJobs), 'v:val =~ "run"'))
 			let g:csprojsWithChanges = []
 			let g:csClassesInChangedFiles = []
 			call OpenDashboard()
@@ -2774,7 +2774,7 @@ function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, 
 	else
 		let a:csprojsWithNbOccurrences[a:csproj] -= 1
 		let consumers = a:reverseDependencyTree[a:csproj]
-		let cmd = printf('MSBuild.exe -nologo -p:BuildProjectReferences=false -v:quiet %s', a:csproj)
+		let cmd = printf('MSBuild.exe -nologo -p:BuildProjectReferences=false -v:quiet "%s"', a:csproj)
 		call add(g:buildAndTestJobs, job_start(
 			\cmd,
 			\{
@@ -2802,7 +2802,7 @@ function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependency
 		set errorformat+=%-G%.%#
 		silent exec 'cgetbuffer' a:scratchbufnr
 		if &ft == 'qf'
-			let w:quickfix_title='Build'
+			let w:quickfix_title = 'Build & Tests'
 			return
 		endif
 	endif
