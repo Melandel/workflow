@@ -2860,7 +2860,7 @@ function! GetPathOfAssemblyToTest(csproj)
 	return empty(paths) ? '' : paths[0]
 endfunction
 
-function! BuildTestCommitAll(...)
+function! BuildTestCommit(all, ...)
 	if !executable('MSBuild.exe')
 		echomsg 'MSBuild.exe was not found. Please add it to $PATH.'
 		return
@@ -2882,41 +2882,15 @@ function! BuildTestCommitAll(...)
 	if empty(sln)
 		let csproj = substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g')
 		call BuildTestCommitCsproj(csproj, g:csClassesInChangedFiles)
-	else
-		let slndir = fnamemodify(sln, ':h:p')
-		let allCsprojsInSln = map(filter(readfile(sln), {_,x -> x =~ '"[^"]\+\.\a\{1,3}proj"'}), function("ParseCsprojFromSln", [slndir]))
+	elseif a:all
+		let allCsprojsInSln = map(filter(readfile(sln), {_,x -> x =~ '"[^"]\+\.\a\{1,3}proj"'}), function("ParseCsprojFromSln", [fnamemodify(sln, ':h:p')]))
 		call BuildTestCommitSln(sln, allCsprojsInSln, [])
-	endif
-endfunc
-command! -nargs=? BuildTestCommitAll call BuildTestCommitAll(<f-args>)
-
-function! BuildTestCommit(...)
-	if !executable('MSBuild.exe')
-		echomsg 'MSBuild.exe was not found. Please add it to $PATH.'
-		return
-	endif
-	if !executable('vstest.console.exe')
-		echomsg 'vstest.console.exe was not found. Please add it to $PATH.'
-		return
-	endif
-	if &modified
-		silent write
-	endif
-	if empty(g:csprojsWithChanges)
-		echomsg 'No changes since last build. You may need to call MSBuild by hand.'
-		return
-	endif
-	let g:buildAndTestJobs=[]
-	let g:btcStartTime = reltime()
-	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
-	if empty(sln)
-		let csproj = substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g')
-		call BuildTestCommitCsproj(csproj, g:csClassesInChangedFiles)
 	else
 		call BuildTestCommitSln(sln, g:csprojsWithChanges, g:csClassesInChangedFiles)
 	endif
 endfunc
-command! -nargs=? BuildTestCommit call BuildTestCommit(<f-args>)
+command! -nargs=? BuildTestCommit    call BuildTestCommit(0, <f-args>)
+command! -nargs=? BuildTestCommitAll call BuildTestCommit(1, <f-args>)
 
 function! BuildTestCommitSln(sln, modifiedCsprojs, modifiedClasses)
 	let reverseDependencyTree = BuildReverseDependencyTree(a:sln)
