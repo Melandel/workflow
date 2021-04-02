@@ -18,6 +18,7 @@ let $tmp       = $HOME.'/Desktop/tmp'                | let $t = $tmp
 let $tools     = $HOME.'/Desktop/tools'
 let $templates = $HOME.'/Desktop/templates'
 let $todo      = $HOME.'/Desktop/todo'
+let $today     = $HOME.'/Desktop/today'
 let $wip       = $HOME.'/Desktop/wip.md'
 let $scripts   = $HOME.'/Desktop/scripts'            | let $s = $scripts
 let $gtools    = $HOME.'/Desktop/tools/git/usr/bin'
@@ -1047,6 +1048,20 @@ tnoremap <silent> LL <C-W>:CycleForward<CR>
 vnoremap <silent> <space> <Esc>zE:let b:focus_mode=1 \| setlocal foldmethod=manual<CR>`<kzfgg`>jzfG`<
 nnoremap <silent> <space> :if IsDebuggingTab() \| call vimspector#StepOver() \| else \| exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode \| endif<CR>
 
+function! FoldExprToday(lnum)
+	let lnum = a:lnum == '.' ? line('.') : a:lnum
+	let line = getline(lnum)
+	if line =~ '^\s*$'
+		return 0
+	endif
+	let nbStars = len(matchstr(getline(lnum), "^\\(\\*\\)*"))
+	if nbStars > 0
+		let nextLine = getline(lnum+1)
+		return nextLine == '' ? 1 : (len(matchstr(nextLine, "^\\(\\*\\)*")) > 0) ? 0 : 1
+	else
+		return 1
+	endif
+endfunction
 
 set foldtext=FoldText()
 function! FoldText()
@@ -1856,8 +1871,7 @@ function! OpenDashboard()
 		silent! bdelete git\ --no-pager\ log
 		let buf = term_start('git --no-pager log -15', {'curwin':1, 'cwd':cwd, 'close_cb': {_ -> execute('let t = timer_start(100, function(''OnGitLogExit'', ['.bufnr.']))', '')}})
 	wincmd h
-	silent exec 'vnew' $desktop.'/ideas'
-	silent exec '3new' $desktop.'/mood'
+	silent exec 'vnew' $today
 	wincmd h
 	silent exec '3new' $desktop.'/waiting'
 	1wincmd w
@@ -1908,13 +1922,15 @@ augroup dashboard
 	autocmd FileType gitcommit    call feedkeys("i\<C-X>\<C-U>")
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
-	autocmd BufEnter     todo,ideas,waiting,mood,wip.md set buftype=nofile nowrap
-	autocmd BufWritePost todo,ideas,waiting,mood,wip.md set buftype=nofile
-	autocmd BufEnter     todo,ideas,waiting,mood normal! gg
-	autocmd BufLeave     todo,ideas,waiting,mood normal! gg
-	autocmd BufEnter     todo,ideas,waiting,mood,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
-	autocmd TextChanged  todo,ideas,waiting,mood,wip.md set buftype= | silent write!
-	autocmd BufEnter                             wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
+	autocmd BufEnter     todo,ideas,waiting,today,wip.md set buftype=nofile nowrap
+	autocmd BufWritePost todo,ideas,waiting,today,wip.md set buftype=nofile
+	autocmd BufEnter     todo,ideas,waiting,today normal! gg
+	autocmd BufLeave     todo,ideas,waiting,today normal! gg
+	autocmd BufEnter     todo,ideas,waiting,today,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
+	autocmd TextChanged  todo,ideas,waiting,today,wip.md set buftype= | silent write!
+	autocmd BufEnter                              wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
+	autocmd BufEnter                        today        nnoremap <buffer> <silent> <leader>w :CompileDiagramAndShowImage svg $tmp<CR>
+	autocmd BufEnter                        today        set foldmethod=expr foldexpr=FoldExprToday(v:lnum)
 augroup end
 
 nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
@@ -1995,40 +2011,61 @@ function! Move(newpath)
 	endif
 endfunc
 
-function! JobExitDiagramCompilationJob(outputfile, channelInfos, status)
+function! JobExitDiagramCompilationJob(outputfile, scratchbufnr, inputfile, channelInfos, status)
 	if a:status != 0
-		10messages
+		exec 'botright sbuffer' a:scratchbufnr 
+		exec 'vnew' a:inputfile
 		return
 	endif
 	call Firefox('', a:outputfile)
 endfunc
 
-function! GetPlantumlCmdLine(outputExtension, inputFile)
-	let configfile = GetPlantumlConfigFile(fnamemodify(a:inputFile, ':e'))
-	if empty(configfile)
-		return printf('plantuml -t%s -charset UTF-8 "%s"', a:outputExtension, a:inputFile)
-	else
-		return printf('plantuml -t%s -charset UTF-8 -config "%s" "%s"', a:outputExtension, configfile, a:inputFile)
+function! CompileDiagramAndShowImageCommand(outputExtension, ...)
+	let inputfile = expand('%:p')
+	if substitute(inputfile, '\', '/', 'g') == $today
+		let inputfile = $tmp.'/today.puml_mindmap'
+		let diagram = uniq(getline(1, '$'))
+		let lunch = index(diagram, '')
+		let diagramAM = diagram[:lunch-1]
+		let diagramAM = map(diagramAM, 'v:val[0] == "*" ? v:val[0].v:val : v:val')
+		let diagramPM = diagram[lunch+1:]
+		let diagramPM = map(diagramPM, 'v:val[0] == "*" ? v:val[0].v:val : v:val')
+		let diagram = ['@startmindmap', 'left side', '* **__AM__ | __PM__**'] + diagramAM + ['right side'] + diagramPM + ['@endmindmap']
+		call writefile(diagram, inputfile)
 	endif
+	let outputdir = a:0 ? expand(a:1) : fnamemodify(inputfile, ':h')
+	call CompileDiagramAndShowImage(inputfile, a:outputExtension, outputdir)
 endfunction
 
-function! CompileDiagramAndShowImage(outputExtension, ...)
-	let inputfile = (a:0 == 2) ? a:2 : expand('%:p')
-	let outputfile = fnamemodify(inputfile, ':r').'.'.a:outputExtension
-	let cmd = GetPlantumlCmdLine(a:outputExtension, inputfile)
+function! CompileDiagramAndShowImage(inputFile, outputExtension, outputDir)
+	let cmd = GetPlantumlCmdLine(a:inputFile, a:outputExtension, a:outputDir)
+	let outputfile = a:outputDir.'\'.fnamemodify(a:inputFile, ':t:r').'.'.a:outputExtension
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
+	let scratchbufnr = ResetScratchBuffer('JobPlantuml')
 	let s:job = job_start(
 		\cmd,
 		\{
-			\'callback': { chan,msg  -> execute('echomsg ''[cb] '.substitute(msg,"'","''","g").'''',  1)      },
-			\'out_cb':   { chan,msg  -> execute('echomsg '''.substitute(msg,"'","''","g").'''',  1)           },
-			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
-			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)                            },
-			\'exit_cb':  function('JobExitDiagramCompilationJob', [outputfile])
+			\'cwd': getcwd(),
+			\'out_io': 'buffer',
+			\'out_buf': scratchbufnr,
+			\'out_modifiable': 1,
+			\'err_io': 'buffer',
+			\'err_buf': scratchbufnr,
+			\'err_modifiable': 1,
+			\'exit_cb':  function('JobExitDiagramCompilationJob', [outputfile, scratchbufnr, a:inputFile])
 		\}
 	\)
+endfunction
+
+function! GetPlantumlCmdLine(inputFile, outputExtension, outputDir)
+	let configfile = GetPlantumlConfigFile(a:inputFile)
+	if empty(configfile)
+		return printf('plantuml -t%s -charset UTF-8 -o "%s" "%s"', a:outputExtension, a:outputDir, a:inputFile)
+	else
+		return printf('plantuml -t%s -charset UTF-8 -config "%s" -o "%s" "%s"', a:outputExtension, configfile, a:outputDir, a:inputFile)
+	endif
 endfunction
 
 function! RenderMarkdownFile()
@@ -2044,6 +2081,7 @@ function! RenderMarkdownFile()
 	exec 'Firefox' inputfile
 endfunc
 command! RenderMarkdownFile call RenderMarkdownFile()
+
 augroup markdown
 	au!
 	autocmd FileType markdown nnoremap <buffer> <leader>w :RenderMarkdownFile<CR>
@@ -2060,7 +2098,7 @@ function! FileContainsPlantumlSnippets()
 	return stridx(file, '```puml_') != -1
 endfunc
 
-function! GetPlantumlConfigFile(fileext)
+function! GetPlantumlConfigFile(filepath)
 	let configfilebyft = #{
 		\puml_activity:      'styles',
 		\puml_mindmap:       'styles',
@@ -2074,10 +2112,11 @@ function! GetPlantumlConfigFile(fileext)
 		\puml_dot:           'graphviz',
 		\puml_json:          'styles'
 	\}
-		if empty(configfilebyft[a:fileext])
-			return ''
-		endif
-	return $desktop.'/config/my_plantuml_'.configfilebyft[a:fileext].'.config'
+	let fileext = fnamemodify(a:filepath, ':e')
+	if empty(configfilebyft[fileext])
+		return ''
+	endif
+	return $desktop.'/config/my_plantuml_'.configfilebyft[fileext].'.config'
 endfunction
 
 function! CreateFileWithRenderedSvgs()
@@ -2125,7 +2164,7 @@ function! StartPlantumlToSvg(diagram, diagramtype, array, pos)
 	call bufload(plantumlbufnr)
 	call setbufline(plantumlbufnr, 1, diagram)
 	let scratchbufnr = ResetScratchBuffer(bufname(plantumlbufnr).'.svg')
-	let pumlconfig = GetPlantumlConfigFile('puml_'.a:diagramtype)
+	let pumlconfig = GetPlantumlConfigFile('foo.puml_'.a:diagramtype)
 	if empty(pumlconfig)
 		let cmd = 'plantuml -tsvg -charset UTF-8 -pipe'
 	else
@@ -2175,7 +2214,7 @@ function! GetPlantumlDelimiter(plantuml_type)
 	endif
 endfunc
 
-command! -nargs=* -bar CompileDiagramAndShowImage call CompileDiagramAndShowImage(<f-args>)
+command! -nargs=* -bar CompileDiagramAndShowImage call CompileDiagramAndShowImageCommand(<f-args>)
 
 augroup mydiagrams
 	autocmd!
