@@ -2,6 +2,38 @@
 
 An attempt at formulating a _direction_ I want to lean towards. Not to be used as _expectations_.
 
+## First Commits
+```
+.
+|-- README.md
+|-- doc
+    |-- adl/
+    |-- howtos/
+    |-- reference/
+    `-- tutorials/
+|-- media/
+|-- scripts/
+|-- src/
+    |-- application.AppName#1/
+        |-- usecases
+            |--DomainModule#1/
+                `-- AppName#1.DomainModule#1.UseCases.csproj
+        |--ApplicationModule#1/
+            `-- AppName#1.ApplicationModule#1.csproj
+    |-- domain/
+        |--DomainModule#1/
+            `-- DomainModule#1.domain.csproj
+    |-- solution.SlnName#1/
+        |-- persistence/
+            |-- SlnName#1.Persistence.DomainModule#1.csproj
+            `-- SlnName#1.Persistence.ApplicationModule#1.csproj
+        |-- startup/
+            `-- SlnName#1.Startup.csproj
+        |-- ui/
+            `-- SlnName#1.UserInterface.csproj
+        `-- SlnName#1.sln
+```
+
 ## Logs
 
 Given the following architecture
