@@ -2017,7 +2017,8 @@ function! JobExitDiagramCompilationJob(outputfile, scratchbufnr, inputfile, chan
 		exec 'vnew' a:inputfile
 		return
 	endif
-	call Firefox('', a:outputfile)
+	call system(printf($gtools.'/mv "%s" "%s.html"', a:outputfile, a:outputfile))
+	call Firefox('', a:outputfile.'.html')
 endfunc
 
 function! CompileDiagramAndShowImageCommand(outputExtension, ...)
@@ -2026,11 +2027,17 @@ function! CompileDiagramAndShowImageCommand(outputExtension, ...)
 		let inputfile = $tmp.'/today.puml_mindmap'
 		let diagram = uniq(getline(1, '$'))
 		let lunch = index(diagram, '')
+		let legend = index(diagram, '', lunch+1)
 		let diagramAM = diagram[:lunch-1]
 		let diagramAM = map(diagramAM, 'v:val[0] == "*" ? v:val[0].v:val : v:val')
-		let diagramPM = diagram[lunch+1:]
+		let diagramPM = diagram[lunch+1:legend-1]
 		let diagramPM = map(diagramPM, 'v:val[0] == "*" ? v:val[0].v:val : v:val')
-		let diagram = ['@startmindmap', 'left side', '* **__AM__ | __PM__**'] + diagramAM + ['right side'] + diagramPM + ['@endmindmap']
+		let diagramLegend = map(diagram[legend+1:], 'printf("* [[%s %s%s]]", (stridx(v:val[stridx(v:val, "]")+2:-2], "http") == 0 ? v:val[stridx(v:val, "]")+2:-2] : "http://".v:val[stridx(v:val, "]")+2:-2]), toupper(v:val[stridx(v:val, "[")+1]), v:val[stridx(v:val, "[")+2:stridx(v:val, "]")-1])')
+		let diagram = ['@startmindmap']
+		let diagram +=	['left side', '* **__AM__ | __PM__**'] + diagramAM
+		let diagram += ['right side'] + diagramPM
+		let diagram += ['legend right'] + diagramLegend + ['endlegend']
+		let diagram += ['@endmindmap']
 		call writefile(diagram, inputfile)
 	endif
 	let outputdir = a:0 ? expand(a:1) : fnamemodify(inputfile, ':h')
