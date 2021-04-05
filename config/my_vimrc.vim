@@ -1934,6 +1934,7 @@ augroup dashboard
 augroup end
 
 nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
+nnoremap <silent> <leader>D :Gdiffsplit<CR>
 
 " Drafts (Diagrams & Notes)"-----------{{{
 function! LocListNotes()
