@@ -1065,7 +1065,12 @@ endfunction
 
 set foldtext=FoldText()
 function! FoldText()
-		return repeat('-', len(v:folddashes)-1).getline(v:foldstart)[len(v:folddashes)-1:].' ('.(v:foldend-v:foldstart+1).'rows)'
+	let foldstart = v:foldstart
+	while getline(foldstart) =~ '^\s*\({\|\/\|<\|[\|#\)'
+		let foldstart += 1
+	endwhile
+	let title = getline(foldstart)[len(v:folddashes)-1:]
+	return repeat('-', len(v:folddashes)-1).title.' ('.(v:foldend-v:foldstart+1).'rows)'
 endfunction
 " Search" -----------------------------{{{
 set hlsearch
