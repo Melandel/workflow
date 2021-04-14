@@ -2536,7 +2536,7 @@ function! OpenCodeOnAzureDevops()
 	let s:job= job_start(printf('firefox.exe "%s"', GetCodeUrlOnAzureDevops()))
 endfunction
 
-function! GetCodeUrlOnAzureDevops()
+function! GetCodeUrlOnAzureDevops() range
 	let filepath = expand('%:p')
 	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
 	let gitpath = filepath[len(gitrootfolder)+(has('win32')?1:0):]
@@ -2556,14 +2556,14 @@ function! GetCodeUrlOnAzureDevops()
 	return url
 endfunction
 command! Ados call OpenCodeOnAzureDevops()
-command! -bar CopyAdosUrl let @+=GetCodeUrlOnAzureDevops()
+command! -bar -range CopyAdosUrl let @+=GetCodeUrlOnAzureDevops()
 
 augroup csharpfiles
 	au!
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
 	autocmd BufWrite *.cs,*.proto call uniq(sort(add(g:csprojsWithChanges, substitute(GetCsproj(), '\\', '/', 'g'))))
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
-	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :<C-U>CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
+	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :Ados<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :<C-U>Ados<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
