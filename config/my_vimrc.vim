@@ -421,7 +421,9 @@ endfunction
 function! PromptUserForFilename(requestToUser, ...)
 	let title = input(a:requestToUser)
 	let ComputeFinalPath = a:0 ? a:1 : { x -> x }
-	let GetRetryMessage = { x -> a:0 > 0 ? a:1 : printf('[%s] already exists. %s', x, a:requestToUser) }
+	let finalpath = ComputeFinalPath(title)
+	let finalfilename = fnamemodify(finalpath, ':t')
+	let GetRetryMessage = { x -> a:0 > 0 ? a:1 : printf('[%s] already exists. %s', finalfilename, a:requestToUser) }
 	while title != '' && len(glob(ComputeFinalPath(title))) > 0
 		redraw | let title= input(GetRetryMessage(title))
 	endwhile
@@ -1970,25 +1972,26 @@ endfunction
 
 function! SaveInFolderAs(folder, ...)
 	let args = ParseArgs(a:000, ['filetype', 'markdown'])
+	let ext = get({
+				\'markdown':      '.md',
+				\'plaintext':     '',
+				\'json':          '.json',
+				\'xml':           'xml',
+				\'puml_mindmap':  '.puml_mindmap',
+				\'puml_activity': '.puml_activity',
+				\'puml_sequence': '.puml_sequence',
+				\'puml_json':     '.puml_json'
+			\}, args.filetype, '.md')
 	let filename = expand('%:t:r')
 	if filename == ''
-		let filename = PromptUserForFilename('File name:')
+		let filename = PromptUserForFilename('File name:', {n -> a:folder . '/' . n . ext})
 		if trim(filename) == ''
 			return
 		endif
 	endif
 	call setbufvar(bufnr(), '&bt', '')
 	call setbufvar(bufnr(), '&ft', args.filetype)
-	let newpath = a:folder.'/'.filename.get({
-			\'markdown':      '.md',
-			\'plaintext':     '',
-			\'json':          '.json',
-			\'xml':           'xml',
-			\'puml_mindmap':  '.puml_mindmap',
-			\'puml_activity': '.puml_activity',
-			\'puml_sequence': '.puml_sequence',
-			\'puml_json':     '.puml_json'
-		\}, args.filetype, '.md')
+	let newpath = a:folder . '/' . filename . ext
 	call Move(newpath)
 	if fnamemodify(newpath, ':t:e') == 'md' && getline(1) !~ '^#'
 		execute 'normal!' 'ggO# '.filename."\<CR>\<esc>:w\<CR>"
