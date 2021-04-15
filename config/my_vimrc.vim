@@ -455,6 +455,9 @@ inoremap ^g `|		cnoremap ^g `
 inoremap ^h .|		cnoremap ^h .
 inoremap ^v /|		cnoremap ^v /
 
+inoremap § <C-O><C-Z>
+nnoremap § <C-Z>
+cnoremap § <C-U>ter 
 
 " Arrows" -----------------------------{{{
 inoremap <C-J> <Left>|  cnoremap <C-J> <Left>|  tnoremap <C-J> <Left>
