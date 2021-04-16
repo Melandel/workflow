@@ -2826,13 +2826,14 @@ endfunction
 let g:csClassesInChangedFiles=[]
 
 function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
+	let g:nbTestedCsprojs += 1
 	let report = getbufline(a:scratchbufnr, '$')[0]
 	if stridx(report, ' - ') < 0
 		return
 	endif
 	let reportStats = substitute(split(report, ' - ')[1], ':\s\+', ': ', 'g')
 	if a:0 && a:2
-		echomsg '🚫🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
+		echomsg '🚫🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
 		set errorformat =%A\ %#Failed\ %.%#
 		set errorformat+=%Z\ %#Failed\ %.%#
 		set errorformat+=%C\ %#NSubstitute\.Exceptions%.%#\ :\ %m
@@ -2854,7 +2855,7 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
 			let w:quickfix_title = 'Build & Tests'
 		endif
 	else
-		echomsg '✅✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
+		echomsg '✅✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
 		if empty(filter(copy(a:csprojsWithNbOccurrences), {_,x -> x > 0})) && empty(filter(copy(g:buildAndTestJobs), 'v:val =~ "run"'))
 			let g:csClassesInChangedFiles = []
 			call OpenDashboard()
@@ -2914,10 +2915,12 @@ function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependency
 		endif
 	endif
 	if !empty(a:previouslyBuiltCsproj)
-		echomsg '✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
+		let g:nbBuiltCsprojs += 1
+		echomsg '✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
 		let a:reverseDependencyTree[a:previouslyBuiltCsproj].last_build_timestamp = GetCurrentTimestamp()+10
 	endif
 	if a:previouslyBuiltCsproj =~# 'Test'
+		let g:nbCsprojsToTest += 1
 		call TestCsproj(a:previouslyBuiltCsproj, a:csprojsWithNbOccurrences, a:scratchbufnr, a:modifiedClasses)
 	endif
 	for i in range(len(a:csprojs))
@@ -3056,6 +3059,10 @@ endfunction
 function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDependencyTree, modifiedClasses)
 	let csprojsToBuildFlat = flatten(copy(a:allCsprojsToBuild))
 	let csprojsToBuildMin = uniq(sort(flatten(copy(a:allCsprojsToBuild))))
+	let g:nbBuiltCsprojs = 0
+	let g:nbCsprojsToBuild = len(csprojsToBuildMin)
+	let g:nbCsprojsToTest = 0
+	let g:nbTestedCsprojs = 0
 	let csprojsWithNbOccurrences = {}
 	for i in range(len(csprojsToBuildMin))
 		let csproj = csprojsToBuildMin[i]
