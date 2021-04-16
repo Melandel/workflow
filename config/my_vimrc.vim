@@ -2754,19 +2754,36 @@ function! BuildReverseDependencyTree(...)
 	if !empty(cache)
 		return cache
 	endif
+	echomsg '🛠' 'Rebuilding reverse dependency tree...'
 	let slndir = fnamemodify(sln, ':h:p')
 	let slnprojs = map(filter(readfile(sln), {_,x -> x =~ '"[^"]\+\.\a\{1,3}proj"'}), function("ParseCsprojFromSln", [slndir]))
 	let parsedSln = { 'path': sln}
 	let rgGlobs = join(map(copy(slnprojs), '"-g ".fnamemodify(v:val, ":t")'), ' ')
 	let rgCmd = printf('rg "<ProjectReference Include=(.*)>" %s -r "$1"', rgGlobs)
 	let csprojs = map(systemlist(rgCmd), function("ParseReferenceFromCsproj"))
-	let reverseDependencyTree = {}
+	let g:csenvs[sln] = {
+		\'projects': {}
+	\}
+	let reverseDependencyTree = g:csenvs[sln].projects
+	let jobs =[]
 	for i in range(len(slnprojs))
-		let reverseDependencyTree[slnprojs[i]] = {
+		let project = slnprojs[i]
+		let reverseDependencyTree[project] = {
 			\'last_build_timestamp': 0,
 			\'consumers': [],
 			\'is_leaf_project': 0
 		\}
+		let csprojFolder = fnamemodify(project, ':h')
+		if isdirectory(csprojFolder.'/obj')
+			let cmd = printf('stat -c "%%Y" "%s/obj"', csprojFolder)
+			call add(jobs, job_start(
+				\cmd,
+				\{
+					\'out_cb': function('GetProjectLastBuiltTimestampCB', [reverseDependencyTree[project]]),
+					\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) }
+				\}
+			\))
+		endif
 	endfor
 	for i in range(len(csprojs))
 		let reference = csprojs[i].reference
@@ -2777,10 +2794,11 @@ function! BuildReverseDependencyTree(...)
 	for i in range(len(leafProjects))
 		let reverseDependencyTree[leafProjects[i]].is_leaf_project = 1
 	endfor
-	let g:csenvs[sln] = {
-		\'projects': reverseDependencyTree
-	\}
-	return reverseDependencyTree
+	return copy(reverseDependencyTree)
+endfunction
+
+function! GetProjectLastBuiltTimestampCB(reverseDependencyTreeItem, chan, msg)
+	let a:reverseDependencyTreeItem.last_build_timestamp = str2nr(a:msg) + 1
 endfunction
 
 function! ParseCsprojFromSln(slndir, index, item)
@@ -2897,7 +2915,7 @@ function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependency
 	endif
 	if !empty(a:previouslyBuiltCsproj)
 		echomsg '✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
-		let a:reverseDependencyTree[a:previouslyBuiltCsproj].last_build_timestamp = GetCurrentTimestamp()+1
+		let a:reverseDependencyTree[a:previouslyBuiltCsproj].last_build_timestamp = GetCurrentTimestamp()+10
 	endif
 	if a:previouslyBuiltCsproj =~# 'Test'
 		call TestCsproj(a:previouslyBuiltCsproj, a:csprojsWithNbOccurrences, a:scratchbufnr, a:modifiedClasses)
@@ -2977,6 +2995,7 @@ function! BuildTestCommit(all, ...)
 	else
 		let csprojsWithChanges = GetCsprojsWithChanges(sln)
 		if empty(csprojsWithChanges)
+			redraw
 			echomsg 'No changes since last build. You may need to call MSBuild by hand.'
 			return
 		endif
@@ -2995,7 +3014,6 @@ function! GetCsprojsWithChanges(sln)
 	for project in keys(g:csenvs[a:sln].projects)
 		let csprojFolder = substitute(fnamemodify(project, ':h'), '\', '/', 'g')
 		let cmd = printf('"%s/find" "%s" -path "%s/obj" -prune -false -o -path "%s/bin" -prune -false -o -type f -newermt @%d -print0 -quit', $gtools, csprojFolder, csprojFolder, csprojFolder, g:csenvs[a:sln].projects[project].last_build_timestamp)
-		call add(g:g, cmd)
 		call add(jobs, job_start(
 			\cmd,
 			\{
@@ -3003,10 +3021,11 @@ function! GetCsprojsWithChanges(sln)
 			\}
 		\))
 	endfor
-	echomsg '🔍' 'Looking for changes'
+	echomsg '🔍' 'Looking for changes...'
 	while !empty(filter(copy(jobs), 'v:val =~ "run"'))
 		sleep 50m
 	endwhile
+	redraw
 	return csprojsWithChanges
 endfunction
 
@@ -3048,6 +3067,7 @@ function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDepen
 		call CascadeBuild(csproj, csprojsWithNbOccurrences, a:reverseDependencyTree, scratchbufnr, a:modifiedClasses, '')
 	endfor
 	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) len(a:modifiedCsprojs) 'project(s):' join(map(copy(a:modifiedCsprojs), 'fnamemodify(v:val, ":t:r")'), ", ")
+	redraw
 endfunction
 
 if !empty(glob($config.'/my_vimworkenv.vim'))
