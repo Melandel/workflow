@@ -5,15 +5,9 @@ SetTitleMatchMode, 2
 LShift & $::Suspend
 
 ; § <-> Switch in and out of vim
-vkA0 & vkDF::
-if WinActive("Ubuntu") || WinActive("melandel@")  || WinActive(" - VIM") {
-	Send !{Tab}
-} else if WinActive("GVIM"){
-	Send ^z
-} else {
-	Send #{vk31}
-}
-return
+#If  !WinActive("GVIM")
+vkA0 & vkDF::Send #{vk31}
+#If
 
 ;;; CAPSLOCK ;;;
 ; CapsLock -> Escape
