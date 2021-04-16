@@ -2992,7 +2992,6 @@ function! GetCsprojsWithChanges(sln)
 	endif
 	let jobs = []
 	let csprojsWithChanges = []
-	let g:g=[]
 	for project in keys(g:csenvs[a:sln].projects)
 		let csprojFolder = substitute(fnamemodify(project, ':h'), '\', '/', 'g')
 		let cmd = printf('"%s/find" "%s" -path "%s/obj" -prune -false -o -path "%s/bin" -prune -false -o -type f -newermt @%d -print0 -quit', $gtools, csprojFolder, csprojFolder, csprojFolder, g:csenvs[a:sln].projects[project].last_build_timestamp)
@@ -3000,7 +2999,7 @@ function! GetCsprojsWithChanges(sln)
 		call add(jobs, job_start(
 			\cmd,
 			\{
-				\'out_cb':   { chan,msg  -> add(csprojsWithChanges, project)}
+				\'out_cb': function('GetProjectChangedCB', [csprojsWithChanges, project])
 			\}
 		\))
 	endfor
@@ -3011,8 +3010,8 @@ function! GetCsprojsWithChanges(sln)
 	return csprojsWithChanges
 endfunction
 
-function! GetProjectChangedCB(...)
-	let 
+function! GetProjectChangedCB(csprojsWithChanges, csproj, ...)
+	call add(a:csprojsWithChanges, a:csproj)
 endfunction
 
 function! BuildTestCommitSln(sln, modifiedCsprojs, modifiedClasses)
