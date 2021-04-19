@@ -2659,16 +2659,17 @@ function! BuildReverseDependencyTree(...)
 	if !empty(cache)
 		return cache
 	endif
-	echomsg '🛠' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Building reverse dependency tree...'
+	echomsg '🛠' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Building reverse dependency tree ('.fnamemodify(sln, ':t').')'
 	let slndir = fnamemodify(sln, ':h:p')
 	let slnprojs = map(filter(readfile(sln), {_,x -> x =~ '"[^"]\+\.\a\{1,3}proj"'}), function("ParseCsprojFromSln", [slndir]))
 	let parsedSln = { 'path': sln}
-	let rgGlobs = join(map(copy(slnprojs), '"-g ".fnamemodify(v:val, ":t")'), ' ')
+	let rgGlobs = join(mapnew(slnprojs, '"-g ".fnamemodify(v:val, ":t")'), ' ')
 	let rgCmd = printf('rg "<ProjectReference Include=(.*)>" %s -r "$1"', rgGlobs)
 	let data = systemlist(rgCmd)
 	let csprojs = map(data, function("ParseReferenceFromCsproj"))
 	let g:csenvs[sln] = {
-		\'projects': {}
+		\'projects': {},
+		\'current_build_success': 1,
 	\}
 	let reverseDependencyTree = g:csenvs[sln].projects
 	let jobs =[]
@@ -2734,7 +2735,9 @@ endfunction
 
 let g:csClassesInChangedFiles=[]
 
-function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
+function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, sln, ...)
+	call filter(g:buildAndTestJobs, 'v:val =~ "run"')
+	call filter(a:csprojsWithNbOccurrences, {_,x -> x > 0})
 	let g:nbTestedCsprojs += 1
 	let report = getbufline(a:scratchbufnr, '$')[0]
 	if stridx(report, ' - ') < 0
@@ -2743,6 +2746,7 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
 	let reportStats = substitute(split(report, ' - ')[1], ':\s\+', ': ', 'g')
 	if a:0 && a:2
 		echomsg '🚫🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
+		let g:csenvs[a:sln].current_build_success = 0
 		set errorformat =%A\ %#Failed\ %.%#
 		set errorformat+=%Z\ %#Failed\ %.%#
 		set errorformat+=%C\ %#NSubstitute\.Exceptions%.%#\ :\ %m
@@ -2765,9 +2769,18 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, ...)
 		endif
 	else
 		echomsg '✅✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
-		if empty(filter(copy(a:csprojsWithNbOccurrences), {_,x -> x > 0})) && empty(filter(copy(g:buildAndTestJobs), 'v:val =~ "run"'))
-			let g:csClassesInChangedFiles = []
-			call OpenDashboard()
+		if empty(a:csprojsWithNbOccurrences) && empty(g:buildAndTestJobs)
+			if !g:csenvs[a:sln].current_build_success
+				echomsg '🚫 Build & Test failed.'
+			else
+				echomsg '✅ Build & Test successful!'
+				let g:csClassesInChangedFiles = []
+				let g:csenvs[a:sln].last_build_projects = get(g:csenvs[a:sln], 'last_build_projects', [])
+				let g:csenvs[a:sln].projects_in_git_status = get(g:csenvs[a:sln], 'projects_in_git_status', [])
+				call filter(g:csenvs[a:sln].last_build_projects, {_,x -> index(g:csenvs[a:sln].projects_in_git_status, x) != -1})
+				unlet g:csenvs[a:sln].projects_in_git_status
+				call OpenDashboard()
+			endif
 		endif
 	endif
 endfunction
@@ -2797,7 +2810,7 @@ function! FillConsumers(csproj, reverseDependencyTree)
 	return res
 endfunction
 
-function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, modifiedClasses, previouslyBuiltCsproj)
+function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, modifiedClasses, previouslyBuiltCsproj, sln)
 	if a:csprojsWithNbOccurrences[a:csproj] > 1
 		let consumers = FillConsumers(a:csproj, a:reverseDependencyTree)
 		for i in range(len(copy(consumers)))
@@ -2806,6 +2819,9 @@ function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, 
 		return
 	else
 		let a:csprojsWithNbOccurrences[a:csproj] -= 1
+		if a:csprojsWithNbOccurrences[a:csproj] == 0
+			unlet a:csprojsWithNbOccurrences[a:csproj]
+		endif
 		let consumers = a:reverseDependencyTree[a:csproj].consumers
 		let cmd = printf('MSBuild.exe -nologo -p:BuildProjectReferences=false -v:quiet "%s"', a:csproj)
 		call add(g:buildAndTestJobs, job_start(
@@ -2819,15 +2835,16 @@ function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, 
 				\'err_modifiable': 0,
 				\'in_io': 'null',
 				\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
-				\'exit_cb': function("CascadeReferences", [a:reverseDependencyTree[a:csproj].consumers, a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:modifiedClasses, a:csproj])
+				\'exit_cb': function("CascadeReferences", [a:reverseDependencyTree[a:csproj].consumers, a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:modifiedClasses, a:csproj, a:sln])
 			\}
 		\))
 	endif
 endfunction
 
-function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, modifiedClasses, previouslyBuiltCsproj, ...)
+function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, modifiedClasses, previouslyBuiltCsproj, sln, ...)
 	if a:0 && a:2
 		echomsg '🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
+		let g:csenvs[a:sln].current_build_success = 0
 		set errorformat=CSC\ :\ error\ %*\\a%n:\ %m\ [%f]
 		set errorformat+=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
 		set errorformat+=%f\ :\ error\ %*\\a%n:\ %m\ [%.%#
@@ -2849,15 +2866,15 @@ function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependency
 	endif
 	if a:previouslyBuiltCsproj =~# 'Test'
 		let g:nbCsprojsToTest += 1
-		call TestCsproj(a:previouslyBuiltCsproj, a:csprojsWithNbOccurrences, a:scratchbufnr, a:modifiedClasses)
+		call TestCsproj(a:previouslyBuiltCsproj, a:csprojsWithNbOccurrences, a:scratchbufnr, a:modifiedClasses, a:sln)
 	endif
 	for i in range(len(a:csprojs))
 		let csproj = a:csprojs[i]
-		call CascadeBuild(csproj, a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:modifiedClasses, a:previouslyBuiltCsproj)
+		call CascadeBuild(csproj, a:csprojsWithNbOccurrences, a:reverseDependencyTree, a:scratchbufnr, a:modifiedClasses, a:previouslyBuiltCsproj, a:sln)
 	endfor
 endfunction
 
-function! TestCsproj(path, csprojsWithNbOccurrences, scratchbufnr, modifiedClasses)
+function! TestCsproj(path, csprojsWithNbOccurrences, scratchbufnr, modifiedClasses, sln)
 	let assemblyToTest = GetPathOfAssemblyToTest(a:path)
 	if empty(assemblyToTest)
 		echomsg fnamemodify(a:path, ':t').': Could not find dll inside /bin, /Debug folders'
@@ -2881,8 +2898,8 @@ function! TestCsproj(path, csprojsWithNbOccurrences, scratchbufnr, modifiedClass
 			\'err_buf': a:scratchbufnr,
 			\'err_modifiable': 0,
 			\'in_io': 'null',
-				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
-			\'exit_cb': function("VsTestCB", [assemblyToTest, a:csprojsWithNbOccurrences, a:scratchbufnr])
+			\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
+			\'exit_cb': function("VsTestCB", [assemblyToTest, a:csprojsWithNbOccurrences, a:scratchbufnr, a:sln])
 		\}
 	\))
 endfunction
@@ -2948,17 +2965,14 @@ function! GetCsprojsWithChanges(sln)
 	echomsg '🔍' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Looking for changes...'
 	if empty(get(get(get(g:, 'csenvs', {}), a:sln, {}), 'last_build_projects', {}))
 		let projectsThatMightHaveChanges = keys(g:csenvs[a:sln].projects)
+		let last_build_projects = []
 	else
 		let last_build_projects = g:csenvs[a:sln].last_build_projects
 		let cwd = getcwd()
-		let data = systemlist('git status --short')
-		let git_diff_files = map(data, {_,x -> substitute(cwd.'/'.x[3:], '\\', '/', 'g')})
+		let git_diff_files = map(systemlist('git status --short'), {_,x -> substitute(cwd.'/'.x[3:], '\\', '/', 'g')})
+		let g:csenvs[a:sln].projects_in_git_status = git_diff_files 
 		let git_diff_projects = FindProjectsFromFiles(git_diff_files, keys(g:csenvs[a:sln].projects))
-		if len(last_build_projects) == len(keys(g:csenvs[a:sln].projects))
-			let projectsThatMightHaveChanges = uniq(sort(extend([], git_diff_projects, )))
-		else
-			let projectsThatMightHaveChanges = uniq(sort(extend(last_build_projects, git_diff_projects, )))
-		endif
+		let projectsThatMightHaveChanges = uniq(sort(extend(last_build_projects, git_diff_projects, )))
 	endif
 	let csprojsWithChanges = []
 	let jobs = []
@@ -2970,9 +2984,12 @@ function! GetCsprojsWithChanges(sln)
 	while !empty(filter(copy(jobs), 'v:val =~ "run"'))
 		sleep 50m
 	endwhile
-	if !empty(csprojsWithChanges)
+	if len(last_build_projects) == len(keys(g:csenvs[a:sln].projects))
+		let g:csenvs[a:sln].last_build_projects = []
+	elseif !empty(csprojsWithChanges)
 		let g:csenvs[a:sln].last_build_projects = csprojsWithChanges
 	endif
+	echomsg 'TAAAAAAAAAAAAAAAAAAAAAA' g:csenvs[a:sln].last_build_projects
 	return csprojsWithChanges
 endfunction
 
@@ -2990,7 +3007,7 @@ endfunction
 function! BuildTestCommitSln(sln, modifiedCsprojs, modifiedClasses)
 	let reverseDependencyTree = BuildReverseDependencyTree(a:sln)
 	let csprojsToBuild = map(copy(a:modifiedCsprojs), {_,x -> FillConsumers(x, reverseDependencyTree)})
-	call BuildTestCommitCsharp(a:modifiedCsprojs, csprojsToBuild, reverseDependencyTree, a:modifiedClasses)
+	call BuildTestCommitCsharp(a:modifiedCsprojs, csprojsToBuild, reverseDependencyTree, a:modifiedClasses, a:sln)
 endfunction
 
 function! BuildTestCommitCsproj(csproj, modifiedClasses)
@@ -3004,10 +3021,10 @@ function! BuildTestCommitCsproj(csproj, modifiedClasses)
 	let g:csenvs[a:csproj] = {
 		\'projects': reverseDependencyTree
 	\}
-	call BuildTestCommitCsharp([a:csproj], [a:csproj], reverseDependencyTree, a:modifiedClasses)
+	call BuildTestCommitCsharp([a:csproj], [a:csproj], reverseDependencyTree, a:modifiedClasses, a:csproj)
 endfunction
 
-function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDependencyTree, modifiedClasses)
+function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDependencyTree, modifiedClasses, sln)
 	let csprojsToBuildFlat = flatten(copy(a:allCsprojsToBuild))
 	let csprojsToBuildMin = uniq(sort(flatten(copy(a:allCsprojsToBuild))))
 	redraw
@@ -3021,14 +3038,15 @@ function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDepen
 		let csproj = csprojsToBuildMin[i]
 		let csprojsWithNbOccurrences[csproj] = len(filter(copy(csprojsToBuildFlat), {_,x -> x == csproj}))
 	endfor
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuildTestCommit')
-	for i in range(len(copy(a:modifiedCsprojs)))
-		let csproj = a:modifiedCsprojs[i]
-		call CascadeBuild(csproj, csprojsWithNbOccurrences, a:reverseDependencyTree, scratchbufnr, a:modifiedClasses, '')
-	endfor
 	redraw
 	echomsg '🔨' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Go!'
 	silent echomsg	join(map(copy(a:modifiedCsprojs), 'fnamemodify(v:val, ":t:r")'), ", ")
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuildTestCommit')
+	for i in range(len(copy(a:modifiedCsprojs)))
+		let csproj = a:modifiedCsprojs[i]
+		call CascadeBuild(csproj, csprojsWithNbOccurrences, a:reverseDependencyTree, scratchbufnr, a:modifiedClasses, '', a:sln)
+	endfor
+	redraw
 endfunction
 
 if !empty(glob($config.'/my_vimworkenv.vim'))
