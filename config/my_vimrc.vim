@@ -2474,7 +2474,7 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :Ados<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :Ados<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommit!<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
 	autocmd FileType cs nmap <buffer> <C-P> <Plug>(omnisharp_navigate_up)
 	autocmd FileType cs nmap <buffer> <C-N> <Plug>(omnisharp_navigate_down)
 	autocmd FileType cs nmap <buffer> <C-H> gg<Plug>(omnisharp_navigate_down)
@@ -2692,7 +2692,6 @@ function! BuildReverseDependencyTree(...)
 			\))
 		endif
 	endfor
-	echomsg '🛠' printf('[%.2fs]',reltimefloat(reltime(start))) 'Timestamps fetched.'
 	for i in range(len(csprojs))
 		let reference = csprojs[i].reference
 		call add(reverseDependencyTree[reference].consumers,csprojs[i].project)
@@ -2702,7 +2701,8 @@ function! BuildReverseDependencyTree(...)
 	for i in range(len(leafProjects))
 		let reverseDependencyTree[leafProjects[i]].is_leaf_project = 1
 	endfor
-	echomsg '🛠' printf('[%.2fs]',reltimefloat(reltime(start))) 'Reverse dependency tree completed.'
+	redraw
+	echomsg '🛠' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Reverse dependency tree completed.'
 	return copy(reverseDependencyTree)
 endfunction
 
@@ -2860,7 +2860,7 @@ endfunction
 function! TestCsproj(path, csprojsWithNbOccurrences, scratchbufnr, modifiedClasses)
 	let assemblyToTest = GetPathOfAssemblyToTest(a:path)
 	if empty(assemblyToTest)
-		echomsg 'Could not find' assemblyToTest.'.dll inside /bin, /Debug folders'
+		echomsg fnamemodify(a:path, ':t').': Could not find dll inside /bin, /Debug folders'
 		return
 	endif
 	if empty(a:modifiedClasses)
@@ -2919,12 +2919,12 @@ function! BuildTestCommit(all, resetCache, ...)
 		call BuildTestCommitCsproj(csproj, g:csClassesInChangedFiles)
 		return
 	endif
-	if a:resetCache && !emtpy(get(get(g:, 'csenvs', {}), sln, {}))
+	if a:resetCache && !empty(get(get(g:, 'csenvs', {}), sln, {}))
 		unlet g:csenvs[sln]
 	endif
 	if a:all
-		if empty(get(get(g:, 'csenvs', {}), sln, {})
-			call BuildReverseDependencyTree(a:sln)
+		if empty(get(get(g:, 'csenvs', {}), sln, {}))
+			call BuildReverseDependencyTree(sln)
 		endif
 		let allCsprojsInSln = keys(g:csenvs[sln].projects)
 		call BuildTestCommitSln(sln, allCsprojsInSln, [])
