@@ -2745,7 +2745,7 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, sln, 
 	endif
 	let reportStats = substitute(split(report, ' - ')[1], ':\s\+', ': ', 'g')
 	if a:0 && a:2
-		echomsg '🚫🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
+		redraw | echomsg '🚫🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
 		let g:csenvs[a:sln].current_build_success = 0
 		set errorformat =%A\ %#Failed\ %.%#
 		set errorformat+=%Z\ %#Failed\ %.%#
@@ -2768,12 +2768,12 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, sln, 
 			let w:quickfix_title = 'Build & Tests'
 		endif
 	else
-		echomsg '✅✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
+		redraw | echomsg '✅✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
 		if empty(a:csprojsWithNbOccurrences) && empty(a:buildAndTestJobs)
 			if !g:csenvs[a:sln].current_build_success
-				echomsg '🚫 Build & Test failed.'
+				redraw | echomsg '🚫 Build & Test failed.'
 			else
-				echomsg '✅ Build & Test successful!'
+				redraw | echomsg '✅ Build & Test successful!'
 				let g:csClassesInChangedFiles = []
 				let g:csenvs[a:sln].last_build_projects = get(g:csenvs[a:sln], 'last_build_projects', [])
 				let g:csenvs[a:sln].projects_in_git_status = get(g:csenvs[a:sln], 'projects_in_git_status', [])
@@ -2841,7 +2841,7 @@ endfunction
 function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, modifiedClasses, previouslyBuiltCsproj, sln, buildAndTestJobs, ...)
 	let g:nbBuiltCsprojs += 1
 	if a:0 && a:2
-		echomsg '🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
+		redraw | echomsg '🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
 		let g:csenvs[a:sln].current_build_success = 0
 		set errorformat=CSC\ :\ error\ %*\\a%n:\ %m\ [%f]
 		set errorformat+=%f(%l\\,%c):\ error\ %*\\a%n:\ %m
@@ -2855,7 +2855,7 @@ function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependency
 		endif
 	endif
 	if !empty(a:previouslyBuiltCsproj)
-		echomsg '✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
+		redraw | echomsg '✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
 		let a:reverseDependencyTree[a:previouslyBuiltCsproj].last_build_timestamp = GetCurrentTimestamp()+10
 	endif
 	if a:previouslyBuiltCsproj =~# 'Test'
@@ -2926,11 +2926,8 @@ function! BuildTestCommit(all, resetCache, ...)
 		unlet g:csenvs[sln]
 	endif
 	if a:all
-		if empty(get(get(g:, 'csenvs', {}), sln, {}))
-			call BuildReverseDependencyTree(sln)
-		endif
-		let allCsprojsInSln = keys(g:csenvs[sln].projects)
-		call BuildTestCommitSln(sln, allCsprojsInSln, [], buildAndTestJobs)
+		echomsg printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Cleaning' fnamemodify(sln, ':t').'...'
+		call add(buildAndTestJobs, job_start(printf('MSBuild.exe -nologo -t:Clean -v:quiet "%s"', sln), {'exit_cb': function('PostCleanCB', [sln, buildAndTestJobs])}))
 	else
 		let csprojsWithChanges = GetCsprojsWithChanges(sln)
 		redraw
@@ -2943,6 +2940,21 @@ function! BuildTestCommit(all, resetCache, ...)
 endfunc
 command! -bang -nargs=? BuildTestCommit    call BuildTestCommit(0, !empty("<bang>"), <f-args>)
 command! -bang -nargs=? BuildTestCommitAll call BuildTestCommit(1, !empty("<bang>"), <f-args>)
+
+function! PostCleanCB(sln, buildAndTestJobs, ...)
+	redraw
+	echomsg printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Building' fnamemodify(a:sln, ':t').'...'
+	call add(a:buildAndTestJobs, job_start(printf('MSBuild.exe -nologo -t:Build -v:quiet "%s"', a:sln), {'exit_cb': function('PostBuildCB', [a:sln, a:buildAndTestJobs])}))
+	silent call BuildReverseDependencyTree(a:sln)
+endfunction
+
+function! PostBuildCB(sln, buildAndTestJobs, job, status)
+	if a:status
+		echomsg '✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:sln, ':t') 'build succeeded.'
+	else
+		echomsg '🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:sln, ':t') 'build failed.'
+	end
+endfunction
 
 function! GetCsprojsWithChanges(sln)
 	if empty(get(get(g:, 'csenvs', {}), a:sln, {}))
