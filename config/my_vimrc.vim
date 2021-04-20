@@ -2673,7 +2673,7 @@ function! BuildReverseDependencyTree(...)
 	\}
 	let reverseDependencyTree = g:csenvs[sln].projects
 	let jobs =[]
-	echomsg '🛠' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Reading latest modification timestamps...'
+	echomsg '🛠' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Reading latest modification timestamps from' len(slnprojs) 'projects...'
 	for i in range(len(slnprojs))
 		let project = slnprojs[i]
 		let reverseDependencyTree[project] = {
@@ -2976,6 +2976,7 @@ function! GetCsprojsWithChanges(sln)
 	endif
 	let csprojsWithChanges = []
 	let jobs = []
+	echomsg '🔍' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Reading latest modification timestamps from' len(projectsThatMightHaveChanges) 'projects...'
 	for project in projectsThatMightHaveChanges
 		let csprojFolder = substitute(fnamemodify(project, ':h'), '\', '/', 'g')
 		let cmd = printf('"%s/find" "%s" -path "%s/obj" -prune -false -o -path "%s/bin" -prune -false -o -type f -newermt @%d -print0 -quit', $gtools, csprojFolder, csprojFolder, csprojFolder, g:csenvs[a:sln].projects[project].last_build_timestamp)
@@ -2989,7 +2990,6 @@ function! GetCsprojsWithChanges(sln)
 	elseif !empty(csprojsWithChanges)
 		let g:csenvs[a:sln].last_build_projects = csprojsWithChanges
 	endif
-	echomsg 'TAAAAAAAAAAAAAAAAAAAAAA' g:csenvs[a:sln].last_build_projects
 	return csprojsWithChanges
 endfunction
 
