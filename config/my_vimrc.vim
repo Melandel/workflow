@@ -903,13 +903,21 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 endfunc
 
 function! DisplayScriptOutputInNewWindow(scratchbufnr, job, status)
-	if winnr('$') == 1
-		vnew
-	else
-		tabnew
-		-tabmove
-	endif
-	exec 'buffer' a:scratchbufnr
+	let ea = &equalalways
+	let &equalalways=1
+	1wincmd w
+	let winleft = winnr()
+	wincmd l
+	let winright = winnr()
+	while winleft != winright
+		wincmd J
+		wincmd k
+	let winleft = winnr()
+	wincmd l
+	let winright = winnr()
+	endwhile
+	let &equalalways = ea
+	exec 'vert botright sbuffer' a:scratchbufnr
 	normal! gg
 endfunction
 
