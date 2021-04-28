@@ -186,7 +186,6 @@ function! UpdateEnvironmentLocationVariables()
 	let csproj = GetNearestParentFolderContainingFile('*.csproj')
 	if csproj != ''
 		let $csproj = csproj
-		let $bin = glob('%:h/**/bin/Debug')
 		let sln = GetNearestParentFolderContainingFile('*.sln')
 		if sln != ''
 			let $sln = sln
