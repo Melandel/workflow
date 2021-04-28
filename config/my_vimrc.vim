@@ -170,6 +170,9 @@ function! GetInterestingParentDirectory()
 endfunction
 
 function! UpdateLocalCurrentDirectory()
+	if &buftype == 'terminal'
+		return
+	endif
 	let dir = GetInterestingParentDirectory()
 	if dir =~ '^fugitive://'
 		return
@@ -203,7 +206,7 @@ augroup lcd
 	au!
 	" enew has a delay before updating bufname()
 	autocmd BufCreate * call timer_start(100, { timerid -> execute('if &ft != "qf" && bufname() == "" | set bt=nofile | endif', '') })
-	autocmd BufEnter * if &ft!='dirvish' | Lcd | else | lcd %:p:h | endif
+	autocmd BufEnter  * call timer_start(100, { timerid -> execute('if &ft!="dirvish" | Lcd | else | lcd %:p:h | endif', '') })
 	autocmd QuickFixCmdPre * let g:lcd_qf = getcwd()
 	autocmd BufEnter * call UpdateEnvironmentLocationVariables()
 augroup end
