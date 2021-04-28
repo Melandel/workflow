@@ -2576,15 +2576,16 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 for file in expand('$scripts/*.bat', 1, 1)
 	let filename = fnamemodify(file, ':t:r')
 	let filename = toupper(filename[0]).filename[1:]
-	exec 'command! -bang' filename 'call RunScript('''.filename.''', "<bang>")'
+	exec 'command! -nargs=* -bang -bar' filename 'call RunScript('''.filename.''', "<bang>", <f-args>)'
 endfor
 
-function! RunScript(name, bang)
+function! RunScript(name, bang, ...)
 	if empty(a:bang)
-		exec 'terminal ++hidden ++open' a:name.'.bat'
+		let excmd = printf('terminal ++hidden ++open %s.bat %s', a:name, join(a:000, ' '))
 	else
-		exec 'terminal ++curwin ++noclose cmd /k' a:name.'.bat'
+		let excmd = printf('terminal ++curwin ++noclose %s.bat %s', a:name, join(a:000, ' '))
 	endif
+		exec excmd
 endfunction
 
 function! SynchronizeDuplicatedConfigFile()
