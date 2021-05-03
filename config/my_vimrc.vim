@@ -905,6 +905,7 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 endfunc
 
 function! DisplayScriptOutputInNewWindow(scratchbufnr, job, status)
+	if winnr('$') < 5
 	let ea = &equalalways
 	let &equalalways=1
 	1wincmd w
@@ -920,6 +921,9 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, job, status)
 	endwhile
 	let &equalalways = ea
 	exec 'vert botright sbuffer' a:scratchbufnr
+	else
+		exec '-tab sbuffer' a:scratchbufnr
+	endif
 	normal! gg
 endfunction
 
