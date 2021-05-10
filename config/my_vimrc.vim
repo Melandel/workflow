@@ -2759,10 +2759,7 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, sln, 
 	call filter(a:buildAndTestJobs, 'v:val =~ "run"')
 	let g:nbTestedCsprojs += 1
 	let report = getbufline(a:scratchbufnr, '$')[0]
-	if stridx(report, ' - ') < 0
-		return
-	endif
-	let reportStats = substitute(split(report, ' - ')[1], ':\s\+', ': ', 'g')
+	let reportStats = stridx(report, ' - ') < 0 ? report : substitute(split(report, ' - ')[1], ':\s\+', ': ', 'g')
 	if a:0 && a:2
 		redraw | echomsg '🚫🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
 		let g:csenvs[a:sln].current_build_success = 0
