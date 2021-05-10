@@ -2969,9 +2969,9 @@ endfunction
 
 function! PostBuildCB(sln, buildAndTestJobs, job, status)
 	if a:status
-		echomsg '✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:sln, ':t') 'build succeeded.'
-	else
 		echomsg '🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:sln, ':t') 'build failed.'
+	else
+		echomsg '✅' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:sln, ':t') 'build succeeded.'
 	end
 endfunction
 
