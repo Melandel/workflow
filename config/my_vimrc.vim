@@ -2587,7 +2587,11 @@ endfor
 
 function! RunScript(name, bang, ...)
 	if empty(a:bang)
+		if a:name =~ 'Start$'
+			let excmd = printf('terminal ++hidden %s.bat %s', a:name[:-6], join(a:000, ' '))
+		else
 		let excmd = printf('terminal ++hidden ++open %s.bat %s', a:name, join(a:000, ' '))
+		endif
 	else
 		let excmd = printf('terminal ++curwin ++noclose %s.bat %s', a:name, join(a:000, ' '))
 	endif
