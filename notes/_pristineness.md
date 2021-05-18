@@ -6,32 +6,45 @@ An attempt at formulating a _direction_ I want to lean towards. Not to be used a
 ```
 .
 |-- README.md
-|-- doc
-    |-- adl/
-    |-- howtos/
-    |-- reference/
-    `-- tutorials/
-|-- media/
-|-- scripts/
-|-- src/
-    |-- application.AppName#1/
-        |-- usecases
-            |--DomainModule#1/
-                `-- AppName#1.DomainModule#1.UseCases.csproj
-        |--ApplicationModule#1/
-            `-- AppName#1.ApplicationModule#1.csproj
-    |-- domain/
-        |--DomainModule#1/
-            `-- DomainModule#1.domain.csproj
-    |-- solution.SlnName#1/
-        |-- persistence/
-            |-- SlnName#1.Persistence.DomainModule#1.csproj
-            `-- SlnName#1.Persistence.ApplicationModule#1.csproj
-        |-- startup/
-            `-- SlnName#1.Startup.csproj
-        |-- ui/
-            `-- SlnName#1.UserInterface.csproj
-        `-- SlnName#1.sln
+|-- DomainName
+    |-- Module_D1
+        `-- DomainName.Module_D1.csproj
+    `-- Module_D2
+        `-- DomainName.Module_D2.csproj
+|-- ApplicationName
+    |-- UseCases
+        `-- Module_A1
+            |-- Contracts
+                `-- ApplicationName.UseCases.Module_A1.Contracts.csproj
+            |-- Implementations
+                `-- ApplicationName.UseCases.Module_A1.Implementations.csproj
+            `-- DummyImplementations
+                `-- ApplicationName.UseCases.Module_A1.DummyImplementations.csproj
+    |-- Module_A2
+        |-- Contracts
+            `-- ApplicationName.Module_A2.Contracts.csproj
+        |-- Implementations
+            `-- ApplicationName.Module_A2.Implementations.csproj
+        |-- DummyImplementations
+            `-- ApplicationName.Module_A2.DummyImplementations.csproj
+    `-- ReusableCode
+        `-- Topic1
+            `-- ApplicationName.ReusableCode.Topic1.csproj
+`-- ProductName
+    |-- Startup
+    |-- IO
+        |-- ProductName.IO.csproj
+        |-- Module_P1
+        `-- Module_P2
+    |-- Module_P1.Gateways
+            `-- ProductName.Module_P1.Gateways.csproj
+    |-- Module_P1.ThirdParty
+            `-- ProductName.Module_P1.ThirdParty.csproj
+    |-- Module_P2.Gateways
+        `-- ProductName.Module_P2.Gateways.csproj
+    `-- ReusableCode
+        `-- Topic1
+            `-- ProductName.ReusableCode.Topic1.csproj
 ```
 
 ## Logs
