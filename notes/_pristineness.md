@@ -6,42 +6,46 @@ An attempt at formulating a _direction_ I want to lean towards. Not to be used a
 ```
 .
 |-- README.md
-|-- DomainOfDomainName
+|-- Domain
     |-- Module_D1
-        `-- DomainOfDomainName.Module_D1.csproj
+        `-- Domain.Module_D1.csproj
     `-- Module_D2
-        `-- DomainOfDomainName.Module_D2.csproj
-|-- ApplicationNameApp
+        `-- Domain.Module_D2.csproj
+|-- ApplicationName
     |-- UseCases
         `-- Module_A1
             |-- Contracts
-                `-- ApplicationNameApp.UseCases.Module_A1.Contracts.csproj
+                `-- ApplicationName.UseCases.Module_A1.Contracts.csproj
             |-- Implementations
-                `-- ApplicationNameApp.UseCases.Module_A1.Implementations.csproj
+                `-- ApplicationName.UseCases.Module_A1.Implementations.csproj
+            |-- Implementations.Gateways.Contracts
+                `-- ApplicationName.UseCases.Module_A1.Implementations.Gateways.Contracts.csproj
             `-- DummyImplementations
-                `-- ApplicationNameApp.UseCases.Module_A1.DummyImplementations.csproj
+                `-- ApplicationName.UseCases.Module_A1.DummyImplementations.csproj
     |-- Module_A2
         |-- Contracts
-            `-- ApplicationNameApp.Module_A2.Contracts.csproj
+            `-- ApplicationName.Module_A2.Contracts.csproj
         |-- Implementations
-            `-- ApplicationNameApp.Module_A2.Implementations.csproj
+            `-- ApplicationName.Module_A2.Implementations.csproj
+        |-- Implementations.Gateways.Contracts
+            `-- ApplicationName.Module_A2.Implementations.Gateways.Contracts.csproj
         |-- DummyImplementations
-            `-- ApplicationNameApp.Module_A2.DummyImplementations.csproj
+            `-- ApplicationName.Module_A2.DummyImplementations.csproj
     `-- ReusableCode
         `-- Topic1
-            `-- ApplicationNameApp.ReusableCode.Topic1.csproj
+            `-- ApplicationName.ReusableCode.Topic1.csproj
 `-- ProductName
     |-- Startup
     |-- IO
         |-- ProductName.IO.csproj
         |-- Module_P1
         `-- Module_P2
-    |-- Module_P1.Gateways
-            `-- ProductName.Module_P1.Gateways.csproj
+    |-- Module_P1.Gateways.Implementations
+        `-- ProductName.Module_P1.Gateways.Implementations.csproj
     |-- Module_P1.ThirdParty
-            `-- ProductName.Module_P1.ThirdParty.csproj
-    |-- Module_P2.Gateways
-        `-- ProductName.Module_P2.Gateways.csproj
+        `-- ProductName.Module_P1.ThirdParty.csproj
+    |-- Module_P2.Gateways.Implementations
+        `-- ProductName.Module_P2.Gateways.Implementations.csproj
     `-- ReusableCode
         `-- Topic1
             `-- ProductName.ReusableCode.Topic1.csproj
