@@ -6,30 +6,30 @@ An attempt at formulating a _direction_ I want to lean towards. Not to be used a
 ```
 .
 |-- README.md
-|-- DomainName
+|-- DomainOfDomainName
     |-- Module_D1
-        `-- DomainName.Module_D1.csproj
+        `-- DomainOfDomainName.Module_D1.csproj
     `-- Module_D2
-        `-- DomainName.Module_D2.csproj
-|-- ApplicationName
+        `-- DomainOfDomainName.Module_D2.csproj
+|-- ApplicationNameApp
     |-- UseCases
         `-- Module_A1
             |-- Contracts
-                `-- ApplicationName.UseCases.Module_A1.Contracts.csproj
+                `-- ApplicationNameApp.UseCases.Module_A1.Contracts.csproj
             |-- Implementations
-                `-- ApplicationName.UseCases.Module_A1.Implementations.csproj
+                `-- ApplicationNameApp.UseCases.Module_A1.Implementations.csproj
             `-- DummyImplementations
-                `-- ApplicationName.UseCases.Module_A1.DummyImplementations.csproj
+                `-- ApplicationNameApp.UseCases.Module_A1.DummyImplementations.csproj
     |-- Module_A2
         |-- Contracts
-            `-- ApplicationName.Module_A2.Contracts.csproj
+            `-- ApplicationNameApp.Module_A2.Contracts.csproj
         |-- Implementations
-            `-- ApplicationName.Module_A2.Implementations.csproj
+            `-- ApplicationNameApp.Module_A2.Implementations.csproj
         |-- DummyImplementations
-            `-- ApplicationName.Module_A2.DummyImplementations.csproj
+            `-- ApplicationNameApp.Module_A2.DummyImplementations.csproj
     `-- ReusableCode
         `-- Topic1
-            `-- ApplicationName.ReusableCode.Topic1.csproj
+            `-- ApplicationNameApp.ReusableCode.Topic1.csproj
 `-- ProductName
     |-- Startup
     |-- IO
