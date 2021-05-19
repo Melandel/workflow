@@ -2579,12 +2579,6 @@ let g:OmniSharp_diagnostic_exclude_paths = [
 \]
 
 
-for file in expand('$scripts/*.bat', 1, 1)
-	let filename = fnamemodify(file, ':t:r')
-	let filename = toupper(filename[0]).filename[1:]
-	exec 'command! -nargs=* -bang -bar' filename 'call RunScript('''.filename.''', "<bang>", <f-args>)'
-endfor
-
 function! GetScriptCommandName(name)
 	return a:name =~ 'Start$' ? a:name[:-6] : a:name
 endfunction
@@ -2601,6 +2595,12 @@ function! RunScript(name, bang, ...)
 	endif
 	exec excmd
 endfunction
+
+for file in expand('$scripts/*.bat', 1, 1)
+	let filename = fnamemodify(file, ':t:r')
+	let filename = toupper(filename[0]).filename[1:]
+	exec 'command! -nargs=* -bang -bar' GetScriptCommandName(filename) 'call RunScript('''.filename.''', "<bang>", <f-args>)'
+endfor
 
 function! SynchronizeDuplicatedConfigFile()
 	let filename = expand('%:t')
