@@ -2751,7 +2751,7 @@ function! ParseReferenceFromCsproj(index, item)
 	let csprojFolder = fnamemodify(csprojFile, ':h')
 	let referenceRelativePath = trim(x[stridx(x, ':')+1:])[1:]
 	let referenceRelativePath = referenceRelativePath[:stridx(referenceRelativePath, '"')-1]
-	let referenceFullPath = fnamemodify(csprojFolder.'/'.referenceRelativePath, ':p')
+	let referenceFullPath = simplify(fnamemodify(csprojFolder.'/'.referenceRelativePath, ':p'))
 	let res.project = substitute(csprojFile, '\\', '/', 'g')
 	let res.reference = substitute(referenceFullPath, '\\', '/', 'g')
 	return res
