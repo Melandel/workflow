@@ -1554,7 +1554,7 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 		endif
 	endif
 	if has('win32')
-		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/cp', item, item_finalname)
+		let cmd = printf('cmd /C %s %s "%s" "%s"', $gtools.'/cp', isdirectory(item)?'-r':'', item, item_finalname)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
