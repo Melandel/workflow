@@ -1812,6 +1812,8 @@ endif
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :call GoToGitRoot()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> <leader>w :exec 'Firefox' GetCurrentLineAsPath()<CR>
+	autocmd FileType dirvish nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
+	autocmd FileType dirvish nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
 augroup end
 
 function! GoToGitRoot()
