@@ -2948,8 +2948,14 @@ function! BuildTestCommit(all, resetCache, ...)
 		unlet g:csenvs[sln]
 	endif
 	if a:all
+		let slnFilename = fnamemodify(sln, ':t:r')
+		if exists(':Rebuild'.slnFilename)
+			echomsg 'Running :Rebuild'.slnFilename
+			exec 'Rebuild'.slnFilename
+		else
 		echomsg printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Cleaning' fnamemodify(sln, ':t').'...'
 		call add(buildAndTestJobs, job_start(printf('MSBuild.exe -nologo -t:Clean -v:quiet "%s"', sln), {'exit_cb': function('PostCleanCB', [sln, buildAndTestJobs])}))
+		endif
 	else
 		let csprojsWithChanges = GetCsprojsWithChanges(sln)
 		redraw
