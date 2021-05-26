@@ -1980,6 +1980,8 @@ function! LocListToDirectory(dir, title)
 	if(&ft == 'qf')
 		call matchadd('Conceal', '^[^/|]\+/')
 		set conceallevel=3 concealcursor=nvic
+		nmap <buffer> <silent> <leader>f i:Files<CR>
+		nnoremap <buffer> <silent> <leader>F <CR>:Files<CR>
 	endif
 endfunction
 nnoremap <silent> <leader>ep :call LocListToDirectory($projects,  'Projects')<CR>
