@@ -1899,6 +1899,7 @@ function! OpenDashboard()
 	silent exec winwidth(0)*2/3.'vnew'
 		let bufnr = bufnr()
 		silent! bdelete git\ --no-pager\ log
+		let &termwinsize=''
 		let buf = term_start('git --no-pager log -15', {'curwin':1, 'cwd':cwd, 'close_cb': {_ -> execute('let t = timer_start(100, function(''OnGitLogExit'', ['.bufnr.']))', '')}})
 	wincmd h
 	silent exec 'vnew' $today
@@ -2595,6 +2596,7 @@ function! RunScript(name, bang, ...)
 	else
 		let excmd = printf('terminal ++curwin ++noclose %s.bat %s', a:name, join(a:000, ' '))
 	endif
+	let &termwinsize=(&lines-2).'x'.(&columns-5)
 	exec excmd
 endfunction
 
@@ -2953,8 +2955,8 @@ function! BuildTestCommit(all, resetCache, ...)
 			echomsg 'Running :Rebuild'.slnFilename
 			exec 'Rebuild'.slnFilename
 		else
-		echomsg printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Cleaning' fnamemodify(sln, ':t').'...'
-		call add(buildAndTestJobs, job_start(printf('MSBuild.exe -nologo -t:Clean -v:quiet "%s"', sln), {'exit_cb': function('PostCleanCB', [sln, buildAndTestJobs])}))
+			echomsg printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Cleaning' fnamemodify(sln, ':t').'...'
+			call add(buildAndTestJobs, job_start(printf('MSBuild.exe -nologo -t:Clean -v:quiet "%s"', sln), {'exit_cb': function('PostCleanCB', [sln, buildAndTestJobs])}))
 		endif
 	else
 		let csprojsWithChanges = GetCsprojsWithChanges(sln)
