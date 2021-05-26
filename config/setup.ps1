@@ -81,6 +81,8 @@ if ($null -eq (Get-Command "git.exe" -ErrorAction SilentlyContinue)) {
 	Download-File -Uri "https://github.com$gitRelativeUri" -Target './git/installer.exe'
 	Start-Process './git/installer.exe' -argumentlist "$('/Dir=' + (Resolve-Path './git').Path) /Group=git /VERYSILENT" -Wait
 	Add-Path('./git/bin')
+	Add-Path('./git/usr/bin')
+	[Environment]::SetEnvironmentVariable( 'gnu', (Resolve-Path -Path ./git/usr/bin).Path, 'User')
 	Remove-Item $tmp
 	Write-Host "`n"
 	if (-not (Test-Path ../.git)) {
