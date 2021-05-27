@@ -1246,6 +1246,14 @@ let g:qfpreview = {
 \}
 hi link QfPreviewTitle Visual
 
+function! GetQfListCurrentItemPath()
+	if &ft != 'qf'
+		return -1
+	endif
+	let line = getline(line('.'))
+	return trim(line[:stridx(line, '|')-1])
+endfunction
+
 function! GetQfListCurrentItemBufNr()
 	if &ft != 'qf'
 		return -1
@@ -1814,6 +1822,7 @@ endif
 	autocmd FileType dirvish nmap <silent> <buffer> <leader>w :exec 'Firefox' GetCurrentLineAsPath()<CR>
 	autocmd FileType dirvish nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
 	autocmd FileType dirvish nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
+	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>R :call OmniSharp#RestartServer()<CR>
 augroup end
 
 function! GoToGitRoot()
@@ -1980,8 +1989,8 @@ function! LocListToDirectory(dir, title)
 	if(&ft == 'qf')
 		call matchadd('Conceal', '^[^/|]\+/')
 		set conceallevel=3 concealcursor=nvic
-		nnoremap <buffer> <silent> f :let f=trim(getline(line('.'))[:stridx(getline(line('.')), '\|')-1]) \| lclose  \| exec 'Files' f<CR>
-		nnoremap <buffer> <silent> F :let f=trim(getline(line('.'))[:stridx(getline(line('.')), '\|')-1]) \| exec 'Files' f<CR>
+		nnoremap <buffer> <silent> f :let f=GetQfListCurrentItemPath() \| lclose  \| exec 'Files' f<CR>
+		nnoremap <buffer> <silent> F :let f=GetQfListCurrentItemPath() \| exec 'Files' f<CR>
 	endif
 endfunction
 nnoremap <silent> <leader>ep :call LocListToDirectory($projects,  'Projects')<CR>
