@@ -1974,14 +1974,14 @@ endfunction
 nnoremap <silent> <leader>en :call LocListNotes()<CR>
 
 function! LocListToDirectory(dir, title)
-	let items = expand(fnamemodify(a:dir, ':.').'/*', 0, 1)
+	let items = expand(fnamemodify(a:dir, ':p').'/*', 0, 1)
 	call setloclist(0, [], " ", {'nr': '$', 'efm': '%f', 'lines': items, 'title': a:title})
 	lwindow
 	if(&ft == 'qf')
 		call matchadd('Conceal', '^[^/|]\+/')
 		set conceallevel=3 concealcursor=nvic
-		nmap <buffer> <silent> <leader>f i:Files<CR>
-		nnoremap <buffer> <silent> <leader>F <CR>:Files<CR>
+		nnoremap <buffer> <silent> f :let f=trim(getline(line('.'))[:stridx(getline(line('.')), '\|')-1]) \| lclose  \| exec 'Files' f<CR>
+		nnoremap <buffer> <silent> F :let f=trim(getline(line('.'))[:stridx(getline(line('.')), '\|')-1]) \| exec 'Files' f<CR>
 	endif
 endfunction
 nnoremap <silent> <leader>ep :call LocListToDirectory($projects,  'Projects')<CR>
