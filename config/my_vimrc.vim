@@ -1994,10 +1994,6 @@ function! LocListToDirectory(dir, title)
 	endif
 endfunction
 nnoremap <silent> <leader>ep :call LocListToDirectory($projects,  'Projects')<CR>
-nnoremap <silent> <leader>ec :call LocListToDirectory($config,    'Config Files')<CR>
-nnoremap <silent> <leader>ed :call LocListToDirectory($desktop,   'Desktop Files')<CR>
-nnoremap <silent> <leader>eD :call LocListToDirectory($downloads, 'Downloads')<CR>
-nnoremap <silent> <leader>es :call LocListToDirectory($scripts,   'Scripts')<CR>
 
 function! GetFilename()
 	let line = getline('.')
