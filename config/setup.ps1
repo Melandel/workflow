@@ -218,6 +218,18 @@ if ($null -eq (Get-Command "dot.exe" -ErrorAction SilentlyContinue)) {
 	Write-Host "`n"
 }
 
+if ($null -eq (Get-Command "gh.exe" -ErrorAction SilentlyContinue)) {
+	Write-Host 'github cli not found.'
+	$tmp = (Join-Path $toolsFolder 'gh.latestreleases.html')
+	(Invoke-WebRequest -Uri 'https://github.com/cli/cli/releases/latest').Content > $tmp
+	$ghUri = (Select-String -Path $tmp -Pattern 'href="(.*download.*_windows_amd64.zip?)"' -List).Matches.Groups[1].Value
+	Download-File -Uri "https://github.com$ghUri" -Target './gh/gh.zip'
+	7z x ('-o' +'gh') './gh/gh.zip' | Out-Null
+	Add-Path('./gh/bin')
+	Remove-Item $tmp
+	Write-Host "`n"
+}
+
 Remove-Item './autohotkey/ahk.zip' -ErrorAction SilentlyContinue
 Remove-Item './firefox/installer.exe' -ErrorAction SilentlyContinue
 Remove-Item './git/installer.exe' -ErrorAction SilentlyContinue
@@ -227,6 +239,7 @@ Remove-Item './fzf/fzf.zip' -ErrorAction SilentlyContinue
 Remove-Item './python3/installer.exe' -ErrorAction SilentlyContinue
 Remove-Item './omnisharp/omnisharp.zip' -ErrorAction SilentlyContinue
 Remove-Item './graphviz/graphviz.zip' -ErrorAction SilentlyContinue
+Remove-Item './gh/gh.zip' -ErrorAction SilentlyContinue
 
 Set-Location $cd
 Write-Host 'Over.'
