@@ -2490,6 +2490,14 @@ endfunction
 command! -range Ados call OpenCodeOnAzureDevops()
 command! -bar -range CopyAdosUrl let @+=GetCodeUrlOnAzureDevops()
 
+function! MyOmniSharpNavigate(location, ...)
+	if OmniSharp#locations#Navigate(a:location)
+		Reframe
+	endif
+endfunction
+command! MyOmniSharpNavigateUp   call OmniSharp#actions#navigate#Up  (function('MyOmniSharpNavigate'))
+command! MyOmniSharpNavigateDown call OmniSharp#actions#navigate#Down(function('MyOmniSharpNavigate'))
+
 augroup csharpfiles
 	au!
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
@@ -2499,10 +2507,10 @@ augroup csharpfiles
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :Ados<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
-	autocmd FileType cs nmap <buffer> <C-P> <Plug>(omnisharp_navigate_up)
-	autocmd FileType cs nmap <buffer> <C-N> <Plug>(omnisharp_navigate_down)
-	autocmd FileType cs nmap <buffer> <C-H> gg<Plug>(omnisharp_navigate_down)
-	autocmd FileType cs nmap <buffer> <C-L> G<Plug>(omnisharp_navigate_up)
+	autocmd FileType cs nnoremap <buffer> <C-P> :MyOmniSharpNavigateUp<CR>
+	autocmd FileType cs nnoremap <buffer> <C-N> :MyOmniSharpNavigateDown<CR>
+	autocmd FileType cs nnoremap <buffer> <C-H> gg:MyOmniSharpNavigateDown<CR>
+	autocmd FileType cs nnoremap <buffer> <C-L> G:MyOmniSharpNavigateUp<CR>
 	autocmd FileType cs nmap <buffer> z! :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_members)
 	autocmd FileType cs nmap <buffer> gd <Plug>(omnisharp_go_to_definition)
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
