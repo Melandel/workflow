@@ -62,6 +62,12 @@ if ($null -eq (Get-Command "Ahk2Exe.exe" -ErrorAction SilentlyContinue)) {
 	Download-File -Uri 'https://www.autohotkey.com/download/ahk.zip' -Target "./autohotkey/ahk.zip"
 	7z x ('-o' +'autohotkey') './autohotkey/ahk.zip' | Out-Null
 	Add-Path('./autohotkey/Compiler')
+@"
+WScript.Sleep 5000 'Waiting for Aorus 17G's native software that displays caps lock state to launch.
+Set WshShell = CreateObject("WScript.Shell" )
+WshShell.Run """$env:homepath\Desktop\myAzertyKeyboard.RunMeAsAdmin.exe""", 0 'Must quote command if it has spaces; must escape quotes
+Set WshShell = Nothing
+"@ > "$env:appdata\Microsoft\Windows\Start Menu\Programs\StartUp\myAzertyKeyboard.vbs"
 	Write-Host "`n"
 }
 
@@ -70,6 +76,11 @@ if ($null -eq (Get-Command "firefox.exe" -ErrorAction SilentlyContinue)) {
 	Download-File -Uri 'https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=fr' -Target './firefox/installer.exe'
 	& './firefox/installer.exe' /S /InstallDirectoryPath=(Join-Path (Get-Location) 'firefox')
 	Add-Path('./firefox')
+@"
+Set WshShell = CreateObject("WScript.Shell" )
+WshShell.Run """$env:homepath\Desktop\tools\firefox\firefox.exe""", 0 'Must quote command if it has spaces; must escape quotes
+Set WshShell = Nothing
+"@ > "$env:appdata\Microsoft\Windows\Start Menu\Programs\StartUp\firefox.vbs"
 	Write-Host "`n"
 }
 
@@ -115,6 +126,12 @@ if ($null -eq (Get-Command "vim.exe" -ErrorAction SilentlyContinue)) {
 	$my_ultisnips= Join-Path $env:HOMEPATH 'Desktop/snippets'
 	New-Item -ItemType Junction -Path "$ultisnips" -Target "$my_ultisnips" -ErrorAction SilentlyContinue | Out-Null
 	Remove-Item $tmp
+@"
+Set WshShell = CreateObject("WScript.Shell" )
+WshShell.CurrentDirectory = "$env:homepath\Desktop"
+WshShell.Run """$env:homepath\Desktop\tools\vim\gvim.exe -S""", 0 'Must quote command if it has spaces; must escape quotes
+Set WshShell = Nothing
+"@ > "$env:appdata\Microsoft\Windows\Start Menu\Programs\StartUp\gvim.vbs"
 	Write-Host "`n"
 }
 
