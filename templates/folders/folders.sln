@@ -1,0 +1,62 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26124.0
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Startup", "Startup\Startup.csproj", "{ED86AE92-D204-46DB-A97C-B643C8640F68}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "contract", "Contract\contract.csproj", "{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Implementation", "Implementation\Implementation.csproj", "{711D0BCA-DEAB-4A58-AD40-BC3D74008036}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Development|Any CPU = Development|Any CPU
+		Development|x64 = Development|x64
+		Development|x86 = Development|x86
+		Production|Any CPU = Production|Any CPU
+		Production|x64 = Production|x64
+		Production|x86 = Production|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Development|Any CPU.ActiveCfg = Development|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Development|Any CPU.Build.0 = Development|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Development|x64.ActiveCfg = Development|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Development|x64.Build.0 = Development|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Development|x86.ActiveCfg = Development|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Development|x86.Build.0 = Development|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Production|Any CPU.ActiveCfg = Production|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Production|Any CPU.Build.0 = Production|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Production|x64.ActiveCfg = Production|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Production|x64.Build.0 = Production|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Production|x86.ActiveCfg = Production|Any CPU
+		{ED86AE92-D204-46DB-A97C-B643C8640F68}.Production|x86.Build.0 = Production|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Development|Any CPU.ActiveCfg = Development|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Development|Any CPU.Build.0 = Development|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Development|x64.ActiveCfg = Development|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Development|x64.Build.0 = Development|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Development|x86.ActiveCfg = Development|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Development|x86.Build.0 = Development|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Production|Any CPU.ActiveCfg = Production|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Production|Any CPU.Build.0 = Production|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Production|x64.ActiveCfg = Production|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Production|x64.Build.0 = Production|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Production|x86.ActiveCfg = Production|Any CPU
+		{834EAB7F-59D4-43A6-B10B-87A9298E9BAA}.Production|x86.Build.0 = Production|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Development|Any CPU.ActiveCfg = Development|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Development|Any CPU.Build.0 = Development|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Development|x64.ActiveCfg = Development|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Development|x64.Build.0 = Development|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Development|x86.ActiveCfg = Development|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Development|x86.Build.0 = Development|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Production|Any CPU.ActiveCfg = Production|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Production|Any CPU.Build.0 = Production|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Production|x64.ActiveCfg = Production|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Production|x64.Build.0 = Production|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Production|x86.ActiveCfg = Production|Any CPU
+		{711D0BCA-DEAB-4A58-AD40-BC3D74008036}.Production|x86.Build.0 = Production|Any CPU
+	EndGlobalSection
+EndGlobal

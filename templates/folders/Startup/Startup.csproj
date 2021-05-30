@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net5.0</TargetFramework>
+		<Configurations>Production;Development</Configurations>
+		<Configuration Condition=" '$(Configuration)' == '' ">Development</Configuration>
+		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+			<!--
+				Set GenerateProgramFile to false
+				Justification: when referencing a test runner, msbuild automatically create a Program.cs file by default
+				And the compiler then generates an error "Program has more than one entry point defined"
+				https://andrewlock.net/fixing-the-error-program-has-more-than-one-entry-point-defined-for-console-apps-containing-xunit-tests/
+			-->
+		<GenerateProgramFile>false</GenerateProgramFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Production'">
+		<ConfigurationGroup>Release</ConfigurationGroup>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Development'">
+		<ConfigurationGroup>Debug</ConfigurationGroup>
+		<DefineConstants>$(DefineConstants);COMPILE_TESTS</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Contract\Contract.csproj" />
+		<ProjectReference Include="..\Implementation\Implementation.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="*" />
+	</ItemGroup>
+	<Choose>
+		<When Condition="$(DefineConstants.Contains('COMPILE_TESTS'))">
+			<ItemGroup>
+				<PackageReference Include="Microsoft.NET.Test.Sdk"    Version="*" />
+				<PackageReference Include="xunit.runner.visualstudio" Version="*"/>
+			</ItemGroup>
+		</When>
+	</Choose>
+</Project>

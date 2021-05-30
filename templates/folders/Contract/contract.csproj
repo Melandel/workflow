@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+		<Configurations>Production;Development</Configurations>
+		<Configuration Condition=" '$(Configuration)' == '' ">Development</Configuration>
+		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Production'">
+		<ConfigurationGroup>Release</ConfigurationGroup>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Development'">
+		<ConfigurationGroup>Debug</ConfigurationGroup>
+		<DefineConstants>$(DefineConstants);COMPILE_TESTS</DefineConstants>
+	</PropertyGroup>
+
+
+	<Choose>
+		<When Condition="$(DefineConstants.Contains('COMPILE_TESTS'))">
+			<ItemGroup>
+				<PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
+				<PackageReference Include="xunit"                  Version="*" />
+			</ItemGroup>
+		</When>
+	</Choose>
+
+</Project>

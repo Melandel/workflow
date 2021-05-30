@@ -1,0 +1,8 @@
+{
+	"$schema": "http://json.schemastore.org/template",
+	"author": "Minh-Tâm Tran",
+	"classifications": [ "Melandel" ],
+	"identity": "Melandel.CSharpTemplates.Contract",
+	"name": "Contract assembly",
+	"shortName": "contract"
+}
