@@ -681,16 +681,9 @@ let g:qfprio = 'c'
 let g:framingoffset = 5
 
 function! Reframe()
-	let diff = line('.') - line('w0') +1 - g:framingoffset
-	if diff == 0
-		return
-	else
-		if diff > 0
-			exec 'normal!' diff."\<C-E>"
-		else
-			exec 'normal!' abs(diff)."\<C-Y>"
-		endif
-	endif
+	setlocal scrolloff=5
+	normal! zt
+	setlocal scrolloff=-1
 endfunction
 command! -bar Reframe call Reframe()
 nnoremap <silent> zt :Reframe<CR>
