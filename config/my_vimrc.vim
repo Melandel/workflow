@@ -19,7 +19,6 @@ let $tools     = $HOME.'/Desktop/tools'
 let $templates = $HOME.'/Desktop/templates'
 let $todo      = $HOME.'/Desktop/todo'
 let $today     = $HOME.'/Desktop/today'
-let $wip       = $HOME.'/Desktop/wip.md'
 let $scripts   = $HOME.'/Desktop/scripts'            | let $s = $scripts
 let $gtools    = $HOME.'/Desktop/tools/git/usr/bin'
 
@@ -60,6 +59,7 @@ function! MinpacInit()
 	"call minpac#add('ap/vim-css-color')
 	call minpac#add('wellle/targets.vim')
 	call minpac#add('bfrg/vim-qf-preview')
+	call minpac#add('zigford/vim-powershell')
 	call minpac#add('Melandel/vim-empower')
 	call minpac#add('Melandel/fzfcore.vim')
 	call minpac#add('Melandel/gvimtweak')
@@ -296,16 +296,20 @@ function! IsQuickFixWindowOpen()
 endfunction
 
 function! IsLocListWindow()
-	return &ft == 'qf' && getwininfo(win_getid())[0].loclist
+	return &ft == 'qf' && (getwininfo(win_getid())[0].loclist || get(getbufinfo(winbufnr(winnr()))[0].variables, 'is_custom_loclist', 0))
 endfunction
 
 function! IsQuickFixWindow()
-	return &ft == 'qf' && !getwininfo(win_getid())[0].loclist
+	return &ft == 'qf' && !getwininfo(win_getid())[0].loclist && !get(getbufinfo(winbufnr(winnr()))[0].variables, 'is_custom_loclist', 0)
 endfunction
 
 
 function! FileNameorQfTitle()
-	return &ft == 'qf' ? get(w:, 'quickfix_title', fnamemodify(bufname(), ':t')) : fnamemodify(bufname(), ':t')
+	if IsQuickFixWindow() || IsLocListWindow()
+		return get(w:, 'quickfix_title', get(b:, 'quickfix_title'))
+	else
+		return fnamemodify(bufname(), ':t')
+	endif
 endfunction
 
 function! IsInsideDashboard()
@@ -3089,4 +3093,134 @@ endif
 
 function! GetCurrentTimestamp()
 	return str2nr(system(printf('"%s/date" +%%s', $gtools)))
+endfunction
+
+function! GetAdosProjectNameAndIdMapping()
+	let g:adosProjects = get(g:, 'adosProjects', BuildAdosProjectNameAndIdMapping())
+	if empty(g:adosProjects)
+		let g:adosProjects = BuildAdosProjectNameAndIdMapping()
+	endif
+	return g:adosProjects
+endfunction
+
+function! BuildAdosProjectNameAndIdMapping()
+	let cmd = printf('curl -s --location -u:%s "%s/_apis/projects?api-version=5.0"', $pat, $ados)
+	let cmd .= ' | jq "[.value[]|{id: .id, name: .name}]"'
+	let v = system(cmd)
+	let v = substitute(v, '[\x0]', '', 'g')
+	return json_decode(v)
+endfunction
+
+function! GetAdosRepositoriesNameAndIdMapping()
+	let g:adosRepositories = get(g:, 'adosRepositories', BuildAdosRepositoriesNameAndIdMapping())
+	if empty(g:adosRepositories)
+		let g:adosRepositories = BuildAdosRepositoriesNameAndIdMapping()
+	endif
+	return g:adosRepositories
+endfunction
+
+function! BuildAdosRepositoriesNameAndIdMapping()
+	let cmd = printf('curl -s --location -u:%s "%s/CapsuleTech/_apis/git/repositories?api-version=5.0"', $pat, $ados)
+	let cmd .= ' | jq "[.value[]|{id: .id, name: .name}]"'
+	let v = system(cmd)
+	let v = substitute(v, '[\x0]', '', 'g')
+	return json_decode(v)
+endfunction
+
+function! ParseVsTfsUrl(url)
+	let parsed = {}
+	let ids = split(a:url, '/')[-1]
+	let ids = split(ids, '%2f')
+	let parsed.project = map(filter(copy(GetAdosProjectNameAndIdMapping()), {_,x -> x.id == ids[0]}), {_,x -> x.name})[0]
+	let parsed.repository = map(filter(copy(GetAdosRepositoriesNameAndIdMapping()), {_,x -> x.id == ids[1]}), {_,x -> x.name})[0]
+	if len(ids) > 2
+		let parsed.id = ids[2]
+	endif
+	return parsed
+endfunction
+
+function! BuildAdosWorkItemUrl(...)
+	let workItemId = a:0 ? a:1 : $wip
+	return printf('%s/_workitems/edit/%d', $ados, workItemId)
+endfunction
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosWorkItem exec 'Firefox' BuildAdosWorkItemUrl(<f-args>)
+nnoremap <Leader>ai :AdosWorkItem<CR>
+
+function! BuildAdosWorkItemParentUrl(...)
+	let workItemId = a:0 ? a:1 : $wip
+	let cmd = printf(
+		\'curl -s --location -u:%s "%s/_apis/wit/workitems/%s?api-version=5.0&$expand=relations" | jq ".relations[] | select (.attributes.name == \"Parent\").url"',
+		\$pat,
+		\$ados,
+		\workItemId
+	\)
+	let v = substitute(system(cmd), '[\x0]', '', 'g')
+	let v = trim(v, '"')
+	let id = split(v, '/')[-1]
+	return printf('%s/_workitems/edit/%d', $ados, id)
+endfunction
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosParentItem exec 'Firefox' BuildAdosWorkItemParentUrl(<f-args>)
+nnoremap <Leader>aI :AdosParentItem<CR>
+
+function! BuildAdosLatestPullRequestWebUrl(...)
+	let workItemId = a:0 ? a:1 : $wip
+	let cmd = printf(
+		\'curl -s --location -u:%s "%s/_apis/wit/workitems/%s?api-version=5.0&$expand=relations" | jq "[.relations[] | select (.attributes.name == \"Pull Request\")] | max_by(.id).url"',
+		\$pat,
+		\$ados,
+		\workItemId
+	\)
+	let vstfsUrl = substitute(system(cmd), '[\x0]', '', 'g')
+	let vstfsUrl = trim(vstfsUrl, '"')
+	let infos = ParseVsTfsUrl(vstfsUrl)
+	let webUrl = printf('%s/%s/_git/%s/pullrequest/%s', $ados, infos.project, infos.repository, infos.id)
+	return webUrl
+endfunction
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosPullRequest exec 'Firefox' BuildAdosLatestPullRequestWebUrl(<f-args>)
+nnoremap <Leader>ap :AdosPullRequest<CR>
+
+function! LocListToAdosBuilds()
+	let repository = fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
+	let name2idMapping = copy(GetAdosRepositoriesNameAndIdMapping())
+	let matchingRepositories = filter(name2idMapping, {_,x -> x.name == repository})
+	if empty(matchingRepositories)
+		echomsg repository 'is not a known repository on azuredevops.'
+		return
+	endif
+	let matchingRepository = matchingRepositories[0]
+	let cmd = printf(
+		\'curl -s --location -u:%s "%s/%s/_apis/build/builds?requestedFor=Minh-Tam%%20Tran&repositoryType=TfsGit&repositoryId=%s&maxBuildsPerDefinition=5&queryOrder=startTimeDescending&api-version=5.0" | jq "[.value[] | {name:.buildNumber, status, result, url:._links.web.href, startTime, id}]"',
+		\$pat,
+		\$ados,
+		\$adosProject,
+		\matchingRepository.id
+	\)
+	let builds = js_decode(substitute(system(cmd), '[\x0]', '', 'g'))
+	let builds = map(builds, {_, x -> extend(x, {'displayedStatus': (x.status == 'completed' ? x.result : x.status), 'displayedDate': x.startTime[:9].' '.x.startTime[11:15]})})
+	let maxNameLength = max(mapnew(builds, {_,x -> len(x.name)}))
+	let maxDisplayedStatusLength = max(mapnew(builds, {_,x -> len(x.displayedStatus)}))
+	let height = min([15, len(builds)])
+	let items = mapnew(builds, {_,x ->printf('%-*S | %s | [buildId#%d] %s', maxNameLength, x.name, x.displayedDate, x.id, x.displayedStatus)})
+	exec height.'new'
+	put! =items
+	let b:is_custom_loclist = 1
+	let b:quickfix_title = repository.' Builds'
+	exec "normal! Gddgg"
+	set ft=qf bt=nofile
+	let b:urls = mapnew(builds, {_,x -> x.url})
+	nnoremap <silent> <buffer> i :exec 'Firefox' b:urls[line('.')-1]<CR>
+	nnoremap <silent> <buffer> o :exec 'Firefox' $mainBuildUrl<CR>
+endfunction
+command! AdosBuilds call LocListToAdosBuilds()
+nnoremap <Leader>ab :AdosBuilds<CR>
+
+function! BuildRepositoryPullRequestsWebUrl(...)
+	let repository = a:0 ? a:1 : fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
+	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosProject, repository)
+endfunction
+command! -nargs=? AdosPullRequests exec 'Firefox' BuildRepositoryPullRequestsWebUrl(<f-args>)
+nnoremap <Leader>aP :AdosPullRequests<CR>
+
+function! GetWorkItemsAssignedToMeInCurrentIteration(argLead, cmdLine, cursorPos)
+	return map(js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/wiql/abb54a60-97c5-47ea-9525-1cc734c3c834" | jq "[.workItems[].id]"', $pat, $ados)), '[\x0]', '', 'g')), "string(v:val)")
 endfunction
