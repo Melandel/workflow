@@ -3143,7 +3143,7 @@ function! BuildAdosWorkItemUrl(...)
 	let workItemId = a:0 ? a:1 : $wip
 	return printf('%s/_workitems/edit/%d', $ados, workItemId)
 endfunction
-command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosWorkItem exec 'Firefox' BuildAdosWorkItemUrl(<f-args>)
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosWorkItem exec 'Firefox' BuildAdosWorkItemUrl(str2nr(<f-args>))
 nnoremap <Leader>ai :AdosWorkItem<CR>
 
 function! BuildAdosWorkItemParentUrl(...)
@@ -3159,7 +3159,7 @@ function! BuildAdosWorkItemParentUrl(...)
 	let id = split(v, '/')[-1]
 	return printf('%s/_workitems/edit/%d', $ados, id)
 endfunction
-command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosParentItem exec 'Firefox' BuildAdosWorkItemParentUrl(<f-args>)
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosParentItem exec 'Firefox' BuildAdosWorkItemParentUrl(str2nr(<f-args>))
 nnoremap <Leader>aI :AdosParentItem<CR>
 
 function! BuildAdosLatestPullRequestWebUrl(...)
@@ -3176,7 +3176,7 @@ function! BuildAdosLatestPullRequestWebUrl(...)
 	let webUrl = printf('%s/%s/_git/%s/pullrequest/%s', $ados, infos.project, infos.repository, infos.id)
 	return webUrl
 endfunction
-command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosPullRequest exec 'Firefox' BuildAdosLatestPullRequestWebUrl(<f-args>)
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosPullRequest exec 'Firefox' BuildAdosLatestPullRequestWebUrl(str2nr(<f-args>))
 nnoremap <Leader>ap :AdosPullRequest<CR>
 
 function! LocListToAdosBuilds()
@@ -3218,9 +3218,15 @@ function! BuildRepositoryPullRequestsWebUrl(...)
 	let repository = a:0 ? a:1 : fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
 	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosProject, repository)
 endfunction
-command! -nargs=? AdosPullRequests exec 'Firefox' BuildRepositoryPullRequestsWebUrl(<f-args>)
+command! -nargs=? AdosPullRequests exec 'Firefox' BuildRepositoryPullRequestsWebUrl(str2nr(<f-args>))
 nnoremap <Leader>aP :AdosPullRequests<CR>
 
 function! GetWorkItemsAssignedToMeInCurrentIteration(argLead, cmdLine, cursorPos)
-	return map(js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/wiql/abb54a60-97c5-47ea-9525-1cc734c3c834" | jq "[.workItems[].id]"', $pat, $ados)), '[\x0]', '', 'g')), "string(v:val)")
+	let g:adosMyWorkItems = get(g:, 'adosMyWorkItems', [])
+	if empty(g:adosMyWorkItems)
+		let ids= js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/wiql/abb54a60-97c5-47ea-9525-1cc734c3c834" | jq "[.workItems[].id]"', $pat, $ados)), '[\x0]', '', 'g'))
+		let list = js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/workitems?ids=%s&api-version=5.0" | jq "[.value[]|{id, title: .fields[\"System.Title\"], status: .fields[\"System.State\"], type: .fields[\"System.WorkItemType\"]}]"', $pat, $ados, join(ids, ','))), '[\x0]', '', 'g'))
+		let g:adosMyWorkItems = map(list, {_,x -> printf('%s (%s-%s) %s', x.id, x.type, x.status, x.title)})
+	endif
+	return g:adosMyWorkItems
 endfunction
