@@ -2484,7 +2484,7 @@ function! GetCodeUrlOnAzureDevops() range
 	endif
 	return url
 endfunction
-command! -range Ados call OpenCodeOnAzureDevops()
+command! -range AdosCode call OpenCodeOnAzureDevops()
 command! -bar -range CopyAdosUrl let @+=GetCodeUrlOnAzureDevops()
 
 function! MyOmniSharpNavigate(location, ...)
@@ -2500,8 +2500,8 @@ augroup csharpfiles
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :Ados<CR>
-	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :Ados<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :AdosCode<CR>
+	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :AdosCode<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
 	autocmd FileType cs nnoremap <buffer> <C-P> :MyOmniSharpNavigateUp<CR>
@@ -3144,7 +3144,6 @@ function! BuildAdosWorkItemUrl(...)
 	return printf('%s/_workitems/edit/%d', $ados, workItemId)
 endfunction
 command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosWorkItem exec 'Firefox' BuildAdosWorkItemUrl(str2nr(<f-args>))
-nnoremap <Leader>ai :AdosWorkItem<CR>
 
 function! BuildAdosWorkItemParentUrl(...)
 	let workItemId = a:0 ? a:1 : $wip
@@ -3160,7 +3159,6 @@ function! BuildAdosWorkItemParentUrl(...)
 	return printf('%s/_workitems/edit/%d', $ados, id)
 endfunction
 command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosParentItem exec 'Firefox' BuildAdosWorkItemParentUrl(str2nr(<f-args>))
-nnoremap <Leader>aI :AdosParentItem<CR>
 
 function! BuildAdosLatestPullRequestWebUrl(...)
 	let workItemId = a:0 ? a:1 : $wip
@@ -3177,7 +3175,6 @@ function! BuildAdosLatestPullRequestWebUrl(...)
 	return webUrl
 endfunction
 command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosPullRequest exec 'Firefox' BuildAdosLatestPullRequestWebUrl(str2nr(<f-args>))
-nnoremap <Leader>ap :AdosPullRequest<CR>
 
 function! LocListToAdosBuilds()
 	let repository = fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
@@ -3212,21 +3209,39 @@ function! LocListToAdosBuilds()
 	nnoremap <silent> <buffer> o :exec 'Firefox' $mainBuildUrl<CR>
 endfunction
 command! AdosBuilds call LocListToAdosBuilds()
-nnoremap <Leader>ab :AdosBuilds<CR>
+nnoremap <Leader>A :AdosBuilds<CR>
 
 function! BuildRepositoryPullRequestsWebUrl(...)
 	let repository = a:0 ? a:1 : fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
 	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosProject, repository)
 endfunction
-command! -nargs=? AdosPullRequests exec 'Firefox' BuildRepositoryPullRequestsWebUrl(str2nr(<f-args>))
-nnoremap <Leader>aP :AdosPullRequests<CR>
 
 function! GetWorkItemsAssignedToMeInCurrentIteration(argLead, cmdLine, cursorPos)
 	let g:adosMyWorkItems = get(g:, 'adosMyWorkItems', [])
 	if empty(g:adosMyWorkItems)
 		let ids= js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/wiql/abb54a60-97c5-47ea-9525-1cc734c3c834" | jq "[.workItems[].id]"', $pat, $ados)), '[\x0]', '', 'g'))
 		let list = js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/workitems?ids=%s&api-version=5.0" | jq "[.value[]|{id, title: .fields[\"System.Title\"], status: .fields[\"System.State\"], type: .fields[\"System.WorkItemType\"]}]"', $pat, $ados, join(ids, ','))), '[\x0]', '', 'g'))
-		let g:adosMyWorkItems = map(list, {_,x -> printf('%s (%s-%s) %s', x.id, x.type, x.status, x.title)})
+		let g:adosMyWorkItems = map(list, {_,x -> printf('%s {%s-%s:%s}', x.id, x.type, x.status, x.title)})
 	endif
 	return g:adosMyWorkItems
 endfunction
+
+function! LocListAdos(workItemId)
+	let items={
+		\'Task':                { 'order': 1, 'urlBuilder': function ('BuildAdosWorkItemUrl', [a:workItemId])},
+		\'Parent':              { 'order': 2, 'urlBuilder': function ('BuildAdosWorkItemParentUrl', [a:workItemId])},
+		\'Latest Pull Request': { 'order': 3, 'urlBuilder': function ('BuildAdosLatestPullRequestWebUrl', [a:workItemId])},
+		\'My Pull Requests':    { 'order': 4, 'urlBuilder': function ('BuildRepositoryPullRequestsWebUrl')}
+	\}
+	exec len(items).'new'
+	let b:urlBuilders = items
+	set winfixheight
+	put! =sort(keys(items), {a,b -> items[a].order - items[b].order})
+	normal! Gddgg
+	let b:is_custom_loclist = 1
+	let b:quickfix_title = 'wit#'.filter(copy(g:adosMyWorkItems), {_,x -> x =~ '^'.a:workItemId})[0]
+	set ft=qf bt=nofile
+	nnoremap <silent> <buffer> i :exec 'Firefox' eval("b:urlBuilders[getline('.')].urlBuilder()")<CR>
+endfunction
+command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Ados call LocListAdos(str2nr(<f-args>))
+nnoremap <Leader>a :Ados <tab>
