@@ -45,7 +45,8 @@ function! MinpacInit()
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
-	call minpac#add('OmniSharp/omnisharp-vim')
+	"call minpac#add('OmniSharp/omnisharp-vim')
+	call minpac#add('Melandel/omnisharp-vim')
 	call minpac#add('puremourning/vimspector')
 	call minpac#add('nickspoons/vim-sharpenup')
 	call minpac#add('SirVer/ultisnips')
@@ -1907,11 +1908,14 @@ function! OpenDashboard()
 		silent! bdelete git\ --no-pager\ log
 		let &termwinsize=''
 		let buf = term_start('git --no-pager log -15', {'curwin':1, 'cwd':cwd, 'close_cb': {_ -> execute('let t = timer_start(100, function(''OnGitLogExit'', ['.bufnr.']))', '')}})
+		nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>
+		nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
 	wincmd h
 	silent exec 'vnew' $today
 	wincmd h
 	silent exec '3new' $desktop.'/waiting'
 	1wincmd w
+	windo nnoremap <silent> <leader>L 99<C-W>W<C-W>L:exec 'vert resize' &columns/2<CR>
 endfunction
 command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
