@@ -2955,7 +2955,7 @@ function! BuildTestCommit(all, resetCache, ...)
 	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
 	if empty(sln)
 		let csproj = substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g')
-		call BuildTestCommitCsproj(csproj, g:csClassesInChangedFiles)
+		call BuildTestCommitCsproj(csproj, g:csClassesInChangedFiles, buildAndTestJobs)
 		return
 	endif
 	if a:resetCache && !empty(get(get(g:, 'csenvs', {}), sln, {}))
