@@ -34,21 +34,21 @@ An attempt at formulating a _direction_ I want to lean towards. Not to be used a
     `-- ReusableCode
         `-- Topic1
             `-- ApplicationName.ReusableCode.Topic1.csproj
-`-- ProductName
+`-- ApplicationName.ProductName
     |-- Startup
     |-- IO
         |-- ProductName.IO.csproj
         |-- Module_P1
         `-- Module_P2
     |-- Module_P1.Gateways.Implementations
-        `-- ProductName.Module_P1.Gateways.Implementations.csproj
+        `-- ApplicationName.ProductName.Module_P1.Gateways.Implementations.csproj
     |-- Module_P1.ThirdParty
-        `-- ProductName.Module_P1.ThirdParty.csproj
+        `-- ApplicationName.ProductName.Module_P1.ThirdParty.csproj
     |-- Module_P2.Gateways.Implementations
-        `-- ProductName.Module_P2.Gateways.Implementations.csproj
+        `-- ApplicationName.ProductName.Module_P2.Gateways.Implementations.csproj
     `-- ReusableCode
         `-- Topic1
-            `-- ProductName.ReusableCode.Topic1.csproj
+            `-- ApplicationName.ProductName.ReusableCode.Topic1.csproj
 ```
 
 ## Logs
