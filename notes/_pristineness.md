@@ -12,43 +12,38 @@ An attempt at formulating a _direction_ I want to lean towards. Not to be used a
     `-- Module_D2
         `-- Domain.Module_D2.csproj
 |-- ApplicationName
+    |-- ArchitecturalConcepts
+        `-- ApplicationName.ArchitecturalConcepts.csproj
     |-- UseCases
         `-- Module_A1
-            |-- Contracts
-                `-- ApplicationName.UseCases.Module_A1.Contracts.csproj
-            |-- Implementations
-                `-- ApplicationName.UseCases.Module_A1.Implementations.csproj
-            |-- Implementations.Gateways.Contracts
-                `-- ApplicationName.UseCases.Module_A1.Implementations.Gateways.Contracts.csproj
-            `-- DummyImplementations
-                `-- ApplicationName.UseCases.Module_A1.DummyImplementations.csproj
-    |-- Module_A2
-        |-- Contracts
-            `-- ApplicationName.Module_A2.Contracts.csproj
-        |-- Implementations
-            `-- ApplicationName.Module_A2.Implementations.csproj
-        |-- Implementations.Gateways.Contracts
-            `-- ApplicationName.Module_A2.Implementations.Gateways.Contracts.csproj
-        |-- DummyImplementations
-            `-- ApplicationName.Module_A2.DummyImplementations.csproj
-    `-- ReusableCode
-        `-- Topic1
-            `-- ApplicationName.ReusableCode.Topic1.csproj
+            |-- Contract
+                `-- ApplicationName.UseCases.Module_A1.Contract.csproj
+            |-- Implementation
+                `-- ApplicationName.UseCases.Module_A1.Implementation.csproj
+            `-- Implementation.Repositories
+                |-- Contract
+                    `-- ApplicationName.UseCases.Module_A1.Repositories.Contract.csproj
+                `-- InMemoryImplementation
+                    `-- ApplicationName.UseCases.Module_A1.Repositories.InMemoryImplementation.csproj
+    `-- Module_A2
+        |-- Contract
+            `-- ApplicationName.Module_A2.Contract.csproj
+        |-- Implementation
+            `-- ApplicationName.Module_A2.Implementation.csproj
+        `-- Implementation.Repositories
+            |-- Contract
+                `-- ApplicationName.Module_A2.Repositories.Contract.csproj
+            `-- InMemoryImplementation
+                `-- ApplicationName.Module_A2.Repositories.InMemoryImplementation.csproj
 `-- ApplicationName.ProductName
     |-- Startup
-    |-- IO
-        |-- ProductName.IO.csproj
-        |-- Module_P1
-        `-- Module_P2
-    |-- Module_P1.Gateways.Implementations
-        `-- ApplicationName.ProductName.Module_P1.Gateways.Implementations.csproj
-    |-- Module_P1.ThirdParty
-        `-- ApplicationName.ProductName.Module_P1.ThirdParty.csproj
-    |-- Module_P2.Gateways.Implementations
-        `-- ApplicationName.ProductName.Module_P2.Gateways.Implementations.csproj
-    `-- ReusableCode
-        `-- Topic1
-            `-- ApplicationName.ProductName.ReusableCode.Topic1.csproj
+        `-- ApplicationName.ProductName.Startup.csproj
+    |-- Module_A1.Repositories.Implementation
+        `-- ApplicationName.ProductName.Module_A1.Repositories.Implementation.csproj
+    |-- Module_A2.Repositories.Implementation
+        `-- ApplicationName.ProductName.Module_A2.Repositories.Implementation.csproj
+    `-- ProductPolicies
+        `-- ApplicationName.ProductName.ProductPolicies.csproj
 ```
 
 ## Logs
