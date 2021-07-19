@@ -7,6 +7,8 @@ An attempt at formulating a _direction_ I want to lean towards. Not to be used a
 .
 |-- README.md
 |-- Domain
+    |-- ArchitecturalConcepts
+        `-- Domain.ArchitecturalConcepts.csproj
     |-- Module_D1
         `-- Domain.Module_D1.csproj
     `-- Module_D2
@@ -45,6 +47,33 @@ An attempt at formulating a _direction_ I want to lean towards. Not to be used a
     `-- ProductPolicies
         `-- ApplicationName.ProductName.ProductPolicies.csproj
 ```
+
+## Order of Development for a new feature
+* **Première phase**
+    * **UseCase.Interface**
+    * **UseCase.AbstractUnitTest**
+    * **UseCase.DummyImplementation** (implémentation 100% fake [if => return])
+    * itérer jusqu'à avoir tous les unit tests concrets sur le UseCase qui passent [concret = tout est 100% faké] ainsi que 100% des cas de test
+    * **Controller**: brancher les UseCases à un endpoint qui peut tourner
+    * Un petit test manuel pour voir si l'API/le produit tourne avec cette version dummy
+* Après cette première phase, on a déployé  un contrat binaire auquel un projet qui nous consomme peut déjà se brancher
+* **Deuxième phase**
+    * **UseCase.RealImplementation**
+    * mais avec une **version InMemory du repository**
+    * donc pas mal de choses à créer (le **vrai code du Use Case**, les** vrais Domain Objects**, des **tests unitaires sur ces objets Domain**, l'**interface du repository**, et l'implémentation InMemory du repository)
+    * continuer jusqu'à avoir tous les unit tests concrets sur le UseCase qui passent [concret = utilise une version InMemory du repository]
+* Après cette deuxième phase, on a déployé une implémentation pas mal fonctionnelle sur laquelle un projet qui nous consomme peut se brancher et tester déjà plus en profondeur
+* **Troisième phase**
+    * **Repository.RealImplementation**
+    * continuer jusqu'à avoir tous les unit tests concrets sur le UseCase qui passent [concret = utilise la version finale du repository]
+    * mais bien sûr, au niveau CI/CD, on continue d'utiliser la version InMemory du repository pour la vitesse
+    * et il ne sera principalement intéressant de re-tester avec la vraie base de donnée que en cas de frayeur majeure/changement de techno/1 ou 2 fois par an
+* Après cette troisième phase, on a déployé une implémentation qui satisfait le client mais il reste un stakeholder dont il faut s'occuper
+* **Quatrième phase**
+    * Dans le commit final, expliquer le contexte **métier** qui a débouché sur ces modifications de code (contexte métier, valeur métier dans ce contexte, choix d'implémentation, alternatives, raisonnement, choses à faire et à ne pas faire, go/nogo pour décisions futures)
+    * Dans l'architecture decision log, expliquer les décisions **techniques** prises (contexte technique, valeur technique dans ce contexte, choix d'implémentation, alternatives, raisonnement, choses à faire et à ne pas faire, go/nogo pour décisions futures)
+    * Si besoin est, on pourra générer un wiki/site statique à partir de ces données
+* Après cette quatrième phase, on a laissé les informations à la postérité pour pouvoir **questionner/apprendre sainement** pourquoi le code est dans cet état-là, et s'il y a un sens à vouloir le **changer** dans telle ou telle autre direction
 
 ## Logs
 
