@@ -48,6 +48,28 @@ An attempt at formulating a _direction_ I want to lean towards. Not to be used a
         `-- ApplicationName.ProductName.ProductPolicies.csproj
 ```
 
+```
+dotnet new sln -o Application.Product -n Product
+dotnet new console -o Application.Product\Product
+dotnet new classlib -o Application\UseCases\ModuleA\Contract                             -n Application.UseCases.ModuleA.Contract
+dotnet new classlib -o Application\UseCases\ModuleA\Implementation                       -n Application.UseCases.ModuleA.Implementation
+dotnet new classlib -o Application\UseCases\ModuleA\Implementation.Repositories\Contract             -n Application.UseCases.ModuleA.Contract
+dotnet new classlib -o Application\UseCases\ModuleA\Implementation.Repositories\InMemoryRepositories -n Application.UseCases.ModuleA.InMemoryRepositories
+dotnet new classlib -o Application.Product\Product.ModuleA.Repositories
+dotnet new classlib -o Domain\Module1 -n Domain.Module1
+dotnet new classlib -o Domain\ArchitecturalConcepts
+dotnet new classlib -o Application\UseCases\ArchitecturalConcepts
+
+dotnet add Domain\Module1                                                                reference Domain\ArchitecturalConcepts
+dotnet add Application\UseCases\ModuleA\Implementation.Repositories\Contract             reference Domain\Module1
+dotnet add Application\UseCases\ModuleA\Implementation.Repositories\InMemoryRepositories reference Application\UseCases\ModuleA\Implementation.Repositories\Contract
+dotnet add Application.Product\Product.ModuleA.Repositories                              reference Application\UseCases\ModuleA\Implementation.Repositories\Contract
+dotnet add Application\UseCases\ModuleA\Implementation                                   reference Application\UseCases\ModuleA\Implementation.Repositories\Contract Application\UseCases\ModuleA\Contract Application\UseCases\ArchitecturalConcepts
+
+dotnet add Application.Product\Product\ reference Application\UseCases\ModuleA\Contract Application\UseCases\ModuleA\Implementation Application\UseCases\ModuleA\Implementation.Repositories\Contract Application.Product\Product.ModuleA.Repositories Domain\Module1 Domain\ArchitecturalConcepts Application\UseCases\ArchitecturalConcepts
+dotnet sln Application.Product add -s (ls -r **/*.csproj)
+```
+
 ## Order of Development for a new feature
 * **Première phase**
     * **UseCase.Interface**
