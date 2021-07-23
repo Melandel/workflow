@@ -57,22 +57,22 @@ dotnet new classlib -o Application\UseCases\ModuleA\Implementation.Repositories\
 dotnet new classlib -o Application\UseCases\ModuleA\Implementation.Repositories\InMemoryImplementation -n Application.UseCases.ModuleA.Repositories.InMemoryImplementation
 dotnet new classlib -o Application.Product\Product.ModuleA.Repositories
 dotnet new classlib -o Domain\Module1 -n Domain.Module1
-dotnet new classlib -o Domain\ArchitecturalConcepts               -n Domain.ArchitecturalConcepts
-dotnet new classlib -o Application\UseCases\ArchitecturalConcepts -n Application.UseCases.ArchitecturalConcepts
+dotnet new classlib -o Domain\ArchitecturalConcepts      -n Domain.ArchitecturalConcepts
+dotnet new classlib -o Application\ArchitecturalConcepts -n Application.ArchitecturalConcepts
 dotnet new classlib -o Application\Concerns\Logging   -n Application.Concerns.Logging
 dotnet new classlib -o Application\Concerns\Security  -n Application.Concerns.Security
 dotnet new classlib -o Application\Concerns\Licensing -n Application.Concerns.Licensing
 
 dotnet add Domain\Module1                                                                  reference Domain\ArchitecturalConcepts
-dotnet add Application\UseCases\ModuleA\Implementation.Repositories\Contract               reference Domain\Module1
+dotnet add Application\UseCases\ModuleA\Implementation.Repositories\Contract               reference Domain\Module1 Application\ArchitecturalConcepts
 dotnet add Application\UseCases\ModuleA\Implementation.Repositories\InMemoryImplementation reference Application\UseCases\ModuleA\Implementation.Repositories\Contract
 dotnet add Application.Product\Product.ModuleA.Repositories                                reference Application\UseCases\ModuleA\Implementation.Repositories\Contract
-dotnet add Application\UseCases\ModuleA\Implementation                                     reference Application\UseCases\ModuleA\Implementation.Repositories\Contract Application\UseCases\ModuleA\Contract Application\UseCases\ArchitecturalConcepts
+dotnet add Application\UseCases\ModuleA\Implementation                                     reference Application\UseCases\ModuleA\Implementation.Repositories\Contract Application\UseCases\ModuleA\Contract Application\ArchitecturalConcepts
 
-dotnet add Application.Product\Product\ reference Application\UseCases\ModuleA\Contract Application\UseCases\ModuleA\Implementation Application\UseCases\ModuleA\Implementation.Repositories\Contract Application.Product\Product.ModuleA.Repositories Domain\Module1 Domain\ArchitecturalConcepts Application\UseCases\ArchitecturalConcepts
+dotnet add Application.Product\Product\ reference Application\UseCases\ModuleA\Contract Application\UseCases\ModuleA\Implementation Application\UseCases\ModuleA\Implementation.Repositories\Contract Application.Product\Product.ModuleA.Repositories Domain\Module1 Domain\ArchitecturalConcepts Application\ArchitecturalConcepts
 dotnet sln Application.Product add -s Startup                        Application.Product\Product
 dotnet sln Application.Product add -s Architecture                   Domain\ArchitecturalConcepts
-dotnet sln Application.Product add -s Architecture                   Application\UseCases\ArchitecturalConcepts
+dotnet sln Application.Product add -s Architecture                   Application\ArchitecturalConcepts
 dotnet sln Application.Product add -s Domain                         Domain\Module1
 dotnet sln Application.Product add -s Application.UseCases\ModuleA   Application\UseCases\ModuleA\Contract
 dotnet sln Application.Product add -s Application.UseCases\ModuleA   Application\UseCases\ModuleA\Implementation
