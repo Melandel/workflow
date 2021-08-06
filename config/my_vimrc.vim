@@ -2005,6 +2005,9 @@ nnoremap <silent> <leader>en :call LocListNotes()<CR>
 
 function! LocListToDirectory(dir, title)
 	let items = expand(fnamemodify(a:dir, ':p').'/*', 0, 1)
+	if a:dir == $projects
+		call add(items, 'C:\pristineness')
+	endif
 	call setloclist(0, [], " ", {'nr': '$', 'efm': '%f', 'lines': items, 'title': a:title})
 	lwindow
 	if(&ft == 'qf')
