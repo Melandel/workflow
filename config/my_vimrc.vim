@@ -2529,7 +2529,7 @@ augroup csharpfiles
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :AdosCode<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :AdosCode<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit <C-R>=b:OmniSharp_host.sln_or_dir<CR><CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
 	autocmd FileType cs nnoremap <buffer> <C-P> :MyOmniSharpNavigateUp<CR>
 	autocmd FileType cs nnoremap <buffer> <C-N> :MyOmniSharpNavigateDown<CR>
@@ -2981,7 +2981,7 @@ function! BuildTestCommit(all, resetCache, ...)
 	let buildAndTestJobs=[]
 	let g:btcStartTime = reltime()
 	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
-	if empty(sln)
+	if sln !~ 'sln$'
 		let csproj = substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g')
 		call BuildTestCommitCsproj(csproj, g:csClassesInChangedFiles, buildAndTestJobs)
 		return
