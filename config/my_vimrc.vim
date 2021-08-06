@@ -544,7 +544,8 @@ nnoremap <silent> <Leader>v :silent! vsplit<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
 nnoremap <silent> <Leader>O mW:-tabnew<CR>`W
-nnoremap <silent> <Leader>x :if !IsDebuggingTab() \| tabclose \| else \| unlet g:vimspector_session_windows.tabpage \| call vimspector#Reset() \| endif<CR>
+"nnoremap <silent> <Leader>x :if !IsDebuggingTab() \| tabclose \| else \| unlet g:vimspector_session_windows.tabpage \| call vimspector#Reset() \| endif<CR>
+nnoremap <silent> <Leader>x :tabclose<CR>
 
 function! SynchronizeBufferHistoryWithLastWindow()
 	let lastWinNr = winnr('#')
@@ -1067,7 +1068,8 @@ tnoremap <silent> LL <C-W>:CycleForward<CR>
 
 " Folding" ----------------------------{{{
 vnoremap <silent> <space> <Esc>zE:let b:focus_mode=1 \| setlocal foldmethod=manual<CR>`<kzfgg`>jzfG`<
-nnoremap <silent> <space> :if IsDebuggingTab() \| call vimspector#StepOver() \| else \| exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode \| endif<CR>
+"nnoremap <silent> <space> :if IsDebuggingTab() \| call vimspector#StepOver() \| else \| exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode \| endif<CR>
+nnoremap <silent> <space> :exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode<CR>
 
 function! FoldExprToday(lnum)
 	let lnum = a:lnum == '.' ? line('.') : a:lnum
@@ -2304,85 +2306,85 @@ augroup mydiagrams
 augroup END
 
 " Debugging"---------------------------{{{
-let g:vimspector_enable_mappings = 'HUMAN'
-sign define vimspectorBP text=:          texthl=MatchParen
-sign define vimspectorBPCond text=;      texthl=MatchParen
-sign define vimspectorBPDisabled text=. texthl=MatchParen
-sign define vimspectorPC text=\=>         texthl=ErrorMsg
-sign define vimspectorPCBP text=:>       texthl=ErrorMsg
-
-function! ToggleBreakpoint()
-	let alreadyHasBreakpoint1 = len(sign_getplaced(bufnr(), #{group:'VimspectorBP', lnum: line(".")})[0].signs) > 0
-	let alreadyHasBreakpoint2 = len(sign_getplaced(bufnr(), #{group:'VimspectorCode', lnum: line(".")})[0].signs) > 0
-	if alreadyHasBreakpoint1 || alreadyHasBreakpoint2
-		call vimspector#ToggleBreakpoint()
-	else
-		let condition = input('condition:')
-		if condition == ''
-			call vimspector#ToggleBreakpoint()
-		else
-			call vimspector#ToggleBreakpoint({'condition': condition})
-		endif
-		redraw
-	endif
-endfunction
-
-function! IsDebuggingTab()
-	return tabpagenr() == get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 0)
-endfunction
-
-function! IsDebuggingHappening()
-	return get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 99) <= tabpagenr('$')
-endfunction
-
-function! StartDebuggingSession()
-	if IsDebuggingHappening()
-		exec 'normal!' g:vimspector_session_windows.tabpage.'gt'
-	else
-		let debugConfigFiles = FindDebugConfigFiles()
-		let debugConfig = empty(debugConfigFiles) ? CreateDebugConfigFile() : debugConfigFiles[0]
-		call vimspector#Launch()
-	endif
-endfunction
-
-function! FindDebugConfigFile()
-	return ''
-endfunction
-
-
-func! CustomiseUI()
-	call win_gotoid(g:vimspector_session_windows.stack_trace)
-	wincmd H
-	call win_gotoid( g:vimspector_session_windows.code )
-	wincmd H
-	call win_gotoid(g:vimspector_session_windows.variables)
-	let b = bufnr('%')
-	quit
-	call win_gotoid(g:vimspector_session_windows.watches)
-	nunmenu WinBar
-	wincmd J
-	exec 'vertical sbuffer' b
-	call win_gotoid( g:vimspector_session_windows.code )
-	nunmenu WinBar
-	call win_gotoid(g:vimspector_session_windows.output)
-	nunmenu WinBar.Telemetry
-	resize 12
-	set winfixheight
-	wincmd J
-	wincmd =
-	call win_gotoid( g:vimspector_session_windows.code )
-	resize +4
-	normal! zz
-	windo nnoremap <buffer> <localleader>j :call vimspector#StepInto()<CR>
-	windo nnoremap <buffer> <localleader>k :call vimspector#StepOut()<CR>
-	windo nnoremap <buffer> <localleader>l :call vimspector#Continue()<CR>
-	windo nnoremap <buffer> <localleader>h :call vimspector#Restart()<CR>
-endfunction
-
-augroup MyVimspectorUICustomistaion
-  autocmd!
-  autocmd User VimspectorUICreated call CustomiseUI()
-augroup END
+" let g:vimspector_enable_mappings = 'HUMAN'
+" sign define vimspectorBP text=:          texthl=MatchParen
+" sign define vimspectorBPCond text=;      texthl=MatchParen
+" sign define vimspectorBPDisabled text=. texthl=MatchParen
+" sign define vimspectorPC text=\=>         texthl=ErrorMsg
+" sign define vimspectorPCBP text=:>       texthl=ErrorMsg
+" 
+" function! ToggleBreakpoint()
+" 	let alreadyHasBreakpoint1 = len(sign_getplaced(bufnr(), #{group:'VimspectorBP', lnum: line(".")})[0].signs) > 0
+" 	let alreadyHasBreakpoint2 = len(sign_getplaced(bufnr(), #{group:'VimspectorCode', lnum: line(".")})[0].signs) > 0
+" 	if alreadyHasBreakpoint1 || alreadyHasBreakpoint2
+" 		call vimspector#ToggleBreakpoint()
+" 	else
+" 		let condition = input('condition:')
+" 		if condition == ''
+" 			call vimspector#ToggleBreakpoint()
+" 		else
+" 			call vimspector#ToggleBreakpoint({'condition': condition})
+" 		endif
+" 		redraw
+" 	endif
+" endfunction
+" 
+" function! IsDebuggingTab()
+" 	return tabpagenr() == get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 0)
+" endfunction
+" 
+" function! IsDebuggingHappening()
+" 	return get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 99) <= tabpagenr('$')
+" endfunction
+" 
+" function! StartDebuggingSession()
+" 	if IsDebuggingHappening()
+" 		exec 'normal!' g:vimspector_session_windows.tabpage.'gt'
+" 	else
+" 		let debugConfigFiles = FindDebugConfigFiles()
+" 		let debugConfig = empty(debugConfigFiles) ? CreateDebugConfigFile() : debugConfigFiles[0]
+" 		call vimspector#Launch()
+" 	endif
+" endfunction
+" 
+" function! FindDebugConfigFile()
+" 	return ''
+" endfunction
+" 
+" 
+" func! CustomiseUI()
+" 	call win_gotoid(g:vimspector_session_windows.stack_trace)
+" 	wincmd H
+" 	call win_gotoid( g:vimspector_session_windows.code )
+" 	wincmd H
+" 	call win_gotoid(g:vimspector_session_windows.variables)
+" 	let b = bufnr('%')
+" 	quit
+" 	call win_gotoid(g:vimspector_session_windows.watches)
+" 	nunmenu WinBar
+" 	wincmd J
+" 	exec 'vertical sbuffer' b
+" 	call win_gotoid( g:vimspector_session_windows.code )
+" 	nunmenu WinBar
+" 	call win_gotoid(g:vimspector_session_windows.output)
+" 	nunmenu WinBar.Telemetry
+" 	resize 12
+" 	set winfixheight
+" 	wincmd J
+" 	wincmd =
+" 	call win_gotoid( g:vimspector_session_windows.code )
+" 	resize +4
+" 	normal! zz
+" 	windo nnoremap <buffer> <localleader>j :call vimspector#StepInto()<CR>
+" 	windo nnoremap <buffer> <localleader>k :call vimspector#StepOut()<CR>
+" 	windo nnoremap <buffer> <localleader>l :call vimspector#Continue()<CR>
+" 	windo nnoremap <buffer> <localleader>h :call vimspector#Restart()<CR>
+" endfunction
+" 
+" augroup MyVimspectorUICustomistaion
+"   autocmd!
+"   autocmd User VimspectorUICreated call CustomiseUI()
+" augroup END
 
 " Specific Workflows:------------------{{{
 " Nuget" ------------------------------{{{
