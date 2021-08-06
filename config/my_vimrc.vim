@@ -2326,18 +2326,16 @@ augroup END
 
 " Debugging"---------------------------{{{
  let g:vimspector_enable_mappings = 'HUMAN'
- sign define vimspectorBP text=:          texthl=MatchParen
- sign define vimspectorBPCond text=;      texthl=MatchParen
- sign define vimspectorBPDisabled text=. texthl=MatchParen
- sign define vimspectorPC text=\=>         texthl=ErrorMsg
- sign define vimspectorPCBP text=:>       texthl=ErrorMsg
+	sign define vimspectorBP text=o             texthl=WarningMsg
+	sign define vimspectorBPCond text=o?        texthl=WarningMsg
+	sign define vimspectorBPDisabled text=o!    texthl=LineNr
+	sign define vimspectorPC text=\ >           texthl=MatchParen
+	sign define vimspectorPCBP text=o>          texthl=MatchParen
+	sign define vimspectorCurrentThread text=>  texthl=MatchParen
+	sign define vimspectorCurrentFrame text=>   texthl=Special
 
-function! ToggleBreakpoint()
-	let alreadyHasBreakpoint1 = len(sign_getplaced(bufnr(), #{group:'VimspectorBP', lnum: line(".")})[0].signs) > 0
-	let alreadyHasBreakpoint2 = len(sign_getplaced(bufnr(), #{group:'VimspectorCode', lnum: line(".")})[0].signs) > 0
-	if alreadyHasBreakpoint1 || alreadyHasBreakpoint2
-		call vimspector#ToggleBreakpoint()
-	else
+
+function! ToggleConditionalBreakpoint()
 		let condition = input('condition:')
 		if condition == ''
 			call vimspector#ToggleBreakpoint()
@@ -2345,7 +2343,6 @@ function! ToggleBreakpoint()
 			call vimspector#ToggleBreakpoint({'condition': condition})
 		endif
 		redraw
-	endif
 endfunction
 
  function! IsDebuggingTab()
@@ -2376,6 +2373,11 @@ endfunction
  wincmd H
  call win_gotoid( g:vimspector_session_windows.code )
  wincmd H
+ nnoremap <buffer> <localleader>j :call vimspector#StepInto()<CR>
+ nnoremap <buffer> <localleader>k :call vimspector#StepOut()<CR>
+ nnoremap <buffer> <localleader>l :call vimspector#Continue()<CR>
+ nnoremap <buffer> <localleader>h :call vimspector#Restart()<CR>
+ nnoremap <buffer> <localleader>g :call vimspector#RunToCursor()<CR>
  call win_gotoid(g:vimspector_session_windows.variables)
  let b = bufnr('%')
  quit
@@ -2394,10 +2396,6 @@ endfunction
  	call win_gotoid( g:vimspector_session_windows.code )
  	resize +4
  	normal! zz
- 	windo nnoremap <buffer> <localleader>j :call vimspector#StepInto()<CR>
- 	windo nnoremap <buffer> <localleader>k :call vimspector#StepOut()<CR>
- 	windo nnoremap <buffer> <localleader>l :call vimspector#Continue()<CR>
- 	windo nnoremap <buffer> <localleader>h :call vimspector#Restart()<CR>
  endfunction
  
  augroup MyVimspectorUICustomistaion
@@ -2551,13 +2549,16 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
-	autocmd FileType cs nmap <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>b :call ToggleBreakpoint()<CR>
-	autocmd FileType cs nnoremap <buffer> <LocalLeader>B :call vimspector#ListBreakpoints()<CR>
+	autocmd FileType cs nmap <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| call vimspector#ToggleBreakpoint() \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
+	autocmd FileType cs nnoremap <buffer> <LocalLeader>b :call vimspector#ToggleBreakpoint()<CR>
+	autocmd FileType cs nnoremap <buffer> <LocalLeader>B :call ToggleConditionalBreakpoint()<CR>
+	autocmd FileType cs nnoremap <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
+	autocmd FileType cs nnoremap <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
 	autocmd FileType cs nnoremap <buffer> <localleader>j :call vimspector#StepInto()<CR>
 	autocmd FileType cs nnoremap <buffer> <localleader>k :call vimspector#StepOut()<CR>
 	autocmd FileType cs nnoremap <buffer> <localleader>l :call vimspector#Continue()<CR>
 	autocmd FileType cs nnoremap <buffer> <localleader>h :call vimspector#Restart()<CR>
+	autocmd FileType cs nnoremap <buffer> <localleader>H :call vimspector#Stop()<CR>
 augroup end
 
 let g:OmniSharp_highlight_groups = {
