@@ -2614,7 +2614,7 @@ function! RunScript(name, bang, ...)
 	else
 		let excmd = printf('terminal ++curwin ++noclose %s.bat %s', a:name, join(a:000, ' '))
 	endif
-	let &termwinsize=(&lines-2).'x'.(&columns-5)
+	let &termwinsize=(&lines-2).'*'.(&columns-5)
 	exec excmd
 endfunction
 
