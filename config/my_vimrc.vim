@@ -1934,7 +1934,7 @@ function! OpenDashboard()
 	wincmd h
 	silent exec '3new' $desktop.'/waiting'
 	1wincmd w
-	windo nnoremap <silent> <leader>L 99<C-W>W<C-W>L:exec 'vert resize' &columns/2<CR>
+	windo nnoremap <buffer> <silent> <leader>L 99<C-W>W<C-W>L:exec 'vert resize' &columns/2<CR>
 endfunction
 command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
@@ -1945,6 +1945,7 @@ function! OnGitLogExit(bufnr,...)
 	call setbufvar(a:bufnr, '&wrap', 0)
 	let winid = bufwinid(a:bufnr)
 	call win_execute(winid, ['call setpos(".", [0, 1, 1, 1])', 'redraw'])
+	1wincmd w
 endfunc
 
 function! GetCommitTypes(findstart, base)
