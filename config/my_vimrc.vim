@@ -1119,13 +1119,28 @@ cnoremap <expr> <C-S> SubstituteIntoArray()
 
 function! SubstituteIntoArray()
 	let range = getcmdline()
-	if empty(range) || range != "'<,'>"
+	let action = ''
+	if empty(range)
 		let range = '%'
+		let action  = 'substitute'
+	elseif range == "'<,'>"
+		let action  = 'substitute'
+	else
+		let action = 'getSln'
 	endif
+	if action == 'substitute'
 	let sep = (stridx(@/, '/') >= 0) ? (stridx(@/, '#') >= 0) ? (stridx(@/, ':') >= 0) ? '~' : ':' : '#' : '/'
 	let cmd = "\<C-U>".range."s".sep."\<C-R>=@/\<CR>".sep."\\=add(hits, submatch(0))".sep."gne\|echomsg hits"
 	let cmd .= "\<Home>".repeat("\<Right>", len(range.'s/'))
 	return cmd
+	endif
+	if action == 'getSln'
+		let cmd = GetNearestPathInCurrentFileParents("*.sln")
+		if empty(cmd)
+			let cmd = shellescape(substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g'))
+		endif
+		return cmd
+	endif
 endfunction
 
 augroup quicksearch
