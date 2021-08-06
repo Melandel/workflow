@@ -1838,6 +1838,8 @@ endif
 	autocmd FileType dirvish nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
 	autocmd FileType dirvish nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
 	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>R :call OmniSharp#RestartServer()<CR>
+	autocmd FileType dirvish command! -buffer -bar -nargs=? -complete=file OmniSharpStartServer call OmniSharp#StartServer(<q-args>)
+	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer 
 augroup end
 
 function! GoToGitRoot()
@@ -2546,6 +2548,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>= <Plug>(omnisharp_code_format)
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
+	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>b :call ToggleBreakpoint()<CR>
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>B :call vimspector#ListBreakpoints()<CR>
