@@ -2353,22 +2353,33 @@ endfunction
  	return get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 99) <= tabpagenr('$')
  endfunction
  
+	function! BreakpointIsPresentOnCurrentLine()
+		return empty(sign_getplaced(bufnr(), #{group:'VimspectorBP', lnum: line(".")})[0].signs)
+	endfunction
  func! CustomiseUI()
  call win_gotoid(g:vimspector_session_windows.stack_trace)
+	nmap <silent> <buffer> <Space> <CR>
+	nnoremap <silent> <buffer> zt zt
  wincmd H
+	nunmenu WinBar
  call win_gotoid( g:vimspector_session_windows.code )
  wincmd H
  call win_gotoid(g:vimspector_session_windows.variables)
+	nmap <silent> <buffer> <Space> <CR>
+	nnoremap <silent> <buffer> zt zt
  let b = bufnr('%')
  quit
  call win_gotoid(g:vimspector_session_windows.watches)
  nunmenu WinBar
+	nmap <silent> <buffer> <Space> <CR>
+	nnoremap <silent> <buffer> zt zt
+	nnoremap <silent> <buffer> dd :call vimspector#DeleteWatch()<CR>
  wincmd J
  exec 'vertical sbuffer' b
  	call win_gotoid( g:vimspector_session_windows.code )
  	nunmenu WinBar
  	call win_gotoid(g:vimspector_session_windows.output)
- 	"nunmenu WinBar.Telemetry
+	nnoremap <silent> <buffer> zt zt
  	resize 12
  	set winfixheight
  	wincmd J
@@ -2398,8 +2409,10 @@ function! SetDebugMappings() abort
 	nmap <silent> <buffer> <localleader>l <Plug>VimspectorContinue
 	nmap <silent> <buffer> <localleader>h <Plug>VimspectorRestart
 	nmap <silent> <buffer> <localleader>H <Plug>VimspectorStop
+		nmap <silent> <buffer> <C-J> <Plug>VimspectorDownFrame
+		nmap <silent> <buffer> <C-K> <Plug>VimspectorUpFrame
 
-	nnoremap <silent> <Leader>x :call vimspector#Reset()<CR>
+	nnoremap <silent> <buffer> <Leader>x :call vimspector#Reset()<CR>
 endfunction
 
 function! RemoveDebugMappings() abort
@@ -2415,8 +2428,11 @@ function! RemoveDebugMappings() abort
  	silent! nunmap <buffer> <localleader>l
  	silent! nunmap <buffer> <localleader>h
  	silent! nunmap <buffer> <localleader>H
+		silent! nunmap <buffer> <C-J>
+		silent! nunmap <buffer> <C-K>
 
  	silent! nunmap <buffer> <Leader>x
+		silent! nunmap <buffer> <Space>
 endfunction
 
 " Specific Workflows:------------------{{{
@@ -2565,7 +2581,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
-	autocmd FileType cs nmap <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| call vimspector#ToggleBreakpoint() \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| if BreakpointIsPresentOnCurrentLine() \| call vimspector#ToggleBreakpoint() \| endif \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
 augroup end
 
 let g:OmniSharp_highlight_groups = {
