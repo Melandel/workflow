@@ -791,7 +791,7 @@ endfunction
 " Jump to last insert mode
 augroup lastinsert
 	au!
-	autocmd! InsertLeave * mark I
+	autocmd! InsertLeave * normal! mI
 augroup end
 nnoremap gi `I
 
@@ -1127,10 +1127,10 @@ function! SubstituteIntoArray()
 		let action = 'getSln'
 	endif
 	if action == 'substitute'
-	let sep = (stridx(@/, '/') >= 0) ? (stridx(@/, '#') >= 0) ? (stridx(@/, ':') >= 0) ? '~' : ':' : '#' : '/'
-	let cmd = "\<C-U>".range."s".sep."\<C-R>=@/\<CR>".sep."\\=add(hits, submatch(0))".sep."gne\|echomsg hits"
-	let cmd .= "\<Home>".repeat("\<Right>", len(range.'s/'))
-	return cmd
+		let sep = (stridx(@/, '/') >= 0) ? (stridx(@/, '#') >= 0) ? (stridx(@/, ':') >= 0) ? '~' : ':' : '#' : '/'
+		let cmd = "\<C-U>".range."s".sep."\<C-R>=@/\<CR>".sep."\\=add(hits, submatch(0))".sep."gne\|echomsg hits"
+		let cmd .= "\<Home>".repeat("\<Right>", len(range.'s/'))
+		return cmd
 	endif
 	if action == 'getSln'
 		let cmd = GetNearestPathInCurrentFileParents("*.sln")
@@ -1285,6 +1285,7 @@ function! OpenQfListCurrentItem(openCmd)
 		Reframe
 	endif
 endfunction
+command! -bar EditQfItemInPreviousWindow call OpenQfListCurrentItem('buffer')
 command! -bar SplitQfItemBelow call OpenQfListCurrentItem('sbuffer')
 command! -bar SplitQfItemAbove SplitQfItemBelow | wincmd x | wincmd k
 command! -bar VSplitQfItemRight call OpenQfListCurrentItem('vertical sbuffer')
@@ -1358,7 +1359,7 @@ augroup quickfix
 	autocmd FileType qf nnoremap <buffer> <silent> A :SplitQfItemAbove<CR>
 	autocmd FileType qf nnoremap <buffer> <silent> t :TSplitQfItemBefore<CR>
 	autocmd FileType qf nnoremap <buffer> <silent> T :TSplitQfItemAfter<CR>
-	autocmd FileType qf     nmap <buffer> <silent> <expr> i IsLocListWindow() ? "\<CR>:lcl\<CR>" : "\<CR>"
+	autocmd FileType qf     nmap <buffer> <silent> i :EditQfItemInPreviousWindow<CR>
 	autocmd FileType qf     nmap <buffer> p <plug>(qf-preview-open)
 	autocmd FileType qf if IsQuickFixWindow() | nnoremap <buffer> <CR> <CR>:Reframe<CR>| endif
 	autocmd FileType qf nnoremap <silent> <buffer> H :QfOlder<CR>
@@ -2336,13 +2337,13 @@ augroup END
 
 
 function! ToggleConditionalBreakpoint()
-		let condition = input('condition:')
-		if condition == ''
-			call vimspector#ToggleBreakpoint()
-		else
-			call vimspector#ToggleBreakpoint({'condition': condition})
-		endif
-		redraw
+	let condition = input('condition:')
+	if condition == ''
+		call vimspector#ToggleBreakpoint()
+	else
+		call vimspector#ToggleBreakpoint({'condition': condition})
+	endif
+	redraw
 endfunction
 
  function! IsDebuggingTab()
@@ -2352,7 +2353,7 @@ endfunction
  function! IsDebuggingHappening()
  	return get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 99) <= tabpagenr('$')
  endfunction
- 
+
 	function! BreakpointIsPresentOnCurrentLine()
 		return empty(sign_getplaced(bufnr(), #{group:'VimspectorBP', lnum: line(".")})[0].signs)
 	endfunction
@@ -2376,39 +2377,39 @@ endfunction
 	nnoremap <silent> <buffer> dd :call vimspector#DeleteWatch()<CR>
  wincmd J
  exec 'vertical sbuffer' b
- 	call win_gotoid( g:vimspector_session_windows.code )
- 	nunmenu WinBar
- 	call win_gotoid(g:vimspector_session_windows.output)
+	call win_gotoid( g:vimspector_session_windows.code )
+	nunmenu WinBar
+	call win_gotoid(g:vimspector_session_windows.output)
 	nnoremap <silent> <buffer> zt zt
- 	resize 12
- 	set winfixheight
- 	wincmd J
- 	wincmd =
- 	call win_gotoid( g:vimspector_session_windows.code )
- 	resize +4
- 	normal! zz
+	resize 12
+	set winfixheight
+	wincmd J
+	wincmd =
+	call win_gotoid( g:vimspector_session_windows.code )
+	resize +4
+	normal! zz
 endfunction
- 
+
 augroup MyVimspectorUICustomistaion
-   autocmd!
-   autocmd User VimspectorUICreated call CustomiseUI()
+	autocmd!
+	autocmd User VimspectorUICreated call CustomiseUI()
 	autocmd User VimspectorJumpedToFrame call SetDebugMappings()
 	autocmd User VimspectorDebugEnded call RemoveDebugMappings()
 augroup END
 
 function! SetDebugMappings() abort
-	nmap <silent> <buffer> <localleader>b <Plug>VimspectorToggleBreakpoint
-	nnoremap <silent> <buffer> <localleader>B :call ToggleConditionalBreakpoint()<CR>
-	nnoremap <silent> <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
-	nnoremap <silent> <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
-	nmap <silent> <buffer> <localleader>g <Plug>VimspectorRunToCursor
+		nmap <silent> <buffer> <localleader>b <Plug>VimspectorToggleBreakpoint
+		nnoremap <silent> <buffer> <localleader>B :call ToggleConditionalBreakpoint()<CR>
+		nnoremap <silent> <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
+		nnoremap <silent> <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
+		nmap <silent> <buffer> <localleader>g <Plug>VimspectorRunToCursor
 
-	nmap <silent> <buffer> <space> <Plug>VimspectorStepOver
-	nmap <silent> <buffer> <localleader>j <Plug>VimspectorStepInto
-	nmap <silent> <buffer> <localleader>k <Plug>VimspectorStepOut
-	nmap <silent> <buffer> <localleader>l <Plug>VimspectorContinue
-	nmap <silent> <buffer> <localleader>h <Plug>VimspectorRestart
-	nmap <silent> <buffer> <localleader>H <Plug>VimspectorStop
+		nmap <silent> <buffer> <space> <Plug>VimspectorStepOver
+		nmap <silent> <buffer> <localleader>j <Plug>VimspectorStepInto
+		nmap <silent> <buffer> <localleader>k <Plug>VimspectorStepOut
+		nmap <silent> <buffer> <localleader>l <Plug>VimspectorContinue
+		nmap <silent> <buffer> <localleader>h <Plug>VimspectorRestart
+		nmap <silent> <buffer> <localleader>H <Plug>VimspectorStop
 		nmap <silent> <buffer> <C-J> <Plug>VimspectorDownFrame
 		nmap <silent> <buffer> <C-K> <Plug>VimspectorUpFrame
 
@@ -2833,21 +2834,22 @@ function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, sln, 
 	if a:0 && a:2
 		redraw | echomsg '🚫🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) printf('%d/{%d+%d}', g:nbBuiltCsprojs+g:nbTestedCsprojs, g:nbCsprojsToBuild, g:nbCsprojsToTest) fnamemodify(a:testedAssembly, ':t:r') '-->' reportStats
 		let g:csenvs[a:sln].current_build_success = 0
-		set errorformat =%A\ %#Failed\ %.%#
-		set errorformat+=%Z\ %#Failed\ %.%#
-		set errorformat+=%C\ %#NSubstitute\.Exceptions%.%#\ :\ %m
-		set errorformat+=%C%\\%%(Actually%\\\)%\\@=%m
+		set errorformat+=%Z\[xUnit%.%#
+			"set errorformat+=%C\ %#NSubstitute\.Exceptions%.%#\ :\ %m
+			"set errorformat+=%C%\\%%(Actually%\\\)%\\@=%m
 		set errorformat+=%C\%.%#\ at\ %.%#\ in\ %f:line\ %l
-		set errorformat+=%C\	%m
-		set errorformat+=%-C\ %#Stack\ Trace:
-		set errorformat+=%-C\ %#at\ %.%#
-		set errorformat+=%-C---\ %.%#
-		set errorformat+=%-C%.%#[FAIL]
+			"set errorformat+=%C\	%m
+			"set errorformat+=%-C\ %#Stack\ Trace:
+			"set errorformat+=%-C\ %#at\ %.%#
+			"set errorformat+=%-C---\ %.%#
+			"set errorformat+=%-C%.%#[FAIL]
 		set errorformat+=%-C%.%#\ Error\ Message%.%#
-		set errorformat+=%-C%.%#\ (pos\ %.%#
-		set errorformat+=%-G%*\\d-%*\\d-%*\\d\ %.%#
-		set errorformat+=%C\ %#Assert\.%m\ Failure
-		set errorformat+=%C%.%#
+		set errorformat+=%-C\ %#at%.%#
+		set errorformat+=%C\ \ \ %m
+			"set errorformat+=%-C%.%#\ (pos\ %.%#
+			"set errorformat+=%-G%*\\d-%*\\d-%*\\d\ %.%#
+		set errorformat+=%C\ %#%m\ Failure
+		set errorformat+=%+C%.%#
 		set errorformat+=%-G%.%#
 		silent exec 'cgetbuffer' a:scratchbufnr
 		if &ft == 'qf'
