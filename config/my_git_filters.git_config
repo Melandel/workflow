@@ -1,6 +1,6 @@
 [filter "tabspace"]
 	smudge = unexpand --tabs=4 --first-only
-	clean = expandtabs --tabs=4 --initial
+	clean = expand.bat --tabs=4 --initial
 [diff]
 	tool = gvimdiff
 [difftool "gvimdiff"]
