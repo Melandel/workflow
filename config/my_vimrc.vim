@@ -2364,18 +2364,22 @@ endfunction
 	endfunction
  func! CustomiseUI()
  call win_gotoid(g:vimspector_session_windows.stack_trace)
+	call SetDebugMappings()
 	nmap <silent> <buffer> <Space> <CR>
 	nnoremap <silent> <buffer> zt zt
  wincmd H
 	nunmenu WinBar
  call win_gotoid( g:vimspector_session_windows.code )
+	call SetDebugMappings()
  wincmd H
  call win_gotoid(g:vimspector_session_windows.variables)
+	call SetDebugMappings()
 	nmap <silent> <buffer> <Space> <CR>
 	nnoremap <silent> <buffer> zt zt
  let b = bufnr('%')
  quit
  call win_gotoid(g:vimspector_session_windows.watches)
+	call SetDebugMappings()
  nunmenu WinBar
 	nmap <silent> <buffer> <Space> <CR>
 	nnoremap <silent> <buffer> zt zt
@@ -2385,6 +2389,7 @@ endfunction
 	call win_gotoid( g:vimspector_session_windows.code )
 	nunmenu WinBar
 	call win_gotoid(g:vimspector_session_windows.output)
+	call SetDebugMappings()
 	nnoremap <silent> <buffer> zt zt
 	resize 12
 	set winfixheight
@@ -3276,9 +3281,13 @@ endfunction
 function! GetWorkItemsAssignedToMeInCurrentIteration(argLead, cmdLine, cursorPos)
 	let g:adosMyWorkItems = get(g:, 'adosMyWorkItems', [])
 	if empty(g:adosMyWorkItems)
-		let ids= js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/wiql/abb54a60-97c5-47ea-9525-1cc734c3c834" | jq "[.workItems[].id]"', $pat, $ados)), '[\x0]', '', 'g'))
-		let list = js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/workitems?ids=%s&api-version=5.0" | jq "[.value[]|{id, title: .fields[\"System.Title\"], status: .fields[\"System.State\"], type: .fields[\"System.WorkItemType\"]}]"', $pat, $ados, join(ids, ','))), '[\x0]', '', 'g'))
-		let g:adosMyWorkItems = map(list, {_,x -> printf('%s {%s-%s:%s}', x.id, x.type, x.status, x.title)})
+		try
+			let ids= js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/wiql/58051e1d-c06e-4861-83eb-c82bd7fe0063" | jq "[.workItems[].id]"', $pat, $ados)), '[\x0]', '', 'g'))
+			let list = js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/workitems?ids=%s&api-version=5.0" | jq "[.value[]|{id, title: .fields[\"System.Title\"], status: .fields[\"System.State\"], type: .fields[\"System.WorkItemType\"]}]"', $pat, $ados, join(ids, ','))), '[\x0]', '', 'g'))
+			let g:adosMyWorkItems = map(list, {_,x -> printf('%s {%s-%s:%s}', x.id, x.type, x.status, x.title)})
+		catch
+			return []
+		endtry
 	endif
 	return g:adosMyWorkItems
 endfunction
@@ -3302,3 +3311,8 @@ function! LocListAdos(workItemId)
 endfunction
 command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Ados call LocListAdos(str2nr(<f-args>))
 nnoremap <Leader>a :Ados <tab>
+
+" Format
+augroup Formatting
+au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -
+augroup end
