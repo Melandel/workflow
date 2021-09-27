@@ -32,7 +32,7 @@ Testing order:
 First, 
 	Domain Objects
 Then, for each UseCase test scenario
-	Controller - UseCase - Domain Object
+	Controller & UseCase
 Then
-	Controller
+	Controller (failed conversions)
 ```
