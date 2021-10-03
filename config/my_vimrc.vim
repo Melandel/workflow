@@ -487,6 +487,10 @@ inoremap ^k <End>|  cnoremap ^k <End>|  tnoremap ^k <End>
 tnoremap <C-L> <Del>
 inoremap <C-L> <Del>|   cnoremap <C-L> <Del>| smap <C-L> <Del>
 
+" Accidental <C-U> or <C-W>
+inoremap <C-U> <C-G>u<C-U>
+inoremap <C-W> <C-G>u<C-W>
+
 " Graphical Layout:--------------------{{{
 " Colorscheme, Highlight groups" ------{{{
 colorscheme empower
@@ -902,12 +906,12 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'exit_cb':  function('DisplayScriptOutputInNewWindow', [scratchbufnr])
+			\'close_cb':  function('DisplayScriptOutputInNewWindow', [scratchbufnr, script])
 		\}
 	\)
 endfunc
 
-function! DisplayScriptOutputInNewWindow(scratchbufnr, job, status)
+function! DisplayScriptOutputInNewWindow(scratchbufnr, script, channel)
 	if winnr('$') < 5
 	let ea = &equalalways
 	let &equalalways=1
@@ -927,13 +931,27 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, job, status)
 	else
 		exec '-tab sbuffer' a:scratchbufnr
 	endif
+	let g:g = ''.line('$').' lines'
+	"modify
+	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
+	if isCurlDashSmallI
+		2,$-1d
+		if line('$') > 1
+			let isXml = getline('$') =~ '^<.*>$'
+			if isXml
+				$!xmllint --format --recover --c14n -
+			else
+				$!jq .
+			endif
+		endif
+	endif
 	normal! gg
 endfunction
 
 command! AsyncTSplitCurrentlySelectedScriptInNewBuffer call RunCurrentlySelectedScriptInNewBufferAsync()
 vnoremap <silent> <Leader>S mv:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
 nnoremap <silent> <Leader>S mvvip}}}:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
-vnoremap <silent> <Leader>V mvy:exec @@<CR>`v
+vnoremap <silent> <Leader>V mvy:call histadd('cmd', @@)\|exec @@<CR>`v
 nnoremap <silent> <Leader>V mv^y$:exec @@<CR>`v
 
 function! GetCurrentlySelectedScriptOnOneLine()
