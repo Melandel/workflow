@@ -931,7 +931,6 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, script, channel)
 	else
 		exec '-tab sbuffer' a:scratchbufnr
 	endif
-	let g:g = ''.line('$').' lines'
 	"modify
 	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
 	if isCurlDashSmallI
