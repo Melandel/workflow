@@ -5,7 +5,10 @@
 			"adapter": "netcoredbg",
 			"configuration": {
 				"request": "launch",
-				"program": "${workspaceRoot}/details/startup/bin/Debug/netcoreapp3.1/console.dll"
+				"cwd": "${workspaceRoot}/details/startup/bin/Debug/netcoreapp3.1/",
+				"program": "console.dll",
+				"args": [],
+				"stopAtEntry": false
 			}
 		}
 	}
