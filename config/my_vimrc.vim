@@ -880,8 +880,9 @@ set wildmode=full
 
 " Sourcing" ---------------------------{{{
 function! RunCurrentlySelectedScriptInNewBufferAsync()
-	let script = GetCurrentlySelectedScriptOnOneLine()
-	let script = ExpandEnvironmentVariables(script)
+	let scriptLines = GetCurrentlySelectedScriptLines()
+	let scriptOnOneLine = SquashAndTrimLines(scriptLines)
+	let script = ExpandEnvironmentVariables(scriptOnOneLine)
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 	if g:isWindows
 		let len = len(script)
@@ -906,12 +907,12 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'close_cb':  function('DisplayScriptOutputInNewWindow', [scratchbufnr, script])
+			\'close_cb':  function('DisplayScriptOutputInNewWindow', [scratchbufnr, scriptLines])
 		\}
 	\)
 endfunc
 
-function! DisplayScriptOutputInNewWindow(scratchbufnr, script, channel)
+function! DisplayScriptOutputInNewWindow(scratchbufnr, scriptLines, channel)
 	if winnr('$') < 5
 	let ea = &equalalways
 	let &equalalways=1
@@ -931,6 +932,7 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, script, channel)
 	else
 		exec '-tab sbuffer' a:scratchbufnr
 	endif
+	let b:scriptLines = a:scriptLines
 	"modify
 	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
 	if isCurlDashSmallI
@@ -953,12 +955,6 @@ nnoremap <silent> <Leader>S mvvip}}}:<C-U>AsyncTSplitCurrentlySelectedScriptInNe
 vnoremap <silent> <Leader>V mvy:call histadd('cmd', @@)\|exec @@<CR>`v
 nnoremap <silent> <Leader>V mv^y$:exec @@<CR>`v
 
-function! GetCurrentlySelectedScriptOnOneLine()
-	let lines = GetCurrentlySelectedScriptLines()
-	let oneliner = SquashAndTrimLines(lines)
-	return oneliner
-endfunc
-
 function! ExpandEnvironmentVariables(script)
 	let mayHaveEnvironmentVars = (stridx(a:script, '$') > -1)
 	if (!mayHaveEnvironmentVars)
@@ -978,23 +974,25 @@ function! ExpandEnvironmentVariables(script)
 endfunc
 
 function! GetCurrentlySelectedScriptLines()
-	return getline("'<", "'>")
+	let lines = getline("'<", "'>")
+	if len(lines) == 0
+		return []
+	elseif len(lines) == 1
+		return [trim(lines[0], " \t`")]
+	else
+		let firstSnippetSep = match(lines, '```')
+		if (firstSnippetSep != -1)
+			let secondSnippetSep = match(lines, '```', firstSnippetSep+1)
+			return lines[firstSnippetSep+1:secondSnippetSep-1]
+		endif
+	endif
 endfunc
 
 function! SquashAndTrimLines(lines)
-	if len(a:lines) == 0
-		return ''
-	elseif len(a:lines) == 1
-		return trim(a:lines[0], " \t`")
-	else
-		let lines = a:lines
-		let firstSnippetSep = match(a:lines, '```')
-		if (firstSnippetSep != -1)
-			let secondSnippetSep = match(a:lines, '```', firstSnippetSep+1)
-			let lines = a:lines[firstSnippetSep+1:secondSnippetSep-1]
-		endif
-		return join(map(lines, { _,x -> ' '.trim(x, " \t")}), ' ')[1:]
+	if empty(a:lines)
+		return a:lines
 	endif
+	return join(mapnew(a:lines, { _,x -> ' '.trim(x, " \t")}), ' ')[1:]
 endfunc
 
 " Write output of a vim command in a buffer
