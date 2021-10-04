@@ -23,7 +23,7 @@ let $scripts   = $HOME.'/Desktop/scripts'            | let $s = $scripts
 let $gtools    = $HOME.'/Desktop/tools/git/usr/bin'
 
 let $rc         = $HOME.'/Desktop/config/my_vimrc.vim'
-let $rc2        = $HOME.'/Desktop/config/my_vimworkenv.vim'
+let $rce        = $HOME.'/Desktop/config/my_vimworkenv.vim'
 let $rcfolder   = $VIM
 let $rcfilename = '_vimrc'
 let $packpath   = $VIM
@@ -3181,8 +3181,8 @@ function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDepen
 	endfor
 endfunction
 
-if !empty(glob($rc2))
-	source $rc2
+if !empty(glob($rce))
+	source $rce
 endif
 
 function! GetCurrentTimestamp()
