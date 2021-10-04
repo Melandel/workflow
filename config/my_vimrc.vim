@@ -2346,6 +2346,22 @@ augroup mydiagrams
 	autocmd FileType           dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
 
+" Notes"-------------------------------{{{
+function! GenerateMarkdownForRequestResponse(title, responseLines, requestLines)
+	let markdown =  ['### '.a:title, '<div style="display: flex"><div style="flex: 50%; max-width: 50%;">', '', '**Request**', '```']
+	let markdown += a:requestLines
+	let markdown += ['```', '', '', '</div><div style="flex: 50%; max-width: 50%;">', '', '**Responses**', '', '```']
+	let markdown += a:responseLines
+	let markdown += ['```', '* Caused by this', '* Caused also by that', '</div></div>']
+	return markdown
+endfunc
+
+function! TraceRequestResponseIntoFile(requestLines, responseLines, filename, title)
+	let markdownLines = GenerateMarkdownForRequestResponse(a:title, a:requestLines, a:responseLines)
+	call writefile(markdownLines, a:filename, "a")
+endfunction
+command! -nargs=1 Keep call TraceRequestResponseIntoFile(get(b:, 'scriptLines'), getline(1, '$'), get(g:, 'keepfile', $d.'/keep.md'), <q-args>)
+
 " Debugging"---------------------------{{{
  let g:vimspector_enable_mappings = 'HUMAN'
 	sign define vimspectorBP text=o             texthl=WarningMsg
