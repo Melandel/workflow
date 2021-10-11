@@ -145,7 +145,7 @@ set tabstop=1
 set shiftwidth=1
 augroup vimOnlyTabSize
 	au!
-	autocmd BufEnter * if(&ts != 1) | set tabstop=1 shiftwidth=1 SOFTWARE=1 | endif
+	autocmd BufEnter * if(&ts != 1) | set tabstop=1 shiftwidth=1 softtabstop=0 | endif
 augroup end
 
 command! -bar Spaces2Tabs set noet ts=4 |%retab!|set ts=1
