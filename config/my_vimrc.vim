@@ -1201,6 +1201,8 @@ command! -range=% SortByLength <line1>,<line2>call SortLinesByLength()
 set updatetime=250
 set complete=.,b
 set completeopt+=menuone,noselect,noinsert
+" when typing too fast, typically after a dot, omnifunc sometimes needs to be reset. This prvents that from happening
+inoremap . <C-G>u.
 
 function! AsyncAutocomplete()
 	if PreviousCharacter() =~ '\w\|\.'
