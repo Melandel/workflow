@@ -2570,7 +2570,7 @@ function! GetCodeUrlOnAzureDevops() range
 	let gitpath = '/' . substitute(gitpath, '\\', '/', 'g')
 	let gitbranch = gitbranch#name()
 	let gitproject = fnamemodify(gitrootfolder, ':t')
-	let url = $ados.'/_git/'.gitproject.'?path='.substitute(gitpath, '/', '%2F', 'g').'&version=GB'.substitute(gitbranch, '/', '%2F', 'g')
+	let url = $ados.'/'.$adosSourceProject.'/_git/'.gitproject.'?path='.substitute(gitpath, '/', '%2F', 'g').'&version=GB'.substitute(gitbranch, '/', '%2F', 'g')
 	if !empty(GetCurrentSelection())
 		let url .= '&line='.line("'<")
 		let adostabstop=3
