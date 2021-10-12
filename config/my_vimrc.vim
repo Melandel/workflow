@@ -3204,7 +3204,12 @@ function! BuildAdosProjectNameAndIdMapping()
 	let cmd .= ' | jq "[.value[]|{id: .id, name: .name}]"'
 	let v = system(cmd)
 	let v = substitute(v, '[\x0]', '', 'g')
-	return json_decode(v)
+	let v = json_decode(v)
+	let dict = {}
+	for i in range(len(v))
+		let dict[v[i].id] = v[i].name
+	endfor
+	return dict
 endfunction
 
 function! GetAdosRepositoriesNameAndIdMapping()
@@ -3216,19 +3221,25 @@ function! GetAdosRepositoriesNameAndIdMapping()
 endfunction
 
 function! BuildAdosRepositoriesNameAndIdMapping()
-	let cmd = printf('curl -s --location -u:%s "%s/CapsuleTech/_apis/git/repositories?api-version=5.0"', $pat, $ados)
+	let cmd = printf('curl -s --location -u:%s "%s/%s/_apis/git/repositories?api-version=5.0"', $pat, $ados, $adosSourceProject)
 	let cmd .= ' | jq "[.value[]|{id: .id, name: .name}]"'
 	let v = system(cmd)
 	let v = substitute(v, '[\x0]', '', 'g')
-	return json_decode(v)
+	let v = json_decode(v)
+	let dict = {}
+	for i in range(len(v))
+		let dict[v[i].id] = v[i].name
+	endfor
+	return dict
+
 endfunction
 
 function! ParseVsTfsUrl(url)
 	let parsed = {}
 	let ids = split(a:url, '/')[-1]
-	let ids = split(ids, '%2f')
-	let parsed.project = map(filter(copy(GetAdosProjectNameAndIdMapping()), {_,x -> x.id == ids[0]}), {_,x -> x.name})[0]
-	let parsed.repository = map(filter(copy(GetAdosRepositoriesNameAndIdMapping()), {_,x -> x.id == ids[1]}), {_,x -> x.name})[0]
+	let ids = split(ids, '%2F')
+	let parsed.project = GetAdosProjectNameAndIdMapping()[ids[0]]
+	let parsed.repository = GetAdosRepositoriesNameAndIdMapping()[ids[1]]
 	if len(ids) > 2
 		let parsed.id = ids[2]
 	endif
@@ -3259,7 +3270,7 @@ command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteratio
 function! BuildAdosLatestPullRequestWebUrl(...)
 	let workItemId = a:0 ? a:1 : $wip
 	let cmd = printf(
-		\'curl -s --location -u:%s "%s/_apis/wit/workitems/%s?api-version=5.0&$expand=relations" | jq "[.relations[] | select (.attributes.name == \"Pull Request\")] | max_by(.id).url"',
+		\'curl -s --location -u:%s "%s/_apis/wit/workitems/%s?api-version=5.0&$expand=relations" | jq "[.relations[] | select (.attributes.name == \"Pull Request\")] | max_by(.attributes.resourceCreatedDate).url"',
 		\$pat,
 		\$ados,
 		\workItemId
@@ -3274,8 +3285,7 @@ command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteratio
 
 function! LocListToAdosBuilds()
 	let repository = fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
-	let name2idMapping = copy(GetAdosRepositoriesNameAndIdMapping())
-	let matchingRepositories = filter(name2idMapping, {_,x -> x.name == repository})
+	let matchingRepositories = keys(filter(copy(GetAdosRepositoriesNameAndIdMapping()), {x,y -> stridx(y, repository) >=0}))
 	if empty(matchingRepositories)
 		echomsg repository 'is not a known repository on azuredevops.'
 		return
@@ -3286,7 +3296,7 @@ function! LocListToAdosBuilds()
 		\$pat,
 		\$ados,
 		\$adosProject,
-		\matchingRepository.id
+		\matchingRepository
 	\)
 	let builds = js_decode(substitute(system(cmd), '[\x0]', '', 'g'))
 	let builds = map(builds, {_, x -> extend(x, {'displayedStatus': (x.status == 'completed' ? x.result : x.status), 'displayedDate': x.startTime[:9].' '.x.startTime[11:15]})})
@@ -3305,19 +3315,22 @@ function! LocListToAdosBuilds()
 	nnoremap <silent> <buffer> o :exec 'Firefox' $mainBuildUrl<CR>
 endfunction
 command! AdosBuilds call LocListToAdosBuilds()
-nnoremap <Leader>A :AdosBuilds<CR>
+"nnoremap <Leader>A :AdosBuilds<CR>
+nnoremap <Leader>A :exec 'Firefox' $adosBoard<CR>
 
 function! BuildRepositoryPullRequestsWebUrl(...)
 	let repository = a:0 ? a:1 : fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
-	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosProject, repository)
+	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosSourceProject, repository)
 endfunction
 
 function! GetWorkItemsAssignedToMeInCurrentIteration(argLead, cmdLine, cursorPos)
 	let g:adosMyWorkItems = get(g:, 'adosMyWorkItems', [])
 	if empty(g:adosMyWorkItems)
 		try
-			let ids= js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/wiql/58051e1d-c06e-4861-83eb-c82bd7fe0063" | jq "[.workItems[].id]"', $pat, $ados)), '[\x0]', '', 'g'))
-			let list = js_decode(substitute(system(printf('curl -s --location -u:%s "%s/_apis/wit/workitems?ids=%s&api-version=5.0" | jq "[.value[]|{id, title: .fields[\"System.Title\"], status: .fields[\"System.State\"], type: .fields[\"System.WorkItemType\"]}]"', $pat, $ados, join(ids, ','))), '[\x0]', '', 'g'))
+			let cmd = printf('curl -s --location -u:%s "%s/%s/_apis/wit/wiql/%s" | jq "[.workItems[].id]"', $pat, $ados, $adosProject, $adosMyAssignedActiveWits)
+			let v = system(cmd)
+			let ids= js_decode(substitute(v, '[\x0]', '', 'g'))
+			let list = js_decode(substitute(system(printf('curl -s --location -u:%s "%s/%s/_apis/wit/workitems?ids=%s&api-version=5.0" | jq "[.value[]|{id, title: .fields[\"System.Title\"], status: .fields[\"System.State\"], type: .fields[\"System.WorkItemType\"]}]"', $pat, $ados, $adosProject, join(ids, ','))), '[\x0]', '', 'g'))
 			let g:adosMyWorkItems = map(list, {_,x -> printf('%s {%s-%s:%s}', x.id, x.type, x.status, x.title)})
 		catch
 			return []
@@ -3327,11 +3340,16 @@ function! GetWorkItemsAssignedToMeInCurrentIteration(argLead, cmdLine, cursorPos
 endfunction
 
 function! LocListAdos(workItemId)
+	let existingLocLists = filter(map(tabpagebuflist(), {_,x -> {'bufnr':x, 'qftitle': getbufvar(x, 'quickfix_title', '')}}), {_,x -> x.qftitle =~'^wit#'})
+	for i in range(len(existingLocLists))
+		exec existingLocLists[i].bufnr.'bdelete'
+	endfor
+	let repository = a:0 ? a:1 : fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
 	let items={
 		\'Task':                { 'order': 1, 'urlBuilder': function ('BuildAdosWorkItemUrl', [a:workItemId])},
 		\'Parent':              { 'order': 2, 'urlBuilder': function ('BuildAdosWorkItemParentUrl', [a:workItemId])},
 		\'Latest Pull Request': { 'order': 3, 'urlBuilder': function ('BuildAdosLatestPullRequestWebUrl', [a:workItemId])},
-		\'My Pull Requests':    { 'order': 4, 'urlBuilder': function ('BuildRepositoryPullRequestsWebUrl')}
+		\'My Pull Requests':    { 'order': 4, 'urlBuilder': function ('BuildRepositoryPullRequestsWebUrl', [repository])}
 	\}
 	exec len(items).'new'
 	let b:urlBuilders = items
