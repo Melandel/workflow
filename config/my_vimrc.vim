@@ -1201,8 +1201,11 @@ command! -range=% SortByLength <line1>,<line2>call SortLinesByLength()
 set updatetime=250
 set complete=.,b
 set completeopt+=menuone,noselect,noinsert
-" when typing too fast, typically after a dot, omnifunc sometimes needs to be reset. This prvents that from happening
+" when typing too fast, typically after a dot, omnifunc sometimes needs to be reset. This prevents that from happening
 inoremap . <C-G>u.
+" omnifunc is c# is slow to compute all the possibilities after these characters
+inoremap < <C-G>u<
+inoremap ( <C-G>u(
 
 function! AsyncAutocomplete()
 	if PreviousCharacter() =~ '\w\|\.'
