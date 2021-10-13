@@ -1639,6 +1639,10 @@ function! DeleteItemUnderCursor()
 		silent exec '!'.cmd '&' | redraw!
 		normal R
 	endif
+	let bufnr = bufnr(filename)
+	if bufnr >= 0
+		exec bufnr.'bdelete!'
+	endif
 endfunction
 
 function! MovePreviouslyYankedItemToCurrentDirectory()
