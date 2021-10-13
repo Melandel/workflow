@@ -3278,6 +3278,10 @@ function! BuildAdosKanbanBoardUrl()
 	return $adosBoard
 endfunction
 
+function! BuildAdosPipelineOrBuildUrl()
+	return $adosDeploymentPipeline
+endfunction
+
 function! BuildAdosLatestPullRequestWebUrl(...)
 	let workItemId = a:0 ? a:1 : get(g:, 'previousWorkItemId')
 	let cmd = printf(
@@ -3333,20 +3337,17 @@ function! BuildRepositoryPullRequestsWebUrl(...)
 	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosSourceProject, repository)
 endfunction
 
-function! GetWorkItemsAssignedToMeInCurrentIteration(argLead, cmdLine, cursorPos)
-	let g:adosMyWorkItems = get(g:, 'adosMyWorkItems', [])
-	if empty(g:adosMyWorkItems)
+function! GetWorkItemsAssignedToMeInCurrentIteration(...)
 		try
 			let cmd = printf('curl -s --location -u:%s "%s/%s/_apis/wit/wiql/%s" | jq "[.workItems[].id]"', $pat, $ados, $adosProject, $adosMyAssignedActiveWits)
 			let v = system(cmd)
 			let ids= js_decode(substitute(v, '[\x0]', '', 'g'))
 			let list = js_decode(substitute(system(printf('curl -s --location -u:%s "%s/%s/_apis/wit/workitems?ids=%s&api-version=5.0" | jq "[.value[]|{id, title: .fields[\"System.Title\"], status: .fields[\"System.State\"], type: .fields[\"System.WorkItemType\"]}]"', $pat, $ados, $adosProject, join(ids, ','))), '[\x0]', '', 'g'))
-			let g:adosMyWorkItems = map(list, {_,x -> printf('%s {%s-%s:%s}', x.id, x.type, x.status, x.title)})
+			return map(list, {_,x -> printf('%s {%s-%s:%s}', x.id, x.type, x.status, x.title)})
 		catch
 			return []
 		endtry
 	endif
-	return g:adosMyWorkItems
 endfunction
 
 function! LocListAdos(...)
@@ -3365,7 +3366,8 @@ function! LocListAdos(...)
 		\'Parent':              { 'order': 2, 'urlBuilder': function ('BuildAdosWorkItemParentUrl', [workItemId])},
 		\'Kanban Board':        { 'order': 3, 'urlBuilder': function ('BuildAdosKanbanBoardUrl')},
 		\'Latest Pull Request': { 'order': 4, 'urlBuilder': function ('BuildAdosLatestPullRequestWebUrl', [workItemId])},
-		\'My Pull Requests':    { 'order': 5, 'urlBuilder': function ('BuildRepositoryPullRequestsWebUrl', [repository])}
+		\'My Pull Requests':    { 'order': 5, 'urlBuilder': function ('BuildRepositoryPullRequestsWebUrl', [repository])},
+		\'Deployment':          { 'order': 6, 'urlBuilder': function ('BuildAdosPipelineOrBuildUrl')}
 	\}
 	exec len(items).'new'
 	let b:urlBuilders = items
@@ -3373,13 +3375,14 @@ function! LocListAdos(...)
 	put! =sort(keys(items), {a,b -> items[a].order - items[b].order})
 	normal! Gddgg
 	let b:is_custom_loclist = 1
-	let b:quickfix_title = 'wit#'.filter(copy(g:adosMyWorkItems), {_,x -> x =~ '^'.workItemId})[0]
+	let b:quickfix_title = 'wit#'.filter(GetWorkItemsAssignedToMeInCurrentIteration(), {_,x -> x =~ '^'.workItemId})[0]
 	set ft=qf bt=nofile
 	nnoremap <silent> <buffer> i :exec 'Firefox' eval("b:urlBuilders[getline('.')].urlBuilder()")<CR>
 	nnoremap <silent> <buffer> t :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Task'].order.")].urlBuilder()")<CR>
 	nnoremap <silent> <buffer> p :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Latest Pull Request'].order.")].urlBuilder()")<CR>
 	nnoremap <silent> <buffer> P :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['My Pull Requests'].order.")].urlBuilder()")<CR>
 	nnoremap <silent> <buffer> b :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Kanban Board'].order.")].urlBuilder()")<CR>
+	nnoremap <silent> <buffer> d :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Deployment'].order.")].urlBuilder()")<CR>
 endfunction
 nnoremap <silent> <Leader>a :if exists('g:previousWorkItemId') \| call LocListAdos() \| else \| call feedkeys(":Ados \<tab>") \| endif<CR>
 command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Ados call LocListAdos(str2nr(<f-args>))
