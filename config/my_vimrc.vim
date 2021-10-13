@@ -1220,8 +1220,8 @@ augroup autocompletion
 	autocmd User UltiSnipsEnterFirstSnippet mark '
 augroup end
 
-let g:UltiSnipsExpandTrigger = "<nop>"
-let g:UltiSnipsJumpForwardTrigger="<nop>"
+let g:UltiSnipsExpandTrigger = "<F13>"
+let g:UltiSnipsJumpForwardTrigger="<F13>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 let g:UltiSnipsEditSplit="horizontal"
 
