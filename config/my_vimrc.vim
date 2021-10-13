@@ -3254,13 +3254,13 @@ function! ParseVsTfsUrl(url)
 endfunction
 
 function! BuildAdosWorkItemUrl(...)
-	let workItemId = a:0 ? a:1 : $wip
+	let workItemId = a:0 ? a:1 : get(g:, 'previousWorkItemId')
 	return printf('%s/_workitems/edit/%d', $ados, workItemId)
 endfunction
 command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosWorkItem exec 'Firefox' BuildAdosWorkItemUrl(str2nr(<f-args>))
 
 function! BuildAdosWorkItemParentUrl(...)
-	let workItemId = a:0 ? a:1 : $wip
+	let workItemId = a:0 ? a:1 : get(g:, 'previousWorkItemId')
 	let cmd = printf(
 		\'curl -s --location -u:%s "%s/_apis/wit/workitems/%s?api-version=5.0&$expand=relations" | jq ".relations[] | select (.attributes.name == \"Parent\").url"',
 		\$pat,
@@ -3274,8 +3274,12 @@ function! BuildAdosWorkItemParentUrl(...)
 endfunction
 command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosParentItem exec 'Firefox' BuildAdosWorkItemParentUrl(str2nr(<f-args>))
 
+function! BuildAdosKanbanBoardUrl()
+	return $adosBoard
+endfunction
+
 function! BuildAdosLatestPullRequestWebUrl(...)
-	let workItemId = a:0 ? a:1 : $wip
+	let workItemId = a:0 ? a:1 : get(g:, 'previousWorkItemId')
 	let cmd = printf(
 		\'curl -s --location -u:%s "%s/_apis/wit/workitems/%s?api-version=5.0&$expand=relations" | jq "[.relations[] | select (.attributes.name == \"Pull Request\")] | max_by(.attributes.resourceCreatedDate).url"',
 		\$pat,
@@ -3323,7 +3327,6 @@ function! LocListToAdosBuilds()
 endfunction
 command! AdosBuilds call LocListToAdosBuilds()
 "nnoremap <Leader>A :AdosBuilds<CR>
-nnoremap <Leader>A :exec 'Firefox' $adosBoard<CR>
 
 function! BuildRepositoryPullRequestsWebUrl(...)
 	let repository = a:0 ? a:1 : fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
@@ -3346,17 +3349,23 @@ function! GetWorkItemsAssignedToMeInCurrentIteration(argLead, cmdLine, cursorPos
 	return g:adosMyWorkItems
 endfunction
 
-function! LocListAdos(workItemId)
+function! LocListAdos(...)
+	let workItemId = a:0 ? a:1 : get(g:, 'previousWorkItemId', 0)
+	if workItemId == 0
+		echomsg 'Invalid workItemId.'
+	endif
+	let g:previousWorkItemId = workItemId
 	let existingLocLists = filter(map(tabpagebuflist(), {_,x -> {'bufnr':x, 'qftitle': getbufvar(x, 'quickfix_title', '')}}), {_,x -> x.qftitle =~'^wit#'})
 	for i in range(len(existingLocLists))
 		exec existingLocLists[i].bufnr.'bdelete'
 	endfor
-	let repository = a:0 ? a:1 : fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
+	let repository = fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
 	let items={
-		\'Task':                { 'order': 1, 'urlBuilder': function ('BuildAdosWorkItemUrl', [a:workItemId])},
-		\'Parent':              { 'order': 2, 'urlBuilder': function ('BuildAdosWorkItemParentUrl', [a:workItemId])},
-		\'Latest Pull Request': { 'order': 3, 'urlBuilder': function ('BuildAdosLatestPullRequestWebUrl', [a:workItemId])},
-		\'My Pull Requests':    { 'order': 4, 'urlBuilder': function ('BuildRepositoryPullRequestsWebUrl', [repository])}
+		\'Task':                { 'order': 1, 'urlBuilder': function ('BuildAdosWorkItemUrl', [workItemId])},
+		\'Parent':              { 'order': 2, 'urlBuilder': function ('BuildAdosWorkItemParentUrl', [workItemId])},
+		\'Kanban Board':        { 'order': 3, 'urlBuilder': function ('BuildAdosKanbanBoardUrl')},
+		\'Latest Pull Request': { 'order': 4, 'urlBuilder': function ('BuildAdosLatestPullRequestWebUrl', [workItemId])},
+		\'My Pull Requests':    { 'order': 5, 'urlBuilder': function ('BuildRepositoryPullRequestsWebUrl', [repository])}
 	\}
 	exec len(items).'new'
 	let b:urlBuilders = items
@@ -3364,12 +3373,17 @@ function! LocListAdos(workItemId)
 	put! =sort(keys(items), {a,b -> items[a].order - items[b].order})
 	normal! Gddgg
 	let b:is_custom_loclist = 1
-	let b:quickfix_title = 'wit#'.filter(copy(g:adosMyWorkItems), {_,x -> x =~ '^'.a:workItemId})[0]
+	let b:quickfix_title = 'wit#'.filter(copy(g:adosMyWorkItems), {_,x -> x =~ '^'.workItemId})[0]
 	set ft=qf bt=nofile
 	nnoremap <silent> <buffer> i :exec 'Firefox' eval("b:urlBuilders[getline('.')].urlBuilder()")<CR>
+	nnoremap <silent> <buffer> t :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Task'].order.")].urlBuilder()")<CR>
+	nnoremap <silent> <buffer> p :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Latest Pull Request'].order.")].urlBuilder()")<CR>
+	nnoremap <silent> <buffer> P :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['My Pull Requests'].order.")].urlBuilder()")<CR>
+	nnoremap <silent> <buffer> b :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Kanban Board'].order.")].urlBuilder()")<CR>
 endfunction
+nnoremap <silent> <Leader>a :if exists('g:previousWorkItemId') \| call LocListAdos() \| else \| call feedkeys(":Ados \<tab>") \| endif<CR>
 command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Ados call LocListAdos(str2nr(<f-args>))
-nnoremap <Leader>a :Ados <tab>
+nnoremap <Leader>A :Ados <tab>
 
 " Format
 augroup Formatting
