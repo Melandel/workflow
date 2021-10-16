@@ -46,8 +46,8 @@ function! MinpacInit()
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
-	call minpac#add('OmniSharp/omnisharp-vim')
-	"call minpac#add('Melandel/omnisharp-vim')
+	"call minpac#add('OmniSharp/omnisharp-vim')
+	call minpac#add('Melandel/omnisharp-vim')
 	call minpac#add('puremourning/vimspector')
 	call minpac#add('nickspoons/vim-sharpenup')
 	call minpac#add('SirVer/ultisnips')
@@ -1197,6 +1197,14 @@ function! SortLinesByLength() range
 endfunction
 command! -range=% SortByLength <line1>,<line2>call SortLinesByLength()
 
+function! SortLinesByLengthBeforeFirstSpaceChar() range
+	let range = a:firstline.','.a:lastline
+	silent exec range 's/.*/\=printf("%03d", match(submatch(0), "\\s"))."|".submatch(0)/'
+	exec range 'sort n'
+	silent exec range 's/..../'
+	nohlsearch
+endfunction
+command! -range=% SortByLengthBeforeFirstSpaceChar <line1>,<line2>call SortLinesByLengthBeforeFirstSpaceChar()
 " Autocompletion (Insert Mode)" -------{{{
 set updatetime=250
 set complete=.,b
@@ -2492,38 +2500,58 @@ endfunction
 function! FindNuget(...)
 	let tokens = flatten(map(copy(a:000), { _,x -> split(x, '\.') }))
 	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Nugets')
-	let cmd = 'nuget list id:'.tokens[0]
+	let cmd = 'nuget search '.join(tokens, '.').' -Take 20 -v q'
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
 	endif
+	let found = []
+	let sources = []
 	let s:job = job_start(
 		\cmd,
 		\{
 			\'out_io': 'buffer',
-			\'out_buf': scratchbufnr,
 			\'out_modifiable': 1,
 			\'err_io': 'buffer',
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
 			\'callback': { chan,msg  -> execute('echo ''[cb] '.substitute(msg,"'","''","g").'''',  1)   },
-			\'out_cb':   { chan,msg  -> execute('echo ''Found: '.substitute(msg,"'","''","g").'''',  1) },
+			\'out_cb':   function('AddNugetIfMatches', [found, tokens, sources]),
 			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
 			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)},
-			\'exit_cb':  function('FindNugetExitCb', [tokens, scratchbufnr])
+			\'exit_cb':  function('FindNugetExitCb', [found, tokens, scratchbufnr])
 		\}
 	\)
 endfunc
 command! -nargs=+ Nuget call FindNuget(<f-args>)
 
-function! FindNugetExitCb(tokens, scratchbufnr, job, status)
+function! AddNugetIfMatches(foundNugets, searchTokens, sources, channel, msg)
+	if a:msg =~ '^source: '
+		let source = a:msg[len('Source: '):]
+		call add(a:sources, source)
+		return
+	endif
+	let isMatch = 1
+	let nuget = a:msg[len('> '):]
+	for token in a:searchTokens
+		if nuget !~ token
+			let isMatch = 0
+			break
+		endif
+	endfor
+	if isMatch
+		let currentSource = a:sources[-1]
+		let foundNuget = nuget.' | '.currentSource
+		call add(a:foundNugets, foundNuget)
+	endif
+endfunction
+
+function! FindNugetExitCb(foundNugets, tokens, scratchbufnr, job, status)
 	echomsg "[exit] ".a:status
 	exec 'sbuffer' a:scratchbufnr
-	for token in a:tokens
-		exec 'v/'.token.'/d'
-	endfor
-	SortByLength
-	normal! gg
+	0put =a:foundNugets
+	SortByLengthBeforeFirstSpaceChar
+	normal! gg"_dd
 endfunction
 
 " cs(c#)" -----------------------------{{{
