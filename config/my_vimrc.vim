@@ -2497,9 +2497,17 @@ endfunction
 
 " Specific Workflows:------------------{{{
 " Nuget" ------------------------------{{{
-function! FindNuget(...)
-	let tokens = flatten(map(copy(a:000), { _,x -> split(x, '\.') }))
+function! FindOrListNugets(...)
 	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Nugets')
+	if empty(a:000) && &ft == 'cs'
+		let cmd = printf('dotnet list "%s" package', OmniSharp#GetHost().sln_or_dir)
+		let cmd = 'cmd /C '.cmd
+		echomsg cmd
+		let s:job = job_start(cmd, {'out_io': 'buffer', 'out_buf': scratchbufnr, 'err_io': 'buffer', 'err_buf': scratchbufnr, 'exit_cb': { job, status -> execute('sbuffer '.scratchbufnr)}})
+		return
+	endif
+
+	let tokens = flatten(map(copy(a:000), { _,x -> split(x, '\.') }))
 	let cmd = 'nuget search '.join(tokens, '.').' -Take 20 -v q'
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
@@ -2519,11 +2527,11 @@ function! FindNuget(...)
 			\'out_cb':   function('AddNugetIfMatches', [found, tokens, sources]),
 			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
 			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)},
-			\'exit_cb':  function('FindNugetExitCb', [found, tokens, scratchbufnr])
+			\'exit_cb':  function('FindOrListNugetsExitCb', [found, tokens, scratchbufnr])
 		\}
 	\)
 endfunc
-command! -nargs=+ Nuget call FindNuget(<f-args>)
+command! -nargs=* Nuget call FindOrListNugets(<f-args>)
 
 function! AddNugetIfMatches(foundNugets, searchTokens, sources, channel, msg)
 	if a:msg =~ '^source: '
@@ -2546,7 +2554,7 @@ function! AddNugetIfMatches(foundNugets, searchTokens, sources, channel, msg)
 	endif
 endfunction
 
-function! FindNugetExitCb(foundNugets, tokens, scratchbufnr, job, status)
+function! FindOrListNugetsExitCb(foundNugets, tokens, scratchbufnr, job, status)
 	echomsg "[exit] ".a:status
 	exec 'sbuffer' a:scratchbufnr
 	0put =a:foundNugets
