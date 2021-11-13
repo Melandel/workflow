@@ -213,7 +213,7 @@ augroup lcd
 	au!
 	" enew has a delay before updating bufname()
 	autocmd BufCreate * call timer_start(100, { timerid -> execute('if &ft != "qf" && bufname() == "" | set bt=nofile | endif', '') })
-	autocmd BufEnter  * call timer_start(100, { timerid -> execute('if &ft!="dirvish" | Lcd | else | lcd %:p:h | endif', '') })
+	autocmd BufEnter  * call timer_start(100, { timerid -> execute('if &ft == "dosbatch" | | elseif &ft!="dirvish" | Lcd | else | lcd %:p:h | endif', '') })
 	autocmd QuickFixCmdPre * let g:lcd_qf = getcwd()
 	autocmd BufEnter * call UpdateEnvironmentLocationVariables()
 augroup end
@@ -1880,6 +1880,9 @@ endif
 	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>R :call OmniSharp#RestartServer()<CR>
 	autocmd FileType dirvish command! -buffer -bar -nargs=? -complete=file OmniSharpStartServer call OmniSharp#StartServer(<q-args>)
 	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer 
+	autocmd FileType dirvish unmap <buffer> .
+	autocmd FileType dirvish nnoremap <buffer> . :Shdo  {}<Left><Left><Left>
+	autocmd FileType dirvish nnoremap <buffer> X :Shdo!  {}<Left><Left><Left>
 augroup end
 
 function! GoToGitRoot()
