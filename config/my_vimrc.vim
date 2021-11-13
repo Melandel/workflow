@@ -1126,12 +1126,16 @@ nnoremap q! q/
 nnoremap / !
 vnoremap / !
 
+command! -bar UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
+command! -bar Noh noh | silent call clearmatches()
+augroup my_search
+	au!
+	autocmd CursorMoved * if (strcharpart(getline('.')[col('.') - 1:], 0, len(@/)) == @/) | UnderlineCurrentSearchItem | endif
+augroup end
+
 nnoremap z! m`:BLines<CR>
-command! UnderlineCurrentSearchItem silent call matchadd('ErrorMsg', '\c\%#'.@/, 101)
-nnoremap <silent> n :keepjumps normal! n<CR>:UnderlineCurrentSearchItem<CR>
-nnoremap <silent> N :keepjumps normal! N<CR>:UnderlineCurrentSearchItem<CR>
-nnoremap <silent> * :let w=escape(expand('<cword>'), '\*[]~')\|call histadd('search', w)\|let @/=w\|set hls<CR>
-vnoremap <silent> * "vy:let w=escape(@v, '\*[]~')\|call histadd('search', w)\|let @/=w\|set hls<CR>
+nnoremap <silent> * :let w=escape(expand('<cword>'), '\*[]~')\|call histadd('search', w)\|let @/=w\|set hls\|UnderlineCurrentSearchItem<CR>
+vnoremap <silent> * "vy:let w=escape(@v, '\*[]~')\|call histadd('search', w)\|let @/=w\|set hls\|UnderlineCurrentSearchItem<CR>
 
 let hits=[]
 cnoremap <expr> <C-S> SubstituteIntoArray()
