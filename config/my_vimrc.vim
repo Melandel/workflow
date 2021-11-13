@@ -1038,7 +1038,12 @@ function! Grep(qf_or_loclist, ...)
 	\)
 endfunction
 
-function! GrepCB(pattern, scratchbufnr, qf_or_loclist,...)
+function! GrepCB(pattern, scratchbufnr, qf_or_loclist, job, exit_status)
+	if (a:exit_status)
+		exec 'botright sbuffer' a:scratchbufnr 
+		let w:quickfix_title = printf('[grep] %s', a:pattern)
+		return
+	endif
 	let result = getbufline(a:scratchbufnr, 1, '$')
 	let nb = len(result)
 	if nb == 1 && empty(result[0])
@@ -1061,9 +1066,9 @@ set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :Files<CR>
 nnoremap <leader>F :Files $git<CR>
-nnoremap <Leader>r :Grep <C-R><C-W><CR>
-vnoremap <Leader>r "vy:let cmd = printf('Grep %s',@v)\|call histadd('cmd',cmd)\|exec cmd<CR>
-nnoremap <Leader>R :Grep 
+nnoremap <Leader>r :Grep -F <C-R><C-W><CR>
+vnoremap <Leader>r "vy:let cmd = printf('Grep -F %s',@v)\|call histadd('cmd',cmd)\|exec cmd<CR>
+nnoremap <Leader>R :Grep -F 
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
@@ -2330,6 +2335,10 @@ function! StartPlantumlToSvg(diagram, diagramtype, array, pos)
 endfunction
 
 function! StartPlantumlToSvgCB(array, pos, scratchbufnr, job, status)
+	if a:status != 0
+		exec 'botright sbuffer' a:scratchbufnr 
+		return
+	endif
 	call setbufvar(a:scratchbufnr, '&buftype', 'nofile')
 	let new = join(getbufline(a:scratchbufnr, 1, '$'), '\n')
 	let new = substitute(new, ' style="', ' style="padding:8px;', '')
@@ -2565,6 +2574,10 @@ function! AddNugetIfMatches(foundNugets, searchTokens, sources, channel, msg)
 endfunction
 
 function! FindOrListNugetsExitCb(foundNugets, tokens, scratchbufnr, job, status)
+	if a:status != 0
+		exec 'botright sbuffer' a:scratchbufnr 
+		return
+	endif
 	echomsg "[exit] ".a:status
 	exec 'sbuffer' a:scratchbufnr
 	0put =a:foundNugets
@@ -2923,7 +2936,11 @@ endfunction
 
 let g:csClassesInChangedFiles=[]
 
-function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, sln, buildAndTestJobs, ...)
+function! VsTestCB(testedAssembly, csprojsWithNbOccurrences, scratchbufnr, sln, buildAndTestJobs, job, status)
+	if a:status != 0
+		exec 'botright sbuffer' a:scratchbufnr 
+		return
+	endif
 	call filter(a:buildAndTestJobs, 'v:val =~ "run"')
 	let g:nbTestedCsprojs += 1
 	let report = getbufline(a:scratchbufnr, '$')[0]
@@ -3023,7 +3040,11 @@ function! CascadeBuild(csproj, csprojsWithNbOccurrences, reverseDependencyTree, 
 	endif
 endfunction
 
-function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, modifiedClasses, previouslyBuiltCsproj, sln, buildAndTestJobs, ...)
+function! CascadeReferences(csprojs, csprojsWithNbOccurrences, reverseDependencyTree, scratchbufnr, modifiedClasses, previouslyBuiltCsproj, sln, buildAndTestJobs, job, status)
+	if a:status != 0
+		exec 'botright sbuffer' a:scratchbufnr 
+		return
+	endif
 	let g:nbBuiltCsprojs += 1
 	if a:0 && a:2
 		redraw | echomsg '🚫' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) fnamemodify(a:previouslyBuiltCsproj, ':t:r')
