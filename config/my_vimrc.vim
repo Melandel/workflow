@@ -2813,12 +2813,12 @@ endfunction
 function! RunScript(name, bang, ...)
 	if empty(a:bang)
 		if a:name =~ 'Start$'
-			let excmd = printf('terminal ++hidden %s.bat %s', a:name, join(a:000, ' '))
+			let excmd = printf('terminal ++hidden ++kill=int %s.bat %s', a:name, join(a:000, ' '))
 		else
-			let excmd = printf('terminal ++hidden ++open %s.bat %s', a:name, join(a:000, ' '))
+			let excmd = printf('terminal ++hidden ++open ++kill=int %s.bat %s', a:name, join(a:000, ' '))
 		endif
 	else
-		let excmd = printf('terminal ++curwin ++noclose %s.bat %s', a:name, join(a:000, ' '))
+		let excmd = printf('terminal ++curwin ++noclose ++kill=int %s.bat %s', a:name, join(a:000, ' '))
 	endif
 	let &termwinsize=(&lines-2).'*'.(&columns-5)
 	exec excmd
