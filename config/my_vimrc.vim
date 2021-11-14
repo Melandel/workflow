@@ -1010,14 +1010,41 @@ augroup end
 
 " Find, Grep, Make, Equal" ------------{{{
 function! Grep(qf_or_loclist, ...)
-	let pattern = a:1
+	let pattern = ''
 	let i = 1
-	while ((count(pattern, '"') - count(pattern, '\"')) % 2) == 1
-		let pattern .= a:000[i]
-		let i+=1
-	endwhile
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/'.substitute(pattern, '\s', '_', 'g'))
-	let cmd = 'rg --vimgrep --no-heading --smart-case --no-ignore-parent '.join(a:000, ' ')
+	let continue = 1
+	for i in range(len(a:000))
+		let token = a:000[i]
+		if token =~ '^-'
+			if stridx(pattern, '"') < 0
+				continue
+			elseif token == '--'
+				break
+			else
+				let pattern .= ' '.token
+			endif
+		else
+			let pattern .= ' '.token
+		endif
+	endfor
+	let pattern = trim(pattern, ' ')
+	let addDashEOption = 0
+	if pattern =~ '^".*"$'
+		let addDashEOption = 1
+	endif
+	let string_to_match = pattern
+	if stridx(string_to_match, '"') >= 0 || stridx(string_to_match, "'") >= 0 || stridx(string_to_match, '|') >= 0 || stridx(string_to_match, '&') >= 0
+		if pattern =~ '^".*"$'
+			let string_to_match = printf('%s', escape(string_to_match, '"'))
+		else
+			let string_to_match = printf('"%s"', escape(string_to_match, '"'))
+		endif
+	endif
+	if stridx(string_to_match, '^') >= 0
+		let string_to_match = substitute(string_to_match, '\^', '^^', 'g')
+	endif
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/grep')
+	let cmd = 'rg --vimgrep --no-heading --smart-case -g "!**/obj/**" -g "!**/bin/**" '.substitute(join(a:000), escape(pattern, '^~'), (addDashEOption ? '-e ' : '').(addDashEOption ? '"'.escape(strcharpart(string_to_match, 1, len(string_to_match)-2), '"&').'"' : escape(string_to_match, '"&')), "")
 	echomsg "<start> ".cmd
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
@@ -1033,15 +1060,15 @@ function! Grep(qf_or_loclist, ...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'exit_cb': function("GrepCB", [pattern, scratchbufnr, a:qf_or_loclist])
+			\'exit_cb': function("GrepCB", [cmd, pattern, scratchbufnr, a:qf_or_loclist])
 		\}
 	\)
 endfunction
 
-function! GrepCB(pattern, scratchbufnr, qf_or_loclist, job, exit_status)
+function! GrepCB(cmd, pattern, scratchbufnr, qf_or_loclist, job, exit_status)
 	if (a:exit_status)
-		exec 'botright sbuffer' a:scratchbufnr 
-		let w:quickfix_title = printf('[grep] %s', a:pattern)
+		silent exec printf('botright sbuffer%d | let w:quickfix_title = "%s"', a:scratchbufnr, printf("[grep] %s", escape(a:pattern, '"')))
+		0put=a:cmd
 		return
 	endif
 	let result = getbufline(a:scratchbufnr, 1, '$')
@@ -1054,10 +1081,7 @@ function! GrepCB(pattern, scratchbufnr, qf_or_loclist, job, exit_status)
 	set errorformat=%f:%l:%c:%m
 	let prefix = (a:qf_or_loclist == 'qf' ? 'c' : 'l')
 	silent exec prefix.'getbuffer' a:scratchbufnr
-	silent exec prefix.'window'
-	if &ft == 'qf'
-		let w:quickfix_title = printf('[grep] %s', a:pattern)
-	endif
+	silent exec printf('%swindow | call setwinvar(winnr("$"), "quickfix_title", "%s")', prefix, printf("[grep] %s", escape(a:pattern, '"')))
 endfunction
 command! -nargs=+ Grep  call Grep('qf',     <f-args>)
 command! -nargs=+ Lgrep call Grep('loclist',<f-args>)
@@ -1067,7 +1091,7 @@ set errorformat=%m
 nnoremap <Leader>f :Files<CR>
 nnoremap <leader>F :Files $git<CR>
 nnoremap <Leader>r :Grep -F <C-R><C-W><CR>
-vnoremap <Leader>r "vy:let cmd = printf('Grep -F %s',@v)\|call histadd('cmd',cmd)\|exec cmd<CR>
+vnoremap <Leader>r "vy:let cmd = printf('Grep -F %s',(stridx(@v,'-') >= 0 ? '"'.@v.'"' : @v))\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <Leader>R :Grep -F 
 nnoremap <LocalLeader>m :silent make<CR>
 
