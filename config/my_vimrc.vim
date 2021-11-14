@@ -1915,6 +1915,7 @@ endif
 	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer 
 	autocmd FileType dirvish unmap <buffer> .
 	autocmd FileType dirvish nnoremap <buffer> . :Shdo  {}<Left><Left><Left>
+	autocmd FileType dirvish vnoremap <buffer> . :Shdo  {}<Left><Left><Left>
 	autocmd FileType dirvish nnoremap <buffer> X :Shdo!  {}<Left><Left><Left>
 augroup end
 
