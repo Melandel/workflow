@@ -1308,14 +1308,14 @@ let g:ale_set_loclist = 0
 let g:qfpreview = {
 	\'top': "\<Home>",
 	\'bottom': "\<End>",
-	\'scrolldown': "\<Down>",
-	\'scrollup': "\<Up>",
+	\'halfpagedown': "d",
+	\'halfpageup': "u",
 	\'next': "\<C-j>",
 	\'previous': "\<C-k>",
 	\'reset': "\<space>",
 	\'height': "30",
 	\'offset': "10",
-	\'close': "q",
+	\'close': "\<Esc>",
 	\'number': 1,
 	\'sign': {'texthl': 'PmenuSel', 'linehl': 'PmenuSel'}
 \}
@@ -2610,7 +2610,14 @@ let $DOTNET_NEW_LOCAL_SEARCH_FILE_ONLY=1
 let g:OmniSharp_start_server = 0
 let g:OmniSharp_server_stdio = 1
 let g:ale_linters = { 'cs': ['OmniSharp'] }
-let g:OmniSharp_popup = 0
+let g:OmniSharp_popup = 1
+let g:OmniSharp_popup_position = 'center'
+let g:OmniSharp_popup_options = {
+\ 'highlight': 'Normal',
+\ 'border': [1],
+\ 'borderchars': [' '],
+\ 'borderhighlight': ['Visual']
+\}
 let g:OmniSharp_loglevel = 'none'
 let g:OmniSharp_highlighting = 2
 let g:OmniSharp_selector_ui = 'fzf'
@@ -2680,6 +2687,20 @@ endfunction
 command! MyOmniSharpNavigateUp   call OmniSharp#actions#navigate#Up  (function('MyOmniSharpNavigate'))
 command! MyOmniSharpNavigateDown call OmniSharp#actions#navigate#Down(function('MyOmniSharpNavigate'))
 
+function! MyOmniSharpGoToDefinition(location, ...)
+	if type(a:location) != type({}) " Check whether a dict was returned
+		echo 'Not found'
+		let found = 0
+	else
+		let found = OmniSharp#locations#Navigate(a:location, 'edit')
+		if found
+			Reframe
+		endif
+	endif
+	return found
+endfunction
+command! MyOmniSharpGoToDefinition call OmniSharp#actions#definition#Find(function('MyOmniSharpGoToDefinition'))
+
 augroup csharpfiles
 	au!
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
@@ -2694,7 +2715,7 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <C-H> gg:MyOmniSharpNavigateDown<CR>
 	autocmd FileType cs nnoremap <buffer> <C-L> G:MyOmniSharpNavigateUp<CR>
 	autocmd FileType cs nmap <buffer> z! :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_members)
-	autocmd FileType cs nmap <buffer> gd <Plug>(omnisharp_go_to_definition):Reframe<CR>
+	autocmd FileType cs nmap <buffer> gd :MyOmniSharpGoToDefinition<CR>
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
 	autocmd FileType cs nmap <buffer> <LocalLeader>i :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_implementations):Reframe<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>I :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_preview_implementations)
