@@ -741,6 +741,7 @@ function! BrowseLayoutDown()
 		silent! normal! ]czxzz
 	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
 		ALENext
+		Reframe
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
@@ -753,6 +754,7 @@ function! BrowseLayoutDown()
 			endif
 		endif
 		call Qfnext()
+		Reframe
 	endif
 	silent! normal! zv
 	normal! m'
@@ -1061,7 +1063,9 @@ function! GrepCB(cmd, pattern, scratchbufnr, qf_or_loclist, job, exit_status)
 	let prefix = (a:qf_or_loclist == 'qf' ? 'c' : 'l')
 	silent exec prefix.'getbuffer' a:scratchbufnr
 	wincmd p
-	silent exec printf('%swindow | call setwinvar(winnr("$"), "quickfix_title", "%s")', prefix, printf("[grep] %s", escape(a:pattern, '"')))
+	exec prefix.'window'
+	let title = printf("[grep] %s", a:pattern)
+	silent exec printf('call setwinvar(winnr("$"), "quickfix_title", "%s")', title)
 endfunction
 command! -nargs=+ Grep  call Grep('qf',     <f-args>)
 command! -nargs=+ Lgrep call Grep('loclist',<f-args>)
@@ -2690,9 +2694,9 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <C-H> gg:MyOmniSharpNavigateDown<CR>
 	autocmd FileType cs nnoremap <buffer> <C-L> G:MyOmniSharpNavigateUp<CR>
 	autocmd FileType cs nmap <buffer> z! :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_members)
-	autocmd FileType cs nmap <buffer> gd <Plug>(omnisharp_go_to_definition)
+	autocmd FileType cs nmap <buffer> gd <Plug>(omnisharp_go_to_definition):Reframe<CR>
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
-	autocmd FileType cs nmap <buffer> <LocalLeader>i :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_implementations)
+	autocmd FileType cs nmap <buffer> <LocalLeader>i :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_implementations):Reframe<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>I :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_preview_implementations)
 	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd()<CR>:OmniSharpFindSymbol 
 	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_type)
