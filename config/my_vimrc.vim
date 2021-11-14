@@ -757,7 +757,6 @@ function! BrowseLayoutDown()
 		Reframe
 	endif
 	silent! normal! zv
-	normal! m'
 endfunction
 nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 
@@ -780,7 +779,6 @@ function! BrowseLayoutUp()
 		call Qfprev()
 	endif
 	silent! normal! zv
-	normal! m'
 endfunction
 nnoremap <silent> <C-K> :call BrowseLayoutUp()<CR>
 
@@ -1012,11 +1010,13 @@ augroup end
 
 " Find, Grep, Make, Equal" ------------{{{
 function! Grep(qf_or_loclist, ...)
+	let winnr = winnr()
 	let params = join(a:000)
 	let firstDoubleQuote = stridx(params, '"')
 	let reversed = join(reverse(split(params, '.\zs')), '')
 	let lastDoubleQuote = (-1 * stridx(reversed, '"')) - 1
 	let pattern = params[firstDoubleQuote+1:lastDoubleQuote-1]
+	call histadd('/', pattern) | let @/ = pattern
 	let patternHasDash = stridx(pattern, '-') >= 0
 	let firstTokenWithDoubleQuote = index(map(copy(a:000), {i,x -> x =~ '^"'}), 1)
 	let cmdParams = a:000[0:firstTokenWithDoubleQuote-1]
@@ -1041,12 +1041,12 @@ function! Grep(qf_or_loclist, ...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'exit_cb': function("GrepCB", [cmd, pattern, scratchbufnr, a:qf_or_loclist])
+			\'exit_cb': function("GrepCB", [winnr, cmd, pattern, scratchbufnr, a:qf_or_loclist])
 		\}
 	\)
 endfunction
 
-function! GrepCB(cmd, pattern, scratchbufnr, qf_or_loclist, job, exit_status)
+function! GrepCB(winnr, cmd, pattern, scratchbufnr, qf_or_loclist, job, exit_status)
 	if (a:exit_status)
 		silent exec printf('botright sbuffer%d | let w:quickfix_title = "%s"', a:scratchbufnr, printf("[grep] %s", escape(a:pattern, '"')))
 		0put=a:cmd
@@ -1062,8 +1062,8 @@ function! GrepCB(cmd, pattern, scratchbufnr, qf_or_loclist, job, exit_status)
 	set errorformat=%f:%l:%c:%m
 	let prefix = (a:qf_or_loclist == 'qf' ? 'c' : 'l')
 	silent exec prefix.'getbuffer' a:scratchbufnr
-	wincmd p
-	exec prefix.'window'
+	silent exec a:winnr.'wincmd w'
+	silent exec prefix.'window'
 	let title = printf("[grep] %s", a:pattern)
 	silent exec printf('call setwinvar(winnr("$"), "quickfix_title", "%s")', title)
 endfunction
@@ -1085,9 +1085,9 @@ set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :Files<CR>
 nnoremap <leader>F :Files $git<CR>
-nnoremap <Leader>r :Grep -F <C-R><C-W><CR>
-vnoremap <Leader>r "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
-nnoremap <Leader>R :Grep -F 
+nnoremap         µ :Grep -F "<C-R>=EscapeRipgrepPattern(expand('<cword>'))<CR>"<CR>
+vnoremap         µ "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
+nnoremap <Leader>r :Grep -F 
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
@@ -1440,6 +1440,11 @@ function! FilterQf()
 		call matchadd('Conceal', '^\([^/|]\+\/\)*')
 		set conceallevel=3 concealcursor=nvic
 		let w:quickfix_title = qftitle.' [public]'
+	elseif qftitle =~ '\[grep\]'
+		exec printf('Cfilter /\<%s\>/', @/)
+		exec printf('/\<%s\>', @/)
+		let sep = stridx(qftitle, ' ')
+		let w:quickfix_title = printf('%s<%s>', qftitle[:sep], qftitle[sep+1:])
 	else
 		call feedkeys(':Cfilter')
 	endif
@@ -2617,6 +2622,11 @@ let g:OmniSharp_popup_options = {
 \ 'border': [1],
 \ 'borderchars': [' '],
 \ 'borderhighlight': ['Visual']
+\}
+let g:OmniSharp_popup_mappings = {
+\ 'close': ['<Esc>', 'q'],
+\ 'halfPageDown': ['<C-d>', 'd'],
+\ 'halfPageUp': ['<C-u>', 'u']
 \}
 let g:OmniSharp_loglevel = 'none'
 let g:OmniSharp_highlighting = 2
