@@ -1089,7 +1089,7 @@ nnoremap <Leader>f :Files<CR>
 nnoremap <leader>F :Files $git<CR>
 nnoremap         µ :Grep -F "<C-R>=EscapeRipgrepPattern(expand('<cword>'))<CR>"<CR>
 vnoremap         µ "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
-nnoremap <Leader>r :Grep -F 
+nnoremap <Leader>r :Grep -F ""<left>
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
