@@ -873,7 +873,7 @@ nnoremap gA vip:Tabular /\|<CR>
 " Vim Core Functionalities:------------{{{
 " Command Line"------------------------{{{
 set cmdwinheight=40
-set cedit=<C-S>
+set cedit=<C-F>
 
 " Wild Menu" --------------------------{{{
 set wildmenu
