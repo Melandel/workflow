@@ -1963,30 +1963,8 @@ command! -nargs=* -range Google :call Firefox('http://google.com/search?q=', <f-
 nnoremap <Leader>q :Google <C-R>=&ft<CR> 
 vnoremap <Leader>q :Google<CR>
 
-function! Lynx(...)
-	let url = ((a:0 == 0) ? GetCurrentSelection() : join(a:000))
-	let url = shellescape(url, 1)
-	exec (bufname() =~ '\.lynx$' ? 'edit!' : 'tabedit') printf($desktop.'/tmp/_%s.lynx', substitute(url, '\v(\<|\>|:|"|/|\||\?|\*)', '_', 'g'))
-	normal! ggdG
-	exec 'silent 0read' '!echo' url
-	exec 'silent 1read' '!lynx -dump -nonumbers -width=9999 -display_charset=utf-8' url
-	normal! gg
-	write
-endfunction
-command! -nargs=* -range Lynx call Lynx(<f-args>)
-nnoremap <Leader>W :Lynx
-vnoremap <Leader>W :Lynx<CR>
-
-command! -nargs=* -range Wikipedia :call Lynx('https://en.wikipedia.org/wiki/Special:Random')
-
-augroup lynx
-	au!
-	autocmd BufEnter *.lynx set filetype=lynx
-	autocmd FileType lynx set nowrap
-	autocmd FileType lynx vnoremap <buffer> <Leader>w :Lynx<CR>
-	autocmd FileType lynx vnoremap <buffer> <Leader>W :Firefox<CR>
-	autocmd FileType lynx nnoremap <buffer> <Leader>w :Firefox <C-R>=getline('1')<CR><CR>
-augroup end
+command! Wiki exec 'Firefox' $wiki
+nnoremap <Leader>W :Wiki<CR>
 
 " Dashboard" --------------------------{{{
 cnoremap <C-B> <C-R>=gitbranch#name()<CR>
