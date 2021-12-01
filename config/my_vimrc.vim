@@ -741,7 +741,7 @@ function! BrowseLayoutDown()
 		silent! normal! ]czxzz
 	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
 		ALENext
-		Reframe
+		normal! zz
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
@@ -754,7 +754,7 @@ function! BrowseLayoutDown()
 			endif
 		endif
 		call Qfnext()
-		Reframe
+		normal! zz
 	endif
 	silent! normal! zv
 endfunction
@@ -765,6 +765,7 @@ function! BrowseLayoutUp()
 		silent! normal! [czxzz
 	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
 		ALEPrevious
+		normal! zz
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
@@ -777,6 +778,7 @@ function! BrowseLayoutUp()
 			endif
 		endif
 		call Qfprev()
+		normal! zz
 	endif
 	silent! normal! zv
 endfunction
