@@ -3521,8 +3521,9 @@ nnoremap <silent> <Leader>a :if exists('g:previousWorkItemId') \| call LocListAd
 command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Ados call LocListAdos(str2nr(<f-args>))
 nnoremap <Leader>A :Ados <tab>
 
-" Format
+" Formatting" -------------------------{{{
 augroup Formatting
 au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -
+au FileType json setlocal equalprg=jq\ -
 augroup end
 
