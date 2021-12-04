@@ -669,8 +669,8 @@ function! GitBranch()
 	return printf('[%s:%s]', fnamemodify(gitbranch#dir(expand('%:p')), ':h:t'), gitbranch#name())
 endfunction
 
-function! GitBranchName()
-	return printf('[%s]', gitbranch#name())
+function! NumberOfLinesAndGitBranchName()
+	return printf('%dL [%s]', line('$'), gitbranch#name())
 endfunction
 
 function! FolderRelativePathFromGit()
@@ -686,10 +686,9 @@ let g:lightline = {
 	\    'filesize_and_rows': 'FileSizeAndRows',
 	\    'winnr': 'WinNr',
 	\    'filename_or_qftitle': 'FileNameorQfTitle',
-	\    'gitbranch': 'GitBranchName',
+	\    'nbLinesAndGitBranch': 'NumberOfLinesAndGitBranchName',
 	\ },
 	\ 'component': {
-	\   'gitinfo': '%{FolderRelativePathFromGit()} %{GitBranch()}',
 	\   'winnr2': '#%{winnr()}'
  \ },
 	\ 'component_visible_condition': {
@@ -698,7 +697,7 @@ let g:lightline = {
 	\ 'active':   {
 	\    'left':  [
 	\        [ 'mode', 'paste', 'readonly', 'modified' ],
-	\        [ 'gitbranch' ]
+	\        [ 'nbLinesAndGitBranch' ]
 	\    ],
 	\    'right': [
 	\        ['filename_or_qftitle', 'readonly', 'modified' ]
@@ -706,7 +705,7 @@ let g:lightline = {
 	\ },
 	\ 'inactive': {
 	\    'left':  [
-	\        ['gitbranch']
+	\        ['nbLinesAndGitBranch']
 	\    ],
 	\    'right': [
 	\        [ 'filename_or_qftitle', 'readonly', 'modified' ]
