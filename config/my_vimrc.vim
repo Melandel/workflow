@@ -316,7 +316,8 @@ function! FileNameorQfTitle()
 	if IsQuickFixWindow() || IsLocListWindow()
 		return get(w:, 'quickfix_title', get(b:, 'quickfix_title'))
 	else
-		return fnamemodify(bufname(), ':t')
+		let bufname = bufname()
+		return isdirectory(bufname) ? FolderRelativePathFromGit() : fnamemodify(bufname, ':t')
 	endif
 endfunction
 
@@ -530,6 +531,42 @@ set noequalalways " keep windows viewport when splitting
 set previewheight=25
 set showtabline=2
 
+" Tab Labels
+function! MyTabLine()
+  let s = ''
+  for i in range(tabpagenr('$'))
+      let s .= (i + 1 == tabpagenr()) ? '%#TabLineSel#' : '%#TabLine#'
+    let s .= '%' . (i + 1) . 'T'
+    let s .= ' %{MyTabLabel(' . (i + 1) . ')} '
+  endfor
+  let s .= '%#TabLineFill#%T'
+  if tabpagenr('$') > 1
+    let s .= '%=%#TabLine#%999X'
+  endif
+  return s
+endfunction
+
+function! MyTabLabel(n)
+  let buflist = tabpagebuflist(a:n)
+		let omnisharpHosts = filter(map(copy(buflist), {_,x -> getbufvar(x, 'OmniSharp_host')}), {_,x -> !empty(x)})
+		if !empty(omnisharpHosts)
+			let host = omnisharpHosts[0]
+			let sln_or_dir = toupper(fnamemodify(host.sln_or_dir, ':t:r'))
+			let omnisharp_up = get(host, 'initialized', 0)
+			return omnisharp_up ? '<'.sln_or_dir.'>' : sln_or_dir
+		endif
+  let winnr = tabpagewinnr(a:n)
+		let bufnr = buflist[winnr - 1]
+  let filename = fnamemodify(bufname(bufnr), ':t')
+		if filename == 'index' && getbufvar(bufnr, '&ft') =='fugitive'
+			return 'Git'
+		else
+			return filename
+		endif
+endfunction
+
+set tabline=%!MyTabLine()
+
 " Close Buffers
 function! DeleteBuffers(regex)
 	exec 'bd' join(filter(copy(range(1, bufnr('$'))), { _,y -> bufname(y)=~ a:regex }), ' ')
@@ -632,6 +669,10 @@ function! GitBranch()
 	return printf('[%s:%s]', fnamemodify(gitbranch#dir(expand('%:p')), ':h:t'), gitbranch#name())
 endfunction
 
+function! GitBranchName()
+	return printf('[%s]', gitbranch#name())
+endfunction
+
 function! FolderRelativePathFromGit()
 	let filepath = expand('%:p')
 	let folderpath = expand('%:p:h')
@@ -645,6 +686,7 @@ let g:lightline = {
 	\    'filesize_and_rows': 'FileSizeAndRows',
 	\    'winnr': 'WinNr',
 	\    'filename_or_qftitle': 'FileNameorQfTitle',
+	\    'gitbranch': 'GitBranchName',
 	\ },
 	\ 'component': {
 	\   'gitinfo': '%{FolderRelativePathFromGit()} %{GitBranch()}',
@@ -655,20 +697,19 @@ let g:lightline = {
 	\  },
 	\ 'active':   {
 	\    'left':  [
-	\        [ 'mode', 'paste', 'readonly', 'modified' ]
+	\        [ 'mode', 'paste', 'readonly', 'modified' ],
+	\        [ 'gitbranch' ]
 	\    ],
 	\    'right': [
-	\        ['filename_or_qftitle', 'readonly', 'modified' ],
-	\        [ 'gitinfo', 'sharpenup' ]
+	\        ['filename_or_qftitle', 'readonly', 'modified' ]
 	\    ]
 	\ },
 	\ 'inactive': {
 	\    'left':  [
-	\        ['winnr']
+	\        ['gitbranch']
 	\    ],
 	\    'right': [
-	\        [ 'filename_or_qftitle', 'readonly', 'modified' ],
-	\        [ 'gitinfo', 'sharpenup' ]
+	\        [ 'filename_or_qftitle', 'readonly', 'modified' ]
 	\    ]
 	\ }
 	\}
@@ -3485,35 +3526,3 @@ augroup Formatting
 au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -
 augroup end
 
-	function! MyTabLine()
-	  let s = ''
-	  for i in range(tabpagenr('$'))
-	      let s .= (i + 1 == tabpagenr()) ? '%#TabLineSel#' : '%#TabLine#'
-	    let s .= '%' . (i + 1) . 'T'
-	    let s .= ' %{MyTabLabel(' . (i + 1) . ')} '
-	  endfor
-	  let s .= '%#TabLineFill#%T'
-	  if tabpagenr('$') > 1
-	    let s .= '%=%#TabLine#%999X'
-	  endif
-	  return s
-	endfunction
-
-	function! MyTabLabel(n)
-	  let buflist = tabpagebuflist(a:n)
-			let omnisharpHosts = filter(map(copy(buflist), {_,x -> getbufvar(x, 'OmniSharp_host')}), {_,x -> !empty(x)})
-			if !empty(omnisharpHosts)
-				let host = omnisharpHosts[0]
-				let sln_or_dir = toupper(fnamemodify(host.sln_or_dir, ':t:r'))
-				let omnisharp_up = get(host, 'initialized', 0)
-				return omnisharp_up ? '<'.sln_or_dir.'>' : sln_or_dir
-			endif
-	  let winnr = tabpagewinnr(a:n)
-			if len(buflist) >= winnr
-	  return fnamemodify(bufname(buflist[winnr - 1]), ':t')
-		else
-			return ''
-		endif
-	endfunction
-
-	set tabline=%!MyTabLine()
