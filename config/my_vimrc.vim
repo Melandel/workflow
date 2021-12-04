@@ -639,9 +639,6 @@ function! FolderRelativePathFromGit()
 	let foldergitpath = folderpath[len(gitrootfolder)+(has('win32')?1:0):]
 	return '/' . substitute(foldergitpath, '\', '/', 'g')
 endfunction
-let sharpenupStatusLineScript = $packpath.'/pack/plugins/start/vim-sharpenup/autoload/sharpenup/statusline.vim'
-if (glob(sharpenupStatusLineScript) != '') | exec 'source' sharpenupStatusLineScript | endif
-let g:sharpenup_statusline_opts = { 'TextLoading': '<%s…>', 'TextReady': '<%s>', 'TextDead': '<>', 'Highlight': 0 }
 let g:lightline = {
 	\ 'colorscheme': 'empower',
 	\ 'component_function': {
@@ -650,12 +647,10 @@ let g:lightline = {
 	\    'filename_or_qftitle': 'FileNameorQfTitle',
 	\ },
 	\ 'component': {
-	\   'sharpenup': sharpenup#statusline#Build(),
 	\   'gitinfo': '%{FolderRelativePathFromGit()} %{GitBranch()}',
 	\   'winnr2': '#%{winnr()}'
  \ },
 	\ 'component_visible_condition': {
-	\    'sharpenup': 'IsOmniSharpRelated()',
 	\    'mode': '0'
 	\  },
 	\ 'active':   {
@@ -2722,6 +2717,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| if BreakpointIsPresentOnCurrentLine() \| call vimspector#ToggleBreakpoint() \| endif \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
+	autocmd FileType cs set tabline=%!MyTabLine()
 augroup end
 
 let g:OmniSharp_highlight_groups = {
@@ -3488,3 +3484,36 @@ nnoremap <Leader>A :Ados <tab>
 augroup Formatting
 au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -
 augroup end
+
+	function! MyTabLine()
+	  let s = ''
+	  for i in range(tabpagenr('$'))
+	      let s .= (i + 1 == tabpagenr()) ? '%#TabLineSel#' : '%#TabLine#'
+	    let s .= '%' . (i + 1) . 'T'
+	    let s .= ' %{MyTabLabel(' . (i + 1) . ')} '
+	  endfor
+	  let s .= '%#TabLineFill#%T'
+	  if tabpagenr('$') > 1
+	    let s .= '%=%#TabLine#%999X'
+	  endif
+	  return s
+	endfunction
+
+	function! MyTabLabel(n)
+	  let buflist = tabpagebuflist(a:n)
+			let omnisharpHosts = filter(map(copy(buflist), {_,x -> getbufvar(x, 'OmniSharp_host')}), {_,x -> !empty(x)})
+			if !empty(omnisharpHosts)
+				let host = omnisharpHosts[0]
+				let sln_or_dir = toupper(fnamemodify(host.sln_or_dir, ':t:r'))
+				let omnisharp_up = get(host, 'initialized', 0)
+				return omnisharp_up ? '<'.sln_or_dir.'>' : sln_or_dir
+			endif
+	  let winnr = tabpagewinnr(a:n)
+			if len(buflist) >= winnr
+	  return fnamemodify(bufname(buflist[winnr - 1]), ':t')
+		else
+			return ''
+		endif
+	endfunction
+
+	set tabline=%!MyTabLine()
