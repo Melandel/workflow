@@ -557,11 +557,16 @@ function! MyTabLabel(n)
 		endif
   let winnr = tabpagewinnr(a:n)
 		let bufnr = buflist[winnr - 1]
-  let filename = fnamemodify(bufname(bufnr), ':t')
+  let filepath = bufname(bufnr)
+  let filename = fnamemodify(filepath, ':t')
 		if filename == 'index' && getbufvar(bufnr, '&ft') =='fugitive'
 			return 'Git'
+		elseif isdirectory(filepath)
+			let relativePathFromGitRoot = FolderRelativePathFromGit(bufnr)
+			let path = relativePathFromGitRoot == '/' ? fnamemodify(filepath, ':h:t').'/' : relativePathFromGitRoot
+			return substitute(path, '\', '/', 'g')
 		else
-			return filename
+			return empty(filename) ? '#TMP' : filename
 		endif
 endfunction
 
@@ -673,10 +678,14 @@ function! NumberOfLinesAndGitBranchName()
 	return printf('%dL [%s]', line('$'), gitbranch#name())
 endfunction
 
-function! FolderRelativePathFromGit()
-	let filepath = expand('%:p')
-	let folderpath = expand('%:p:h')
+function! FolderRelativePathFromGit(...)
+	let bufnr = a:0 ? a:1 : bufnr()
+	let filepath = bufname(bufnr)
+	let folderpath = fnamemodify(filepath, ':h')
 	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
+	if isdirectory(filepath)
+		let folderpath.='/'
+	endif
 	let foldergitpath = folderpath[len(gitrootfolder)+(has('win32')?1:0):]
 	return '/' . substitute(foldergitpath, '\', '/', 'g')
 endfunction
