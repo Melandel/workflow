@@ -126,6 +126,7 @@ if has("gui_running")
 	set guioptions-=r  "scrollbar
 	set guioptions-=L  "scrollbar
 	set guioptions+=c  "console-style dialogs instead of popups
+	set guioptions-=e  "terminal-like tabline
 	set guifont=consolas:h11
 	set termwintype=conpty
 endif
@@ -527,7 +528,7 @@ set splitbelow
 set splitright
 set noequalalways " keep windows viewport when splitting
 set previewheight=25
-set showtabline=0
+set showtabline=2
 
 " Close Buffers
 function! DeleteBuffers(regex)
@@ -647,12 +648,10 @@ let g:lightline = {
 	\    'filesize_and_rows': 'FileSizeAndRows',
 	\    'winnr': 'WinNr',
 	\    'filename_or_qftitle': 'FileNameorQfTitle',
-	\    'tabinfo': 'TabInfo'
 	\ },
 	\ 'component': {
 	\   'sharpenup': sharpenup#statusline#Build(),
 	\   'gitinfo': '%{FolderRelativePathFromGit()} %{GitBranch()}',
-	\   'time': '%{strftime("%A %d %B [%Hh%M]")}',
 	\   'winnr2': '#%{winnr()}'
  \ },
 	\ 'component_visible_condition': {
@@ -661,8 +660,7 @@ let g:lightline = {
 	\  },
 	\ 'active':   {
 	\    'left':  [
-	\        [ 'mode', 'paste', 'readonly', 'modified' ],
-	\        [ 'tabinfo', 'time' ]
+	\        [ 'mode', 'paste', 'readonly', 'modified' ]
 	\    ],
 	\    'right': [
 	\        ['filename_or_qftitle', 'readonly', 'modified' ],
