@@ -2523,10 +2523,6 @@ augroup MyVimspectorUICustomistaion
 augroup END
 
 function! SetDebugMappings() abort
-		nmap <silent> <buffer> <localleader>b <Plug>VimspectorToggleBreakpoint
-		nnoremap <silent> <buffer> <localleader>B :call ToggleConditionalBreakpoint()<CR>
-		nnoremap <silent> <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
-		nnoremap <silent> <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
 		nmap <silent> <buffer> <localleader>g <Plug>VimspectorRunToCursor
 
 		nmap <silent> <buffer> <space> <Plug>VimspectorStepOver
@@ -2542,10 +2538,6 @@ function! SetDebugMappings() abort
 endfunction
 
 function! RemoveDebugMappings() abort
- 	silent! nunmap <buffer> <localleader>b
- 	silent! nunmap <buffer> <localleader>B
- 	silent! nunmap <buffer> <localleader>L
- 	silent! nunmap <buffer> <localleader>C
  	silent! nunmap <buffer> <localleader>g
 
  	silent! nunmap <buffer> <space>
@@ -2765,7 +2757,13 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
+	autocmd FileType cs nmap <buffer> <LocalLeader>t <Plug>omnisharp_run_tests_in_file
+	autocmd FileType cs nmap <buffer> <LocalLeader>T <Plug>omnisharp_debug_test
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| if BreakpointIsPresentOnCurrentLine() \| call vimspector#ToggleBreakpoint() \| endif \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
+	autocmd FileType cs nmap <silent> <buffer> <localleader>b <Plug>VimspectorToggleBreakpoint
+	autocmd FileType cs nnoremap <silent> <buffer> <localleader>B :call ToggleConditionalBreakpoint()<CR>
+	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
+	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
 	autocmd FileType cs set tabline=%!MyTabLine()
 augroup end
 
