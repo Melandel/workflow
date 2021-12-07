@@ -2760,6 +2760,8 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>t <Plug>(omnisharp_run_tests_in_file)
 	autocmd FileType cs nmap <buffer> <LocalLeader>T <Plug>(omnisharp_debug_test)
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>U :let &termwinsize=(&lines-2).'*'.(&columns-5) \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName!~Integration<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>I :let &termwinsize=(&lines-2).'*'.(&columns-5) \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName~Integration<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| if BreakpointIsPresentOnCurrentLine() \| call vimspector#ToggleBreakpoint() \| endif \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
 	autocmd FileType cs nmap <silent> <buffer> <localleader>b <Plug>VimspectorToggleBreakpoint
 	autocmd FileType cs nnoremap <silent> <buffer> <localleader>B :call ToggleConditionalBreakpoint()<CR>
