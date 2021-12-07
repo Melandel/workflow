@@ -2026,7 +2026,7 @@ function! OpenDashboard()
 		silent! bdelete git\ --no-pager\ log
 		let &termwinsize=''
 		let buf = term_start('git --no-pager log -15', {'curwin':1, 'cwd':cwd, 'close_cb': {_ -> execute('let t = timer_start(100, function(''OnGitLogExit'', ['.bufnr.']))', '')}})
-		nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>
+		nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
 		nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
 	wincmd h
 	silent exec 'vnew' $today
@@ -2252,6 +2252,7 @@ endfunction
 
 function! GetPlantumlCmdLine(inputFile, outputExtension, outputDir)
 	let configfile = GetPlantumlConfigFile(a:inputFile)
+	let configfile = ''
 	if empty(configfile)
 		return printf('plantuml -t%s -charset UTF-8 -o "%s" "%s"', a:outputExtension, a:outputDir, a:inputFile)
 	else
@@ -2645,7 +2646,7 @@ let g:OmniSharp_popup_mappings = {
 \}
 let g:OmniSharp_loglevel = 'none'
 let g:OmniSharp_highlighting = 2
-let g:OmniSharp_selector_ui = 'fzf'
+let g:OmniSharp_selector_ui = ''
 let g:OmniSharp_fzf_options = { 'window': 'botright 7new' }
 let g:OmniSharp_want_snippet=1
 let g:OmniSharp_diagnostic_showid = 1
