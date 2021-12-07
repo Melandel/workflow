@@ -1359,7 +1359,7 @@ let g:qfpreview = {
 	\'reset': "\<space>",
 	\'height': "30",
 	\'offset': "10",
-	\'close': "\<Esc>",
+	\'close': ["q"],
 	\'number': 1,
 	\'sign': {'texthl': 'PmenuSel', 'linehl': 'PmenuSel'}
 \}
