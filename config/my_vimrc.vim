@@ -2180,8 +2180,12 @@ function! JobExitDiagramCompilationJob(outputfile, scratchbufnr, inputfile, chan
 		exec 'vnew' a:inputfile
 		return
 	endif
-	call system(printf($gtools.'/mv "%s" "%s.html"', a:outputfile, a:outputfile))
-	call Firefox('', substitute(a:outputfile.'.html', '/', '\', 'g'))
+	let outputfile = a:outputfile
+	if outputfile =~ '\.svg$'
+		call system(printf($gtools.'/mv "%s" "%s.html"', a:outputfile, a:outputfile))
+		let outputfile.='.html'
+	endif
+	call Firefox('', substitute(outputfile, '/', '\', 'g'))
 endfunc
 
 function! CompileTodayAndShowImageCommand()
