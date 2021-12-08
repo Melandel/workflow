@@ -1088,6 +1088,7 @@ function! Grep(qf_or_loclist, ...)
 			\'exit_cb': function("GrepCB", [winnr, cmd, pattern, scratchbufnr, a:qf_or_loclist])
 		\}
 	\)
+	redraw
 endfunction
 
 function! GrepCB(winnr, cmd, pattern, scratchbufnr, qf_or_loclist, job, exit_status)
@@ -1132,6 +1133,7 @@ nnoremap <leader>F :Files $git<CR>
 nnoremap         µ :Grep -F "<C-R>=EscapeRipgrepPattern(expand('<cword>'))<CR>"<CR>
 vnoremap         µ "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <Leader>r :Grep -F ""<left>
+vnoremap <silent> <Leader>r "vy:Grep -F "<C-R>=GetCurrentSelection()<CR>"<CR>
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
