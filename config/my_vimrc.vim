@@ -1486,11 +1486,11 @@ function! FilterQf()
 		call matchadd('Conceal', '^\([^/|]\+\/\)*')
 		set conceallevel=3 concealcursor=nvic
 		let w:quickfix_title = qftitle.' [public]'
-	elseif qftitle =~ '\[grep\]'
-		exec printf('Cfilter /\<%s\>/', @/)
-		exec printf('/\<%s\>', @/)
-		let sep = stridx(qftitle, ' ')
-		let w:quickfix_title = printf('%s<%s>', qftitle[:sep], qftitle[sep+1:])
+	"elseif qftitle =~ '\[grep\]'
+	"	exec printf('Cfilter /\<%s\>/', @/)
+	"	exec printf('/\<%s\>', @/)
+	"	let sep = stridx(qftitle, ' ')
+	"	let w:quickfix_title = printf('%s<%s>', qftitle[:sep], qftitle[sep+1:])
 	else
 		call feedkeys(':Cfilter')
 	endif
