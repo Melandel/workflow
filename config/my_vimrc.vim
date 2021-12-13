@@ -128,7 +128,7 @@ if has("gui_running")
 	set guioptions+=c  "console-style dialogs instead of popups
 	set guioptions-=e  "terminal-like tabline
 	set guifont=consolas:h11
-	set termwintype=conpty
+	"set termwintype=conpty "gives good colors to bat.exe but disables arrows/backspace
 endif
 " Windows Subsystem for Linx (WSL)
 set ttimeout ttimeoutlen=0
@@ -481,6 +481,8 @@ cnoremap § <C-U>ter
 " Arrows" -----------------------------{{{
 inoremap <C-J> <Left>|  cnoremap <C-J> <Left>|  tnoremap <C-J> <Left>
 inoremap <C-K> <Right>| cnoremap <C-K> <Right>| tnoremap <C-K> <Right>
+tnoremap <C-N> <Down>| tnoremap <C-W><C-N> <C-N>
+tnoremap <C-P> <Up>| tnoremap <C-W><C-P> <C-P>
 
 " Home,End" ---------------------------{{{
 inoremap ^j <Home>| cnoremap ^j <Home>| tnoremap ^j <Home>
@@ -1137,6 +1139,9 @@ vnoremap <silent> <Leader>r "vy:Grep -F "<C-R>=GetCurrentSelection()<CR>"<CR>
 nnoremap <LocalLeader>m :silent make<CR>
 
 " Terminal" ---------------------------{{{
+tnoremap <silent> <Esc> <C-W>N| tnoremap <silent> <C-W>N <Esc>
+tnoremap <silent> <C-U> <Esc>| tnoremap <silent> <C-W>u <C-U>
+"tnoremap <silent> <C-W>h <C-W>:let n = match(join(split(getline('.'), '\zs')[stridx(getline('.'),'>'):col('.')], ''), ' \|/\|\\') + 1\| echomsg 'n' n\|if n > 0 \| call feedkeys(repeat(n, "\<backspace>"))\|endif<CR>
 tnoremap <silent> <Leader>hh <C-W>h
 tnoremap <silent> <Leader>jj <C-W>j
 tnoremap <silent> <Leader>kk <C-W>k
