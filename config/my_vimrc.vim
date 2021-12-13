@@ -1587,12 +1587,17 @@ nnoremap <silent> L :CycleForward<CR>
 " Makes Omnishahrp-vim code actions select both two elements
 "let g:fzf_layout = { 'window': { 'width': 0.39, 'height': 0.25 } }
 "let g:fzf_preview_window = []
-let $FZF_DEFAULT_OPTS="--bind up:preview-up,down:preview-down"
+let $FZF_DEFAULT_OPTS='--bind up:preview-up,down:preview-down,ctrl-j:backward-char,ctrl-k:forward-char'
 
 augroup my_fzf"------------------------{{{
 	au!
-	autocmd FileType fzf tnoremap <buffer> <C-V> <C-V>
+	autocmd FileType fzf setlocal termwintype=conpty
+	autocmd FileType fzf tnoremap <buffer> <C-N> <C-N>
+	autocmd FileType fzf tnoremap <buffer> <C-P> <C-P>
+	autocmd FileType fzf tnoremap <buffer> <C-U> <C-U>
 	autocmd FileType fzf tnoremap <buffer> <Esc> <Esc>
+	autocmd FileType fzf tnoremap <buffer> <C-R> <C-W>:call feedkeys(@)<left>
+	autocmd FileType fzf tnoremap <silent> <buffer> <C-V> <C-W>:call feedkeys(@+)<CR>
 	autocmd FileType fzf tnoremap <buffer> <C-J> <C-J>
 	autocmd FileType fzf tnoremap <buffer> <C-K> <C-K>
 	autocmd FileType fzf tnoremap <buffer> <C-O> <C-T>
