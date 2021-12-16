@@ -1986,7 +1986,7 @@ function! BuildFirefoxUrl(path)
 	let url = a:path
 	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
 	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0 | let url.= ' "' |	endif
-	let url = escape(trim(url), '%#')
+	let url = escape(trim(url), '%')
 	if g:isWindows
 		let url = substitute(url, '"', '\\"', 'g')
 	elseif g:isWsl
@@ -2268,7 +2268,7 @@ endfunction
 
 function! GetPlantumlCmdLine(inputFile, outputExtension, outputDir)
 	let configfile = GetPlantumlConfigFile(a:inputFile)
-	let configfile = ''
+	"let configfile = ''
 	if empty(configfile)
 		return printf('plantuml -t%s -charset UTF-8 -o "%s" "%s"', a:outputExtension, a:outputDir, a:inputFile)
 	else
@@ -2776,7 +2776,7 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>t <Plug>(omnisharp_run_tests_in_file)
 	autocmd FileType cs nmap <buffer> <LocalLeader>T <Plug>(omnisharp_debug_test)
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>u :let &termwinsize=(&lines-2).'*'.(&columns-5) \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName!~Integration<CR>
+	"autocmd FileType cs nmap <silent> <buffer> <LocalLeader>u :let &termwinsize=(&lines-2).'*'.(&columns-5) \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName!~Integration<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>y :let &termwinsize=(&lines-2).'*'.(&columns-5) \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName~Integration<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Y <Plug>(omnisharp_run_test)
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| if BreakpointIsPresentOnCurrentLine() \| call vimspector#ToggleBreakpoint() \| endif \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
