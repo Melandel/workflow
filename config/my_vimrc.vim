@@ -572,7 +572,10 @@ function! MyTabLabel(n)
 		endif
 endfunction
 
-set tabline=%!MyTabLine()
+augroup tabline
+	au!
+	autocmd! SessionLoadPost * set tabline=%!MyTabLine() | autocmd! FileType cs set tabline=%!MyTabLine()
+augroup end
 
 " Close Buffers
 function! DeleteBuffers(regex)
@@ -2784,7 +2787,6 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <silent> <buffer> <localleader>B :call ToggleConditionalBreakpoint()<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
-	autocmd FileType cs set tabline=%!MyTabLine()
 augroup end
 
 let g:OmniSharp_highlight_groups = {
