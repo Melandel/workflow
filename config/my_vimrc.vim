@@ -2764,8 +2764,8 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
 	autocmd FileType cs nmap <buffer> <LocalLeader>i :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_implementations):Reframe<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>I :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_preview_implementations)
-	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd()<CR>:OmniSharpFindSymbol 
-	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_type)
+	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd()<CR>:OmniSharpFindType 
+	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd()<CR>:OmniSharpFindSymbol 
 	autocmd FileType cs nmap <buffer> <LocalLeader>u :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_usages)
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_type_lookup)
 	autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
