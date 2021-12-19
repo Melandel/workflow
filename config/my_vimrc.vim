@@ -108,6 +108,7 @@ set backupdir=$desktop/tmp/vim
 set undofile
 set undodir=$desktop/tmp/vim
 set viewdir=$desktop/tmp/vim
+set sessionoptions=curdir,folds,help,options,tabpages,winsize
 set history=200
 set mouse=a
 " GVim specific
