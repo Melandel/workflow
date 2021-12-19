@@ -2748,14 +2748,14 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
 	autocmd FileType cs nmap <buffer> <LocalLeader>i :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_implementations):Reframe<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>I :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_preview_implementations)
-	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd() | let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindType 
-	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd() | let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindSymbol 
+	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindType 
+	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindSymbol 
 	autocmd FileType cs nmap <buffer> <LocalLeader>u :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_usages)
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_type_lookup)
 	autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
 	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
-	autocmd FileType cs nmap <buffer> <LocalLeader>q :let g:lcd_qf = getcwd() | let g:OmniSharp_selector_ui='fzf'<CR><Plug>(omnisharp_code_actions)
-	autocmd FileType cs xmap <buffer> <LocalLeader>q :<C-U>let g:lcd_qf = getcwd() | let g:OmniSharp_selector_ui='fzf'<CR>gv<Plug>(omnisharp_code_actions)
+	autocmd FileType cs nmap <buffer> <LocalLeader>q :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui='fzf'<CR><Plug>(omnisharp_code_actions)
+	autocmd FileType cs xmap <buffer> <LocalLeader>q :<C-U>let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui='fzf'<CR>gv<Plug>(omnisharp_code_actions)
 	autocmd FileType cs nmap <buffer> <LocalLeader>r <Plug>(omnisharp_rename)
 	autocmd FileType cs nmap <buffer> <LocalLeader>= <Plug>(omnisharp_code_format)
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
