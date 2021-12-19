@@ -323,7 +323,7 @@ function! FileNameorQfTitle()
 endfunction
 
 function! IsInsideDashboard()
-	return len(filter(range(1, winnr('$')), {_,x -> bufname(winbufnr(x)) =~ '^\.git.index'}))
+	return bufname(winbufnr(1)) =~ '\\\.git\\index$'
 endfunction
 
 function! IsInsideGitClone()
@@ -1051,7 +1051,7 @@ nnoremap ç :let script=''\|call histadd('cmd',script)\|put=execute(script)<Home
 augroup vimsourcing
 	au!
 	if has('win32') && has('gui_running')
-		autocmd BufWritePost .vimrc,_vimrc,*.vim GvimTweakToggleFullScreen | so % | GvimTweakToggleFullScreen
+		autocmd BufWritePost .vimrc,_vimrc,*.vim if !IsInsideDashboard() | GvimTweakToggleFullScreen | so % | GvimTweakToggleFullScreen | endif
 	else
 		autocmd BufWritePost .vimrc,_vimrc,*.vim so %
 	endif
