@@ -323,7 +323,7 @@ function! FileNameorQfTitle()
 endfunction
 
 function! IsInsideDashboard()
-	return bufname(winbufnr(1)) =~ '\\\.git\\index$'
+	return get(t:, 'is_dashboard_tabpage', 0)
 endfunction
 
 function! IsInsideGitClone()
@@ -2032,7 +2032,12 @@ function! OpenDashboard()
 		return
 	endif
 	let cwd = getcwd()
+	let alreadyExistingDashboard = !empty(filter(gettabinfo(), {_,x -> get(x.variables, 'is_dashboard_tabpage', 0)}))
 	silent tab G
+	if alreadyExistingDashboard
+		return
+	endif
+	let t:is_dashboard_tabpage = 1
 	if tabpagenr() > 1
 	-tabmove
 	endif
