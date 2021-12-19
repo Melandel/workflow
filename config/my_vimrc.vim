@@ -2032,7 +2032,9 @@ function! OpenDashboard()
 	endif
 	let cwd = getcwd()
 	silent tab G
+	if tabpagenr() > 1
 	-tabmove
+	endif
 	normal gU
 	silent exec winheight(0)/4.'new'
 		silent exec 'edit' $desktop.'/todo'
@@ -2203,43 +2205,19 @@ function! JobExitDiagramCompilationJob(outputfile, scratchbufnr, inputfile, chan
 	call Firefox('', substitute(outputfile, '/', '\', 'g'))
 endfunc
 
-function! CompileTodayAndShowImageCommand()
-	let inputfile = $tmp.'/today.puml_mindmap'
-	let diagram = readfile($today)
-	let lunch = index(diagram, '')
-	let legend = index(diagram, '', lunch+1)
-	let diagramAM = diagram[:lunch-1]
-	let diagramAM = map(diagramAM, 'substitute((v:val[0] == "*" ? substitute(v:val[0].v:val, "*:", "*:* ", "") : "* ".v:val), "\\a", "\\U\\0", "")')
-	let diagramPM = diagram[lunch+1:legend-1]
-	let diagramPM = map(diagramPM, 'substitute((v:val[0] == "*" ? substitute(v:val[0].v:val, "*:", "*:* ", "") : "* ".v:val), "\\a", "\\U\\0", "")')
-	let diagramLegend = map(diagram[legend+1:], 'printf("* [[%s %s%s]]", (stridx(v:val[stridx(v:val, "]")+2:-2], "http") == 0 ? v:val[stridx(v:val, "]")+2:-2] : "http://".v:val[stridx(v:val, "]")+2:-2]), toupper(v:val[stridx(v:val, "[")+1]), v:val[stridx(v:val, "[")+2:stridx(v:val, "]")-1])')
-	let diagram = ['@startmindmap']
-	let diagram +=	['left side', '* **__AM__ | __PM__**'] + diagramAM
-	let diagram += ['right side'] + diagramPM
-	let diagram += ['legend right'] + diagramLegend + ['endlegend']
-	let diagram += ['@endmindmap']
-	call writefile(diagram, inputfile)
-	call CompileDiagramAndShowImage(inputfile, 'svg', fnamemodify(inputfile, ':h'))
-endfunction
-command! CompileTodayAndShowImage call CompileTodayAndShowImageCommand()
-nnoremap <Leader>M :CompileTodayAndShowImage<CR>
-
 function! CompileDiagramAndShowImageCommand(outputExtension, ...)
 	let inputfile = expand('%:p')
 	if substitute(inputfile, '\', '/', 'g') == $today
 		let inputfile = $tmp.'/today.puml_mindmap'
 		let diagram = uniq(getline(1, '$'))
-		let lunch = index(diagram, '')
-		let legend = index(diagram, '', lunch+1)
-		let diagramAM = diagram[:lunch-1]
-		let diagramAM = map(diagramAM, 'substitute((v:val[0] == "*" ? substitute(v:val[0].v:val, "*:", "*:* ", "") : "* ".v:val), "\\a", "\\U\\0", "")')
-		let diagramPM = diagram[lunch+1:legend-1]
-		let diagramPM = map(diagramPM, 'substitute((v:val[0] == "*" ? substitute(v:val[0].v:val, "*:", "*:* ", "") : "* ".v:val), "\\a", "\\U\\0", "")')
-		let diagramLegend = map(diagram[legend+1:], 'printf("* [[%s %s%s]]", (stridx(v:val[stridx(v:val, "]")+2:-2], "http") == 0 ? v:val[stridx(v:val, "]")+2:-2] : "http://".v:val[stridx(v:val, "]")+2:-2]), toupper(v:val[stridx(v:val, "[")+1]), v:val[stridx(v:val, "[")+2:stridx(v:val, "]")-1])')
+		let emptyLine = ''
+		let separatorBeforeWorld = index(diagram, emptyLine)
+		let myself = diagram[:separatorBeforeWorld-1]
+		let world = diagram[separatorBeforeWorld+1:]
 		let diagram = ['@startmindmap']
-		let diagram +=	['left side', '* **__AM__ | __PM__**'] + diagramAM
-		let diagram += ['right side'] + diagramPM
-		let diagram += ['legend right'] + diagramLegend + ['endlegend']
+		let diagram += ['title My life today with...']
+		let diagram +=	['right side', '* **__MY INTERNAL WORLD__**'] + map(myself, '"*".v:val')
+		let diagram += ['left side',  '** **__THE EXTERNAL WORLD__**'] + map(world, '"**".v:val')
 		let diagram += ['@endmindmap']
 		call writefile(diagram, inputfile)
 	endif
@@ -2764,14 +2742,14 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
 	autocmd FileType cs nmap <buffer> <LocalLeader>i :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_implementations):Reframe<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>I :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_preview_implementations)
-	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd()<CR>:OmniSharpFindType 
-	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd()<CR>:OmniSharpFindSymbol 
+	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd() | let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindType 
+	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd() | let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindSymbol 
 	autocmd FileType cs nmap <buffer> <LocalLeader>u :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_usages)
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_type_lookup)
 	autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
 	autocmd FileType cs nmap <buffer> <LocalLeader>c <Plug>(omnisharp_global_code_check)
-	autocmd FileType cs nmap <buffer> <LocalLeader>q :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_code_actions)
-	autocmd FileType cs xmap <buffer> <LocalLeader>q :<C-U>let g:lcd_qf = getcwd()<CR>gv<Plug>(omnisharp_code_actions)
+	autocmd FileType cs nmap <buffer> <LocalLeader>q :let g:lcd_qf = getcwd() | let g:OmniSharp_selector_ui='fzf'<CR><Plug>(omnisharp_code_actions)
+	autocmd FileType cs xmap <buffer> <LocalLeader>q :<C-U>let g:lcd_qf = getcwd() | let g:OmniSharp_selector_ui='fzf'<CR>gv<Plug>(omnisharp_code_actions)
 	autocmd FileType cs nmap <buffer> <LocalLeader>r <Plug>(omnisharp_rename)
 	autocmd FileType cs nmap <buffer> <LocalLeader>= <Plug>(omnisharp_code_format)
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
