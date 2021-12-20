@@ -1170,21 +1170,6 @@ tnoremap <silent> LL <C-W>:CycleForward<CR>
 vnoremap <silent> <space> <Esc>zE:let b:focus_mode=1 \| setlocal foldmethod=manual<CR>`<kzfgg`>jzfG`<
 nnoremap <silent> <space> :exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode<CR>
 
-function! FoldExprToday(lnum)
-	let lnum = a:lnum == '.' ? line('.') : a:lnum
-	let line = getline(lnum)
-	if line =~ '^\s*$'
-		return 0
-	endif
-	let nbStars = len(matchstr(getline(lnum), "^\\(\\*\\)*"))
-	if nbStars > 0
-		let nextLine = getline(lnum+1)
-		return nextLine == '' ? 1 : (len(matchstr(nextLine, "^\\(\\*\\)*")) > 0) ? 0 : 1
-	else
-		return 1
-	endif
-endfunction
-
 set foldtext=FoldText()
 function! FoldText()
 	let foldstart = v:foldstart
@@ -2115,7 +2100,6 @@ augroup dashboard
 	autocmd TextChanged  todo,ideas,waiting,today,wip.md set buftype= | silent write!
 	autocmd BufEnter                              wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
 	autocmd BufEnter                        today        nnoremap <buffer> <silent> <leader>w :CompileDiagramAndShowImage svg $tmp<CR>
-	autocmd BufEnter                        today        set foldmethod=expr foldexpr=FoldExprToday(v:lnum)
 augroup end
 
 nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
