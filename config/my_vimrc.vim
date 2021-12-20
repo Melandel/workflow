@@ -853,7 +853,8 @@ augroup lastinsert
 	au!
 	autocmd! InsertLeave * normal! mI
 augroup end
-nnoremap gi `I
+nnoremap gi `^
+nnoremap <expr> gI v:count == 0 ? '`I' : 'gI'
 
 " Current Line" -----------------------{{{
 nnoremap <silent> . :let c= strcharpart(getline('.')[col('.') - 1:], 0, 1)\|exec "normal! f".c<CR>
