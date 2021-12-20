@@ -2039,8 +2039,9 @@ function! OpenDashboard()
 	silent exec winwidth(0)*2/3.'vnew'
 		let bufnr = bufnr()
 		silent! bdelete git\ --no-pager\ log
-		let &termwinsize=''
-		let buf = term_start('git --no-pager log -15', {'curwin':1, 'cwd':cwd, 'close_cb': {_ -> execute('let t = timer_start(100, function(''OnGitLogExit'', ['.bufnr.']))', '')}})
+		set termwinsize=15x999
+		let buf = term_start('git --no-pager log -15', {'hidden':1, 'cwd':cwd, 'close_cb': function('OnGitLogExit')})
+		exec buf.'buffer'
 		nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
 		nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
 	wincmd h
@@ -2053,14 +2054,16 @@ endfunction
 command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
 
-function! OnGitLogExit(bufnr,...)
-	call setbufvar(a:bufnr, '&modifiable', 1)
-	call setbufvar(a:bufnr, '&buftype', 'nofile')
-	call setbufvar(a:bufnr, '&wrap', 0)
-	let winid = bufwinid(a:bufnr)
-	call win_execute(winid, ['call setpos(".", [0, 1, 1, 1])', 'redraw'])
-	1wincmd w
+function! OnGitLogExit(...)
+	let t = timer_start(10, function('OnGitLogExitCB'))
 endfunc
+
+function! OnGitLogExitCB(...)
+	let winid = win_getid(winnr('$'))
+	call win_execute(winid, ['call setpos(".", [0, 1, 1, 1])', 'redraw'])
+	set termwinsize=
+	1wincmd w
+endfunction
 
 function! GetCommitTypes(findstart, base)
 	if a:findstart
