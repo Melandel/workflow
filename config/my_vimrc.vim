@@ -2656,10 +2656,6 @@ let g:OmniSharp_want_snippet=1
 let g:OmniSharp_diagnostic_showid = 1
 let g:omnicomplete_fetch_full_documentation = 0
 let g:OmniSharp_open_quickfix = 1
-augroup lightline_integration
-  autocmd!
-  autocmd User OmniSharpStarted,OmniSharpReady,OmniSharpStopped call lightline#update()
-augroup END
 
 function! GetCsproj()
 	return GetNearestPathInCurrentFileParents('*.csproj')
