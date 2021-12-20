@@ -681,7 +681,11 @@ function! GitBranch()
 endfunction
 
 function! NumberOfLinesCurrentColumnAndGitBranchName()
-	return printf('%dL [%s] ^%d', line('$'), gitbranch#name(), col('.'))
+	return printf('%dL [%s] |%d', line('$'), gitbranch#name(), col('.'))
+endfunction
+
+function! NumberOfLinesAndGitBranchName()
+	return printf('%dL [%s]', line('$'), gitbranch#name())
 endfunction
 
 function! FolderRelativePathFromGit(...)
@@ -702,6 +706,7 @@ let g:lightline = {
 	\    'winnr': 'WinNr',
 	\    'filename_or_qftitle': 'FileNameorQfTitle',
 	\    'LinesCurrentColumnAndGitBranch': 'NumberOfLinesCurrentColumnAndGitBranchName',
+	\    'LinesAndGitBranch': 'NumberOfLinesAndGitBranchName'
 	\ },
 	\ 'component': {
 	\   'winnr2': '#%{winnr()}'
@@ -720,7 +725,7 @@ let g:lightline = {
 	\ },
 	\ 'inactive': {
 	\    'left':  [
-	\        ['LinesCurrentColumnAndGitBranch']
+	\        ['LinesAndGitBranch']
 	\    ],
 	\    'right': [
 	\        [ 'filename_or_qftitle', 'readonly', 'modified' ]
