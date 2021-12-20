@@ -1200,8 +1200,9 @@ set incsearch
 set ignorecase
 " Display '1 out of 23 matches' when searching
 set shortmess=filnxtToOc
-nnoremap ! /
-vnoremap ! /
+nnoremap ! mV/
+vnoremap ! mV/
+nnoremap g! `V
 nnoremap q! q/
 nnoremap / !
 vnoremap / !
