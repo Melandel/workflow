@@ -573,9 +573,17 @@ function! MyTabLabel(n)
 		endif
 endfunction
 
+function! CloseDashboardTabPages()
+	let dashboardTabPages = map(filter(gettabinfo(), {_,x-> get(x.variables, 'is_dashboard_tabpage', 0)}), "v:val.tabnr")
+	for tabnr in dashboardTabPages
+		exec 'tabclose' tabnr
+	endfor
+endfunction
+
 augroup tabline
 	au!
 	autocmd! SessionLoadPost * set tabline=%!MyTabLine() | autocmd! FileType cs set tabline=%!MyTabLine()
+	autocmd! VimLeavePre * call CloseDashboardTabPages()
 augroup end
 
 " Close Buffers
