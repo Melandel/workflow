@@ -46,8 +46,8 @@ function! MinpacInit()
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
-	"call minpac#add('OmniSharp/omnisharp-vim')
-	call minpac#add('Melandel/omnisharp-vim', {'branch': 'improve_vimspector_config_file_generated'})
+	call minpac#add('OmniSharp/omnisharp-vim')
+	"call minpac#add('Melandel/omnisharp-vim', {'branch': 'improve_vimspector_config_file_generated'})
 	call minpac#add('puremourning/vimspector')
 	call minpac#add('nickspoons/vim-sharpenup')
 	call minpac#add('SirVer/ultisnips')
@@ -1047,17 +1047,16 @@ endfunc
 
 function! GetCurrentlySelectedScriptLines()
 	let lines = getline("'<", "'>")
-	if len(lines) == 0
-		return []
-	elseif len(lines) == 1
-		return [trim(lines[0], " \t`")]
-	else
+	if len(lines) == 0 | return [] | endif
+	if len(lines) == 1 | return [trim(lines[0], " \t`")] | endif
+	if !empty(filter(copy(lines), "stridx(v:val, '```') >= 0"))
 		let firstSnippetSep = match(lines, '```')
 		if (firstSnippetSep != -1)
 			let secondSnippetSep = match(lines, '```', firstSnippetSep+1)
 			return lines[firstSnippetSep+1:secondSnippetSep-1]
 		endif
 	endif
+	return filter(lines, {_,x -> x !~ '^\s*$'})
 endfunc
 
 function! SquashAndTrimLines(lines)
