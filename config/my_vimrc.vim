@@ -221,6 +221,11 @@ augroup lcd
 augroup end
 
 " Utils"-------------------------------{{{
+function! ToggleQuickfixList()
+	let quickfixWindows = filter(range(1, winnr('$')), {_,x -> getwinvar(x, '&syntax') == 'qf' && !getwininfo(win_getid(x))[0].loclist && !get(getbufinfo(winbufnr(x))[0].variables, 'is_custom_loclist', 0)})
+	silent! execute empty(quickfixWindows) ? 'cwin' : 'ccl'
+endfunction
+
 function! DiffWithSaved()
   let filetype=&ft
   diffthis
@@ -635,6 +640,8 @@ nnoremap <silent> <Leader>k <C-W>k
 nnoremap <silent> <Leader>l <C-W>l
 nnoremap <silent> <Leader><home> 1<C-W>W
 nnoremap <silent> <Leader><end> 99<C-W>W
+nnoremap <silent> <Leader>q <C-W>p
+nnoremap <silent> <Leader><space> :call ToggleQuickfixList()<CR>
 nnoremap <silent> <Leader>n gt
 nnoremap <silent> <Leader>N :tabnew<CR>
 nnoremap <silent> <Leader>p gT
