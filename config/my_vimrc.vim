@@ -2151,54 +2151,33 @@ function! GetFilename()
 	return fnamemodify(filename, ':p')
 endfunction
 
-function! SaveInFolderAs(folder, ...)
-	let args = ParseArgs(a:000, ['filetype', 'markdown'])
-	let ext = get({
-				\'markdown':      '.md',
-				\'plaintext':     '',
-				\'json':          '.json',
-				\'xml':           'xml',
-				\'puml_mindmap':  '.puml_mindmap',
-				\'puml_activity': '.puml_activity',
-				\'puml_sequence': '.puml_sequence',
-				\'puml_json':     '.puml_json'
-			\}, args.filetype, '.md')
-	let filename = expand('%:t:r')
-	if filename == ''
-		let filename = PromptUserForFilename('File name:', {n -> a:folder . '/' . n . ext})
-		if trim(filename) == ''
-			return
-		endif
-	endif
-	call setbufvar(bufnr(), '&bt', '')
-	call setbufvar(bufnr(), '&ft', args.filetype)
-	let newpath = a:folder . '/' . filename . ext
-	call Move(newpath)
-	if fnamemodify(newpath, ':t:e') == 'md' && getline(1) !~ '^#'
-		execute 'normal!' 'ggO# '.filename."\<CR>\<esc>:w\<CR>"
-	endif
+function! SaveInFolderAs(path, filetype)
 endfunc
-command! -nargs=? -complete=customlist,GetNoteFileTypes Note call SaveInFolderAs($notes, <q-args>)
-command! -nargs=? -complete=customlist,GetTmpFileTypes  Tmp  call SaveInFolderAs($tmp,   <q-args>)
+
+function! Note(...)
+	let args = ParseArgs(a:000, ['filetype', 'markdown'])
+	let filetype = args.filetype
+	let ext = get({
+				\'markdown':      'md',
+				\'json':          'json',
+				\'xml':           'xml',
+				\'puml_mindmap':  'puml_mindmap',
+				\'puml_activity': 'puml_activity',
+				\'puml_sequence': 'puml_sequence',
+				\'puml_json':     'puml_json'
+			\}, filetype, 'md')
+	let filename = PromptUserForFilename('File name:', {n -> printf('%s/%s.%s', $notes, n, ext)})
+	if trim(filename) == '' | return | endif
+	if &buftype != 'nofile' | exec winnr('$') == 1 ? 'vnew' : 'new' | endif
+	let newpath = printf('%s/%s.%s', $notes, filename, ext)
+	exec 'set bt= ft='.filetype
+	exec 'saveas' newpath
+	if (ext == 'md' && getline(1) !~ '^#') | execute 'normal!' 'ggO# '.filename."\<esc>:w\<CR>j" | endif
+endfunc
+command! -nargs=? -complete=customlist,GetNoteFileTypes Note call Note(<q-args>)
 
 function! GetNoteFileTypes(argLead, cmdLine, cursorPos)
 	return ['markdown', 'puml_mindmap', 'puml_activity', 'puml_sequence', 'puml_json']
-endfunc
-
-function! GetTmpFileTypes(argLead, cmdLine, cursorPos)
-	return [ 'markdown', 'json', 'xml', 'puml_mindmap', 'puml_activity', 'puml_sequence', 'puml_json']
-endfunc
-
-function! Move(newpath)
-	if (glob(a:newpath) != '')
-		return
-	else
-		let currentpath = expand('%:p:h')
-		exec 'saveas' a:newpath
-		exec 'edit' a:newpath
-		call delete(currentpath)
-		bdelete! #
-	endif
 endfunc
 
 function! JobExitDiagramCompilationJob(outputfile, scratchbufnr, inputfile, channelInfos, status)
