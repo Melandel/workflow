@@ -1,5 +1,7 @@
 [format]
-	pretty = format:%C(auto,yellow)%H%C(auto,magenta)% G? %C(auto,cyan)%>(12,trunc)%ad %C(auto,green)%<(16,trunc)%aN%C(auto,reset)%s%C(auto,red)% gD% D
+	pretty = format:%C(auto,yellow)%h%C(auto,magenta)% G? %C(auto,cyan)%>(12,trunc)%ad %C(auto,green)%<(16,trunc)%aN%C(auto,reset)%s%C(auto,red)% gD% D
+[log]
+	date = relative
 [filter "tabspace"]
 	smudge = unexpand --tabs=4 --first-only
 	clean = expand.bat --tabs=4 --initial

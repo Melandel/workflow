@@ -2048,7 +2048,7 @@ function! OpenDashboard()
 	silent exec winwidth(0)*2/3.'vnew'
 		let bufnr = bufnr()
 		silent! bdelete git\ --no-pager\ log
-		set termwinsize=15x999
+		set termwinsize=0*9999
 		let buf = term_start('git --no-pager log -15', {'hidden':1, 'cwd':cwd, 'close_cb': function('OnGitLogExit')})
 		exec buf.'buffer'
 		nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
@@ -2741,8 +2741,8 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>t <Plug>(omnisharp_run_tests_in_file)
 	autocmd FileType cs nmap <buffer> <LocalLeader>T <Plug>(omnisharp_debug_test)
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>U :let &termwinsize=(&lines-2).'*'.(&columns-5) \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName!~Integration<CR>
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Y :let &termwinsize=(&lines-2).'*'.(&columns-5) \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName~Integration<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>U :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName!~Integration<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Y :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName~Integration<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>y <Plug>(omnisharp_run_test)
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| if BreakpointIsPresentOnCurrentLine() \| call vimspector#ToggleBreakpoint() \| endif \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
 	autocmd FileType cs nmap <silent> <buffer> <localleader>b <Plug>VimspectorToggleBreakpoint
@@ -2825,7 +2825,7 @@ function! RunScript(name, bang, ...)
 	else
 		let excmd = printf('terminal ++curwin ++noclose ++kill=int %s.bat %s', a:name, join(a:000, ' '))
 	endif
-	let &termwinsize=(&lines-2).'*'.(&columns-5)
+	set termwinsize=0*9999
 	exec excmd
 endfunction
 
