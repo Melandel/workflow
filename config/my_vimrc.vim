@@ -1995,7 +1995,7 @@ function! BuildFirefoxUrl(path)
 	let url = a:path
 	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
 	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0 | let url.= ' "' |	endif
-	let url = escape(trim(url), '%')
+	let url = trim(url)
 	if g:isWindows
 		let url = substitute(url, '"', '\\"', 'g')
 	elseif g:isWsl
@@ -2022,9 +2022,6 @@ command! -nargs=* -range WordreferenceEnFr :call Firefox('https://www.wordrefere
 command! -nargs=* -range GoogleTranslateEnFr :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=en&tl=fr&text=', <f-args>)
 nnoremap <Leader>T :WordreferenceEnFr 
 vnoremap <Leader>T :GoogleTranslateEnFr<CR>
-command! -nargs=* -range Google :call Firefox('http://google.com/search?q=', <f-args>)
-nnoremap <Leader>q :Google <C-R>=&ft<CR> 
-vnoremap <Leader>q :Google<CR>
 
 command! Wiki exec 'Firefox' $wiki
 nnoremap <Leader>W :Wiki<CR>
