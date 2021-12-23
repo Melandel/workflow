@@ -2257,7 +2257,6 @@ endfunction
 
 function! GetPlantumlCmdLine(inputFile, outputExtension, outputDir)
 	let configfile = GetPlantumlConfigFile(a:inputFile)
-	"let configfile = ''
 	if empty(configfile)
 		return printf('plantuml -t%s -charset UTF-8 -o "%s" "%s"', a:outputExtension, a:outputDir, a:inputFile)
 	else
@@ -2296,6 +2295,7 @@ function! FileContainsPlantumlSnippets()
 endfunc
 
 function! GetPlantumlConfigFile(filepath)
+	return ''
 	let configfilebyft = #{
 		\puml_activity:      'styles',
 		\puml_mindmap:       'styles',
