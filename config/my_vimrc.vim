@@ -1127,8 +1127,6 @@ function! GrepCB(winnr, cmd, pattern, scratchbufnr, qf_or_loclist, job, exit_sta
 	set errorformat=%f:%l:%c:%m
 	let prefix = (a:qf_or_loclist == 'qf' ? 'c' : 'l')
 	silent exec prefix.'getbuffer' a:scratchbufnr
-	silent exec a:winnr.'wincmd w'
-	silent exec prefix.'window'
 	let title = printf("[grep] %s", a:pattern)
 	silent exec printf('call setwinvar(winnr("$"), "quickfix_title", "%s")', title)
 endfunction
@@ -1152,7 +1150,7 @@ nnoremap <Leader>f :Files<CR>
 nnoremap <leader>F :Files $git<CR>
 nnoremap         µ :Grep -F "<C-R>=EscapeRipgrepPattern(expand('<cword>'))<CR>"<CR>
 vnoremap         µ "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
-nnoremap <Leader>r :Grep -F ""<left>
+nnoremap <Leader>! :Grep -F ""<left>
 vnoremap <silent> <Leader>r "vy:Grep -F "<C-R>=GetCurrentSelection()<CR>"<CR>
 nnoremap <LocalLeader>m :silent make<CR>
 
