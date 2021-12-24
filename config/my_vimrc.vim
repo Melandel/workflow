@@ -953,6 +953,20 @@ set wildmode=full
 " Sourcing" ---------------------------{{{
 function! RunCurrentlySelectedScriptInNewBufferAsync()
 	let scriptLines = GetCurrentlySelectedScriptLines()
+	let today = strftime('%Y-%m-%d-%A')
+	let commandFileFolder = printf('%s/curl/%s', $d, today)
+	if !glob(commandFileFolder, ':h') | call mkdir(commandFileFolder, 'p') | endif
+	let index = len(expand(commandFileFolder.'/*.script', v:true, v:true))
+	let index +=1
+	let currentHour = strftime('%Hh%m-%S')
+	let commandFile = printf('%s/%02d %s.%s', commandFileFolder, index, currentHour, 'script')
+	let tab_is_reusable = winnr('$') == 1 || empty(filter(range(1, winnr('$')), "getwinvar(v:val, '&bt') != 'nofile'"))
+	exec tab_is_reusable ? "only | enew" : '-tabedit' commandFile
+	pu!=scriptLines | exec 'saveas' commandFile
+	let winid = win_getid()
+	top new %:h
+	let dirvishDirValue = b:dirvish._dir
+	let b:previewsplit=winid
 	let scriptOnOneLine = SquashAndTrimLines(scriptLines)
 	let script = ExpandEnvironmentVariables(scriptOnOneLine)
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
@@ -967,6 +981,7 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 			let cmd = powershell.' -NoLogo -NoProfile -NonInteractive -Command remove-item alias:curl; '.script
 		endif
 	endif
+	let outputFileWithoutExt = fnamemodify(commandFile, ':r')
 	echomsg "<start> ".script | redraw
 	let s:job = job_start(
 		\cmd,
@@ -979,51 +994,46 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'close_cb':  function('DisplayScriptOutputInNewWindow', [scratchbufnr, scriptLines])
+			\'close_cb':  function('DisplayScriptOutputInNewWindow', [scratchbufnr, outputFileWithoutExt, dirvishDirValue])
 		\}
 	\)
 endfunc
 
-function! DisplayScriptOutputInNewWindow(scratchbufnr, scriptLines, channel)
-	if winnr('$') < 5
-	let ea = &equalalways
-	let &equalalways=1
-	1wincmd w
-	let winleft = winnr()
-	wincmd l
-	let winright = winnr()
-	while winleft != winright
-		wincmd J
-		wincmd k
-	let winleft = winnr()
-	wincmd l
-	let winright = winnr()
-	endwhile
-	let &equalalways = ea
+function! DisplayScriptOutputInNewWindow(scratchbufnr, outputFileWithoutExt, dirvishDirValue, channel)
 	exec 'vert botright sbuffer' a:scratchbufnr
-	else
-		exec '-tab sbuffer' a:scratchbufnr
-	endif
-	let b:scriptLines = a:scriptLines
+	call setbufvar(winbufnr(1), 'previewvsplit', win_getid())
+	let b:previewvsplit=win_getid()
 	"modify
 	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
 	if isCurlDashSmallI
 		2,$-1d
-		if line('$') > 1
-			let isXml = getline('$') =~ '^<.*>$'
-			if isXml
-				$!xmllint --format --recover --c14n -
-			else
-				$!jq .
-			endif
-		endif
 	endif
 	normal! gg
+	if line('$') > 1
+		let isXml = getline('$') =~ '^<.*>$'
+		let isJson = getline('1') =~ '^{\|('
+		if isXml
+			let ext = 'xml'
+			set ft=xml
+			normal! =G
+		elseif isJson
+			let ext = 'json'
+			set ft=json
+			normal! =G
+		else
+			let ext = 'output'
+		endif
+	endif
+	set bt=
+	exec 'saveas' printf('%s.%s', a:outputFileWithoutExt, ext)
+	if get(getbufvar(winbufnr(1), 'dirvish', {}), '_dir', '') == a:dirvishDirValue
+		call win_execute(win_getid(1), ['normal R', 'sort!', 'let b:dirvish._c = b:changedtick'])
+	endif
 endfunction
 
 command! AsyncTSplitCurrentlySelectedScriptInNewBuffer call RunCurrentlySelectedScriptInNewBufferAsync()
-vnoremap <silent> <Leader>S mv:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
-nnoremap <silent> <Leader>S mvvip}}}:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>`v
+vnoremap <silent> <Leader>S :<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>
+nnoremap <silent> <Leader>S vip}}}:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>
 vnoremap <silent> <Leader>V mvy:call histadd('cmd', @@)\|exec @@<CR>`v
 nnoremap <silent> <Leader>V mv^y$:exec @@<CR>`v
 
