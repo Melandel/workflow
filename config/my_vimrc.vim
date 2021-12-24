@@ -1203,7 +1203,6 @@ endfunction
 set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :Files<CR>
-nnoremap <leader>F :Files $git<CR>
 nnoremap         µ :Grep -F "<C-R>=EscapeRipgrepPattern(expand('<cword>'))<CR>"<CR>
 vnoremap         µ "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <Leader>! :Grep -F ""<left>
@@ -1653,6 +1652,7 @@ let $FZF_DEFAULT_OPTS='--bind up:preview-up,down:preview-down,ctrl-j:backward-ch
 
 augroup my_fzf"------------------------{{{
 	au!
+	autocmd FileType fzf setlocal termwinsize=
 	autocmd FileType fzf setlocal termwintype=conpty
 	autocmd FileType fzf tnoremap <buffer> <C-N> <C-N>
 	autocmd FileType fzf tnoremap <buffer> <C-P> <C-P>
