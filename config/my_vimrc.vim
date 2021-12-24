@@ -1193,6 +1193,10 @@ tnoremap <silent> KK <C-W>:q<CR>
 tnoremap <silent> HH <C-W>:CycleBackwards<CR>
 tnoremap <silent> LL <C-W>:CycleForward<CR>
 
+augroup terminal
+	au!
+	autocmd! TerminalWinOpen * setl termwinsize=0*9999
+augroup end
 " Folding" ----------------------------{{{
 vnoremap <silent> <space> <Esc>zE:let b:focus_mode=1 \| setlocal foldmethod=manual<CR>`<kzfgg`>jzfG`<
 nnoremap <silent> <space> :exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode<CR>
@@ -2080,7 +2084,6 @@ endfunc
 function! OnGitLogExitCB(...)
 	let winid = win_getid(winnr('$'))
 	call win_execute(winid, ['call setpos(".", [0, 1, 1, 1])', 'redraw'])
-	set termwinsize=
 	1wincmd w
 endfunction
 
