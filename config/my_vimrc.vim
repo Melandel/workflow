@@ -951,6 +951,43 @@ set wildignorecase
 set wildmode=full
 
 " Sourcing" ---------------------------{{{
+augroup curl
+	au!
+	autocmd! BufEnter *.xml,*.json,*.output    UpdateMatchingScriptBuffersIfAnyInCurrentTabAsync
+	autocmd! BufEnter *.script                 UpdateMatchingScriptResultBuffersIfAnyInCurrentTabAsync
+augroup end
+
+function! UpdateMatchingScriptBuffersIfAnyInCurrentTabAsync()
+	if get(t:, 'is_script_execution_tab', 0)
+		let timer = timer_start(100, function('SyncOtherWindowInCurrentTab', [winnr(), ['script']]))
+	endif
+endfunc
+command! UpdateMatchingScriptBuffersIfAnyInCurrentTabAsync call UpdateMatchingScriptBuffersIfAnyInCurrentTabAsync()
+
+function! UpdateMatchingScriptResultBuffersIfAnyInCurrentTabAsync()
+	if get(t:, 'is_script_execution_tab', 0)
+		let timer = timer_start(100, function('SyncOtherWindowInCurrentTab', [winnr(), ['xml', 'json', 'output']]))
+	endif
+endfunc
+command! UpdateMatchingScriptResultBuffersIfAnyInCurrentTabAsync call UpdateMatchingScriptResultBuffersIfAnyInCurrentTabAsync()
+
+	" on BufEnter, bufname hasn't been updated to the new buffer yet
+	" and WinBufEnter does not trigger on [v]split
+function! SyncOtherWindowInCurrentTab(syncSourceWinNr, extensionsToFindAndSync, ...)
+	let syncSourceBufname = fnamemodify(bufname(winbufnr(a:syncSourceWinNr)), ':p')
+	for winnr in range(1, winnr('$'))
+		let otherWindowExtension = fnamemodify(bufname(winbufnr(winnr)), ':t:e')
+		let found = index(a:extensionsToFindAndSync, otherWindowExtension)
+		if found >= 0
+			let newFile = printf('%s.%s', fnamemodify(syncSourceBufname, ':r'), otherWindowExtension)
+			let otherWindowCurrentFile = fnamemodify(bufname(winbufnr(winnr)), ':p')
+			if newFile != otherWindowCurrentFile
+				call win_execute(win_getid(winnr), "edit ".newFile)
+			endif
+		endif
+	endfor
+endfunction
+
 function! RunCurrentlySelectedScriptInNewBufferAsync()
 	let scriptLines = GetCurrentlySelectedScriptLines()
 	let today = strftime('%Y-%m-%d-%A')
@@ -958,13 +995,16 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 	if !glob(commandFileFolder, ':h') | call mkdir(commandFileFolder, 'p') | endif
 	let index = len(expand(commandFileFolder.'/*.script', v:true, v:true))
 	let index +=1
-	let currentHour = strftime('%Hh%m-%S')
+	let currentHour = strftime('%Hh%m''%S')
 	let commandFile = printf('%s/%02d %s.%s', commandFileFolder, index, currentHour, 'script')
 	let tab_is_reusable = winnr('$') == 1 || empty(filter(range(1, winnr('$')), "getwinvar(v:val, '&bt') != 'nofile'"))
 	exec tab_is_reusable ? "only | enew" : '-tabedit' commandFile
+	let t:is_script_execution_tab = 1
 	pu!=scriptLines | exec 'saveas' commandFile
 	let winid = win_getid()
 	top new %:h
+	autocmd BufEnter <buffer> nnoremap <buffer> o :call PreviewFile(trim(getline('.')) =~ 'script$' ? 'split' : 'vsplit')<CR>
+	autocmd BufEnter <buffer> nnoremap <buffer> a :normal o<CR>
 	let dirvishDirValue = b:dirvish._dir
 	let b:previewsplit=winid
 	let scriptOnOneLine = SquashAndTrimLines(scriptLines)
@@ -1929,7 +1969,7 @@ function! CreateFile()
 	nohlsearch
 endf
 
-function! PreviewFile(splitcmd, giveFocus)
+function! PreviewFile(splitcmd)
 	let path=trim(getline('.'))
 	let bufnr=bufnr()
 	let previewwinid = getbufvar(bufnr, 'preview'.a:splitcmd, 0)
@@ -1945,9 +1985,7 @@ function! PreviewFile(splitcmd, giveFocus)
 			call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
 		endif
 	endif
-	if !a:giveFocus
 		exec 'wincmd' (a:splitcmd == 'vsplit' ? 'h' : 'k')
-	endif
 endfunction
 
 augroup my_dirvish
@@ -1965,12 +2003,9 @@ elseif g:isWsl
 	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose<CR>
 endif
 	autocmd FileType dirvish unmap <buffer> o
-	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit', 0)<CR>
-	autocmd FileType dirvish nnoremap <silent> <buffer> O :call PreviewFile('vsplit', 1)<CR>
-	autocmd FileType dirvish nnoremap <silent> <buffer> gF :silent! call PreviewFile('-tabnew', 1)<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
 	autocmd FileType dirvish unmap <buffer> a
-	autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split', 0)<CR>
-	autocmd FileType dirvish nnoremap <silent> <buffer> A :call PreviewFile('split', 1)<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split')<CR>
 	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | setlocal foldcolumn=1
 	autocmd FileType dirvish nnoremap <silent> <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> i :call CreateDirectory()<CR>
