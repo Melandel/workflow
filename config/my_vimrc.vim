@@ -323,7 +323,15 @@ function! FileNameorQfTitle()
 		return get(w:, 'quickfix_title', get(b:, 'quickfix_title'))
 	else
 		let bufname = bufname()
-		return isdirectory(bufname) ? FolderRelativePathFromGit() : fnamemodify(bufname, ':t')
+		if isdirectory(bufname)
+			return FolderRelativePathFromGit()
+		else
+			if &readonly
+				return bufname
+			else
+				return fnamemodify(bufname, ':t')
+			endif
+		endif
 	endif
 endfunction
 
