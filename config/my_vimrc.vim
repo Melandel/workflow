@@ -327,7 +327,11 @@ function! FileNameorQfTitle()
 			return FolderRelativePathFromGit()
 		else
 			if &readonly
-				return bufname
+				let res = bufname
+				let cwd = substitute(getcwd(), '\', '/', 'g')
+				let idx = stridx(res, cwd)          | if idx >= 0 | let res = res[idx+len(cwd)+1:] | endif
+				let shaidx = match(res, '\x\{40\}') | if shaidx >= 0 | let res = res[:shaidx+6].res[shaidx+40:] | endif
+				return res
 			else
 				return fnamemodify(bufname, ':t')
 			endif
