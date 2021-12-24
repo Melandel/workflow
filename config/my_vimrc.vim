@@ -1,4 +1,4 @@
-let g:isWindows = has('win32')
+let g:isWindows = has('win32') "tata
 let g:isWsl = isdirectory('/mnt/c/Windows')
 if !g:isWindows && !g:isWsl
 	echoerr 'Only Windows and WSL are handled by this vimrc for now.'
