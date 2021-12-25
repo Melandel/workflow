@@ -1,4 +1,4 @@
-let g:isWindows = has('win32') "tata
+let g:isWindows = has('win32')
 let g:isWsl = isdirectory('/mnt/c/Windows')
 if !g:isWindows && !g:isWsl
 	echoerr 'Only Windows and WSL are handled by this vimrc for now.'
@@ -331,6 +331,12 @@ function! FileNameorQfTitle()
 				let cwd = substitute(getcwd(), '\', '/', 'g')
 				let idx = stridx(res, cwd)          | if idx >= 0 | let res = res[idx+len(cwd)+1:] | endif
 				let shaidx = match(res, '\x\{40\}') | if shaidx >= 0 | let res = res[:shaidx+6].res[shaidx+40:] | endif
+				return res
+			elseif bufname =~ '\\\.git\\\\\d\\'
+				let res = bufname
+				let idx = stridx(res, '.git\\')
+				let res = res[idx:idx+6]
+				if res[6] == '2' | let res.=' (local)' | elseif res[6] == '3' | let res.=' (incoming)' | endif
 				return res
 			else
 				return fnamemodify(bufname, ':t')
