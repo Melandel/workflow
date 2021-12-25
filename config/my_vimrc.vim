@@ -1073,20 +1073,24 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, outputFileWithoutExt, dir
 		2,$-1d
 	endif
 	normal! gg
+	let ext = 'output'
 	if line('$') > 1
 		let isXml = getline('$') =~ '^<.*>$'
-		let isJson = getline('1') =~ '^{\|('
+		let isJson = getline('$') =~ '^{\|('
 		if isXml
-			let ext = 'xml'
-			set ft=xml
-			normal! =G
+			$!xmllint --format --recover --c14n -
 		elseif isJson
-			let ext = 'json'
-			set ft=json
-			normal! =G
-		else
-			let ext = 'output'
+			$!jq .
 		endif
+	endif
+	if getline('1') =~ '^<.*>$'
+		set ft='xml'
+		let ext = 'xml'
+		normal! =G
+	elseif getline('1') =~ '^{\|('
+		set ft='json'
+		let ext = 'json'
+		normal! =G
 	endif
 	set bt=
 	exec 'saveas' printf('%s.%s', a:outputFileWithoutExt, ext)
