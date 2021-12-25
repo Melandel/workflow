@@ -336,7 +336,13 @@ function! FileNameorQfTitle()
 				let res = bufname
 				let idx = stridx(res, '.git\\')
 				let res = res[idx:idx+6]
-				if res[6] == '2' | let res.=' (target branch)' | elseif res[6] == '3' | let res.=' (merge branch)' | endif
+				if res[6] == '0'
+					let res.=' (index)'
+				elseif res[6] == '2'
+					let res.=' (target branch)'
+				elseif res[6] == '3'
+					let res.=' (merge branch)'
+				endif
 				return res
 			else
 				return fnamemodify(bufname, ':t')
