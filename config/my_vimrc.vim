@@ -997,8 +997,8 @@ function! SyncOtherWindowInCurrentTab(syncSourceWinNr, extensionsToFindAndSync, 
 		let otherWindowExtension = fnamemodify(bufname(winbufnr(winnr)), ':t:e')
 		let found = index(a:extensionsToFindAndSync, otherWindowExtension)
 		if found >= 0
-			let newFile = printf('%s.%s', fnamemodify(syncSourceBufname, ':r'), otherWindowExtension)
-			let otherWindowCurrentFile = fnamemodify(bufname(winbufnr(winnr)), ':p')
+			let newFile = substitute(printf('%s.%s', fnamemodify(syncSourceBufname, ':r'), otherWindowExtension), '\', '/', 'g')
+			let otherWindowCurrentFile = substitute(fnamemodify(bufname(winbufnr(winnr)), ':p'), '\', '/', 'g')
 			if newFile != otherWindowCurrentFile
 				call win_execute(win_getid(winnr), "edit ".newFile)
 			endif
@@ -1016,7 +1016,7 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 	let currentHour = strftime('%Hh%m''%S')
 	let commandFile = printf('%s/%02d %s.%s', commandFileFolder, index, currentHour, 'script')
 	let tab_is_reusable = winnr('$') == 1 || empty(filter(range(1, winnr('$')), "getwinvar(v:val, '&bt') != 'nofile'"))
-	exec tab_is_reusable ? "only | enew" : '-tabedit' commandFile
+	exec tab_is_reusable ? "silent! only | edit" : '-tabedit' commandFile
 	let t:is_script_execution_tab = 1
 	pu!=scriptLines | exec 'saveas' commandFile
 	let winid = win_getid()
