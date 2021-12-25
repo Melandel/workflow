@@ -39,7 +39,7 @@ snippet :dk "shrug emoticon" i
 endsnippet
 
 snippet curl "curl request" b
-curl -X GET $api --verbose --silent --location
+curl -siLk -X GET $api
 -H "X-Api-Key: $postmanKey"
 -H "Authorization: Bearer $token"$0
 endsnippet
