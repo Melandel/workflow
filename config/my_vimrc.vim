@@ -1019,7 +1019,7 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 	if !glob(commandFileFolder, ':h') | call mkdir(commandFileFolder, 'p') | endif
 	let index = len(expand(commandFileFolder.'/*.script', v:true, v:true))
 	let index +=1
-	let currentHour = strftime('%Hh%m''%S')
+	let currentHour = strftime('%Hh%M''%S')
 	let commandFile = printf('%s/%02d %s.%s', commandFileFolder, index, currentHour, 'script')
 	let tab_is_reusable = winnr('$') == 1 || empty(filter(range(1, winnr('$')), "getwinvar(v:val, '&bt') != 'nofile'"))
 	exec tab_is_reusable ? "silent! only | edit" : '-tabedit' commandFile
