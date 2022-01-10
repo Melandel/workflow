@@ -1255,6 +1255,7 @@ tnoremap <silent> <Leader>ss <C-W>:new<CR>
 tnoremap <silent> <Leader>vv <C-W>:vnew<CR>
 tnoremap <silent> <Leader>oo <C-W>:only<CR>i
 tnoremap <silent> <Leader>OO <C-W>:exec 'tabnew \|b'.bufnr()<CR>
+tnoremap <silent> <Leader>tt <C-W>:if &termwinsize == '' \| let &termwinsize='0*9999' \| else \| let &termwinsize='' \| endif<CR>
 tnoremap <silent> <Leader>== <C-W>=
 tnoremap <silent> KK <C-W>:q<CR>
 tnoremap <silent> HH <C-W>:CycleBackwards<CR>
