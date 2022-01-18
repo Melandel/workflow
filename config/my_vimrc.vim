@@ -1797,7 +1797,7 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 		let s:job = job_start(
 			\cmd,
 			\{
-				\'cwd': getcwd(),
+				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath', [item_finalname])
 			\}
@@ -1860,7 +1860,7 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 		let s:job = job_start(
 			\cmd,
 			\{
-				\'cwd': getcwd(),
+				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath', [item_finalname])
 			\}
@@ -1876,16 +1876,18 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 endfunction
 
 function! RenameItemUnderCursor()
+	let cwd = getcwd()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
 	let newname = input('Rename into:', filename)
 	if has('win32')
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', filename, newname)
+		echomsg 'cmd' cmd
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
 			\{
-				\'cwd': getcwd(),
+				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath', [newname])
 			\}
@@ -1947,13 +1949,14 @@ function! CreateDirectory()
 	if trim(dirname) == ''
 		return
 	endif
+	let cwd = getcwd()
 	if has('win32')
 		let cmd = printf('cmd /C %s %s', $gtools.'/mkdir', shellescape(dirname))
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
 			\{
-				\'cwd': getcwd(),
+				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath', [dirname])
 			\}
@@ -1981,13 +1984,14 @@ function! CreateFile()
 	if trim(filename) == ''
 		return
 	endif
+	let cwd = getcwd()
 	if has('win32')
 		let cmd = printf('cmd /C %s %s', $gtools.'/touch', shellescape(filename))
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
 			\{
-				\'cwd': getcwd(),
+				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
 				\'exit_cb':  function('RefreshBufferAndMoveToPath', [filename])
 			\}
