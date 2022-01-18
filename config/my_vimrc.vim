@@ -2792,7 +2792,8 @@ function! OpenCodeOnAzureDevops() range
 	let s:job= job_start(printf('firefox.exe "%s"', GetCodeUrlOnAzureDevops()))
 endfunction
 
-function! GetCodeUrlOnAzureDevops() range
+function! GetCodeUrlOnAzureDevopsForFullLine()
+	echomsg 'a:0' a:0
 	let filepath = expand('%:p')
 	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
 	let gitpath = filepath[len(gitrootfolder)+(has('win32')?1:0):]
@@ -2800,19 +2801,47 @@ function! GetCodeUrlOnAzureDevops() range
 	let gitbranch = gitbranch#name()
 	let gitproject = fnamemodify(gitrootfolder, ':t')
 	let url = $ados.'/'.$adosSourceProject.'/_git/'.gitproject.'?path='.substitute(gitpath, '/', '%2F', 'g').'&version=GB'.substitute(gitbranch, '/', '%2F', 'g')
-	if !empty(GetCurrentSelection())
-		let url .= '&line='.line("'<")
-		let adostabstop=3
-		let url .= '&lineStartColumn='.(max([getpos("'<")[2], 1]) + (getpos("'<")[2] == 1 ? 0 : adostabstop*(min([getpos("'<")[2],indent(line("'<"))]))))
-		let url .= '&lineEnd='.line("'>")
-		let url .= '&lineEndColumn='.(min([getpos("'>")[2], len(getline("'>'"))]) + 1 + adostabstop*indent(line("'>")))
-	else
+	let url .= '&line='.line('.').'&lineStartColumn=1&lineEndColumn=99'
+	return url
+endfunction
+
+function! GetCodeUrlOnAzureDevops(...)
+	let filepath = expand('%:p')
+	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
+	let gitpath = filepath[len(gitrootfolder)+(has('win32')?1:0):]
+	let gitpath = '/' . substitute(gitpath, '\\', '/', 'g')
+	let gitbranch = gitbranch#name()
+	let gitproject = fnamemodify(gitrootfolder, ':t')
+	let url = $ados.'/'.$adosSourceProject.'/_git/'.gitproject.'?path='.substitute(gitpath, '/', '%2F', 'g').'&version=GB'.substitute(gitbranch, '/', '%2F', 'g')
+	if (a:0 == 0) || (a:1 == a:2)
 		let url .= '&line='.line('.')
+	else
+		let url .= '&line='.a:1
+		let url .= '&lineEnd='.a:2
+	endif
+	if a:0 == 0
+		let url .= '&lineStartColumn=1&lineEndColumn=99'
+	else
+		let adostabstop=3
+		let firstCol = max([getpos("'<")[2], 1]) + (getpos("'<")[2] == 1 ? 0 : adostabstop*(min([getpos("'<")[2],indent(line("'<"))])))
+		let lastCol = min([getpos("'>")[2], len(getline("'>'"))]) + 1 + adostabstop*indent(line("'>"))
+		let url .= '&lineStartColumn='.firstCol
+		let url .= '&lineEndColumn='.lastCol
 	endif
 	return url
 endfunction
-command! -range AdosCode call OpenCodeOnAzureDevops()
-command! -bar -range CopyAdosUrl let @+=GetCodeUrlOnAzureDevops()
+
+function! CopyAdosCodeUrl() range
+	let @+=GetCodeUrlOnAzureDevops(a:firstline, a:lastline)
+	echomsg 'Code URL copied!'
+endfunction
+command! -bar -range CopyAdosUrl <line1>,<line2>call CopyAdosCodeUrl()
+
+function! CopyAdosUrlForFullLine()
+	let @+=GetCodeUrlOnAzureDevops()
+	echomsg 'Code URL copied!'
+endfunction
+command! CopyAdosUrlForFullLine call CopyAdosUrlForFullLine()
 
 function! MyOmniSharpNavigate(location, ...)
 	if OmniSharp#locations#Navigate(a:location)
@@ -2839,10 +2868,8 @@ command! MyOmniSharpGoToDefinition call OmniSharp#actions#definition#Find(functi
 augroup csharpfiles
 	au!
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
-	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
-	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>:echomsg 'Code URL copied!'<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :AdosCode<CR>
-	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :AdosCode<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosUrlForFullLine<CR>
+	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit <C-R>=b:OmniSharp_host.sln_or_dir<CR><CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
 	autocmd FileType cs nnoremap <buffer> <C-P> :MyOmniSharpNavigateUp<CR>
