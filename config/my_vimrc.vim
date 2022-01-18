@@ -1158,6 +1158,7 @@ augroup end
 
 " Find, Grep, Make, Equal" ------------{{{
 function! Grep(qf_or_loclist, ...)
+	let cwd = getcwd()
 	let winnr = winnr()
 	let params = join(a:000)
 	let firstDoubleQuote = stridx(params, '"')
@@ -1181,7 +1182,7 @@ function! Grep(qf_or_loclist, ...)
 	let s:job = job_start(
 		\cmd,
 		\{
-			\'cwd': getcwd(),
+			\'cwd': cwd,
 			\'out_io': 'buffer',
 			\'out_buf': scratchbufnr,
 			\'out_modifiable': 1,
@@ -1189,25 +1190,26 @@ function! Grep(qf_or_loclist, ...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'exit_cb': function("GrepCB", [winnr, cmd, pattern, scratchbufnr, a:qf_or_loclist])
+			\'exit_cb': function("GrepCB", [winnr, cmd, cwd, pattern, scratchbufnr, a:qf_or_loclist])
 		\}
 	\)
 	redraw
 endfunction
 
-function! GrepCB(winnr, cmd, pattern, scratchbufnr, qf_or_loclist, job, exit_status)
+function! GrepCB(winnr, cmd, cwd, pattern, scratchbufnr, qf_or_loclist, job, exit_status)
 	if (a:exit_status)
 		silent exec printf('botright sbuffer%d | let w:quickfix_title = "%s"', a:scratchbufnr, printf("[grep] %s", escape(a:pattern, '"')))
 		0put=a:cmd
 		return
 	endif
-	let result = getbufline(a:scratchbufnr, 1, '$')
-	let nb = len(result)
-	if nb == 1 && empty(result[0])
-		echomsg printf('[%s] 0 found.', a:pattern)
-		return
-	endif
-	echomsg printf('[%s] %d found.', a:pattern, nb)
+	"let result = getbufline(a:scratchbufnr, 1, '$')
+	"let nb = len(result)
+	"if nb == 1 && empty(result[0])
+	"	echomsg printf('[%s] 0 found.', a:pattern)
+	"	return
+	"endif
+	"echomsg printf('[%s] %d found.', a:pattern, nb)
+	exec 'lcd' a:cwd
 	set errorformat=%f:%l:%c:%m
 	let prefix = (a:qf_or_loclist == 'qf' ? 'c' : 'l')
 	silent exec prefix.'getbuffer' a:scratchbufnr
