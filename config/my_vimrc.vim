@@ -89,6 +89,7 @@ augroup end
 syntax on
 filetype plugin indent on
 silent! language messages English_United states
+set autoread
 set novisualbell
 set langmenu=en_US.UTF-8
 set encoding=utf8
