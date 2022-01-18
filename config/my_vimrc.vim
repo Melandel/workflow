@@ -2835,13 +2835,23 @@ function! CopyAdosCodeUrl() range
 	let @+=GetCodeUrlOnAzureDevops(a:firstline, a:lastline)
 	echomsg 'Code URL copied!'
 endfunction
-command! -bar -range CopyAdosUrl <line1>,<line2>call CopyAdosCodeUrl()
+command! -range CopyAdosCodeUrl <line1>,<line2>call CopyAdosCodeUrl()
 
-function! CopyAdosUrlForFullLine()
+function! CopyAdosCodeUrlForFullLine()
 	let @+=GetCodeUrlOnAzureDevops()
 	echomsg 'Code URL copied!'
 endfunction
-command! CopyAdosUrlForFullLine call CopyAdosUrlForFullLine()
+command! CopyAdosCodeUrlForFullLine call CopyAdosCodeUrlForFullLine()
+
+function! OpenAdosCodeUrl() range
+	exec 'Firefox' GetCodeUrlOnAzureDevops(a:firstline, a:lastline)
+endfunction
+command! -range OpenAdosCodeUrl <line1>,<line2>call OpenAdosCodeUrl()
+
+function! OpenAdosCodeUrlForFullLine()
+	exec 'Firefox' GetCodeUrlOnAzureDevops()
+endfunction
+command! OpenAdosCodeUrlForFullLine call OpenAdosCodeUrlForFullLine()
 
 function! MyOmniSharpNavigate(location, ...)
 	if OmniSharp#locations#Navigate(a:location)
@@ -2868,8 +2878,10 @@ command! MyOmniSharpGoToDefinition call OmniSharp#actions#definition#Find(functi
 augroup csharpfiles
 	au!
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
-	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosUrlForFullLine<CR>
-	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosUrl<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrlForFullLine<CR>
+	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrl<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :OpenAdosCodeUrlForFullLine<CR>
+	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :OpenAdosCodeUrl<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit <C-R>=b:OmniSharp_host.sln_or_dir<CR><CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
 	autocmd FileType cs nnoremap <buffer> <C-P> :MyOmniSharpNavigateUp<CR>
