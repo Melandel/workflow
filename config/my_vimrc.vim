@@ -2525,16 +2525,29 @@ command! -nargs=1 Keep call TraceRequestResponseIntoFile(get(b:, 'scriptLines'),
 	sign define vimspectorCurrentThread text=>  texthl=MatchParen
 	sign define vimspectorCurrentFrame text=>   texthl=Special
 
+function! ToggleBreakpoint()
+	if NoBreakpointIsPresentOnCurrentLine()
+		call vimspector#ToggleBreakpoint()
+	elseif ActiveBreakpointIsPresentOnCurrentLine()
+		call vimspector#ToggleBreakpoint()
+		call vimspector#ToggleBreakpoint()
+	elseif DisabledBreakpointIsPresentOnCurrentLine()
+		call vimspector#ToggleBreakpoint()
+	endif
+endfunction
+command! ToggleBreakpoint call ToggleBreakpoint()
 
 function! ToggleConditionalBreakpoint()
+	if !NoBreakpointIsPresentOnCurrentLine()
+		call ToggleBreakpoint()
+	endif
 	let condition = input('condition:')
-	if condition == ''
-		call vimspector#ToggleBreakpoint()
-	else
+	if trim(condition) != ''
 		call vimspector#ToggleBreakpoint({'condition': condition})
 	endif
 	redraw
 endfunction
+command! ToggleConditionalBreakpoint call ToggleConditionalBreakpoint()
 
  function! IsDebuggingTab()
  	return tabpagenr() == get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 0)
@@ -2544,9 +2557,40 @@ endfunction
  	return get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 99) <= tabpagenr('$')
  endfunction
 
-	function! BreakpointIsPresentOnCurrentLine()
+	function! NoBreakpointIsPresentOnCurrentLine()
 		return empty(sign_getplaced(bufnr(), #{group:'VimspectorBP', lnum: line(".")})[0].signs)
 	endfunction
+
+	function! ActiveBreakpointIsPresentOnCurrentLine()
+		let signs = sign_getplaced(bufnr(), #{group:'VimspectorBP', lnum: line(".")})[0].signs
+		return !empty(filter(signs, {_,x -> x.name == 'vimspectorBP' || x.name == 'vimspectorBPCond'}))
+	endfunction
+
+	function! DisabledBreakpointIsPresentOnCurrentLine()
+		let signs = sign_getplaced(bufnr(), #{group:'VimspectorBP', lnum: line(".")})[0].signs
+		return !empty(filter(signs, {_,x -> x.name == 'vimspectorBPDisabled'}))
+	endfunction
+
+function! Debug()
+	if IsDebuggingHappening()
+		exec 'normal!' g:vimspector_session_windows.tabpage.'gt'
+	else
+		"if NoBreakpointIsPresentOnCurrentLine() | call vimspector#ToggleBreakpoint() | endif
+		let isTestFile = (expand('%:p') =~ 'test' || expand('%:p') =~ 'should')
+		if isTestFile
+			let omnisharp_up = get(OmniSharp#GetHost(), 'initialized', 0)
+			if omnisharp_up
+				OmniSharpDebugTest
+			else
+				echomsg 'OmniSharp server is not running. Please run it in order to debug a test.'
+			endif
+		else
+			call vimspector#Launch()
+		endif
+	endif
+endfunction
+command! -bar Debug call Debug()
+
  func! CustomiseUI()
  call win_gotoid(g:vimspector_session_windows.stack_trace)
 	call SetDebugMappings()
@@ -2809,7 +2853,6 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> gd :MyOmniSharpGoToDefinition<CR>
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
 	autocmd FileType cs nmap <buffer> <LocalLeader>i :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_implementations):Reframe<CR>
-	autocmd FileType cs nmap <buffer> <LocalLeader>I :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_preview_implementations)
 	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindType 
 	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindSymbol 
 	autocmd FileType cs nmap <buffer> <LocalLeader>u :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_usages)
@@ -2823,14 +2866,13 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
-	autocmd FileType cs nmap <buffer> <LocalLeader>t <Plug>(omnisharp_run_tests_in_file)
-	autocmd FileType cs nmap <buffer> <LocalLeader>T <Plug>(omnisharp_debug_test)
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>t <Plug>(omnisharp_run_test)
+	autocmd FileType cs nmap <buffer> <LocalLeader>T <Plug>(omnisharp_run_tests_in_file)
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>U :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName!~Integration<CR>
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Y :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName~Integration<CR>
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>y <Plug>(omnisharp_run_test)
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Q :if !IsDebuggingHappening() \| if BreakpointIsPresentOnCurrentLine() \| call vimspector#ToggleBreakpoint() \| endif \| call vimspector#Launch() \| else \| exec 'normal!' g:vimspector_session_windows.tabpage.'gt' \| endif<CR>
-	autocmd FileType cs nmap <silent> <buffer> <localleader>b <Plug>VimspectorToggleBreakpoint
-	autocmd FileType cs nnoremap <silent> <buffer> <localleader>B :call ToggleConditionalBreakpoint()<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>I :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName~Integration<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Q :Debug<CR>
+	autocmd FileType cs nmap <silent> <buffer> <localleader>b :ToggleBreakpoint<CR>
+	autocmd FileType cs nnoremap <silent> <buffer> <localleader>B :ToggleConditionalBreakpoint<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
 augroup end
