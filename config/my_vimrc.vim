@@ -678,7 +678,7 @@ augroup windows
 	autocmd WinLeave * if !pumvisible() | setlocal norelativenumber foldcolumn=0 | endif
 	autocmd WinEnter * if !pumvisible() | setlocal relativenumber   foldcolumn=1 | endif
 	" Safety net if I close a window accidentally
-	autocmd QuitPre * mark K
+	autocmd QuitPre * normal! mK
 	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
 	" Make sure Vim returns to the same line when you reopen a file.
  autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | exec 'normal! g`"zvzz' | endif
@@ -910,26 +910,30 @@ nnoremap <expr> gI v:count == 0 ? '`I' : 'gI'
 nnoremap <silent> . :let c= strcharpart(getline('.')[col('.') - 1:], 0, 1)\|exec "normal! f".c<CR>
 
 function! ExtendedHome()
+	normal! m'
     let column = col('.')
     normal! ^
     if column == col('.')
         normal! 0
     endif
 endfunction
-nnoremap <silent> <Home> :call ExtendedHome()<CR>
-vnoremap <silent> <Home> <Esc>:call ExtendedHome()<CR>mvgv`v
-onoremap <silent> <Home> :call ExtendedHome()<CR>
+command! Home call ExtendedHome()
+nnoremap <silent> <Home> :Home<CR>
+vnoremap <silent> <Home> <Esc>:Home<CR>mvgv`v
+onoremap <silent> <Home> :Home<CR>
 
 function! ExtendedEnd()
+	normal! m'
     let column = col('.')
     normal! g_
     if column == col('.') || column == col('.')+1
         normal! $
     endif
 endfunction
-nnoremap <silent> <End> :call ExtendedEnd()<CR>
-vnoremap <silent> <End> $
-onoremap <silent> <End> :call ExtendedEnd()<CR>
+command! End call ExtendedEnd()
+nnoremap <silent> <End> :End<CR>
+vnoremap <silent> <End> m'$m'
+onoremap <silent> <End> :End<CR>
 
 " Text objects" -----------------------{{{
 vnoremap iz [zjo]zkVg_| onoremap iz :normal viz<CR>
@@ -1402,7 +1406,7 @@ command! AsyncAutocomplete call AsyncAutocomplete()
 augroup autocompletion
 	au!
 	autocmd CursorHoldI * AsyncAutocomplete
-	autocmd User UltiSnipsEnterFirstSnippet mark '
+	autocmd User UltiSnipsEnterFirstSnippet normal! m'
 augroup end
 
 let g:UltiSnipsExpandTrigger = "<F13>"
@@ -2032,7 +2036,7 @@ endfunction
 augroup my_dirvish
 	au!
 	autocmd BufEnter if &ft == 'dirvish' | let b:previewvsplit = 0 | let b:previewsplit = 0 | endif
-	autocmd BufLeave if &ft == 'dirvish' | mark L | endif
+	autocmd BufLeave if &ft == 'dirvish' | normal! mL | endif
 	autocmd BufEnter if &ft == 'dirvish' | silent normal R
 	autocmd FileType dirvish silent! nunmap <silent> <buffer> q
 	autocmd FileType dirvish nnoremap <silent> <buffer> q: q:
