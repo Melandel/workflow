@@ -2581,7 +2581,7 @@ function! Debug()
 		exec 'normal!' g:vimspector_session_windows.tabpage.'gt'
 	else
 		"if NoBreakpointIsPresentOnCurrentLine() | call vimspector#ToggleBreakpoint() | endif
-		let isTestFile = (expand('%:p') =~ 'test' || expand('%:p') =~ 'should')
+		let isTestFile = (expand('%:p') =~ 'test\|should')
 		if isTestFile
 			let omnisharp_up = get(OmniSharp#GetHost(), 'initialized', 0)
 			if omnisharp_up
