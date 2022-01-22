@@ -636,8 +636,8 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
-nnoremap <silent> <Leader>s :silent! split<CR>
-nnoremap <silent> <Leader>v :silent! vsplit<CR>
+nnoremap <silent> <Leader>s :let buffers = w:buffers \| silent! split  \| let w:buffers = buffers<CR>
+nnoremap <silent> <Leader>v :let buffers = w:buffers \| silent! vsplit \| let w:buffers = buffers<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
 nnoremap <silent> <Leader>O mW:-tabnew<CR>`W
