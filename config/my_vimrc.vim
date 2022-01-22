@@ -789,12 +789,17 @@ let g:qfprio = 'c'
 let g:framingoffset = 5
 
 function! Reframe()
-	setlocal scrolloff=5
-	normal! zt
-	setlocal scrolloff=-1
+	let topOffset = abs(line('.') - line('w0'))
+	let bottomOffset = abs(line('.') - line('w$'))
+	let minimalMargin = max([5, float2nr(round(winheight(winnr()) * 0.3))])
+	if min([topOffset, bottomOffset]) < minimalMargin
+		let &scrolloff=minimalMargin
+		let timer = timer_start(10, {_ -> execute('let &scrolloff=-1')})
+	endif
 endfunction
+
 command! -bar Reframe call Reframe()
-nnoremap <silent> zt :Reframe<CR>
+nnoremap <silent> zt :setlocal scrolloff=5 \| exec 'normal! zt' \| setlocal scrolloff=-1<CR>
 nnoremap <silent> zT zt
 
 function! Qfnext()
@@ -2884,10 +2889,10 @@ augroup csharpfiles
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :OpenAdosCodeUrl<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit <C-R>=b:OmniSharp_host.sln_or_dir<CR><CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
-	autocmd FileType cs nnoremap <buffer> <C-P> :MyOmniSharpNavigateUp<CR>
-	autocmd FileType cs nnoremap <buffer> <C-N> :MyOmniSharpNavigateDown<CR>
-	autocmd FileType cs nnoremap <buffer> <C-H> gg:MyOmniSharpNavigateDown<CR>
-	autocmd FileType cs nnoremap <buffer> <C-L> G:MyOmniSharpNavigateUp<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <C-P> :MyOmniSharpNavigateUp<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <C-N> :MyOmniSharpNavigateDown<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <C-H> :keepjumps normal! gg:MyOmniSharpNavigateDown<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <C-L> :keepjumps normal! G:MyOmniSharpNavigateUp<CR>
 	autocmd FileType cs nmap <buffer> z! :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_members)
 	autocmd FileType cs nmap <buffer> gd :MyOmniSharpGoToDefinition<CR>
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
