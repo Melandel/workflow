@@ -2643,24 +2643,20 @@ function! Debug()
 endfunction
 command! -bar Debug call Debug()
 
- func! CustomiseUI()
+func! CustomiseUI()
  call win_gotoid(g:vimspector_session_windows.stack_trace)
-	call SetDebugMappings()
 	nmap <silent> <buffer> <Space> <CR>
 	nnoremap <silent> <buffer> zt zt
  wincmd H
 	nunmenu WinBar
  call win_gotoid( g:vimspector_session_windows.code )
-	call SetDebugMappings()
  wincmd H
  call win_gotoid(g:vimspector_session_windows.variables)
-	call SetDebugMappings()
 	nmap <silent> <buffer> <Space> <CR>
 	nnoremap <silent> <buffer> zt zt
  let b = bufnr('%')
  quit
  call win_gotoid(g:vimspector_session_windows.watches)
-	call SetDebugMappings()
  nunmenu WinBar
 	nmap <silent> <buffer> <Space> <CR>
 	nnoremap <silent> <buffer> zt zt
@@ -2670,7 +2666,6 @@ command! -bar Debug call Debug()
 	call win_gotoid( g:vimspector_session_windows.code )
 	nunmenu WinBar
 	call win_gotoid(g:vimspector_session_windows.output)
-	call SetDebugMappings()
 	nnoremap <silent> <buffer> zt zt
 	resize 12
 	set winfixheight
@@ -2679,6 +2674,7 @@ command! -bar Debug call Debug()
 	call win_gotoid( g:vimspector_session_windows.code )
 	resize +4
 	normal! zz
+	windo call SetDebugMappings()
 endfunction
 
 augroup MyVimspectorUICustomistaion
@@ -2701,6 +2697,7 @@ function! SetDebugMappings() abort
 		nmap <silent> <buffer> <C-K> <Plug>VimspectorUpFrame
 
 	nnoremap <silent> <buffer> <Leader>x :call vimspector#Reset()<CR>
+	nnoremap <silent> <buffer> <Leader>= <C-W>=99<C-W>w:resize 12<CR><C-W>p1<C-W>w:resize +4<CR>
 endfunction
 
 function! RemoveDebugMappings() abort
