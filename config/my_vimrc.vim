@@ -585,8 +585,12 @@ function! MyTabLabel(n)
 		if !empty(omnisharpHosts)
 			let host = omnisharpHosts[0]
 			let sln_or_dir = toupper(fnamemodify(host.sln_or_dir, ':t:r'))
+			if IsDebuggingTab(a:n)
+				return '🔍'.sln_or_dir.'🔍'
+			else
 			let omnisharp_up = get(host, 'initialized', 0)
 			return omnisharp_up ? '<'.sln_or_dir.'>' : sln_or_dir
+		endif
 		endif
   let winnr = tabpagewinnr(a:n)
 		let bufnr = buflist[winnr - 1]
@@ -2601,8 +2605,9 @@ function! ToggleConditionalBreakpoint()
 endfunction
 command! ToggleConditionalBreakpoint call ToggleConditionalBreakpoint()
 
- function! IsDebuggingTab()
- 	return tabpagenr() == get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 0)
+ function! IsDebuggingTab(...)
+		let tabnr = a:0 ? a:1 : tabpagenr()
+ 	return tabnr == get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 0)
  endfunction
  
  function! IsDebuggingHappening()
