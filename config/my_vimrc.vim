@@ -1676,6 +1676,45 @@ set quickfixtextfunc=QuickFixTextFunc
 " H and L are used for cycling between buffers and `A is a pain to type
 nnoremap M `
 
+function! JumpToPrevious()
+	let jumplist=getjumplist(winnr())
+	if jumplist[1] < len(jumplist[0])
+		exec "normal! \<C-O>"
+	else
+		if line('.') == jumplist[0][-1].lnum
+			exec "normal! 2\<C-O>"
+		else
+			exec "normal! m'2\<C-O>"
+		endif
+	endif
+endfunction
+command! JumpToPrevious call JumpToPrevious()
+nnoremap <silent> <C-O> :JumpToPrevious<CR>
+
+let g:lastCursorHoldTime = reltimefloat(reltime())
+
+function! MarkCurrentPosition()
+	let now = reltimefloat(reltime())
+	let jumplist = getjumplist(winnr())
+	if empty(jumplist[0])
+		normal! m'
+		let g:lastCursorHoldTime = now
+		return
+	endif
+	let lockInSeconds = 0.75
+	if now - g:lastCursorHoldTime > lockInSeconds
+		if jumplist[1] == len(jumplist[0])
+			normal! m'
+			let g:lastCursorHoldTime = now
+		endif
+	endif
+endfunction
+
+augroup marks
+	au!
+	autocmd CursorHold * call MarkCurrentPosition()
+augroup end
+
 " Changelist"--------------------------{{{
 nnoremap g; g;zv
 nnoremap g, g,zv
