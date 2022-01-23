@@ -912,9 +912,9 @@ nnoremap <silent> . :let c= strcharpart(getline('.')[col('.') - 1:], 0, 1)\|exec
 function! ExtendedHome()
 	normal! m'
     let column = col('.')
-    normal! ^
+	keepjumps normal! ^
     if column == col('.')
-        normal! 0
+		keepjumps normal! 0
     endif
 endfunction
 command! Home call ExtendedHome()
@@ -925,9 +925,9 @@ onoremap <silent> <Home> :Home<CR>
 function! ExtendedEnd()
 	normal! m'
     let column = col('.')
-    normal! g_
+	keepjumps normal! g_
     if column == col('.') || column == col('.')+1
-        normal! $
+		keepjumps normal! $
     endif
 endfunction
 command! End call ExtendedEnd()
@@ -1682,7 +1682,11 @@ function! JumpToPrevious()
 		exec "normal! \<C-O>"
 	else
 		if line('.') == jumplist[0][-1].lnum
+			if col('.') != jumplist[0][-1].col
+				exec "normal! ".jumplist[0][-1].col."|"
+			else
 			exec "normal! 2\<C-O>"
+			endif
 		else
 			exec "normal! m'2\<C-O>"
 		endif
