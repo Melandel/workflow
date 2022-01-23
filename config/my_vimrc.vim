@@ -1707,7 +1707,7 @@ function! MarkCurrentPosition()
 	endif
 	let lockInSeconds = 0.75
 	if now - g:lastCursorHoldTime > lockInSeconds
-		if jumplist[1] == len(jumplist[0])
+		if jumplist[1] == len(jumplist[0]) && line('.') != jumplist[0][-1].lnum 
 			normal! m'
 			let g:lastCursorHoldTime = now
 		endif
