@@ -458,7 +458,8 @@ function! LineCount(...)
 endfunction
 
 function! ResetScratchBuffer(path)
-	silent! exec 'bdelete!' bufnr(a:path)
+	let existing = bufnr(a:path)
+	if existing > 0 | silent! exec 'bdelete!' existing | endif
 	let bufnr = bufadd(a:path)
 	call setbufvar(bufnr, '&bufhidden', 'hide')
 	call setbufvar(bufnr, '&buftype', 'nofile')
