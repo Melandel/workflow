@@ -1721,7 +1721,7 @@ endfunction
 
 augroup marks
 	au!
-	autocmd CursorHold * call MarkCurrentPosition()
+	"autocmd CursorHold * call MarkCurrentPosition()
 augroup end
 
 " Changelist"--------------------------{{{
