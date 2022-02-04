@@ -151,7 +151,7 @@ augroup vimOnlyTabSize
 	autocmd BufEnter * if(&ts != 1) | set tabstop=1 shiftwidth=1 softtabstop=0 | endif
 augroup end
 
-command! -bar Spaces2Tabs set noet ts=4 |%retab!|set ts=1
+command! -bar Retab let ts=&ts|let &et=0|let &ts=(&ts+1) |retab!|let &ts=ts|retab!
 
 " Leader keys" ------------------------{{{
 let mapleader = 's'
