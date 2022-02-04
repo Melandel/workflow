@@ -2095,6 +2095,7 @@ elseif g:isWsl
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose<CR>
 endif
+	autocmd FileType dirvish nnoremap <silent> <buffer> <C-B> :echo gitbranch#name()<CR>
 	autocmd FileType dirvish unmap <buffer> o
 	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
 	autocmd FileType dirvish unmap <buffer> a
