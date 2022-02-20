@@ -2092,6 +2092,7 @@ augroup my_dirvish
 	autocmd BufEnter if &ft == 'dirvish' | silent normal R
 	autocmd FileType dirvish silent! nunmap <silent> <buffer> q
 	autocmd FileType dirvish nnoremap <silent> <buffer> q: q:
+	autocmd FileType dirvish nnoremap <silent> <buffer> gh :silent keeppatterns g@\v\\\.[^\\]+\\?$@d _<cr>:setl cole=3<cr>
 	if g:isWindows
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose powershell -NoLogo<CR>
@@ -2172,6 +2173,86 @@ vnoremap <Leader>T :GoogleTranslateEnFr<CR>
 command! Wiki exec 'Firefox' $wiki
 nnoremap <Leader>W :Wiki<CR>
 
+" Board & Work-in-progress
+function! AreWipBuffersOpenInCurrentTab()
+	return len(filter(range(1, winnr('$')), {_,x -> getbufvar(winbufnr(x), 'is_wip_buffer') == 1}))
+endfunction
+
+function! HideWipBuffers()
+	let wipBuffers = filter(map(range(1, winnr('$')), {_,x -> winbufnr(x)}), {_,x -> getbufvar(x, 'is_wip_buffer') == 1})
+	for bufnr in wipBuffers | exec 'bd' bufnr | endfor
+	let adosUrlMenuBuffers = filter(map(range(1, winnr('$')), {_,x -> winbufnr(x)}), {_,x -> !empty(getbufvar(x, 'urlBuilders', []))})
+	for bufnr in adosUrlMenuBuffers | exec 'bd' bufnr | endfor
+endfunction
+
+function! DisplayWipBuffers()
+	silent botright split +let\ b:is_wip_buffer=1 $wip
+	exec 'resize' (0.5 * &lines)
+	silent! keeppatterns g@\v\\\.[^\/]+\\?$@d _
+	let t = timer_start(10, {_ -> execute('setl conceallevel=3')})
+	nunmap <buffer> o
+	nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
+	nunmap <buffer> x
+	nnoremap <silent> <buffer> x :call SetCurrentAdosWorkItemIdFromWip()<CR>
+	silent 8split +let\ b:is_wip_buffer=1 $wip/.pending
+	silent vsplit +let\ b:is_wip_buffer=1 $checklists
+	nunmap <buffer> o
+	nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
+	wincmd h
+	silent vsplit +let\ b:is_wip_buffer=1 $wip/.priority
+	wincmd k
+endfunction
+
+function! SetCurrentAdosWorkItemIdFromWip()
+	let workItem = fnamemodify(getline('.'), ':t:r')
+	if workItem =~ '^.'
+		let workItem =~ '^.' ? workItem[1:]
+	endif
+	let workItemId = str2nr(workItem)
+	if workItemId == g:previousWorkItemId
+		echomsg 'Current Ados item is already' workItem
+		return
+	endif
+	let g:previousWorkItemId = workItemId
+	echomsg 'Current Ados item set to' workItem
+endfunction
+
+function! ToggleWorkInProgress()
+	if AreWipBuffersOpenInCurrentTab()
+		call HideWipBuffers()
+	else
+		call DisplayWipBuffers()
+	endif
+endfunction
+command! Wip call ToggleWorkInProgress()
+nnoremap <leader>b :Wip<CR>
+
+nnoremap <leader>B :exec 'Firefox' $adosBoard<CR>
+
+function! BuildWipFileForWorkItem(workItemId)
+	if !empty(glob($wip.'/'.filename.id.'*.md'))
+		echomsg 'There is already a file for workitem' a:workItemId
+		return
+	endif
+	let filenameParts = js_decode(substitute(system(printf('curl -sLk -X GET -u:%s %s/%s/_apis/wit/workitems/%d?api-version=6.0 | jq -r "{id, title: .fields[\"System.Title\"], assignedTo: .fields[\"System.AssignedTo\"].displayName}"', $pat, $ados, $adosProject, a:workItemId)), '[\x0]', '', 'g'))
+	let filename = printf('%d %s (%s).md', filenameParts.id, filenameParts.title, filenameParts.assignedTo)
+	let filepath = $wip.'/'.filename
+	let filecontent = [printf('# %s', filename)]
+	call add(filecontent, '')
+	call add(filecontent, '## Timeline')
+	call add(filecontent, '* [ ] Event Happened')
+	call add(filecontent, '* [ ] Event Happened')
+	call add(filecontent, '')
+	call add(filecontent, '## Questions & Answers')
+	call add(filecontent, '')
+	call add(filecontent, '## Resources')
+	call add(filecontent, '')
+	call writefile(filecontent, filepath)
+	echomsg 'fullpath' filepath
+	echomsg 'File' "'".filename."'" 'was successfully created.'
+endfunction
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration WipAdd call BuildWipFileForWorkItem(str2nr(<f-args>))
+
 " Dashboard" --------------------------{{{
 cnoremap <C-B> <C-R>=gitbranch#name()<CR>
 
@@ -2205,7 +2286,7 @@ command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
 
 function! OnGitLogExit(...)
-	let t = timer_start(10, function('OnGitLogExitCB'))
+	let t = timer_start(30, function('OnGitLogExitCB'))
 endfunc
 
 function! OnGitLogExitCB(...)
@@ -3706,17 +3787,17 @@ function! LocListAdos(...)
 	exec len(items).'new'
 	let b:urlBuilders = items
 	set winfixheight
-	put! =sort(keys(items), {a,b -> items[a].order - items[b].order})
+	silent put! =sort(keys(items), {a,b -> items[a].order - items[b].order})
 	normal! Gddgg
 	let b:is_custom_loclist = 1
 	let b:quickfix_title = 'wit#'.filter(GetWorkItemsAssignedToMeInCurrentIteration(), {_,x -> x =~ '^'.workItemId})[0]
 	set ft=qf bt=nofile
-	nnoremap <silent> <buffer> i :exec 'Firefox' eval("b:urlBuilders[getline('.')].urlBuilder()")<CR>
-	nnoremap <silent> <buffer> t :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Task'].order.")].urlBuilder()")<CR>
-	nnoremap <silent> <buffer> p :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Latest Pull Request'].order.")].urlBuilder()")<CR>
-	nnoremap <silent> <buffer> P :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['My Pull Requests'].order.")].urlBuilder()")<CR>
-	nnoremap <silent> <buffer> b :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Kanban Board'].order.")].urlBuilder()")<CR>
-	nnoremap <silent> <buffer> d :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Deployment'].order.")].urlBuilder()")<CR>
+	nnoremap <silent> <buffer> i :exec 'Firefox' eval("b:urlBuilders[getline('.')].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> t :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Task'].order.")].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> p :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Latest Pull Request'].order.")].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> P :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['My Pull Requests'].order.")].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> b :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Kanban Board'].order.")].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> d :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Deployment'].order.")].urlBuilder()")<CR>:q<CR>
 endfunction
 nnoremap <silent> <Leader>a :if exists('g:previousWorkItemId') \| call LocListAdos() \| else \| call feedkeys(":Ados \<tab>") \| endif<CR>
 command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Ados call LocListAdos(str2nr(<f-args>))
@@ -3728,38 +3809,3 @@ au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -
 au FileType json setlocal equalprg=jq\ -
 augroup end
 
-" foo
-function! AreWipBuffersOpenInCurrentTab()
-	return len(filter(range(1, winnr('$')), {_,x -> getbufvar(winbufnr(x), 'is_wip_buffer') == 1}))
-endfunction
-
-function! HideWipBuffers()
-	let wipBuffers = filter(map(range(1, winnr('$')), {_,x -> winbufnr(x)}), {_,x -> getbufvar(x, 'is_wip_buffer') == 1})
-	for bufnr in wipBuffers
-		exec 'bd' bufnr
-	endfor
-endfunction
-
-function! DisplayWipBuffers()
-	silent botright split +let\ b:is_wip_buffer=1 $wip
-	exec 'resize' (0.5 * &lines)
-	silent! keeppatterns g@\v\\\.[^\/]+\\?$@d _
-	let t = timer_start(10, {_ -> execute('setl conceallevel=3')})
-	nunmap <buffer> o
-	nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
-	silent 8split +let\ b:is_wip_buffer=1 $wip/.multitasking
-	silent vsplit +let\ b:is_wip_buffer=1 $checklists
-	wincmd h
-	silent vsplit +let\ b:is_wip_buffer=1 $wip/.priority
-	wincmd k
-endfunction
-
-function! ToggleWorkInProgress()
-	if AreWipBuffersOpenInCurrentTab()
-		call HideWipBuffers()
-	else
-		call DisplayWipBuffers()
-	endif
-endfunction
-command! Wip call ToggleWorkInProgress()
-nnoremap <leader>b :Wip<CR>
