@@ -108,8 +108,10 @@ But here, I'm also using VIM (and I know and understand many whom think this is 
 
 ## Installation Details ##
 ### Windows ###
-#### Startup programs ####
+#### Using config/vimfiles
+Add environment variable `VIMINIT` to `source %HOMEPATH%\Desktop\config\my_vimrc.vim`
 
+#### Startup programs ####
 `gvim`, `tools/myAzertyKeyboard.RunMeAsAdmin.exe` and your internet browser should be run when the system starts up.
 
 On Windows, for each program that should be run at startup:
@@ -124,5 +126,4 @@ Set WshShell = Nothing
 `Windows Terminal` has a particular configuration item `"startOnUserLogin": true`.
 
 #### Task Bar Icons ####
-
 Don't forget to set the target of the task bar icon to `$HOME\Desktop\tools\vim\gvim.exe -S` and its startup directory to `$HOME` in order to use and locate Vim's session file properly!

@@ -8,6 +8,7 @@ endif
 if g:isWindows
 let $HOME = substitute($HOME, '\\', '/', 'g')
 let $config    = $HOME.'/Desktop/config'
+let $packpath  = $HOME.'/Desktop/config/vimfiles'
 let $desktop   = $HOME.'/Desktop'                    | let $d = $desktop
 let $downloads = $HOME.'/Downloads'
 let $notes     = $HOME.'/Desktop/notes'              | let $n = $notes
@@ -26,16 +27,15 @@ let $rc         = $HOME.'/Desktop/config/my_vimrc.vim'
 let $rce        = $HOME.'/Desktop/config/my_vimworkenv.vim'
 let $rcfolder   = $VIM
 let $rcfilename = '_vimrc'
-let $packpath   = $VIM
 elseif g:isWsl
 	let $desktop    = $HOME
  let $rcfolder   = $HOME
 	let $rcfilename = '.vimrc'
-	let $packpath   = $HOME.'/.vim'
 endif
 
 " Desktop Integration:-----------------{{{
 " Plugins" ----------------------------{{{
+set packpath=$vim,$packpath
 packadd! matchit
 packadd! cfilter
 function! MinpacInit()
@@ -1392,7 +1392,7 @@ function! SortLinesByLengthBeforeFirstSpaceChar() range
 endfunction
 command! -range=% SortByLengthBeforeFirstSpaceChar <line1>,<line2>call SortLinesByLengthBeforeFirstSpaceChar()
 " Autocompletion (Insert Mode)" -------{{{
-set updatetime=250
+set updatetime=125
 set complete=.,b
 set completeopt+=menuone,noselect,noinsert
 " when typing too fast, typically after a dot, omnifunc sometimes needs to be reset. This prevents that from happening
@@ -2942,8 +2942,8 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <C-P> :MyOmniSharpNavigateUp<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <C-N> :MyOmniSharpNavigateDown<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <C-H> :keepjumps normal! gg:MyOmniSharpNavigateDown<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <C-L> :keepjumps normal! G:MyOmniSharpNavigateUp<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <C-H> :keepjumps exec 'normal! gg' \| :MyOmniSharpNavigateDown<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <C-L> :keepjumps exec 'normal! G' \| :MyOmniSharpNavigateUp<CR>
 	autocmd FileType cs nmap <buffer> z! :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_members)
 	autocmd FileType cs nmap <buffer> gd :MyOmniSharpGoToDefinition<CR>
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
