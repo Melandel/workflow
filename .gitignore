@@ -1,10 +1,9 @@
 /*
 /*/
+/notes/*
 !/config/
-!/notes/
+/config/vimfiles/
 !/snippets/
 !/templates/
-!/tools/
-/tools/*/
 !/tools/filters/
 *.withsvgs.md
