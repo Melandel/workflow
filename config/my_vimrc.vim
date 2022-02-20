@@ -22,6 +22,8 @@ let $todo      = $HOME.'/Desktop/todo'
 let $today     = $HOME.'/Desktop/today'
 let $scripts   = $HOME.'/Desktop/scripts'            | let $s = $scripts
 let $gtools    = $HOME.'/Desktop/tools/git/usr/bin'
+let $wip       = $HOME.'/Desktop/work_in_progress'
+let $checklists= $HOME.'/Desktop/checklists'
 
 let $rc         = $HOME.'/Desktop/config/my_vimrc.vim'
 let $rce        = $HOME.'/Desktop/config/my_vimworkenv.vim'
@@ -2065,10 +2067,12 @@ endf
 function! PreviewFile(splitcmd)
 	let path=trim(getline('.'))
 	let bufnr=bufnr()
+	let is_wip_buffer = get(b:, 'is_wip_buffer', 0)
 	let previewwinid = getbufvar(bufnr, 'preview'.a:splitcmd, 0)
 	if previewwinid == 0
 		exec a:splitcmd path
 		call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
+		if is_wip_buffer | let b:is_wip_buffer = 1 | endif
 	else
 		call win_gotoid(previewwinid)
 		if win_getid() == previewwinid
@@ -2187,8 +2191,6 @@ function! OpenDashboard()
 	endif
 	normal gU
 	silent exec winheight(0)/4.'new'
-		silent exec 'edit' $desktop.'/todo'
-	silent exec winwidth(0)*2/3.'vnew'
 		let bufnr = bufnr()
 		silent! bdelete git\ --no-pager\ log
 		set termwinsize=0*9999
@@ -2196,10 +2198,6 @@ function! OpenDashboard()
 		exec buf.'buffer'
 		nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
 		nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
-	wincmd h
-	silent exec 'vnew' $today
-	wincmd h
-	silent exec '3new' $desktop.'/waiting'
 	1wincmd w
 	windo nnoremap <buffer> <silent> <leader>L 99<C-W>W<C-W>L:exec 'vert resize' &columns/2<CR>
 endfunction
@@ -2251,14 +2249,6 @@ augroup dashboard
 	autocmd FileType gitcommit    call feedkeys("i\<C-X>\<C-U>")
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
-	autocmd BufEnter     todo,ideas,waiting,today,wip.md set buftype=nofile nowrap
-	autocmd BufWritePost todo,ideas,waiting,today,wip.md set buftype=nofile
-	autocmd BufEnter     todo,ideas,waiting,today normal! gg
-	autocmd BufLeave     todo,ideas,waiting,today normal! gg
-	autocmd BufEnter     todo,ideas,waiting,today,wip.md inoremap <buffer> <Esc> <Esc>:set buftype=<CR>:w!<CR>
-	autocmd TextChanged  todo,ideas,waiting,today,wip.md set buftype= | silent write!
-	autocmd BufEnter                              wip.md nnoremap <buffer> <leader>w :Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
-	autocmd BufEnter                        today        nnoremap <buffer> <silent> <leader>w :CompileDiagramAndShowImage svg $tmp<CR>
 augroup end
 
 nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
@@ -3738,3 +3728,38 @@ au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -
 au FileType json setlocal equalprg=jq\ -
 augroup end
 
+" foo
+function! AreWipBuffersOpenInCurrentTab()
+	return len(filter(range(1, winnr('$')), {_,x -> getbufvar(winbufnr(x), 'is_wip_buffer') == 1}))
+endfunction
+
+function! HideWipBuffers()
+	let wipBuffers = filter(map(range(1, winnr('$')), {_,x -> winbufnr(x)}), {_,x -> getbufvar(x, 'is_wip_buffer') == 1})
+	for bufnr in wipBuffers
+		exec 'bd' bufnr
+	endfor
+endfunction
+
+function! DisplayWipBuffers()
+	silent botright split +let\ b:is_wip_buffer=1 $wip
+	exec 'resize' (0.5 * &lines)
+	silent! keeppatterns g@\v\\\.[^\/]+\\?$@d _
+	let t = timer_start(10, {_ -> execute('setl conceallevel=3')})
+	nunmap <buffer> o
+	nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
+	silent 8split +let\ b:is_wip_buffer=1 $wip/.multitasking
+	silent vsplit +let\ b:is_wip_buffer=1 $checklists
+	wincmd h
+	silent vsplit +let\ b:is_wip_buffer=1 $wip/.priority
+	wincmd k
+endfunction
+
+function! ToggleWorkInProgress()
+	if AreWipBuffersOpenInCurrentTab()
+		call HideWipBuffers()
+	else
+		call DisplayWipBuffers()
+	endif
+endfunction
+command! Wip call ToggleWorkInProgress()
+nnoremap <leader>b :Wip<CR>
