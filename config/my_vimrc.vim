@@ -2190,14 +2190,10 @@ function! DisplayWipBuffers()
 	exec 'resize' (0.5 * &lines)
 	silent! keeppatterns g@\v\\\.[^\/]+\\?$@d _
 	let t = timer_start(10, {_ -> execute('setl conceallevel=3')})
-	nunmap <buffer> o
-	nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
 	nunmap <buffer> x
 	nnoremap <silent> <buffer> x :call SetCurrentAdosWorkItemIdFromWip()<CR>
-	silent 8split +let\ b:is_wip_buffer=1 $wip/.pending
+	silent 9split +let\ b:is_wip_buffer=1 $wip/.pending
 	silent vsplit +let\ b:is_wip_buffer=1 $checklists
-	nunmap <buffer> o
-	nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
 	wincmd h
 	silent vsplit +let\ b:is_wip_buffer=1 $wip/.priority
 	wincmd k
@@ -2225,16 +2221,17 @@ function! ToggleWorkInProgress()
 	endif
 endfunction
 command! Wip call ToggleWorkInProgress()
-nnoremap <leader>b :Wip<CR>
+nnoremap <leader>b :call ToggleWorkInProgress()<CR>
 
 nnoremap <leader>B :exec 'Firefox' $adosBoard<CR>
 
 function! BuildWipFileForWorkItem(workItemId)
-	if !empty(glob($wip.'/'.filename.id.'*.md'))
+	echomsg 'workItemId' a:workItemId
+	let filenameParts = js_decode(substitute(system(printf('curl -sLk -X GET -u:%s %s/%s/_apis/wit/workitems/%d?api-version=6.0 | jq -r "{id, title: .fields[\"System.Title\"], assignedTo: .fields[\"System.AssignedTo\"].displayName}"', $pat, $ados, $adosProject, a:workItemId)), '[\x0]', '', 'g'))
+	if !empty(glob($wip.'/'.filenameParts.id.'*.md'))
 		echomsg 'There is already a file for workitem' a:workItemId
 		return
 	endif
-	let filenameParts = js_decode(substitute(system(printf('curl -sLk -X GET -u:%s %s/%s/_apis/wit/workitems/%d?api-version=6.0 | jq -r "{id, title: .fields[\"System.Title\"], assignedTo: .fields[\"System.AssignedTo\"].displayName}"', $pat, $ados, $adosProject, a:workItemId)), '[\x0]', '', 'g'))
 	let filename = printf('%d %s (%s).md', filenameParts.id, filenameParts.title, filenameParts.assignedTo)
 	let filepath = $wip.'/'.filename
 	let filecontent = [printf('# %s', filename)]
@@ -2248,10 +2245,9 @@ function! BuildWipFileForWorkItem(workItemId)
 	call add(filecontent, '## Resources')
 	call add(filecontent, '')
 	call writefile(filecontent, filepath)
-	echomsg 'fullpath' filepath
 	echomsg 'File' "'".filename."'" 'was successfully created.'
 endfunction
-command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration WipAdd call BuildWipFileForWorkItem(str2nr(<f-args>))
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Wip call BuildWipFileForWorkItem(str2nr(matchlist(<f-args>, '\d\{5,}')[0]))
 
 " Dashboard" --------------------------{{{
 cnoremap <C-B> <C-R>=gitbranch#name()<CR>

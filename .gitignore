@@ -7,3 +7,5 @@
 !/templates/
 !/tools/filters/
 *.withsvgs.md
+/notes/*
+/work_in_progress/*
