@@ -2201,11 +2201,11 @@ endfunction
 
 function! SetCurrentAdosWorkItemIdFromWip()
 	let workItem = fnamemodify(getline('.'), ':t:r')
-	if workItem =~ '^.'
-		let workItem =~ '^.' ? workItem[1:]
+	if workItem =~ '^\.'
+		let workItem = workItem[1:]
 	endif
 	let workItemId = str2nr(workItem)
-	if workItemId == g:previousWorkItemId
+	if workItemId == get(g:, 'previousWorkItemId', -1)
 		echomsg 'Current Ados item is already' workItem
 		return
 	endif
