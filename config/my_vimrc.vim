@@ -1405,13 +1405,13 @@ inoremap ( <C-G>u(
 
 function! AutocompletionFallback(timer_id)
 	if pumvisible() | return | endif
-	call feedkeys("\<C-E>\<C-N>")
+	call feedkeys("\<C-N>")
 endfunc
 
 function! AsyncAutocomplete()
 	if PreviousCharacter() =~ '\w\|\.'
 		call feedkeys(&omnifunc!='' ? "\<C-X>\<C-O>" : "\<C-N>", 't')
-		let t = timer_start(float2nr(g:OmniSharp_timeout*1000), function('AutocompletionFallback'))
+		call timer_start(float2nr(g:OmniSharp_timeout*1000), function('AutocompletionFallback'))
 	endif
 endfunction
 command! AsyncAutocomplete call AsyncAutocomplete()
@@ -1427,6 +1427,16 @@ let g:UltiSnipsJumpForwardTrigger="<F13>"
 let g:UltiSnipsJumpBackwardTrigger="<s-tab>"
 let g:UltiSnipsEditSplit="horizontal"
 
+function! RevertOmnisharpTimeoutValue(value, timer_id)
+	let g:OmniSharp_timeout = a:value
+endfunc
+
+function! ManualOmniCompletion()
+	let originalOmnisharpTimeout = g:OmniSharp_timeout
+	let g:OmniSharp_timeout = 1
+	call timer_start(1000, function('RevertOmnisharpTimeoutValue', [originalOmnisharpTimeout]))
+endfunction
+command! ManualOmniCompletion call ManualOmniCompletion()
 
 inoremap <C-I> <C-R>=ExpandSnippetOrValidateAutocompletionSelection()<CR>
 xnoremap <C-I> :call UltiSnips#SaveLastVisualSelection()<cr>gvs
@@ -1434,7 +1444,7 @@ snoremap <C-I> <esc>:call UltiSnips#ExpandSnippetOrJump()<CR>
 snoremap <C-O> <esc>:call UltiSnips#JumpBackwards()<CR>
 nnoremap <Leader>u :UltiSnipsEdit!<CR>G
 nnoremap <Leader>U :call UltiSnips#RefreshSnippets()<CR>
-inoremap <C-O> <C-X><C-O>
+inoremap <C-O> x<BS><C-O>:ManualOmniCompletion<CR><C-X><C-O>
 
 
 function! ExpandSnippetOrValidateAutocompletionSelection()
@@ -1921,6 +1931,13 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 		endif
 	endif
 	if has('win32')
+		let bufnr = bufnr(filename)
+		if bufnr >= 0
+			try
+				exec bufnr.'bdelete!'
+			catch
+			endtry
+		endif
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', item, item_finalname)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
@@ -2103,7 +2120,7 @@ augroup my_dirvish
 	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose powershell -NoLogo<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose powershell -NoLogo<CR>
 elseif g:isWsl
-	autocmd FileType dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose<CR>
+	autocmd FileType =dirvish nnoremap <silent> <buffer> f :term ++curwin ++noclose<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> F :term ++noclose<CR>
 endif
 	autocmd FileType dirvish nnoremap <silent> <buffer> <C-B> :echo gitbranch#name()<CR>
