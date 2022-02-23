@@ -1395,7 +1395,7 @@ endfunction
 command! -range=% SortByLengthBeforeFirstSpaceChar <line1>,<line2>call SortLinesByLengthBeforeFirstSpaceChar()
 " Autocompletion (Insert Mode)" -------{{{
 set updatetime=125
-set complete=.,b
+set complete=.,w
 set completeopt+=menuone,noselect,noinsert
 " when typing too fast, typically after a dot, omnifunc sometimes needs to be reset. This prevents that from happening
 inoremap . <C-G>u.
@@ -1403,9 +1403,15 @@ inoremap . <C-G>u.
 inoremap < <C-G>u<
 inoremap ( <C-G>u(
 
+function! AutocompletionFallback(timer_id)
+	if pumvisible() | return | endif
+	call feedkeys("\<C-E>\<C-N>")
+endfunc
+
 function! AsyncAutocomplete()
 	if PreviousCharacter() =~ '\w\|\.'
 		call feedkeys(&omnifunc!='' ? "\<C-X>\<C-O>" : "\<C-N>", 't')
+		let t = timer_start(float2nr(g:OmniSharp_timeout*1000), function('AutocompletionFallback'))
 	endif
 endfunction
 command! AsyncAutocomplete call AsyncAutocomplete()
@@ -2324,6 +2330,7 @@ augroup dashboard
 	autocmd FileType gitcommit    set completefunc=GetCommitTypes
 	autocmd FileType gitcommit    set textwidth=0
 	autocmd FileType gitcommit    call feedkeys("i\<C-X>\<C-U>")
+	autocmd FileType gitcommit    setlocal complete=.,b
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
 augroup end
@@ -2867,6 +2874,7 @@ let $DOTNET_NEW_LOCAL_SEARCH_FILE_ONLY=1
 let g:OmniSharp_start_server = 0
 let g:OmniSharp_server_stdio = 1
 let g:ale_linters = { 'cs': ['OmniSharp'] }
+let g:OmniSharp_timeout = 0.1
 let g:OmniSharp_popup = 1
 let g:OmniSharp_popup_position = 'center'
 let g:OmniSharp_popup_options = {
