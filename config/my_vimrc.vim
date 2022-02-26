@@ -1906,12 +1906,7 @@ function! DeleteItemUnderCursor()
 		normal R
 	endif
 	let bufnr = bufnr(filename)
-	if bufnr >= 0
-		try
-			exec bufnr.'bdelete!'
-		catch
-		endtry
-	endif
+	if bufnr >= 0 | silent! exec bufnr.'bdelete!' | endif
 endfunction
 
 function! MovePreviouslyYankedItemToCurrentDirectory()
@@ -1931,13 +1926,8 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 		endif
 	endif
 	if has('win32')
-		let bufnr = bufnr(item_filename)
-		if bufnr >= 0
-			try
-				exec bufnr.'bdelete!'
-			catch
-			endtry
-		endif
+		let bufnr = bufnr(item)
+		if bufnr >= 0 | silent! exec bufnr.'bdelete!' | endif
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', item, item_finalname)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
