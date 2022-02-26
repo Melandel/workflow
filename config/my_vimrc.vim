@@ -1931,7 +1931,7 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 		endif
 	endif
 	if has('win32')
-		let bufnr = bufnr(filename)
+		let bufnr = bufnr(item_filename)
 		if bufnr >= 0
 			try
 				exec bufnr.'bdelete!'
