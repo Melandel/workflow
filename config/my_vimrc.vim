@@ -155,6 +155,137 @@ augroup end
 
 command! -bar Retab let ts=&ts|let &et=0|let &ts=(&ts+1) |retab!|let &ts=ts|retab!
 
+function! CSharpIndentArrow(currentLineNr)
+	"echomsg '='
+	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*$', 1)
+	return previousLine.lineIndent+1
+endfunction
+
+function! CSharpIndentOpeningBracket(currentLineNr)
+	"echomsg '{'
+	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*$', 1)
+	let followsBlockOpeningBracket = previousLine.line =~ '\({\|(\)\s*$'
+	return (followsBlockOpeningBracket)
+		\ ? previousLine.lineIndent+1
+		\ : previousLine.lineIndent
+endfunction
+
+function! CSharpIndentClosingBracket(currentLineNr)
+	"echomsg '}'
+	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*$', 1)
+	let followsSoloOpeningBracket = previousLine.line =~ '^\s*{'
+	let followsDotCallChainItem =   previousLine.line =~ '^\s*\.'
+	return (followsSoloOpeningBracket)
+		\ ? previousLine.lineIndent
+		\ : (followsDotCallChainItem)
+				\ ? previousLine.lineIndent-2
+				\ : previousLine.lineIndent-1
+endfunction
+
+function! CSharpIndentOpeningParenthesis(currentLineNr)
+	"echomsg '('
+	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*$', 1)
+	let followsBlockOpeningBracket = previousLine.line =~ '\({\|(\)\s*$'
+	return (followsBlockOpeningBracket)
+		\ ? previousLine.lineIndent+1
+		\ : previousLine.lineIndent
+endfunction
+
+function! CSharpIndentClosingParenthesis(currentLineNr)
+	"echomsg ')'
+	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*$', 1)
+	let followsSoloOpeningParenthesis = previousLine.line =~ '^\s*('
+	return followsSoloOpeningParenthesis
+		\ ? previousLine.lineIndent
+		\ : previousLine.lineIndent-1
+endfunction
+
+function! CSharpIndentDot(currentLineNr)
+	"echomsg '.'
+	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*$', 1)
+	let followsIndentedDotCallChainItem = previousLine.line =~ '^\s*\(}\|)\)\+\s*$'
+	let followsDotCallChainItem = previousLine.line =~ '^\s*\..*)\s*$'
+	return followsIndentedDotCallChainItem
+		\ ? previousLine.lineIndent-1
+		\ : (followsDotCallChainItem)
+				\ ? previousLine.lineIndent
+				\ : previousLine.lineIndent+1
+endfunction
+
+function! CSharpIndentNewLine(currentLineNr)
+	"echomsg 'NL'
+	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*\(//.*\)\?$', 1)
+	let followsSoloOpeningChar     = previousLine.line =~ '\({\|(\|=>\)\s*$'
+	if followsSoloOpeningChar
+		return previousLine.lineIndent+1
+	endif
+	let followsSoloClosingChar     = previousLine.line =~ '\(}\|)\)\s*$'
+	if followsSoloClosingChar
+		return previousLine.lineIndent
+	endif
+	let followsEndOfFunctionCall   = previousLine.line =~ '^\s*\(}\|)\)\+;\s*$'
+	if followsEndOfFunctionCall
+		return previousLine.lineIndent
+	endif
+	let followsIndentedEndOfFunctionCall   = previousLine.line =~ '^\s*[^})\a_\d]\+\(}\|)\)\+;\s*$'
+	if followsIndentedEndOfFunctionCall
+		return previousLine.lineIndent-1
+	endif
+	let followsIndentedItem   = previousLine.line =~ '^\s*\..\+;\s*$'
+	if followsIndentedItem
+		let lineNr = a:currentLineNr
+		let lineIndent = 99
+		while lineIndent >= previousLine.lineIndent
+			let lineNr -= 1
+			let previousCodeLine = GetPreviousLine(lineNr, '^\s*\(\a\|_\)')
+			let lineNr = previousCodeLine.lineNr
+			let lineIndent = previousCodeLine.lineIndent
+		endwhile
+		return lineIndent
+	endif
+	let followsAttribute = previousLine.line =~ '^\s*['
+	if followsAttribute
+		return previousLine.lineIndent
+	endif
+	let previousCodeLine = GetPreviousLine(a:currentLineNr, '^\s*\(\a\|_\)')
+	return previousCodeLine.lineIndent
+endfunction
+
+function! GetPreviousLine(lineNrStartExcluded, pattern, ...)
+	let shouldNotMatch = a:0 ? a:1 : 0
+		let previousLineNr = a:lineNrStartExcluded-1
+		let previousLine = getline(previousLineNr)
+		if !shouldNotMatch
+			while previousLineNr > 1 && previousLine !~ a:pattern
+				let previousLineNr = previousLineNr-1
+				let previousLine = getline(previousLineNr)
+			endwhile
+		else
+			while previousLineNr > 1 && previousLine =~ a:pattern
+				let previousLineNr = previousLineNr-1
+				let previousLine = getline(previousLineNr)
+			endwhile
+		endif
+		return { 'line': previousLine, 'lineNr': previousLineNr, 'lineIndent': indent(previousLineNr) }
+endfunction
+
+func! CSharpIndent(...)
+	let currentLineNr = a:0 ? a:1 : v:lnum
+	if currentLineNr == 1 | return 0 | endif
+	let currentLine = getline(currentLineNr)
+	if currentLine =~ '^\s*$' | return CSharpIndentNewLine(currentLineNr) | endif
+	let firstChar = trim(currentLine)[0]
+	if firstChar == '=' | return CSharpIndentArrow(currentLineNr) | endif
+	if firstChar == '.'    | return CSharpIndentDot(currentLineNr) | endif
+	if firstChar == '{'    | return CSharpIndentOpeningBracket(currentLineNr) | endif
+	if firstChar == '('    | return CSharpIndentOpeningParenthesis(currentLineNr) | endif
+	if firstChar == '}'    | return CSharpIndentClosingBracket(currentLineNr) | endif
+	if firstChar == ')'    | return CSharpIndentClosingParenthesis(currentLineNr) | endif
+	return CSharpIndentNewLine(currentLineNr)
+endfunction
+
+
+
 " Leader keys" ------------------------{{{
 let mapleader = 's'
 let maplocalleader = 'q'
@@ -1409,6 +1540,7 @@ function! AutocompletionFallback(timer_id)
 endfunc
 
 function! AsyncAutocomplete()
+	if pumvisible() | return | endif
 	if PreviousCharacter() =~ '\w\|\.'
 		call feedkeys(&omnifunc!='' ? "\<C-X>\<C-O>" : "\<C-N>", 't')
 		call timer_start(float2nr(g:OmniSharp_timeout*1000), function('AutocompletionFallback'))
@@ -3013,6 +3145,12 @@ function! MyOmniSharpGoToDefinition(location, ...)
 endfunction
 command! MyOmniSharpGoToDefinition call OmniSharp#actions#definition#Find(function('MyOmniSharpGoToDefinition'))
 
+function! MyOmniSharpCodeFormat(...)
+	normal! mdgg=G`d
+	call OmniSharp#actions#format#Format()
+endfunction
+command! MyOmniSharpCodeFormat call OmniSharp#actions#definition#Find(function('MyOmniSharpCodeFormat'))
+
 augroup csharpfiles
 	au!
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
@@ -3039,7 +3177,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>q :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui='fzf'<CR><Plug>(omnisharp_code_actions)
 	autocmd FileType cs xmap <buffer> <LocalLeader>q :<C-U>let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui='fzf'<CR>gv<Plug>(omnisharp_code_actions)
 	autocmd FileType cs nmap <buffer> <LocalLeader>r <Plug>(omnisharp_rename)
-	autocmd FileType cs nmap <buffer> <LocalLeader>= <Plug>(omnisharp_code_format)
+	autocmd FileType cs nmap <buffer> <LocalLeader>= :MyOmniSharpCodeFormat<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
@@ -3052,6 +3190,9 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <silent> <buffer> <localleader>B :ToggleConditionalBreakpoint<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
+
+	autocmd FileType cs setlocal indentkeys+=.,=
+	autocmd FileType cs setlocal indentexpr=CSharpIndent()
 augroup end
 
 let g:OmniSharp_highlight_groups = {
