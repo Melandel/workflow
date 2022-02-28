@@ -200,6 +200,15 @@ function! CSharpIndentClosingParenthesis(currentLineNr)
 		\ : previousLine.lineIndent-1
 endfunction
 
+function! CSharpIndentColon(currentLineNr)
+	"echomsg ':'
+	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*$', 1)
+	let followsTernary = previousLine.line =~ '\s\+?\s\+'
+	return followsTernary
+		\ ? previousLine.lineIndent
+		\ : previousLine.lineIndent+1
+endfunction
+
 function! CSharpIndentDot(currentLineNr)
 	"echomsg '.'
 	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*$', 1)
@@ -231,6 +240,10 @@ function! CSharpIndentNewLine(currentLineNr)
 	if followsIndentedEndOfFunctionCall
 		return previousLine.lineIndent-1
 	endif
+	let followsAttribute = previousLine.line =~ '^\s*['
+	if followsAttribute
+		return previousLine.lineIndent
+	endif
 	let followsIndentedItem   = previousLine.line =~ '^\s*\..\+;\s*$'
 	if followsIndentedItem
 		let lineNr = a:currentLineNr
@@ -243,12 +256,7 @@ function! CSharpIndentNewLine(currentLineNr)
 		endwhile
 		return lineIndent
 	endif
-	let followsAttribute = previousLine.line =~ '^\s*['
-	if followsAttribute
-		return previousLine.lineIndent
-	endif
-	let previousCodeLine = GetPreviousLine(a:currentLineNr, '^\s*\(\a\|_\)')
-	return previousCodeLine.lineIndent
+	return previousLine.lineIndent
 endfunction
 
 function! GetPreviousLine(lineNrStartExcluded, pattern, ...)
@@ -276,11 +284,12 @@ func! CSharpIndent(...)
 	if currentLine =~ '^\s*$' | return CSharpIndentNewLine(currentLineNr) | endif
 	let firstChar = trim(currentLine)[0]
 	if firstChar == '=' | return CSharpIndentArrow(currentLineNr) | endif
-	if firstChar == '.'    | return CSharpIndentDot(currentLineNr) | endif
-	if firstChar == '{'    | return CSharpIndentOpeningBracket(currentLineNr) | endif
-	if firstChar == '('    | return CSharpIndentOpeningParenthesis(currentLineNr) | endif
-	if firstChar == '}'    | return CSharpIndentClosingBracket(currentLineNr) | endif
-	if firstChar == ')'    | return CSharpIndentClosingParenthesis(currentLineNr) | endif
+	if firstChar == '.' | return CSharpIndentDot(currentLineNr) | endif
+	if firstChar == '{' | return CSharpIndentOpeningBracket(currentLineNr) | endif
+	if firstChar == '(' | return CSharpIndentOpeningParenthesis(currentLineNr) | endif
+	if firstChar == '}' | return CSharpIndentClosingBracket(currentLineNr) | endif
+	if firstChar == ')' | return CSharpIndentClosingParenthesis(currentLineNr) | endif
+	if firstChar == ':' | return CSharpIndentColon(currentLineNr) | endif
 	return CSharpIndentNewLine(currentLineNr)
 endfunction
 
@@ -2392,7 +2401,7 @@ function! BuildWipFileForWorkItem(workItemId)
 	call writefile(filecontent, filepath)
 	echomsg 'File' "'".filename."'" 'was successfully created.'
 endfunction
-command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Wip call BuildWipFileForWorkItem(str2nr(matchlist(<f-args>, '\d\{5,}')[0]))
+command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Wip call BuildWipFileForWorkItem(str2nr(matchlist(<f-args>, '\d\{5,}')[0]))
 
 " Dashboard" --------------------------{{{
 cnoremap <C-B> <C-R>=gitbranch#name()<CR>
@@ -2412,29 +2421,16 @@ function! OpenDashboard()
 	-tabmove
 	endif
 	normal gU
-	silent exec winheight(0)/4.'new'
-		let bufnr = bufnr()
-		silent! bdelete git\ --no-pager\ log
-		set termwinsize=0*9999
-		let buf = term_start('git --no-pager log -15', {'hidden':1, 'cwd':cwd, 'close_cb': function('OnGitLogExit')})
-		exec buf.'buffer'
-		nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
-		nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
-	1wincmd w
+	silent! bdelete git\ --no-pager\ log
+	set termwinsize=0*9999
+	let buf = term_start('git --no-pager log -15', {'cwd':cwd, 'term_rows': 15, 'close_cb': function('OnGitLogExit')})
+	nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
+	nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
 	windo nnoremap <buffer> <silent> <leader>L 99<C-W>W<C-W>L:exec 'vert resize' &columns/2<CR>
+	wincmd w
 endfunction
 command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
-
-function! OnGitLogExit(...)
-	let t = timer_start(30, function('OnGitLogExitCB'))
-endfunc
-
-function! OnGitLogExitCB(...)
-	let winid = win_getid(winnr('$'))
-	call win_execute(winid, ['call setpos(".", [0, 1, 1, 1])', 'redraw'])
-	1wincmd w
-endfunction
 
 function! GetCommitTypes(findstart, base)
 	if a:findstart
@@ -3191,7 +3187,7 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
 
-	autocmd FileType cs setlocal indentkeys+=.,=
+	autocmd FileType cs setlocal indentkeys+=.,=,:
 	autocmd FileType cs setlocal indentexpr=CSharpIndent()
 augroup end
 
