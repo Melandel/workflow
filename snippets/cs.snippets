@@ -319,3 +319,78 @@ namespace ${2:MyNameSpace}
 	}
 }
 endsnippet
+
+snippet td "Test Double" b
+namespace $0
+{
+	public static class `!p snip.rv = snip.basename.replace('TestDoubles', 'TestDouble')`
+	{
+		public static I`!p snip.rv = snip.basename.replace('TestDoubles', '')` Dummy => Substitute.For<I`!p snip.rv = snip.basename.replace('TestDoubles', '')`>();
+	}
+}
+endsnippet
+
+snippet tdg "Test Double with Getter" b
+
+public static $0I`!p snip.rv = snip.basename.replace('TestDoubles', '')` ${1:That_Returns_With_Zero_Data}
+{
+	get
+	{
+		var testDouble = Substitute.For<I`!p snip.rv = snip.basename.replace('TestDoubles', '')`>();
+		return testDouble;
+	}
+}
+endsnippet
+
+snippet tdp "Test Double with parameters" b
+
+public static $0I`!p snip.rv = snip.basename.replace('TestDoubles', '')` ${2:That_Results_Stuff_Only_For}(${4:object o})
+{
+	var testDouble = Substitute.For<I`!p snip.rv = snip.basename.replace('TestDoubles', '')`>();
+	testDouble
+	 .${3:Method}()
+		.Returns();
+	return testDouble;
+}
+endsnippet
+
+snippet arch "Archetype" b
+namespace $0
+{
+	public static class `!p snip.rv = snip.basename.replace('Archetypes', 'Archetype')`
+	{
+		public static `!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_Returns_Stuff}
+			=> new `!p snip.rv = snip.basename.replace('Archetypes', '')`()${2:
+			{
+				${3:Foo}
+			}};
+	}
+}
+endsnippet
+
+snippet archa "Archetype with array" b
+public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_Returns_Stuff}
+	=> new `!p snip.rv = snip.basename.replace('Archetypes', '')`()${2:
+	{
+		${3:Foo}
+	}};
+endsnippet
+
+snippet archg "Archetype with getter" b
+public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_Returns_Stuff}
+{
+	get
+	{
+		var ${2:variable} = new `!p snip.rv = snip.basename.replace('Archetypes', '')`();
+		return ${2};
+	}
+}
+endsnippet
+
+snippet archp "Archetype with parameters" b
+public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_Returns_Stuff}(${2:string stuff})
+{
+	var `!p snip.rv = snip.basename[0]+snip.basename[1:].replace('Archetypes', '')` = new `!p snip.rv = snip.basename.replace('Archetypes', '')`();
+	return `!p snip.rv = snip.basename[0]+snip.basename[1:].replace('Archetypes', '')`;
+}
+endsnippet

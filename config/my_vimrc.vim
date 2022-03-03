@@ -2423,7 +2423,7 @@ function! OpenDashboard()
 	normal gU
 	silent! bdelete git\ --no-pager\ log
 	set termwinsize=0*9999
-	let buf = term_start('git --no-pager log -15', {'cwd':cwd, 'term_rows': 15, 'close_cb': function('OnGitLogExit')})
+	let buf = term_start('git --no-pager log -15', {'cwd':cwd, 'term_rows': 15})
 	nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
 	nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
 	windo nnoremap <buffer> <silent> <leader>L 99<C-W>W<C-W>L:exec 'vert resize' &columns/2<CR>
