@@ -1,0 +1,100 @@
+source ./my_viebworkenv.vieb
+colorscheme flipped
+nmap ° <toggleFullScreen>
+call <toggleFullScreen>
+
+set guifullscreennavbar=always
+set guifullscreentabbar=always
+set permissioncamera=ask
+
+set splitright
+set splitbelow
+nmap ss <:split>
+nmap sv <:vsplit>
+nmap <space> :buffer<space>
+
+nmap <home> <scrollLeftMax>
+nmap <end> <scrollRightMax>
+nmap d <scrollPageDownHalf>
+nmap u <scrollPageUpHalf>
+nmap zh <scrollLeft>
+nmap zl <scrollRight>
+
+nmap Y <openNewTabWithCurrentUrl><CR>
+nmap T <reopenTab>
+nmap J <previousTab>
+nmap K <nextTab>
+nmap x <:close>
+nmap H <backInHistory>
+nmap L <forwardInHistory>
+nmap & <:buffer 0>
+nmap é <:buffer 1>
+nmap " <:buffer 2>
+nmap ' <:buffer 3>
+nmap ( <:buffer 4>
+nmap - <:buffer 5>
+nmap è <:buffer 6>
+nmap _ <:buffer 7>
+nmap ç <:buffer 7>
+nmap à <:buffer 8>
+nmap ) <:buffer 9>
+
+nmap sl <toRightSplitWindow>
+nmap sh <toLeftSplitWindow>
+nmap sj <toBottomSplitWindow>
+nmap sk <toTopSplitWindow>
+nmap sL <rightHalfSplitWindow>
+nmap sH <leftHalfSplitWindow>
+nmap sJ <bottomHalfSplitWindow>
+nmap sK <topHalfSplitWindow>
+nmap s<home> &
+nmap s<end> &<previousTab>
+nmap <a-j> <decreaseHeightSplitWindow>
+nmap <a-k> <increaseHeightSplitWindow>
+nmap <a-h> <decreaseWidthSplitWindow>
+nmap <a-l> <increaseWidthSplitWindow>
+nmap s= <distrubuteSpaceSplitWindow>
+nmap so <:only>
+
+nmap ! <toSearchMode>
+nmap n <nextSearchMatch>
+nmap N <previousSearchMatch>
+
+"" Options
+set adblocker=update
+set downloadmethod=confirm
+set mintabwidth=250
+set redirecttohttp
+set tabreopenposition=previous
+set windowtitle=title
+set search=https://google.com/search?q=%s
+set searchwords=w~https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s
+
+"" Mappings
+nmap i <toInsertMode>
+nmap gi <insertAtFirstInput>
+nmap f <startFollowCurrentTab>
+nmap F <startFollowNewTab>
+nmap p <openFromClipboard>
+nmap P <openNewTab><openFromClipboard>
+nmap gu <toParentUrl>
+nmap gU <toRootUrl>
+nmap yf <p.start><startFollowCurrentTab>
+nunmap [
+nunmap ]
+nmap [[ <previousPage>
+nmap ]] <nextPage>
+nmap o <toExploreMode>
+nmap O <openNewTab><toExploreMode>
+nmap s<space> <toLastUsedTab>
+nmap zm <:mute>
+nmap t <openNewTab>
+"nmap yt <openNewTabWithCurrentUrl><CR>
+nmap <lt> <moveTabBackward>
+nmap > <moveTabForward>
+"nmap ? <:help>
+
+pmap I <p.inspectElement>
+pmap e <p.moveFastRight>
+nunmap w
+nunmap b

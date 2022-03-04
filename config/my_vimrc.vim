@@ -2309,7 +2309,7 @@ function! BuildFirefoxUrl(path)
 endfunction
 
 function! Firefox(...)
-	let s:job= job_start('firefox.exe "'. BuildFirefoxUrl((a:0 == 0 || (a:0 == 1 && a:1 == '')) ? GetCurrentSelection() : join(a:000)) .'"')
+	let s:job= job_start('vieb.exe "'. BuildFirefoxUrl((a:0 == 0 || (a:0 == 1 && a:1 == '')) ? GetCurrentSelection() : join(a:000)) .'"')
 endfun
 command! -nargs=* -range Firefox :call Firefox(<q-args>)
 command! -nargs=* -range Ff :call Firefox(<f-args>)

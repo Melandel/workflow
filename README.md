@@ -109,7 +109,9 @@ But here, I'm also using VIM (and I know and understand many whom think this is 
 ## Installation Details ##
 ### Windows ###
 #### Using config/vimfiles
-Add environment variable `VIMINIT` to `source %HOMEPATH%\Desktop\config\my_vimrc.vim`
+Add environment variable:
+* `VIMINIT` to `source %HOMEPATH%\Desktop\config\my_vimrc.vim`
+* `VIEB_CONFIG_FILE` to `%HOMEPATH%\Desktop\config\my_viebrc.vieb`
 
 #### Startup programs ####
 `gvim`, `tools/myAzertyKeyboard.RunMeAsAdmin.exe` and your internet browser should be run when the system starts up.
