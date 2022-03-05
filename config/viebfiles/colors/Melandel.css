@@ -1,0 +1,18 @@
+#navbar {position:absolute;bottom: 0;}
+#url-hover {bottom: 4em;}
+#suggest-dropdown {top: auto;bottom: 2.1em;}
+#mode-suggestions {top: auto;bottom: 2em;}
+.bottomright {right: .7em;bottom: 4em;;}
+.bottomleft {left: .7em;bottom: 4em;}
+.topright {right: .7em;top: .7em;}
+.topleft {left: .7em;top: .7em;}
+#app.tabshidden .topright, #app.tabshidden .topleft {top: .7em;}
+#app.navigationhidden .topright, #app.navigationhidden .topleft {top: .7em;}
+#app.tabshidden .bottomright, #app.tabshidden .bottomleft {bottom: 2em;}
+#app.navigationhidden .bottomright, #app.navigationhidden .bottomleft {bottom: 2em;}
+#app.navigationhidden.tabshidden .bottomright, #app.navigationhidden.tabshidden .bottomleft {bottom: 0;}
+/* hidden bars */
+#app.tabshidden #url-hover, #app.navigationhidden #url-hover {bottom: 2em;}
+#app.tabshidden.navigationhidden #url-hover {bottom: 0;}
+#app.navigationhidden #suggest-dropdown {top: auto;bottom: .1em;}
+

@@ -112,6 +112,7 @@ But here, I'm also using VIM (and I know and understand many whom think this is 
 Add environment variable:
 * `VIMINIT` to `source %HOMEPATH%\Desktop\config\my_vimrc.vim`
 * `VIEB_CONFIG_FILE` to `%HOMEPATH%\Desktop\config\my_viebrc.vieb`
+* `VIEB_DATAFOLDER` to `%HOMEPATH%\Desktop\config\viebfiles\`
 
 #### Startup programs ####
 `gvim`, `tools/myAzertyKeyboard.RunMeAsAdmin.exe` and your internet browser should be run when the system starts up.
@@ -121,7 +122,7 @@ Start > run > shell:startup > create a file with `.vbs` extension that looks lik
 
 ```vbs
 Set WshShell = CreateObject("WScript.Shell" )
-WshShell.Run """C:\Users\tranm\Desktop\tools\firefox\firefox.exe""", 0 'Must quote command if it has spaces; must escape quotes
+WshShell.Run """C:\Users\tranm\Desktop\tools\vieb\Vieb.exe""", 0 'Must quote command if it has spaces; must escape quotes
 Set WshShell = Nothing
 ```
 

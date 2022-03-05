@@ -1,5 +1,5 @@
 source ./my_viebworkenv.vieb
-colorscheme flipped
+colorscheme Melandel
 nmap ° <toggleFullScreen>
 call <toggleFullScreen>
 
@@ -11,7 +11,56 @@ set splitright
 set splitbelow
 nmap ss <:split>
 nmap sv <:vsplit>
-nmap <space> :buffer<space>
+nmap <space> :b<space>
+
+nmap S <startFollowNewVerSplit>
+
+nmap m <p.start>
+nmap M <p.start>M<home>
+pmap d <p.moveFastDown>
+pmap u <p.moveFastUp>
+pmap <BS> <p.moveSlowLeft>
+pmap <Del> <p.moveSlowRight>
+pmap m <p.startVisualSelect>
+
+nmap . <p.moveToMouse>
+pmap . <p.moveToMouse>
+vmap . <p.moveToMouse>
+
+pmap : <Esc>:
+vmap : <Esc>:
+pmap s <Esc>s
+vmap s <Esc>s
+pmap Mc <p.toggleMediaControls>
+punmap mc
+pmap Md <p.mediaDown>
+punmap md
+pmap Ml <p.toggleMediaLoop>
+punmap ml
+pmap Mm <p.toggleMediaMute>
+punmap mm
+pmap Mp <p.toggleMediaPlay>
+punmap mp
+pmap Mu <p.mediaUp>
+punmap mu
+
+pmap Da <p.downloadAudio>
+punmap da
+pmap Df <p.downloadFrame>
+punmap df
+pmap Di <p.downloadImage>
+punmap di
+pmap DD <p.downloadLink>
+punmap D
+punmap dd
+punmap dl
+pmap DV <p.downloadVideo>
+punmap dv
+
+nmap D <:d>
+nmap = <zoomIn>
+nmap + <zoomOut>
+nmap <C-=> <zoomReset>
 
 nmap <home> <scrollLeftMax>
 nmap <end> <scrollRightMax>
@@ -25,6 +74,7 @@ nmap T <reopenTab>
 nmap J <previousTab>
 nmap K <nextTab>
 nmap x <:close>
+nmap X <:rclose>
 nmap H <backInHistory>
 nmap L <forwardInHistory>
 nmap & <:buffer 0>
@@ -47,6 +97,8 @@ nmap sL <rightHalfSplitWindow>
 nmap sH <leftHalfSplitWindow>
 nmap sJ <bottomHalfSplitWindow>
 nmap sK <topHalfSplitWindow>
+nmap sx <rotateSplitWindowForward>
+nmap sX <rotateSplitWindowBackward>
 nmap s<home> &
 nmap s<end> &<previousTab>
 nmap <a-j> <decreaseHeightSplitWindow>
@@ -94,7 +146,5 @@ nmap <lt> <moveTabBackward>
 nmap > <moveTabForward>
 "nmap ? <:help>
 
-pmap I <p.inspectElement>
-pmap e <p.moveFastRight>
 nunmap w
 nunmap b
