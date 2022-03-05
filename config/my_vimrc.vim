@@ -731,9 +731,9 @@ function! MyTabLabel(n)
 			if IsDebuggingTab(a:n)
 				return '🔍'.sln_or_dir.'🔍'
 			else
-			let omnisharp_up = get(host, 'initialized', 0)
-			return omnisharp_up ? '<'.sln_or_dir.'>' : sln_or_dir
-		endif
+				let omnisharp_up = get(host, 'initialized', 0)
+				return omnisharp_up ? '<'.sln_or_dir.'>' : sln_or_dir
+			endif
 		endif
   let winnr = tabpagewinnr(a:n)
 		let bufnr = buflist[winnr - 1]
@@ -3142,7 +3142,7 @@ endfunction
 command! MyOmniSharpGoToDefinition call OmniSharp#actions#definition#Find(function('MyOmniSharpGoToDefinition'))
 
 function! MyOmniSharpCodeFormat(...)
-	normal! mdgg=G`d
+	silent! normal! gg=G``
 	call OmniSharp#actions#format#Format()
 endfunction
 command! MyOmniSharpCodeFormat call OmniSharp#actions#definition#Find(function('MyOmniSharpCodeFormat'))
@@ -3173,7 +3173,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>q :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui='fzf'<CR><Plug>(omnisharp_code_actions)
 	autocmd FileType cs xmap <buffer> <LocalLeader>q :<C-U>let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui='fzf'<CR>gv<Plug>(omnisharp_code_actions)
 	autocmd FileType cs nmap <buffer> <LocalLeader>r <Plug>(omnisharp_rename)
-	autocmd FileType cs nmap <buffer> <LocalLeader>= :MyOmniSharpCodeFormat<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>= :MyOmniSharpCodeFormat<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
