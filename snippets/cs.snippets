@@ -1,5 +1,12 @@
 snippet ns "namespace" b
-namespace ${1:MyNameSpace}
+namespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\', '.')`
+{
+	$0
+}
+endsnippet
+
+snippet ftor "Constructor through Factory method" b
+public static `!p snip.rv=snip.basename` ${2:Create}(${3})
 {
 	${0}
 }
@@ -230,21 +237,28 @@ snippet mb-% "Private abstract method (bool)" b
 endsnippet
 
 snippet itf "Interface" b
-${1:public} interface ${2:`vim_snippets#Filename()`}
+${1:public} interface ${2:`!p snip.rv = snip.basename`}
+{
+	$0
+}
+endsnippet
+
+snippet itf+ "Public Interface" b
+public interface ${1:`!p snip.rv = snip.basename`}
 {
 	$0
 }
 endsnippet
 
 snippet itf& "Internal Interface" b
-internal interface ${1:`vim_snippets#Filename()`}
+internal interface ${1:`!p snip.rv = snip.basename`}
 {
 	${0}
 }
 endsnippet
 
-snippet itf& "Private interface" b
-private interface ${1:`vim_snippets#Filename()`}
+snippet itf- "Private interface" b
+private interface ${1:`!p snip.rv = snip.basename`}
 {
 	${0}
 }
