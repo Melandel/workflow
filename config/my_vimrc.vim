@@ -1622,6 +1622,11 @@ augroup end
 
 " QuickFix, Preview, Location window" -{{{
 let g:ale_set_loclist = 0
+augroup ale
+	au!
+	autocmd FileType ale-preview set wrap
+augroup end
+
 let g:qfpreview = {
 	\'top': "\<Home>",
 	\'bottom': "\<End>",
@@ -3173,7 +3178,7 @@ function! Build()
 	\)
 endfunction
 function! BuildCB(scratchbufnr, job, status)
-	echomsg a:status ? 'Build succeeded :)' : 'Build failed :D'
+	echomsg a:status ? 'Build failed :D' : 'Build succeeded :)'
 	if a:status || !empty(filter(getbufline(a:scratchbufnr, 1, '$'), {_,x-> x =~ 'warning\|error'}))
 		exec 'silent! botright cbuffer' a:scratchbufnr
 		let w:quickfix_title = 'Build'
@@ -3184,7 +3189,7 @@ command! Build call Build()
 augroup csharpfiles
 	au!
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
-	autocmd FileType cs set efm=%f(%l\\\,%c):%.%#CS%n:\ %m\ [%.%#,%-G%.%#
+	autocmd FileType cs set efm=%f(%l\\\,%c):\ %m\ [%.%#,%-G%.%#
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrlForFullLine<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrl<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :OpenAdosCodeUrlForFullLine<CR>
