@@ -2274,8 +2274,7 @@ endif
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :call GoToGitRoot()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> <leader>w :exec 'Firefox' GetCurrentLineAsPath()<CR>
-	autocmd FileType dirvish nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit<CR>
-	autocmd FileType dirvish nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
+	autocmd FileType dirvish nnoremap <buffer> <silent> <LocalLeader>m :Build<CR>
 	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>R :call OmniSharp#RestartServer()<CR>
 	autocmd FileType dirvish command! -buffer -bar -nargs=? -complete=file OmniSharpStartServer call OmniSharp#StartServer(<q-args>)
 	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer 
@@ -3147,15 +3146,51 @@ function! MyOmniSharpCodeFormat(...)
 endfunction
 command! MyOmniSharpCodeFormat call OmniSharp#actions#format#Format(function('MyOmniSharpCodeFormat'))
 
+function! Map(variableName) range
+	execute a:firstline.','.a:lastline 'normal!' '^d2W"vyeelC = '.a:variableName.".\<c-r>v,"
+	execute a:lastline 'normal!' 'g_"_x'
+endfunc
+command! -nargs=1 -range Map <line1>,<line2>call Map(<f-args>)
+
+function! Build()
+	let slnFolder = GetNearestParentFolderContainingFile('*.sln')
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/buildSln')
+	let cmd = 'dotnet build -v q --nologo /clp:NoSummary'
+	let cmd = 'cmd /C '.cmd
+	let s:job = job_start(
+		\cmd,
+		\{
+			\'cwd': slnFolder,
+			\'out_io': 'buffer',
+			\'out_buf': scratchbufnr,
+			\'out_modifiable': 1,
+			\'err_io': 'buffer',
+			\'err_buf': scratchbufnr,
+			\'err_modifiable': 1,
+			\'in_io': 'null',
+			\'exit_cb':  function('BuildCB', [scratchbufnr])
+		\}
+	\)
+endfunction
+function! BuildCB(scratchbufnr, job, status)
+	echomsg a:status ? 'Build succeeded :)' : 'Build failed :D'
+	if a:status || !empty(filter(getbufline(a:scratchbufnr, 1, '$'), {_,x-> x =~ 'warning\|error'}))
+		exec 'silent! botright cbuffer' a:scratchbufnr
+		let w:quickfix_title = 'Build'
+	endif
+endfunction
+command! Build call Build()
+
 augroup csharpfiles
 	au!
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
+	autocmd FileType cs set efm=%f(%l\\\,%c):%.%#CS%n:\ %m\ [%.%#,%-G%.%#
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrlForFullLine<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrl<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :OpenAdosCodeUrlForFullLine<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :OpenAdosCodeUrl<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :BuildTestCommit <C-R>=b:OmniSharp_host.sln_or_dir<CR><CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>M :BuildTestCommitAll!<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :Build<CR>
+	autocmd FileType cs vnoremap <buffer> <LocalLeader>m :Map varname
 	autocmd FileType cs nnoremap <buffer> <silent> <C-P> :MyOmniSharpNavigateUp<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <C-N> :MyOmniSharpNavigateDown<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <C-H> :keepjumps exec 'normal! gg' \| :MyOmniSharpNavigateDown<CR>
@@ -3956,4 +3991,3 @@ augroup Formatting
 au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -
 au FileType json setlocal equalprg=jq\ -
 augroup end
-
