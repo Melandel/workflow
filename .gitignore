@@ -3,9 +3,11 @@
 /notes/*
 !/config/
 /config/vimfiles/
+/config/viebfiles/
 !/snippets/
 !/templates/
 !/tools/filters/
 *.withsvgs.md
 /notes/*
 /work_in_progress/*
+/config/viebfiles/Code Cache/
