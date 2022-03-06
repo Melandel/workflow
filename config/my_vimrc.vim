@@ -3142,10 +3142,10 @@ endfunction
 command! MyOmniSharpGoToDefinition call OmniSharp#actions#definition#Find(function('MyOmniSharpGoToDefinition'))
 
 function! MyOmniSharpCodeFormat(...)
-	silent! normal! gg=G``
-	call OmniSharp#actions#format#Format()
+	silent! normal! m'gg=G``
+	silent! call OmniSharp#actions#format#Format()
 endfunction
-command! MyOmniSharpCodeFormat call OmniSharp#actions#definition#Find(function('MyOmniSharpCodeFormat'))
+command! MyOmniSharpCodeFormat call OmniSharp#actions#format#Format(function('MyOmniSharpCodeFormat'))
 
 augroup csharpfiles
 	au!
