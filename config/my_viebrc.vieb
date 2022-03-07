@@ -2,6 +2,8 @@ source ./my_viebworkenv.vieb
 colorscheme Melandel
 nmap ° <toggleFullScreen>
 call <toggleFullScreen>
+command! init <:buffer 0><:Sexplore 1><:Vexplore 2><rightHalfSplitWindow>
+nmap I :init<CR>
 
 set guifullscreennavbar=always
 set guifullscreentabbar=always
@@ -13,12 +15,29 @@ nmap ss <:split>
 nmap sv <:vsplit>
 nmap <space> :b<space>
 
-nmap S <startFollowNewVerSplit>
+nmap S <startFollowNewSplit>
+nmap V <startFollowNewVerSplit>
 
-nmap m <p.start>
-nmap M <p.start>M<home>
-pmap d <p.moveFastDown>
-pmap u <p.moveFastUp>
+nunmap s
+nmap m <p.moveToMouse>
+nmap M <p.start>
+pmap <space> <Esc><space>
+pmap o <Esc>o
+pmap O <Esc>O
+punmap oa
+punmap of
+punmap oi
+punmap ol
+punmap oo
+punmap ov
+pmap gg <scrollTop>
+pmap G <scrollBottom>
+pmap J <p.moveFastDown>
+pmap K <p.moveFastUp>
+pmap d <p.scrollDown>
+pmap u <p.scrollUp>
+pmap H <p.moveFastLeft>
+pmap L <p.moveFastRight>
 pmap <BS> <p.moveSlowLeft>
 pmap <Del> <p.moveSlowRight>
 pmap m <p.startVisualSelect>
