@@ -2390,7 +2390,16 @@ function! BuildWipFileForWorkItem(workItemId)
 		echomsg 'There is already a file for workitem' a:workItemId
 		return
 	endif
-	let filename = printf('%d %s (%s).md', filenameParts.id, filenameParts.title, filenameParts.assignedTo)
+	let workItem = printf('%d %s (%s).md', filenameParts.id, filenameParts.title, filenameParts.assignedTo)
+	let filename = substitute(workItem, ':', ';', 'g')
+	let filename = substitute(filename, '\', ';', 'g')
+	let filename = substitute(filename, '/', ';', 'g')
+	let filename = substitute(filename, '*', ';', 'g')
+	let filename = substitute(filename, '?', ';', 'g')
+	let filename = substitute(filename, '"', ';', 'g')
+	let filename = substitute(filename, '<', 'lt;', 'g')
+	let filename = substitute(filename, '>', 'gt;', 'g')
+	let filename = substitute(filename, '|', ';', 'g')
 	let filepath = $wip.'/'.filename
 	let filecontent = [printf('# %s', filename)]
 	call add(filecontent, '')
@@ -2403,7 +2412,7 @@ function! BuildWipFileForWorkItem(workItemId)
 	call add(filecontent, '## Resources')
 	call add(filecontent, '')
 	call writefile(filecontent, filepath)
-	echomsg 'File' "'".filename."'" 'was successfully created.'
+	echomsg 'File' "'".workItem."'" 'was successfully created.'
 endfunction
 command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Wip call BuildWipFileForWorkItem(str2nr(matchlist(<f-args>, '\d\{5,}')[0]))
 
