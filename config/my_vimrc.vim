@@ -3198,6 +3198,7 @@ command! Build call Build()
 augroup csharpfiles
 	au!
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
+	autocmd FileType cs set signcolumn=yes
 	autocmd FileType cs set efm=%f(%l\\\,%c):\ %m\ [%.%#,%-G%.%#
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrlForFullLine<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrl<CR>
