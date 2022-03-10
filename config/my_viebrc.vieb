@@ -18,6 +18,7 @@ nmap ss <:split>
 nmap sv <:vsplit>
 nmap <space> :b<space>
 
+set nofollownewtabswitch
 nmap S <startFollowNewSplit>
 nmap V <startFollowNewVerSplit>
 
