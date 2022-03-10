@@ -1,0 +1,33 @@
+<html>
+	<head>
+		<Title>Homepage</Title>
+		<style>
+ul {
+	-moz-column-count: 4;
+	-moz-column-gap: 20px;
+	-webkit-column-count: 4;
+	-webkit-column-gap: 20px;
+	column-count: 4;
+	column-gap: 20px;
+}
+li {
+	padding: 0.5em;
+	align-items: center;
+}
+a {
+	font: 14px "DejaVu Sans Mono", "Courier", monospace;
+	font-size: 1.5em;
+	font-weight: bold;
+	color: #eee!important;
+}
+		</style>
+	</head>
+</html>
+<body></body>
+<script>
+	function link(title, url, emoji = '') { return { title: title, url: url, emoji: emoji }; }
+	let links = [
+			link('Mails', 'https://outlook.office.com/mail/', '✉')
+		];
+	document.body.insertAdjacentHTML('beforeend', `<ul>${links.map(x => `<li><a href="${x.url}">${x.emoji} ${x.title}</a></li>`).join('')}</ul>`);
+</script>
