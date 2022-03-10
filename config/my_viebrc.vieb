@@ -5,6 +5,9 @@ call <toggleFullScreen>
 command! init <:buffer 0><:Sexplore 1><:Vexplore 2><rightHalfSplitWindow>
 nmap I :init<CR>
 
+nmap y <p.startVisualSelect>y<Esc>
+nmap v <p.startVisualSelect>
+
 set guifullscreennavbar=always
 set guifullscreentabbar=always
 set permissioncamera=ask
