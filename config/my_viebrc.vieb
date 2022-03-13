@@ -14,8 +14,8 @@ set permissioncamera=ask
 
 set splitright
 set splitbelow
-nmap ss <:split>
-nmap sv <:vsplit>
+nmap a <:split>
+nmap o <:vsplit>
 nmap <space> :b<space>
 
 set nofollownewtabswitch
@@ -94,12 +94,13 @@ nmap zl <scrollRight>
 
 nmap Y <openNewTabWithCurrentUrl><CR>
 nmap T <reopenTab>
-nmap J <previousTab>
-nmap K <nextTab>
-nmap x <:close>
+nmap J <:hide>
+nmap K <:close>
 nmap X <:rclose>
-nmap H <backInHistory>
-nmap L <forwardInHistory>
+nmap H <previousTab>
+nmap L <nextTab>
+nmap <s-tab> <backInHistory>
+nmap <tab> <forwardInHistory>
 nmap & <:buffer 0>
 nmap é <:buffer 1>
 nmap " <:buffer 2>
@@ -159,8 +160,6 @@ nunmap [
 nunmap ]
 nmap [[ <previousPage>
 nmap ]] <nextPage>
-nmap o <toExploreMode>
-nmap O <openNewTab><toExploreMode>
 nmap s<space> <toLastUsedTab>
 nmap zm <:mute>
 nmap t <openNewTab>
