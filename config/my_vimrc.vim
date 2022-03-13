@@ -2797,13 +2797,13 @@ command! -nargs=1 Keep call TraceRequestResponseIntoFile(get(b:, 'scriptLines'),
 
 " Debugging"---------------------------{{{
  let g:vimspector_enable_mappings = 'HUMAN'
-	sign define vimspectorBP text=o             texthl=WarningMsg
-	sign define vimspectorBPCond text=o?        texthl=WarningMsg
-	sign define vimspectorBPDisabled text=o!    texthl=LineNr
-	sign define vimspectorPC text=\ >           texthl=MatchParen
-	sign define vimspectorPCBP text=o>          texthl=MatchParen
-	sign define vimspectorCurrentThread text=>  texthl=MatchParen
-	sign define vimspectorCurrentFrame text=>   texthl=Special
+	"sign define vimspectorBP text=o             texthl=WarningMsg
+	"sign define vimspectorBPCond text=o?        texthl=WarningMsg
+	"sign define vimspectorBPDisabled text=o!    texthl=LineNr
+	"sign define vimspectorPC text=\ >           texthl=MatchParen
+	"sign define vimspectorPCBP text=o>          texthl=MatchParen
+	"sign define vimspectorCurrentThread text=>  texthl=MatchParen
+	"sign define vimspectorCurrentFrame text=>   texthl=Special
 
 function! ToggleBreakpoint()
 	if NoBreakpointIsPresentOnCurrentLine()
@@ -2903,7 +2903,7 @@ func! CustomiseUI()
 	call win_gotoid( g:vimspector_session_windows.code )
 	resize +4
 	normal! zz
-	windo call SetDebugMappings()
+	call SetDebugMappings()
 endfunction
 
 augroup MyVimspectorUICustomistaion
@@ -3227,7 +3227,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>t <Plug>(omnisharp_run_test)
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>t :OmniSharpRunTest!<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>T <Plug>(omnisharp_run_tests_in_file)
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>U :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName!~Integration<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>I :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName~Integration<CR>
