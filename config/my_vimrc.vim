@@ -1544,7 +1544,9 @@ inoremap < <C-G>u<
 inoremap ( <C-G>u(
 
 function! AutocompletionFallback(timer_id)
-	if pumvisible() | return | endif
+	if pumvisible() || mode() != "i"
+		return
+	endif
 	call feedkeys("\<C-N>")
 endfunc
 
@@ -2426,17 +2428,13 @@ function! OpenDashboard()
 	let cwd = getcwd()
 	let alreadyExistingDashboard = !empty(filter(gettabinfo(), {_,x -> get(x.variables, 'is_dashboard_tabpage', 0)}))
 	silent tab G
-	if alreadyExistingDashboard
-		return
-	endif
+	if alreadyExistingDashboard | return | endif
 	let t:is_dashboard_tabpage = 1
-	if tabpagenr() > 1
-	-tabmove
-	endif
+	if tabpagenr() > 1 | -tabmove | endif
 	normal gU
-	silent! bdelete git\ --no-pager\ log
-	set termwinsize=0*9999
-	let buf = term_start('git --no-pager log -15', {'cwd':cwd, 'term_rows': 15})
+	Git log -20
+	set bt=nofile
+	resize 15
 	nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
 	nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
 	windo nnoremap <buffer> <silent> <leader>L 99<C-W>W<C-W>L:exec 'vert resize' &columns/2<CR>
@@ -2527,6 +2525,7 @@ function! Note(...)
 				\'puml_mindmap':  'puml_mindmap',
 				\'puml_activity': 'puml_activity',
 				\'puml_sequence': 'puml_sequence',
+				\'puml_class':    'puml_class',
 				\'puml_json':     'puml_json'
 			\}, filetype, 'md')
 	let filename = PromptUserForFilename('File name:', {n -> printf('%s/%s.%s', $notes, n, ext)})
@@ -2540,7 +2539,7 @@ endfunc
 command! -nargs=? -complete=customlist,GetNoteFileTypes Note call Note(<q-args>)
 
 function! GetNoteFileTypes(argLead, cmdLine, cursorPos)
-	return ['markdown', 'puml_mindmap', 'puml_activity', 'puml_sequence', 'puml_json']
+	return ['markdown', 'puml_mindmap', 'puml_activity', 'puml_sequence', 'puml_class', 'puml_json']
 endfunc
 
 function! JobExitDiagramCompilationJob(outputfile, scratchbufnr, inputfile, channelInfos, status)
