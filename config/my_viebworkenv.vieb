@@ -1,3 +1,4 @@
-set favoritepages+=https://app.slack.com/client/T0RE90CRF/D012BNNPHDW
-set newtaburl=
+set newtaburl=https://melandel.github.io/blog/
+nmap o <:open https://melandel.github.io/blog/>
+nmap O <:tabnew https://melandel.github.io/blog/>
 

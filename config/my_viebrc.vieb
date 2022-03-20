@@ -14,9 +14,7 @@ set permissioncamera=ask
 
 set splitright
 set splitbelow
-nmap a <:split>
 nmap ss <:split>
-nmap o <:vsplit>
 nmap sv <:vsplit>
 nmap sf :b<space>
 nmap # <toLastUsedTab>
@@ -168,7 +166,6 @@ nunmap ]
 nmap [[ <previousPage>
 nmap ]] <nextPage>
 nmap zm <:mute>
-nmap t <openNewTab>
 "nmap yt <openNewTabWithCurrentUrl><CR>
 nmap <lt> <moveTabBackward>
 nmap > <moveTabForward>
