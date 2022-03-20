@@ -431,3 +431,10 @@ endsnippet
 snippet pr "record property (init)" b
 public ${1:int} ${2:MyProperty} { get; init; }
 endsnippet
+
+snippet rc "record" b
+${1:public} record ${2:`!p snip.rv = snip.basename`}
+{
+	$0
+}
+endsnippet
