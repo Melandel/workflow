@@ -2353,9 +2353,7 @@ function! DisplayWipBuffers()
 	nunmap <buffer> x
 	nnoremap <silent> <buffer> x :call SetCurrentAdosWorkItemIdFromWip()<CR>
 	silent 9split +let\ b:is_wip_buffer=1 $wip/.pending
-	silent vsplit +let\ b:is_wip_buffer=1 $checklists
-	wincmd h
-	silent vsplit +let\ b:is_wip_buffer=1 $wip/.priority
+	silent exec float2nr(0.6 * &columns).'vsplit +let\ b:is_wip_buffer=1 $wip/.priority'
 	wincmd k
 endfunction
 
@@ -2405,9 +2403,21 @@ function! BuildWipFileForWorkItem(workItemId)
 	let filepath = $wip.'/'.filename
 	let filecontent = [printf('# %s', filename)]
 	call add(filecontent, '')
-	call add(filecontent, '## Timeline')
-	call add(filecontent, '* [ ] Event Happened')
-	call add(filecontent, '* [ ] Event Happened')
+	call add(filecontent, '## Checklist')
+	call add(filecontent, '* [ ] Integration tests are listed')
+	call add(filecontent, '  | mapped_field\integration_test_value | Likely to become red when field is not filled the same way in the future 👍 - but also when threshold changes 😔 | Likely to remain green when threshold changes 👍 - but not very accurate 😔|')
+	call add(filecontent, '  | --- | --- | --- |')
+	call add(filecontent, '  | field1 | a | b |')
+	call add(filecontent, '  | field2 | a | b |')
+	call add(filecontent, '')
+	call add(filecontent, '* [ ] Codebase has no warnings')
+	call add(filecontent, '* [ ] Application dependencies are wired as expected')
+	call add(filecontent, '* [ ] Integration test suite is red')
+	call add(filecontent, '* [ ] Application receives input as expected')
+	call add(filecontent, '* [ ] Application handles errors as expected')
+	call add(filecontent, '* [ ] Application behaves as expected')
+	call add(filecontent, '* [ ] Integration test suite is green')
+	call add(filecontent, '* [ ] Stakeholders/Consumers are informed/equipped about the impacts of this implementation')
 	call add(filecontent, '')
 	call add(filecontent, '## Questions & Answers')
 	call add(filecontent, '')
