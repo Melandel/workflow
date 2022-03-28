@@ -438,3 +438,14 @@ ${1:public} record ${2:`!p snip.rv = snip.basename`}
 	$0
 }
 endsnippet
+
+snippet am "Assert Multiple" b
+Assert.Multiple(() =>
+{
+	${VISUAL}
+});
+endsnippet
+
+snippet aa "Arg.Any" w
+Arg.Any<${VISUAL}>()
+endsnippet
