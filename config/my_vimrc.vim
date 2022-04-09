@@ -812,7 +812,6 @@ nnoremap <silent> <Leader>k <C-W>k
 nnoremap <silent> <Leader>l <C-W>l
 nnoremap <silent> <Leader><home> 1<C-W>W
 nnoremap <silent> <Leader><end> 99<C-W>W
-nnoremap <silent> <Leader>q <C-W>p
 nnoremap <silent> <Leader><space> :call ToggleQuickfixList()<CR>
 nnoremap <silent> <Leader>n gt
 nnoremap <silent> <Leader>N :tabnew<CR>
@@ -1132,43 +1131,6 @@ set wildignorecase
 set wildmode=full
 
 " Sourcing" ---------------------------{{{
-augroup curl
-	au!
-	autocmd! BufEnter *.xml,*.json,*.output    UpdateMatchingScriptBuffersIfAnyInCurrentTabAsync
-	autocmd! BufEnter *.script                 UpdateMatchingScriptResultBuffersIfAnyInCurrentTabAsync
-augroup end
-
-function! UpdateMatchingScriptBuffersIfAnyInCurrentTabAsync()
-	if get(t:, 'is_script_execution_tab', 0)
-		let timer = timer_start(100, function('SyncOtherWindowInCurrentTab', [winnr(), ['script']]))
-	endif
-endfunc
-command! UpdateMatchingScriptBuffersIfAnyInCurrentTabAsync call UpdateMatchingScriptBuffersIfAnyInCurrentTabAsync()
-
-function! UpdateMatchingScriptResultBuffersIfAnyInCurrentTabAsync()
-	if get(t:, 'is_script_execution_tab', 0)
-		let timer = timer_start(100, function('SyncOtherWindowInCurrentTab', [winnr(), ['xml', 'json', 'output']]))
-	endif
-endfunc
-command! UpdateMatchingScriptResultBuffersIfAnyInCurrentTabAsync call UpdateMatchingScriptResultBuffersIfAnyInCurrentTabAsync()
-
-	" on BufEnter, bufname hasn't been updated to the new buffer yet
-	" and WinBufEnter does not trigger on [v]split
-function! SyncOtherWindowInCurrentTab(syncSourceWinNr, extensionsToFindAndSync, ...)
-	let syncSourceBufname = fnamemodify(bufname(winbufnr(a:syncSourceWinNr)), ':p')
-	for winnr in range(1, winnr('$'))
-		let otherWindowExtension = fnamemodify(bufname(winbufnr(winnr)), ':t:e')
-		let found = index(a:extensionsToFindAndSync, otherWindowExtension)
-		if found >= 0
-			let newFile = substitute(printf('%s.%s', fnamemodify(syncSourceBufname, ':r'), otherWindowExtension), '\', '/', 'g')
-			let otherWindowCurrentFile = substitute(fnamemodify(bufname(winbufnr(winnr)), ':p'), '\', '/', 'g')
-			if newFile != otherWindowCurrentFile
-				call win_execute(win_getid(winnr), "edit ".newFile)
-			endif
-		endif
-	endfor
-endfunction
-
 function! RunCurrentlySelectedScriptInNewBufferAsync()
 	let scriptLines = GetCurrentlySelectedScriptLines()
 	let today = strftime('%Y-%m-%d-%A')
@@ -1177,15 +1139,28 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 	let index = len(expand(commandFileFolder.'/*.script', v:true, v:true))
 	let index +=1
 	let currentHour = strftime('%Hh%M''%S')
-	let commandFile = printf('%s/%02d %s.%s', commandFileFolder, index, currentHour, 'script')
-	let tab_is_reusable = winnr('$') == 1 || empty(filter(range(1, winnr('$')), "getwinvar(v:val, '&bt') != 'nofile'"))
-	exec tab_is_reusable ? "silent! only | edit" : '-tabedit' commandFile
-	let t:is_script_execution_tab = 1
+	let commandFile = printf('%s/%03d %s.%s', commandFileFolder, index, currentHour, 'script')
+	if get(b:, 'is_script_buffer', 0) && winnr() != winnr('$')
+		wincmd l
+		bdelete!
+	endif
+	exec printf('enew "%s"', commandFile)
+	let b:is_script_execution_buffer = 1
+	let b:is_script_buffer = 1
 	pu!=scriptLines | exec 'saveas' commandFile
 	let winid = win_getid()
-	top new %:h
-	autocmd BufEnter <buffer> nnoremap <buffer> o :call PreviewFile(trim(getline('.')) =~ 'script$' ? 'split' : 'vsplit')<CR>
-	autocmd BufEnter <buffer> nnoremap <buffer> a :normal o<CR>
+	if !empty(filter(tabpagebuflist(), {_,x-> getbufvar(x, 'is_script_history_buffer', 0)}))
+		wincmd h
+		quit
+	endif
+	leftabove vnew %:h
+	let b:is_script_execution_buffer = 1
+	let b:is_script_history_buffer = 1
+	normal R
+	sort!
+	let b:dirvish._c = b:changedtick
+	vert resize 26
+	autocmd BufEnter <buffer> nnoremap <buffer> o :let file=GetCurrentLineAsPath()<CR><C-W>l:exec 'e' file<CR><C-W>l:exec 'e' fnamemodify(file, ':r').'.output'<CR>2<C-W>h
 	let dirvishDirValue = b:dirvish._dir
 	let b:previewsplit=winid
 	let scriptOnOneLine = SquashAndTrimLines(scriptLines)
@@ -1221,7 +1196,10 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 endfunc
 
 function! DisplayScriptOutputInNewWindow(scratchbufnr, outputFileWithoutExt, dirvishDirValue, channel)
-	exec 'vert botright sbuffer' a:scratchbufnr
+	exec winnr('$').'wincmd w'
+	exec 'vert sbuffer' a:scratchbufnr
+	let b:is_script_execution_buffer = 1
+	let b:is_script_output_buffer = 1
 	call setbufvar(winbufnr(1), 'previewvsplit', win_getid())
 	let b:previewvsplit=win_getid()
 	"modify
@@ -1251,10 +1229,38 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, outputFileWithoutExt, dir
 	endif
 	set bt=
 	exec 'saveas' printf('%s.%s', a:outputFileWithoutExt, ext)
-	if get(getbufvar(winbufnr(1), 'dirvish', {}), '_dir', '') == a:dirvishDirValue
-		call win_execute(win_getid(1), ['normal R', 'sort!', 'let b:dirvish._c = b:changedtick'])
+	let dirvishBufNr = filter(tabpagebuflist(), {_,x-> getbufvar(x, 'is_script_history_buffer', 0)})[0]
+	if get(getbufvar(dirvishBufNr, 'dirvish', {}), '_dir', '') == a:dirvishDirValue
+		call win_execute(win_findbuf(dirvishBufNr)[0], ['normal R', 'sort!', 'let b:dirvish._c = b:changedtick'])
 	endif
 endfunction
+
+function! ToggleQueryBuffers()
+	if AreQueryBuffersOpenInCurrentTab()
+		call HideQueryBuffers()
+	else
+		call DisplayQueryBuffers()
+	endif
+endfunction
+
+function! AreQueryBuffersOpenInCurrentTab()
+	return !empty(filter(tabpagebuflist(), {_,x->getbufvar(x, 'is_script_execution_buffer', 0)}))
+endfunction
+
+function! DisplayQueryBuffers()
+	if get(b:, 'is_script_buffer', 0) | return | endif
+	botright new
+	let b:is_script_buffer = 1
+	let b:is_script_execution_buffer = 1
+endfunction
+
+function! HideQueryBuffers()
+	let queryBuffers = filter(map(range(1, winnr('$')), {_,x -> winbufnr(x)}), {_,x -> getbufvar(x, 'is_script_execution_buffer') == 1})
+	for bufnr in queryBuffers | exec 'bd' bufnr | endfor
+endfunction
+
+command! ToggleQueryBuffers call ToggleQueryBuffers()
+nnoremap <silent> <Leader>q :ToggleQueryBuffers<CR>
 
 command! AsyncTSplitCurrentlySelectedScriptInNewBuffer call RunCurrentlySelectedScriptInNewBufferAsync()
 vnoremap <silent> <Leader>S :<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>
@@ -1399,7 +1405,6 @@ nnoremap <LocalLeader>m :silent make<CR>
 " Terminal" ---------------------------{{{
 tnoremap <silent> <Esc> <C-W>N| tnoremap <silent> <C-W>N <Esc>
 tnoremap <silent> <C-U> <Esc>| tnoremap <silent> <C-W>u <C-U>
-"tnoremap <silent> <C-W>h <C-W>:let n = match(join(split(getline('.'), '\zs')[stridx(getline('.'),'>'):col('.')], ''), ' \|/\|\\') + 1\| echomsg 'n' n\|if n > 0 \| call feedkeys(repeat(n, "\<backspace>"))\|endif<CR>
 tnoremap <silent> <Leader>hh <C-W>h
 tnoremap <silent> <Leader>jj <C-W>j
 tnoremap <silent> <Leader>kk <C-W>k
@@ -1599,7 +1604,6 @@ function! ExpandSnippetOrValidateAutocompletionSelection()
 		call UltiSnips#ExpandSnippetOrJump()
 		return g:ulti_expand_or_jump_res > 0 ? '' : PreviousCharacter() =~ '\S' ? "\<C-N>" : "\<C-I>"
 	else
-		echomsg 'selected' complete_info(['selected'])
 		let completionstate = complete_info(['selected', 'items'])
 		if completionstate.selected != -1
 			return "\<C-Y>"
@@ -2103,7 +2107,6 @@ function! RenameItemUnderCursor()
 	let newname = input('Rename into:', filename)
 	if has('win32')
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', filename, newname)
-		echomsg 'cmd' cmd
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
@@ -3081,7 +3084,6 @@ function! OpenCodeOnAzureDevops() range
 endfunction
 
 function! GetCodeUrlOnAzureDevopsForFullLine()
-	echomsg 'a:0' a:0
 	let filepath = expand('%:p')
 	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
 	let gitpath = filepath[len(gitrootfolder)+(has('win32')?1:0):]
