@@ -39,7 +39,21 @@ snippet :dk "shrug emoticon" i
 endsnippet
 
 snippet curl "curl request" b
-curl -siLk -X GET $api
--H "X-Api-Key: $postmanKey"
--H "Authorization: Bearer $token"$0
+curl -siLk -X POST ${1:$api}/$0
+-H "Content-Type: application/json" 
+-H "Authorization: Bearer $token"
+--data-raw "{
+  'foo': 'bar'
+}"
+endsnippet
+
+global !p
+import uuid
+endglobal
+
+snippet guid "new Guid" i
+`!p
+if not snip.c:
+  snip.rv=str(uuid.uuid4())
+`
 endsnippet
