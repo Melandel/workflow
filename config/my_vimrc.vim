@@ -2090,6 +2090,9 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 	endif
 	if has('win32')
 		let bufnr = bufnr(item)
+		if item =~ '\.cs' && bufnr >= 0
+			call OmniSharp#stdio#Request('/updatebuffer', {'BufNum': bufnr, 'EmptyBuffer': 1})
+		endif
 		if bufnr >= 0 | silent! exec bufnr.'bdelete!' | endif
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', item, item_finalname)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
@@ -2115,8 +2118,13 @@ function! RenameItemUnderCursor()
 	let cwd = getcwd()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
+	let bufnr = bufnr(filename)
 	let newname = input('Rename into:', filename)
 	if has('win32')
+		if filename =~ '\.cs' && bufnr >= 0
+			call OmniSharp#stdio#Request('/updatebuffer', {'BufNum': bufnr, 'EmptyBuffer': 1})
+		endif
+		if bufnr >= 0 | silent! exec bufnr.'bdelete!' | endif
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', filename, newname)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
@@ -3240,8 +3248,8 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> gd :MyOmniSharpGoToDefinition<CR>
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
 	autocmd FileType cs nmap <buffer> <LocalLeader>i :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_implementations):Reframe<CR>
-	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindType 
-	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindSymbol 
+	autocmd FileType cs nmap <buffer> <LocalLeader>s <Plug>(omnisharp_signature_help)
+	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindType
 	autocmd FileType cs nmap <buffer> <LocalLeader>u :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_usages)
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_type_lookup)
 	autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
