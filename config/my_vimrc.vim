@@ -2315,6 +2315,7 @@ endif
 	autocmd FileType dirvish nnoremap <buffer> . :Shdo  {}<Left><Left><Left>
 	autocmd FileType dirvish vnoremap <buffer> . :Shdo  {}<Left><Left><Left>
 	autocmd FileType dirvish nnoremap <buffer> X :Shdo!  {}<Left><Left><Left>
+	autocmd FileType dirvish nnoremap <buffer> e :ter ++hidden explorer.exe /select,<C-R>=GetCurrentLinePath()<CR><CR>
 augroup end
 
 function! GoToGitRoot()
