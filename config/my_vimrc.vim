@@ -1160,7 +1160,7 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 	sort!
 	let b:dirvish._c = b:changedtick
 	vert resize 26
-	autocmd BufEnter <buffer> nnoremap <buffer> o :let file=GetCurrentLineAsPath()<CR><C-W>l:exec 'e' file<CR><C-W>l:exec 'e' fnamemodify(file, ':r').'.output'<CR>2<C-W>h
+	nnoremap <buffer> o :let file=GetCurrentLineAsPath() \| let file2=GetNextLineAsPath()<CR><C-W>l:exec 'e' file<CR>:let b:is_script_execution_buffer = 1<CR>:if winnr()==winnr('$') \| exec 'vnew' file2 \| else \| wincmd l \| exec 'edit' file2 \| endif<CR>:let b:is_script_execution_buffer = 1<CR>2<C-W>h
 	let dirvishDirValue = b:dirvish._dir
 	let b:previewsplit=winid
 	let scriptOnOneLine = SquashAndTrimLines(scriptLines)
@@ -1249,7 +1249,18 @@ endfunction
 
 function! DisplayQueryBuffers()
 	if get(b:, 'is_script_buffer', 0) | return | endif
-	botright new
+	let today = strftime('%Y-%m-%d-%A')
+	let commandFileFolder = printf('%s/curl/%s', $d, today)
+	if !glob(commandFileFolder, ':h') | call mkdir(commandFileFolder, 'p') | endif
+	exec 'botright new' commandFileFolder
+	let b:is_script_execution_buffer = 1
+	let b:is_script_history_buffer = 1
+	normal R
+	sort!
+	let b:dirvish._c = b:changedtick
+	nnoremap <buffer> o :let file=GetCurrentLineAsPath() \| let file2=GetNextLineAsPath()<CR><C-W>l:exec 'e' file<CR>:let b:is_script_execution_buffer = 1<CR>:if winnr()==winnr('$') \| exec 'vnew' file2 \| else \| wincmd l \| exec 'edit' file2 \| endif<CR>:let b:is_script_execution_buffer = 1<CR>2<C-W>h
+	vnew
+	exec 'vert resize' &columns-26
 	let b:is_script_buffer = 1
 	let b:is_script_execution_buffer = 1
 endfunction
@@ -2125,6 +2136,10 @@ endfunction
 
 function! GetCurrentLineAsPath()
 	return trim(getline('.'), '\')
+endfunc
+
+function! GetNextLineAsPath()
+	return trim(getline(line('.')+1), '\')
 endfunc
 
 function! GetCurrentLinePath()
