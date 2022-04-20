@@ -1205,30 +1205,30 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, outputFileWithoutExt, dir
 	"modify
 	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
 	if isCurlDashSmallI
-		2,$-1d
+		silent 2,$-1d
 	endif
 	normal! gg
 	let ext = 'output'
 	if line('$') > 1
 		let isXml = getline('$') =~ '^<.*>$'
-		let isJson = getline('$') =~ '^{\|('
+		let isJson = getline('$') =~ '^{\|[\|}\|]'
 		if isXml
-			$!xmllint --format --recover --c14n -
+			silent $!xmllint --format --recover --c14n -
 		elseif isJson
-			$!jq .
+			silent $!jq .
 		endif
 	endif
 	if getline('1') =~ '^<.*>$'
 		set ft=xml
 		let ext = 'xml'
-		normal! =G
+		silent normal! =G
 	elseif getline('1') =~ '^{\|('
 		set ft=json
 		let ext = 'json'
-		normal! =G
+		silent normal! =G
 	endif
 	set bt=
-	exec 'saveas' printf('%s.%s', a:outputFileWithoutExt, ext)
+	silent exec 'saveas' printf('%s.%s', a:outputFileWithoutExt, ext)
 	let dirvishBufNr = filter(tabpagebuflist(), {_,x-> getbufvar(x, 'is_script_history_buffer', 0)})[0]
 	if get(getbufvar(dirvishBufNr, 'dirvish', {}), '_dir', '') == a:dirvishDirValue
 		call win_execute(win_findbuf(dirvishBufNr)[0], ['normal R', 'sort!', 'let b:dirvish._c = b:changedtick'])
