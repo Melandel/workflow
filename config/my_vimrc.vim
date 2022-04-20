@@ -1264,6 +1264,15 @@ function! DisplayQueryBuffers()
 	exec 'vert resize' &columns-26
 	let b:is_script_buffer = 1
 	let b:is_script_execution_buffer = 1
+	set omnifunc=CosmosCompletion
+endfunction
+
+function! CosmosCompletion(findstart, base)
+	if a:findstart
+		let line = getline('.')
+		return col('.')
+	endif
+	return map(systemlist('Cosmos list'), {_,x -> trim(x)})
 endfunction
 
 function! HideQueryBuffers()
