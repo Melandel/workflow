@@ -1215,17 +1215,18 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, outputFileWithoutExt, dir
 		if isXml
 			silent $!xmllint --format --recover --c14n -
 		elseif isJson
-			silent $!jq .
+			let isNotPrettyYet = (len(getline('$')) > 1)
+			if isNotPrettyYet
+				silent! $!jq .
+			endif
 		endif
 	endif
 	if getline('1') =~ '^<.*>$'
 		set ft=xml
 		let ext = 'xml'
-		silent normal! =G
 	elseif getline('1') =~ '^{\|('
 		set ft=json
 		let ext = 'json'
-		silent normal! =G
 	endif
 	set bt=
 	silent exec 'saveas' printf('%s.%s', a:outputFileWithoutExt, ext)
@@ -1258,7 +1259,7 @@ function! DisplayQueryBuffers()
 	normal R
 	sort!
 	let b:dirvish._c = b:changedtick
-	nnoremap <buffer> o :let file=GetCurrentLineAsPath() \| let file2=GetNextLineAsPath()<CR><C-W>l:exec 'e' file<CR>:let b:is_script_execution_buffer = 1<CR>:if winnr()==winnr('$') \| exec 'vnew' file2 \| else \| wincmd l \| exec 'edit' file2 \| endif<CR>:let b:is_script_execution_buffer = 1<CR>2<C-W>h
+	nnoremap <buffer> o :let file=GetCurrentLineAsPath() \| let file2=GetNextLineAsPath()<CR><C-W>l:exec 'e' file<CR>:let b:is_script_execution_buffer = 1\|let b:is_script_buffer = 1<CR>:if winnr()==winnr('$') \| exec 'vnew' file2 \| else \| wincmd l \| exec 'edit' file2 \| let b:is_script_buffer = 1 \| endif<CR>:let b:is_script_execution_buffer = 1\| let b:is_script_buffer = 1<CR>2<C-W>h
 	vnew
 	exec 'vert resize' &columns-26
 	let b:is_script_buffer = 1
