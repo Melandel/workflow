@@ -1219,11 +1219,11 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, outputFileWithoutExt, dir
 		endif
 	endif
 	if getline('1') =~ '^<.*>$'
-		set ft='xml'
+		set ft=xml
 		let ext = 'xml'
 		normal! =G
 	elseif getline('1') =~ '^{\|('
-		set ft='json'
+		set ft=json
 		let ext = 'json'
 		normal! =G
 	endif
