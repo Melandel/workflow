@@ -1,15 +1,14 @@
 snippet ns "namespace" b
-namespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\', '.')`
-{
-	$0
-}
+namespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\', '.')`;
+
+$0
 endsnippet
 
-snippet ftor "Constructor through Factory method" b
-public static `!p snip.rv=snip.basename` ${2:Create}(${3})
-{
-	${0}
-}
+snippet from "Constructor through Factory method" b
+public static `!p snip.rv=snip.basename` ${2:From}(
+	${3})
+=> new `!p snip.rv=snip.basename`(
+	${0});
 endsnippet
 
 snippet m+^ "Public static method" b
@@ -310,28 +309,28 @@ snippet md "MemberData" b
 endsnippet
 
 snippet interactor "Interactor Contract" b
-namespace ${2:MyNameSpace}
+namespace ${2:MyNameSpace};
+
+public interface ${1:`!p snip.rv = snip.basename`}
 {
-	public interface ${1:`!p snip.rv = snip.basename`}
-	{
-		Response Process(Request req);
+	Response Process(Request req);
 
-		public class Request {
-		${3}
-			public static Request Create() {
-				return new Request();
-			}
-		}
-
-		public class Response {
-			${4}
-			public static Response Create() {
-				return new Response();
-			}
-			$0
+	public class Request {
+	${3}
+		public static Request Create() {
+			return new Request();
 		}
 	}
+
+	public class Response {
+		${4}
+		public static Response Create() {
+			return new Response();
+		}
+		$0
+	}
 }
+
 endsnippet
 
 snippet td "Test Double" b
@@ -370,15 +369,13 @@ endsnippet
 
 snippet arch "Archetype" b
 namespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\', '.')`
+public static class `!p snip.rv = snip.basename.replace('Archetypes', 'Archetype')`
 {
-	public static class `!p snip.rv = snip.basename.replace('Archetypes', 'Archetype')`
-	{
-		public static `!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_Returns_Stuff}
-			=> new `!p snip.rv = snip.basename.replace('Archetypes', '')`()${2:
-			{
-				${3:Foo}
-			}};
-	}
+	public static `!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_Returns_Stuff}
+		=> new `!p snip.rv = snip.basename.replace('Archetypes', '')`()${2:
+		{
+			${3:Foo}
+		}};
 }
 endsnippet
 

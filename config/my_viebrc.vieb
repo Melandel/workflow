@@ -1,5 +1,14 @@
 source ./my_viebworkenv.vieb
 colorscheme Melandel
+
+set permissionmediadevices=allowfull
+set permissioncamera=allow
+set permissionmicrophone=allow
+set permissiondisplaycapture=ask
+
+set permissionnotifications=allow
+set permissioncertificateerror=ask
+
 nmap ° <toggleFullScreen>
 call <toggleFullScreen>
 command! init <:buffer 0><:Sexplore 1><:Vexplore 2><rightHalfSplitWindow>
@@ -17,7 +26,7 @@ set splitbelow
 nmap ss <:split>
 nmap sv <:vsplit>
 nmap sf :b<space>
-nmap # <toLastUsedTab>
+nmap # <:buffer #>
 
 nmap s! <toExploreMode>
 
@@ -39,12 +48,16 @@ punmap oo
 punmap ov
 pmap gg <scrollTop>
 pmap G <scrollBottom>
-pmap J <p.moveFastDown>
-pmap K <p.moveFastUp>
+pmap j <p.moveFastDown>
+pmap k <p.moveFastUp>
+pmap J <p.moveSlowDown>
+pmap K <p.moveSlowUp>
 pmap d <p.scrollDown>
 pmap u <p.scrollUp>
-pmap H <p.moveFastLeft>
-pmap L <p.moveFastRight>
+pmap h <p.moveFastLeft>
+pmap l <p.moveFastRight>
+pmap H <p.moveSlowLeft>
+pmap L <p.moveSlowRight>
 pmap <BS> <p.moveSlowLeft>
 pmap <Del> <p.moveSlowRight>
 pmap m <p.startVisualSelect>
