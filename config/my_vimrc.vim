@@ -768,7 +768,7 @@ function! DeleteBuffers(regex)
 	exec 'bd' join(filter(copy(range(1, bufnr('$'))), { _,y -> bufname(y)=~ a:regex }), ' ')
 endfunc
 
-function! DeleteHiddenBuffers()" ------{{{
+function! DeleteHiddenBuffers()
   let tpbl=[]
   let closed = 0
   call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
@@ -1930,7 +1930,7 @@ nnoremap <silent> L :CycleForward<CR>
 "let g:fzf_preview_window = []
 let $FZF_DEFAULT_OPTS='--bind up:preview-up,down:preview-down,ctrl-j:backward-char,ctrl-k:forward-char'
 
-augroup my_fzf"------------------------{{{
+augroup my_fzf
 	au!
 	autocmd FileType fzf setlocal termwinsize=
 	autocmd FileType fzf setlocal termwintype=conpty
@@ -1994,7 +1994,7 @@ function! CycleWindowBuffersHistoryBackwards()
 endfunction
 command! CycleBackwards call CycleWindowBuffersHistoryBackwards()
 
-" Full screen & Opacity" ------------------------{{{
+" Full screen & Opacity" --------------{{{
 if has('win32') && has('gui_running')
 	let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
 	let g:gvimtweak#enable_alpha_at_startup=1
