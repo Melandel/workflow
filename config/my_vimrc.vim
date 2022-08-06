@@ -50,6 +50,7 @@ function! MinpacInit()
 	call minpac#add('itchyny/vim-gitbranch')
 	call minpac#add('OmniSharp/omnisharp-vim')
 	"call minpac#add('Melandel/omnisharp-vim') ", {'branch': 'improve_vimspector_config_file_generated'})
+	call minpac#add('prabirshrestha/asyncomplete.vim')
 	call minpac#add('puremourning/vimspector')
 	call minpac#add('nickspoons/vim-sharpenup')
 	call minpac#add('SirVer/ultisnips')
@@ -158,7 +159,12 @@ command! -bar Retab let ts=&ts|let &et=0|let &ts=(&ts+1) |retab!|let &ts=ts|reta
 function! CSharpIndentArrow(currentLineNr)
 	"echomsg '='
 	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*$', 1)
-	return previousLine.lineIndent+1
+	let followsBlockClosingParenthesis = previousLine.line =~ ')\s*$'
+	let lineBeforePreviousLine = GetPreviousLine(a:currentLineNr-1, '^\s*$', 1)
+	let previousLineIsParameter = followsBlockClosingParenthesis && (lineBeforePreviousLine.line =~ '\((\|,\|^\)\s*$')
+	return previousLineIsParameter
+		\ ? previousLine.lineIndent-1
+		\ : previousLine.lineIndent
 endfunction
 
 function! CSharpIndentOpeningBracket(currentLineNr)
@@ -1147,6 +1153,7 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 	exec printf('enew "%s"', commandFile)
 	let b:is_script_execution_buffer = 1
 	let b:is_script_buffer = 1
+	set ft=powershell
 	pu!=scriptLines | exec 'saveas' commandFile
 	let winid = win_getid()
 	if !empty(filter(tabpagebuflist(), {_,x-> getbufvar(x, 'is_script_history_buffer', 0)}))
@@ -1160,7 +1167,7 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 	sort!
 	let b:dirvish._c = b:changedtick
 	vert resize 26
-	nnoremap <buffer> o :let file=GetCurrentLineAsPath() \| let file2=GetNextLineAsPath()<CR><C-W>l:exec 'e' file<CR>:let b:is_script_execution_buffer = 1<CR>:if winnr()==winnr('$') \| exec 'vnew' file2 \| else \| wincmd l \| exec 'edit' file2 \| endif<CR>:let b:is_script_execution_buffer = 1<CR>2<C-W>h
+	nnoremap <buffer> o :let file=GetCurrentLineAsPath() \| let file2=GetNextLineAsPath()<CR><C-W>l:exec 'e' file<CR>:exec 'vert resize' float2nr(0.5*(&columns-26))<CR>:let b:is_script_execution_buffer = 1<CR>:if winnr()==winnr('$') \| exec 'vnew' file2 \| else \| wincmd l \| exec 'edit' file2 \| endif<CR>:let b:is_script_execution_buffer = 1<CR>2<C-W>h
 	let dirvishDirValue = b:dirvish._dir
 	let b:previewsplit=winid
 	let scriptOnOneLine = SquashAndTrimLines(scriptLines)
@@ -1259,13 +1266,37 @@ function! DisplayQueryBuffers()
 	normal R
 	sort!
 	let b:dirvish._c = b:changedtick
-	nnoremap <buffer> o :let file=GetCurrentLineAsPath() \| let file2=GetNextLineAsPath()<CR><C-W>l:exec 'e' file<CR>:let b:is_script_execution_buffer = 1\|let b:is_script_buffer = 1<CR>:if winnr()==winnr('$') \| exec 'vnew' file2 \| else \| wincmd l \| exec 'edit' file2 \| let b:is_script_buffer = 1 \| endif<CR>:let b:is_script_execution_buffer = 1\| let b:is_script_buffer = 1<CR>2<C-W>h
+	nnoremap <buffer> o :PreviewOrDisplayScriptExecutionBuffer<CR>
 	vnew
 	exec 'vert resize' &columns-26
 	let b:is_script_buffer = 1
 	let b:is_script_execution_buffer = 1
+	set ft=powershell
 	set omnifunc=CosmosCompletion
 endfunction
+
+function! PreviewOrDisplayScriptExecutionBuffer()
+	let file=GetCurrentLineAsPath()
+	let file2=GetNextLineAsPath()
+	wincmd l
+	exec 'edit' file
+	"exec 'vert resize' (&columns-26)/2
+	let b:is_script_execution_buffer = 1
+	let b:is_script_buffer = 1
+
+	if winnr()==winnr('$')
+		exec 'vnew' file2
+	else
+		wincmd l
+		exec 'edit' file2
+		"exec 'vert resize' (&columns-26)/2
+		let b:is_script_buffer = 1
+	endif
+	let b:is_script_execution_buffer = 1
+	let b:is_script_buffer = 1
+	2wincmd h
+endfunction
+command! PreviewOrDisplayScriptExecutionBuffer call PreviewOrDisplayScriptExecutionBuffer()
 
 function! CosmosCompletion(findstart, base)
 	if a:findstart
@@ -1587,7 +1618,7 @@ command! AsyncAutocomplete call AsyncAutocomplete()
 
 augroup autocompletion
 	au!
-	autocmd CursorHoldI * AsyncAutocomplete
+	"autocmd CursorHoldI * AsyncAutocomplete
 	autocmd User UltiSnipsEnterFirstSnippet normal! m'
 augroup end
 
@@ -2265,11 +2296,20 @@ function! PreviewFile(splitcmd)
 	let path=trim(getline('.'))
 	let bufnr=bufnr()
 	let is_wip_buffer = get(b:, 'is_wip_buffer', 0)
+	let is_script_buffer = get(b:, 'is_script_buffer', 0)
+	let is_script_history_buffer = get(b:, 'is_script_history_buffer', 0)
+	echomsg 'bar' is_script_history_buffer
 	let previewwinid = getbufvar(bufnr, 'preview'.a:splitcmd, 0)
 	if previewwinid == 0
 		exec a:splitcmd path
 		call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
 		if is_wip_buffer | let b:is_wip_buffer = 1 | endif
+		if is_script_buffer | let b:is_script_buffer = 1 | endif
+		if is_script_history_buffer
+			let b:is_script_history_buffer = 1
+			silent! nunmap <buffer> o
+			nnoremap <buffer> o :PreviewOrDisplayScriptExecutionBuffer<CR>
+		endif
 	else
 		call win_gotoid(previewwinid)
 		if win_getid() == previewwinid
@@ -2809,18 +2849,18 @@ command! -nargs=* -bar CompileDiagramAndShowImage call CompileDiagramAndShowImag
 
 augroup mydiagrams
 	autocmd!
-	autocmd BufRead,BufNewFile *.puml_dot             set ft=plantuml_dot
-	autocmd BufRead,BufNewFile *.puml_activity        set ft=plantuml_activity
-	autocmd BufRead,BufNewFile *.puml_class           set ft=plantuml_class
-	autocmd BufRead,BufNewFile *.puml_component       set ft=plantuml_component
-	autocmd BufRead,BufNewFile *.puml_entities        set ft=plantuml_entities
-	autocmd BufRead,BufNewFile *.puml_mindmap         set ft=plantuml_mindmap
-	autocmd BufRead,BufNewFile *.puml_sequence        set ft=plantuml_sequence
-	autocmd BufRead,BufNewFile *.puml_state           set ft=plantuml_state
-	autocmd BufRead,BufNewFile *.puml_usecase         set ft=plantuml_usecase
-	autocmd BufRead,BufNewFile *.puml_workbreakdown   set ft=plantuml_workbreakdown
-	autocmd BufRead,BufNewFile *.puml_json            set ft=plantuml_json
-	autocmd BufRead,BufNewFile *.puml_*               silent nnoremap <buffer> <Leader>w :silent w<CR>
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_dot             set ft=plantuml_dot
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_activity        set ft=plantuml_activity
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_class           set ft=plantuml_class
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_component       set ft=plantuml_component
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_entities        set ft=plantuml_entities
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_mindmap         set ft=plantuml_mindmap
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_sequence        set ft=plantuml_sequence
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_state           set ft=plantuml_state
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_usecase         set ft=plantuml_usecase
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_workbreakdown   set ft=plantuml_workbreakdown
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_json            set ft=plantuml_json
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_*               silent nnoremap <buffer> <Leader>w :silent w<CR>
 	autocmd BufWritePost       *.puml_*               if line('$') > 1 | CompileDiagramAndShowImage svg | endif
 	autocmd FileType           dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
@@ -2856,7 +2896,7 @@ function! ToggleBreakpoint()
 		call vimspector#ToggleBreakpoint()
 	elseif ActiveBreakpointIsPresentOnCurrentLine()
 		call vimspector#ToggleBreakpoint()
-		call vimspector#ToggleBreakpoint()
+		"call vimspector#ToggleBreakpoint()
 	elseif DisabledBreakpointIsPresentOnCurrentLine()
 		call vimspector#ToggleBreakpoint()
 	endif
@@ -3087,9 +3127,16 @@ let g:OmniSharp_highlighting = 2
 let g:OmniSharp_selector_ui = ''
 let g:OmniSharp_fzf_options = { 'window': 'botright 7new' }
 let g:OmniSharp_want_snippet=1
+let g:OmniSharp_diagnostic_overrides = { 'CS0618': { 'type': 'None'}, 'CS1062': { 'type': 'None'} } " obsolete attributes
 let g:OmniSharp_diagnostic_showid = 1
 let g:omnicomplete_fetch_full_documentation = 0
 let g:OmniSharp_open_quickfix = 1
+
+function! OmniSharpRefreshBuffer(...)
+	let bufnr = a:0 ? a:1 : bufnr()
+	call OmniSharp#stdio#Request('/updatebuffer', {'BufNum': bufnr, 'EmptyBuffer': 1})
+endfunction
+command! -nargs=? OmniSharpRefreshBuffer call OmniSharpRefreshBuffer(<f-args>)
 
 function! GetCsproj()
 	return GetNearestPathInCurrentFileParents('*.csproj')
@@ -3274,8 +3321,8 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>t :OmniSharpRunTest!<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>T <Plug>(omnisharp_run_tests_in_file)
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>U :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName!~Integration<CR>
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>I :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName~Integration<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>U :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName!~IntegrationTest<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>I :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName~IntegrationTest<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Q :Debug<CR>
 	autocmd FileType cs nmap <silent> <buffer> <localleader>b :ToggleBreakpoint<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <localleader>B :ToggleConditionalBreakpoint<CR>
@@ -3285,6 +3332,7 @@ augroup csharpfiles
 	autocmd FileType cs setlocal indentkeys+=.,=,:
 	autocmd FileType cs setlocal indentexpr=CSharpIndent()
 augroup end
+
 
 let g:OmniSharp_highlight_groups = {
 	\ 'Comment': 'Comment',
