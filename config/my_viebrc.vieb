@@ -35,6 +35,7 @@ nmap S <startFollowNewSplit>
 nmap V <startFollowNewVerSplit>
 
 nunmap s
+nunmap m<Any>
 nmap m <p.moveToMouse>
 nmap Q<Any> <storeScrollPos>
 nmap q<Any> <restoreScrollPos>
