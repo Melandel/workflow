@@ -605,10 +605,11 @@ function! LineCount(...)
     return numlines
 endfunction
 
-function! ResetScratchBuffer(path)
-	let existing = bufnr(a:path)
-	if existing > 0 | silent! exec 'bdelete!' existing | endif
-	let bufnr = bufadd(a:path)
+function! ResetScratchBuffer(pathOrNumber)
+	let existingBufNr = type(a:pathOrNumber) == type(0) ? a:pathOrNumber : bufnr(a:pathOrNumber)
+	if existingBufNr > 0 | silent! exec 'bdelete!' existingBufNr | endif
+
+	let bufnr = bufadd(a:pathOrNumber)
 	call setbufvar(bufnr, '&bufhidden', 'hide')
 	call setbufvar(bufnr, '&buftype', 'nofile')
 	call setbufvar(bufnr, '&buflisted', 1)
@@ -2298,7 +2299,6 @@ function! PreviewFile(splitcmd)
 	let is_wip_buffer = get(b:, 'is_wip_buffer', 0)
 	let is_script_buffer = get(b:, 'is_script_buffer', 0)
 	let is_script_history_buffer = get(b:, 'is_script_history_buffer', 0)
-	echomsg 'bar' is_script_history_buffer
 	let previewwinid = getbufvar(bufnr, 'preview'.a:splitcmd, 0)
 	if previewwinid == 0
 		exec a:splitcmd path
@@ -2356,7 +2356,7 @@ endif
 	autocmd FileType dirvish nmap <silent> <buffer> P :call MovePreviouslyYankedItemToCurrentDirectory()<CR>
 	autocmd FileType dirvish nmap <silent> <buffer> cc :call RenameItemUnderCursor()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> <space> :call GoToGitRoot()<CR>
-	autocmd FileType dirvish nmap <silent> <buffer> <leader>w :exec 'Firefox' GetCurrentLineAsPath()<CR>
+	autocmd FileType dirvish nmap <silent> <buffer> <leader>w :exec 'WebBrowser' GetCurrentLineAsPath()<CR>
 	autocmd FileType dirvish nnoremap <buffer> <silent> <LocalLeader>m :Build<CR>
 	autocmd FileType dirvish nnoremap <buffer> <LocalLeader>R :call OmniSharp#RestartServer()<CR>
 	autocmd FileType dirvish command! -buffer -bar -nargs=? -complete=file OmniSharpStartServer call OmniSharp#StartServer(<q-args>)
@@ -2375,11 +2375,14 @@ function! GoToGitRoot()
 endfunction
 
 " Web Browsing" -----------------------{{{
-function! BuildFirefoxUrl(path)
+function! BuildViebUrl(path)
 	let url = a:path
 	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
 	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0 | let url.= ' "' |	endif
 	let url = trim(url)
+	if url =~ '\.md$'
+		let url = 'markdownviewer:/'.url
+	endif
 	if g:isWindows
 		let url = substitute(url, '"', '\\"', 'g')
 	elseif g:isWsl
@@ -2391,23 +2394,22 @@ function! BuildFirefoxUrl(path)
 	return url
 endfunction
 
-function! Firefox(...)
-	let s:job= job_start('vieb.exe "'. BuildFirefoxUrl((a:0 == 0 || (a:0 == 1 && a:1 == '')) ? GetCurrentSelection() : join(a:000)) .'"')
+function! WebBrowser(...)
+	let s:job= job_start('vieb.exe "'. BuildViebUrl((a:0 == 0 || (a:0 == 1 && a:1 == '')) ? GetCurrentSelection() : join(a:000)) .'"')
 endfun
-command! -nargs=* -range Firefox :call Firefox(<q-args>)
-command! -nargs=* -range Ff :call Firefox(<f-args>)
-nnoremap <Leader>w :w!<CR>:Firefox <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
-vnoremap <Leader>w :Firefox<CR>
-command! -nargs=* -range WordreferenceFrEn :call Firefox('https://www.wordreference.com/fren/', <f-args>)
-command! -nargs=* -range GoogleTranslateFrEn :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
+command! -nargs=* -range WebBrowser :call WebBrowser(<q-args>)
+nnoremap <Leader>w :w!<CR>:WebBrowser <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
+vnoremap <Leader>w :WebBrowser<CR>
+command! -nargs=* -range WordreferenceFrEn :call WebBrowser('https://www.wordreference.com/fren/', <f-args>)
+command! -nargs=* -range GoogleTranslateFrEn :call WebBrowser('https://translate.google.com/?hl=fr#view=home&op=translate&sl=fr&tl=en&text=', <f-args>)
 nnoremap <Leader>t :WordreferenceFrEn 
 vnoremap <Leader>t :GoogleTranslateFrEn<CR>
-command! -nargs=* -range WordreferenceEnFr :call Firefox('https://www.wordreference.com/enfr/', <f-args>)
-command! -nargs=* -range GoogleTranslateEnFr :call Firefox('https://translate.google.com/?hl=fr#view=home&op=translate&sl=en&tl=fr&text=', <f-args>)
+command! -nargs=* -range WordreferenceEnFr :call WebBrowser('https://www.wordreference.com/enfr/', <f-args>)
+command! -nargs=* -range GoogleTranslateEnFr :call WebBrowser('https://translate.google.com/?hl=fr#view=home&op=translate&sl=en&tl=fr&text=', <f-args>)
 nnoremap <Leader>T :WordreferenceEnFr 
 vnoremap <Leader>T :GoogleTranslateEnFr<CR>
 
-command! Wiki exec 'Firefox' $wiki
+command! Wiki exec 'WebBrowser' $wiki
 nnoremap <Leader>W :Wiki<CR>
 
 " Board & Work-in-progress
@@ -2458,7 +2460,7 @@ endfunction
 command! Wip call ToggleWorkInProgress()
 nnoremap <leader>b :call ToggleWorkInProgress()<CR>
 
-nnoremap <leader>B :exec 'Firefox' $adosBoard<CR>
+nnoremap <leader>B :exec 'WebBrowser' $adosBoard<CR>
 
 function! BuildWipFileForWorkItem(workItemId)
 	echomsg 'workItemId' a:workItemId
@@ -2640,7 +2642,7 @@ function! JobExitDiagramCompilationJob(outputfile, scratchbufnr, inputfile, chan
 		call system(printf($gtools.'/mv "%s" "%s.html"', a:outputfile, a:outputfile))
 		let outputfile.='.html'
 	endif
-	call Firefox('', substitute(outputfile, '/', '\', 'g'))
+	call WebBrowser('', substitute(outputfile, '/', '\', 'g'))
 endfunc
 
 function! CompileDiagramAndShowImageCommand(outputExtension, ...)
@@ -2704,7 +2706,7 @@ function! RenderMarkdownFile()
 		let inputfile = CreateFileWithRenderedSvgs()
 	endif
 	let inputfile = substitute(inputfile, '/', '\\', 'g')
-	exec 'Firefox' inputfile
+	exec 'WebBrowser' inputfile
 endfunc
 command! RenderMarkdownFile call RenderMarkdownFile()
 
@@ -2812,14 +2814,15 @@ function! StartPlantumlToSvg(diagram, diagramtype, array, pos)
 			\'err_modifiable': 1,
 			\'in_io': 'buffer',
 			\'in_buf': plantumlbufnr,
-			\'exit_cb':  function('StartPlantumlToSvgCB', [a:array, a:pos, scratchbufnr])
+			\'exit_cb':  function('StartPlantumlToSvgCB', [a:array, a:pos, scratchbufnr, plantumlbufnr])
 		\}
 	\)
 endfunction
 
-function! StartPlantumlToSvgCB(array, pos, scratchbufnr, job, status)
+function! StartPlantumlToSvgCB(array, pos, scratchbufnr, plantumlbufnr, job, status)
 	if a:status != 0
 		exec 'botright sbuffer' a:scratchbufnr 
+		exec a:plantumlbufnr.'bdelete!'
 		return
 	endif
 	call setbufvar(a:scratchbufnr, '&buftype', 'nofile')
@@ -2831,6 +2834,8 @@ function! StartPlantumlToSvgCB(array, pos, scratchbufnr, job, status)
 		let new .= '--></g></svg>'
 	endif
 	let a:array[a:pos] = new
+	exec a:scratchbufnr.'bdelete!'
+	exec a:plantumlbufnr.'bdelete!'
 endfunction
 
 function! GetPlantumlDelimiter(plantuml_type)
@@ -3161,7 +3166,7 @@ function! GetDirOrSln()
 endfunction
 
 function! OpenCodeOnAzureDevops() range
-	let s:job= job_start(printf('firefox.exe "%s"', GetCodeUrlOnAzureDevops()))
+	let s:job= job_start(printf('vieb.exe "%s"', GetCodeUrlOnAzureDevops()))
 endfunction
 
 function! GetCodeUrlOnAzureDevopsForFullLine()
@@ -3215,12 +3220,12 @@ endfunction
 command! CopyAdosCodeUrlForFullLine call CopyAdosCodeUrlForFullLine()
 
 function! OpenAdosCodeUrl() range
-	exec 'Firefox' GetCodeUrlOnAzureDevops(a:firstline, a:lastline)
+	exec 'WebBrowser' GetCodeUrlOnAzureDevops(a:firstline, a:lastline)
 endfunction
 command! -range OpenAdosCodeUrl <line1>,<line2>call OpenAdosCodeUrl()
 
 function! OpenAdosCodeUrlForFullLine()
-	exec 'Firefox' GetCodeUrlOnAzureDevops()
+	exec 'WebBrowser' GetCodeUrlOnAzureDevops()
 endfunction
 command! OpenAdosCodeUrlForFullLine call OpenAdosCodeUrlForFullLine()
 
@@ -3963,7 +3968,7 @@ function! BuildAdosWorkItemUrl(...)
 	let workItemId = a:0 ? a:1 : get(g:, 'previousWorkItemId')
 	return printf('%s/_workitems/edit/%d', $ados, workItemId)
 endfunction
-command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosWorkItem exec 'Firefox' BuildAdosWorkItemUrl(str2nr(<f-args>))
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosWorkItem exec 'WebBrowser' BuildAdosWorkItemUrl(str2nr(<f-args>))
 
 function! BuildAdosWorkItemParentUrl(...)
 	let workItemId = a:0 ? a:1 : get(g:, 'previousWorkItemId')
@@ -3978,7 +3983,7 @@ function! BuildAdosWorkItemParentUrl(...)
 	let id = split(v, '/')[-1]
 	return printf('%s/_workitems/edit/%d', $ados, id)
 endfunction
-command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosParentItem exec 'Firefox' BuildAdosWorkItemParentUrl(str2nr(<f-args>))
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosParentItem exec 'WebBrowser' BuildAdosWorkItemParentUrl(str2nr(<f-args>))
 
 function! BuildAdosKanbanBoardUrl()
 	return $adosBoard
@@ -4002,7 +4007,7 @@ function! BuildAdosLatestPullRequestWebUrl(...)
 	let webUrl = printf('%s/%s/_git/%s/pullrequest/%s', $ados, infos.project, infos.repository, infos.id)
 	return webUrl
 endfunction
-command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosPullRequest exec 'Firefox' BuildAdosLatestPullRequestWebUrl(str2nr(<f-args>))
+command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosPullRequest exec 'WebBrowser' BuildAdosLatestPullRequestWebUrl(str2nr(<f-args>))
 
 function! LocListToAdosBuilds()
 	let repository = fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
@@ -4032,8 +4037,8 @@ function! LocListToAdosBuilds()
 	exec "normal! Gddgg"
 	set ft=qf bt=nofile
 	let b:urls = mapnew(builds, {_,x -> x.url})
-	nnoremap <silent> <buffer> i :exec 'Firefox' b:urls[line('.')-1]<CR>
-	nnoremap <silent> <buffer> o :exec 'Firefox' $mainBuildUrl<CR>
+	nnoremap <silent> <buffer> i :exec 'WebBrowser' b:urls[line('.')-1]<CR>
+	nnoremap <silent> <buffer> o :exec 'WebBrowser' $mainBuildUrl<CR>
 endfunction
 command! AdosBuilds call LocListToAdosBuilds()
 "nnoremap <Leader>A :AdosBuilds<CR>
@@ -4083,12 +4088,12 @@ function! LocListAdos(...)
 	let b:is_custom_loclist = 1
 	let b:quickfix_title = 'wit#'.filter(GetWorkItemsAssignedToMeInCurrentIteration(), {_,x -> x =~ '^'.workItemId})[0]
 	set ft=qf bt=nofile
-	nnoremap <silent> <buffer> i :exec 'Firefox' eval("b:urlBuilders[getline('.')].urlBuilder()")<CR>:q<CR>
-	nnoremap <silent> <buffer> t :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Task'].order.")].urlBuilder()")<CR>:q<CR>
-	nnoremap <silent> <buffer> p :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Latest Pull Request'].order.")].urlBuilder()")<CR>:q<CR>
-	nnoremap <silent> <buffer> P :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['My Pull Requests'].order.")].urlBuilder()")<CR>:q<CR>
-	nnoremap <silent> <buffer> b :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Kanban Board'].order.")].urlBuilder()")<CR>:q<CR>
-	nnoremap <silent> <buffer> d :exec 'Firefox' eval("b:urlBuilders[getline(".b:urlBuilders['Deployment'].order.")].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> i :exec 'WebBrowser' eval("b:urlBuilders[getline('.')].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> t :exec 'WebBrowser' eval("b:urlBuilders[getline(".b:urlBuilders['Task'].order.")].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> p :exec 'WebBrowser' eval("b:urlBuilders[getline(".b:urlBuilders['Latest Pull Request'].order.")].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> P :exec 'WebBrowser' eval("b:urlBuilders[getline(".b:urlBuilders['My Pull Requests'].order.")].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> b :exec 'WebBrowser' eval("b:urlBuilders[getline(".b:urlBuilders['Kanban Board'].order.")].urlBuilder()")<CR>:q<CR>
+	nnoremap <silent> <buffer> d :exec 'WebBrowser' eval("b:urlBuilders[getline(".b:urlBuilders['Deployment'].order.")].urlBuilder()")<CR>:q<CR>
 endfunction
 nnoremap <silent> <Leader>a :if exists('g:previousWorkItemId') \| call LocListAdos() \| else \| call feedkeys(":Ados \<tab>") \| endif<CR>
 command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Ados call LocListAdos(str2nr(<f-args>))
