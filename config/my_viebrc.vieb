@@ -36,7 +36,8 @@ nmap V <startFollowNewVerSplit>
 
 nunmap s
 nmap m <p.moveToMouse>
-nmap M <p.start>
+nmap Q<Any> <storeScrollPos>
+nmap q<Any> <restoreScrollPos>
 pmap <space> <Esc><space>
 pmap o <Esc>o
 pmap O <Esc>O
