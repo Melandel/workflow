@@ -2756,14 +2756,15 @@ function! CreateFileWithRenderedSvgs()
 	let start = '^\s*```puml'
 	let stop = '^\s*```'
 	let delimiter = start
-	let lastStart = 0
-	let lastStop = -2
+	let lastStart = -1
+	let lastStop = -1
 	let textSplits = []
 	for i in range(len(lines))
-		let line = lines[i]
-		if line =~ delimiter
+		if lines[i] =~ delimiter
 			if delimiter == start
-				let textSplits += lines[lastStop+2:i-1]
+				if i > 0
+					let textSplits += lines[lastStop+1:i-1]
+				endif
 				let lastStart = i
 			else
 				let diagram =lines[lastStart+1:i-1]
@@ -2773,6 +2774,9 @@ function! CreateFileWithRenderedSvgs()
 				let lastStop = i
 			endif
 			let delimiter = (delimiter == start) ? stop : start
+		endif
+		if lines[i] =~ '^\s*```\s*$' && (i == line('$')-1 || lines[i+1] != '')
+			let lines[i] = substitute(lines[i], '```', '```text', '')
 		endif
 	endfor
 	let textSplits += lines[lastStop+2:]
@@ -2826,14 +2830,22 @@ function! StartPlantumlToSvgCB(array, pos, scratchbufnr, plantumlbufnr, job, sta
 		return
 	endif
 	call setbufvar(a:scratchbufnr, '&buftype', 'nofile')
-	let new = join(getbufline(a:scratchbufnr, 1, '$'), '\n')
-	let new = substitute(new, ' style="', ' style="padding:8px;', '')
-	let new = substitute(new, '\/svg>.*$', '/svg>', '')
-	let new = substitute(new, '', '', 'g')
-	if stridx(new, '--></g></svg>') == -1
-		let new .= '--></g></svg>'
+	let output = getbufline(a:scratchbufnr, 3, '$')
+	let firstDiagramLine = 0
+	for lineNr in range(len(output))
+		if stridx(output[lineNr], '<?xml') >= 0
+			let firstDiagramLine = lineNr
+			break
+		endif
+	endfor
+	let svg = join(output[firstDiagramLine:], '\n')
+	let svg = substitute(svg, ' style="', ' style="padding:8px;', '')
+	let svg = substitute(svg, '\/svg>.*$', '/svg>', '')
+	let svg = substitute(svg, '', '', 'g')
+	if stridx(svg, '--></g></svg>') == -1
+		let svg .= '--></g></svg>'
 	endif
-	let a:array[a:pos] = new
+	let a:array[a:pos] = svg
 	exec a:scratchbufnr.'bdelete!'
 	exec a:plantumlbufnr.'bdelete!'
 endfunction

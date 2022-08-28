@@ -17,3 +17,78 @@
 #app.tabshidden.navigationhidden #url-hover {bottom: 0;}
 #app.navigationhidden #suggest-dropdown {top: auto;bottom: .1em;}
 
+
+#markdownviewer {
+	font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+	font-size: 16px! important;
+	line-height: 1.5;
+	word-wrap: break-word;
+	margin: unset;
+	margin-top: 0px;
+	margin-bottom: 16px;
+	max-width: none;
+	color: #24292f;
+	background: white;
+}
+
+markdownviewer h1, markdownviewer h2, markdownviewer h3, markdownviewer h4, markdownviewer h5, markdownviewer h6 
+	margin-top: 24px;
+	margin-bottom: 16px;
+	font-weight: 600;
+	line-height: 1.25;
+}
+#markdownviewer h1 {
+	padding-bottom: .3em;
+	font-size: 2em;
+	border-bottom: 1px solid hsla(210,18%,87%,1);
+}
+
+#markdownviewer h2 {
+	padding-bottom: .3em;
+	font-size: 1.5em;
+	border-bottom: 1px solid hsla(210,18%,87%,1);
+}
+
+#markdownviewer pre {
+	max-width: min-content;
+	padding: 16px;
+	overflow: auto;
+	font-size: 85%;
+	line-height: 1.45;
+	background-color: var(--syntax-bg);
+	border-radius: 6px;
+}
+
+#markdownviewer code:not(pre code) {
+	font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+	padding: .2em .4em;
+	margin: 0;
+	font-size: 85%;
+	background-color: #afb8c133;
+	border-radius: 6px;
+}
+
+#markdownviewer li input {
+	width: auto;
+	margin-bottom: 0px;
+	height: auto;
+}
+
+#markdownviewer table {
+	border-spacing: 0;
+	border-collapse: collapse;
+}
+#markdownviewer table th, #markdownviewer table td {
+    padding: 6px 13px;
+    border: 1px solid #d0d7de;
+}
+#markdownviewer table th, #markdownviewer table td:nth-child(even) {
+    background: white;
+}
+#markdownviewer table th, #markdownviewer table td:nth-child(odd) {
+    background: #f6f8fa;
+}
+
+#markdownviewer a {
+	color: #0969da;
+}
