@@ -7,7 +7,10 @@ dotnet     new classlib -n APPNAME.Domain
 dotnet sln add             APPNAME.Domain
 echo "The Domain layer declares the notions, interactions and rules that compose a business." > APPNAME.Domain/README.md
 echo "`n## Code expected here"                                                               >> APPNAME.Domain/README.md
+echo "* Objects named after Domain concepts                                                  >> APPNAME.Domain/README.md
+echo "* Services named after Domain concepts                                                 >> APPNAME.Domain/README.md
 echo "`n## Code NOT expected here"                                                           >> APPNAME.Domain/README.md
+echo "* References to infrastructure concepts(web, databse, view, etc)                       >> APPNAME.Domain/README.md
 echo "`n## Other guidelines"                                                                 >> APPNAME.Domain/README.md
 
 
@@ -37,13 +40,24 @@ echo "`n## Code expected here"                                                  
 echo "`n## Code NOT expected here"                                                                                               >> APPNAME.ServiceProviders/README.md
 echo "`n## Other guidelines"                                                                                                     >> APPNAME.ServiceProviders/README.md
 
-dotnet     new nunit    -n APPNAME.ServiceProviders.Tests
-dotnet     add             APPNAME.ServiceProviders.Tests reference APPNAME.ServiceProviders
-dotnet sln add             APPNAME.ServiceProviders.Tests
-echo "The ServiceProviders-tests project provides unambiguous, up-to-date information whether an service provider is ready-to-use or not." > APPNAME.ServiceProviders.Tests/README.md
-echo "`n## Tests expected here"                                                                                                           >> APPNAME.ServiceProviders.Tests/README.md
-echo "`n## Tests NOT expected here"                                                                                                       >> APPNAME.ServiceProviders.Tests/README.md
-echo "`n## Other guidelines"                                                                                                              >> APPNAME.ServiceProviders.Tests/README.md
+dotnet     new nunit    -n APPNAME.ServiceProviders.UnitTests
+dotnet     add             APPNAME.ServiceProviders.UnitTests reference APPNAME.ServiceProviders
+dotnet sln add             APPNAME.ServiceProviders.UnitTests
+echo "The ServiceProviders-unit-tests project provides confidence that nothing get lost in translation between our code and a service provider." > APPNAME.ServiceProviders.UnitTests/README.md
+echo "`n## Tests expected here"                                                                                                                 >> APPNAME.ServiceProviders.UnitTests/README.md
+echo "* tests for each mapped field"                                                                                                            >> APPNAME.ServiceProviders.UnitTests/README.md
+echo "* tests for exceptions thrown"                                                                                                            >> APPNAME.ServiceProviders.UnitTests/README.md
+echo "* tests for behavior when the service provider returns null"                                                                              >> APPNAME.ServiceProviders.UnitTests/README.md
+echo "`n## Tests NOT expected here"                                                                                                             >> APPNAME.ServiceProviders.UnitTests/README.md
+echo "`n## Other guidelines"                                                                                                                    >> APPNAME.ServiceProviders.UnitTests/README.md
+
+dotnet     new nunit    -n APPNAME.ServiceProviders.StatusTests
+dotnet     add             APPNAME.ServiceProviders.StatusTests reference APPNAME.ServiceProviders
+dotnet sln add             APPNAME.ServiceProviders.StatusTests
+echo "The ServiceProviders-status-tests project provides unambiguous, up-to-date information whether a service provider is ready-to-use or not." > APPNAME.ServiceProviders.StatusTests/README.md
+echo "`n## Tests expected here"                                                                                                                 >> APPNAME.ServiceProviders.StatusTests/README.md
+echo "`n## Tests NOT expected here"                                                                                                             >> APPNAME.ServiceProviders.StatusTests/README.md
+echo "`n## Other guidelines"                                                                                                                    >> APPNAME.ServiceProviders.StatusTests/README.md
 
 
 dotnet     new web      -n APPNAME.Api
