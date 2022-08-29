@@ -92,3 +92,9 @@ markdownviewer h1, markdownviewer h2, markdownviewer h3, markdownviewer h4, mark
 #markdownviewer a {
 	color: #0969da;
 }
+
+#markdownviewer blockquote {
+	padding: 0 15px;
+	color: #777;
+	border-left: 4px solid #ddd;
+}
