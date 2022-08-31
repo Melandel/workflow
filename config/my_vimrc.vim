@@ -2774,9 +2774,9 @@ function! CreateFileWithRenderedSvgs()
 				let lastStop = i
 			endif
 			let delimiter = (delimiter == start) ? stop : start
-		endif
-		if lines[i] =~ '^\s*```\s*$' && (i == line('$')-1 || lines[i+1] != '')
-			let lines[i] = substitute(lines[i], '```', '```text', '')
+			if lines[i] =~ '^\s*```\s*$' && (i == line('$')-1 || lines[i+1] != '')
+				let lines[i] = substitute(lines[i], '```', '```text', '')
+			endif
 		endif
 	endfor
 	let textSplits += lines[lastStop+2:]
