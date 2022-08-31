@@ -172,3 +172,341 @@ $0curl -X GET $api
 </div></div>
 
 endsnippet
+
+snippet seq "sequence diagram" b
+\`\`\`puml_sequence
+mainframe ${5:Not only individuals and interactions, but also a community of professionals}
+'https://plantuml.com/fr/sequence-diagram
+skinparam BoxPadding 10
+skinparam ParticipantPadding 30
+
+box "${1:Foo}"
+	participant "${3:Foo}" as $3
+$0end box
+
+box "${2:Bar}"
+	participant "${4:Bar}" as $4
+end box
+
+$3 -> $4
+\`\`\`
+endsnippet
+
+snippet act "activity diagram" b
+\`\`\`puml_activity
+mainframe ${1:Not only working software, but also well-crafted software}
+'https://plantuml.com/fr/activity-diagram-beta
+start
+
+$0group Arrange
+	:Build Credit Application Contract;
+	note right
+		foo
+			* bar
+	end note
+	:Build main route request;
+end group
+
+group Act
+	:Call RejectionRule's main route;
+	:Call RejectionRule's details route;
+end group
+
+group Assert
+	:Run assertions on details;
+end group
+stop
+\`\`\`
+endsnippet
+
+snippet cls "class diagram (1 API)" b
+\`\`\`puml_class
+mainframe ${0:Not only responding to change, but also steadily adding value}
+'https://plantuml.com/fr/class-diagram
+
+package "Api / Dto" as Api {
+	class "Controller" as Controller {
+			+ Response DoStuff(request)
+	}
+	class "Request" as Request {
+	}
+	class "Response" as Response {
+	}
+}
+
+package Application {
+	rectangle "ServiceProviders" as ServiceProviders {
+		interface IServiceProvider {
+			+ DomainObject GetDomainObject()
+		}
+	}
+	rectangle "UseCases" as UseCases {
+		interface IUseCase {
+			UseCaseOutput Process(UseCaseInput)
+		}
+		class UseCase {
+			- IServiceProvider
+			+ UseCaseOutput Process(UseCaseInput)
+		}
+
+		class "UseCaseOutput" as UseCaseOutput {
+			+ Guid useCaseExecutionId
+		}
+
+		class "UseCaseInput" as UseCaseInput {
+			+ Guid useCaseExecutionId
+			+ CancellationToken cancellationToken
+		}
+	}
+}
+
+package "Domain" as Domain {
+	class DomainObject {
+		+ foo
+		{static} Create(foo)
+		{static} Reconstitute(guid, foo)
+		+ DoStuff()
+	}
+}
+
+package "Infrastructure" as Infrastructure {
+	class ServiceProvider {
+		- ServiceProviderClient
+		+ DomainObject GetDomainObject()
+	}
+}
+
+UseCase -up-|> IUseCase
+ServiceProvider -up-|> IServiceProvider
+\`\`\`
+endsnippet
+
+snippet cls2 "class diagram (2 APIs)" b
+\`\`\`puml_class
+mainframe ${0:Not only responding to change, but also steadily adding value}
+'https://plantuml.com/fr/class-diagram
+
+package "${1:Api_1}" as Pack1 {
+	rectangle "Infrastructure" as Infra1 {
+		'class "Foo" as Infra1Foo {
+		'}
+	}
+
+	rectangle "Domain" as Domain1 {
+		'class "Foo" as Domain1Foo {
+		'}
+	}
+
+	rectangle "Application" as App1 {
+		'class "Foo" as App1Foo {
+		'}
+	}
+
+	rectangle "Api / Dto" as Api1 {
+		'class "Foo" as Api1Foo {
+		'}
+	}
+}
+
+package "${2:Api_2}" as Pack2{
+	rectangle "Infrastructure" as Infra2 {
+		'class "Foo" as Infra2Foo {
+		'}
+	}
+
+	rectangle "Domain" as Domain2 {
+		'class "Foo" as Domain2Foo {
+		'}
+	}
+
+	rectangle "Application" as App2 {
+		'class "Foo" as App2Foo {
+		'}
+	}
+
+	rectangle "Api / Dto" as Api2 {
+		'class "Foo" as Api2Foo {
+		'}
+	}
+}
+\`\`\`
+endsnippet
+
+snippet cls3 "class diagram (3 blocks)" b
+\`\`\`puml_class
+mainframe ${0:Not only responding to change, but also steadily adding value}
+'https://plantuml.com/fr/class-diagram
+
+package "${1:Api_1}" as Pack1 {
+	rectangle "Infrastructure" as Infra1 {
+		'class "Foo" as Infra1Foo {
+		'}
+	}
+
+	rectangle "Domain" as Domain1 {
+		'class "Foo" as Domain1Foo {
+		'}
+	}
+
+	rectangle "Application" as App1 {
+		'class "Foo" as App1Foo {
+		'}
+	}
+
+	rectangle "Api / Dto" as Api1 {
+		'class "Foo" as Api1Foo {
+		'}
+	}
+}
+
+package "${2:Api_2}" as Pack2 {
+	rectangle "Infrastructure" as Infra2 {
+		'class "Foo" as Infra2Foo {
+		'}
+	}
+
+	rectangle "Domain" as Domain2 {
+		'class "Foo" as Domain2Foo {
+		'}
+	}
+
+	rectangle "Application" as App2 {
+		'class "Foo" as App2Foo {
+		'}
+	}
+
+	rectangle "Api / Dto" as Api2 {
+		'class "Foo" as Api2Foo {
+		'}
+	}
+}
+
+package "${3:Api_3}" as Pack3 {
+	rectangle "Infrastructure" as Infra3 {
+		'class "Foo" as Infra3Foo {
+		'}
+	}
+
+	rectangle "Domain" as Domain3 {
+		'class "Foo" as Domain3Foo {
+		'}
+	}
+
+	rectangle "Application" as App3 {
+		'class "Foo" as App3Foo {
+		'}
+	}
+
+	rectangle "Api / Dto" as Api3 {
+		'class "Foo" as Api3Foo {
+		'}
+	}
+}
+\`\`\`
+endsnippet
+
+snippet cls4 "class diagram (4 blocks)" b
+\`\`\`puml_class
+mainframe ${0:Not only responding to change, but also steadily adding value}
+'https://plantuml.com/fr/class-diagram
+
+package "${1:Api_1}" as Pack1 {
+	rectangle "Infrastructure" as Infra1 {
+		'class "Foo" as Infra1Foo {
+		'}
+	}
+
+	rectangle "Domain" as Domain1 {
+		'class "Foo" as Domain1Foo {
+		'}
+	}
+
+	rectangle "Application" as App1 {
+		'class "Foo" as App1Foo {
+		'}
+	}
+
+	rectangle "Api / Dto" as Api1 {
+		'class "Foo" as Api1Foo {
+		'}
+	}
+}
+
+package "${2:Api_2}" as Pack2 {
+	rectangle "Infrastructure" as Infra2 {
+		'class "Foo" as Infra2Foo {
+		'}
+	}
+
+	rectangle "Domain" as Domain2 {
+		'class "Foo" as Domain2Foo {
+		'}
+	}
+
+	rectangle "Application" as App2 {
+		'class "Foo" as App2Foo {
+		'}
+	}
+
+	rectangle "Api / Dto" as Api2 {
+		'class "Foo" as Api2Foo {
+		'}
+	}
+}
+
+package "${3:Api_3}" as Pack3 {
+	rectangle "Infrastructure" as Infra3 {
+		'class "Foo" as Infra3Foo {
+		'}
+	}
+
+	rectangle "Domain" as Domain3 {
+		'class "Foo" as Domain3Foo {
+		'}
+	}
+
+	rectangle "Application" as App3 {
+		'class "Foo" as App3Foo {
+		'}
+	}
+
+	rectangle "Api / Dto" as Api3 {
+		'class "Foo" as Api3Foo {
+		'}
+	}
+}
+
+package "${4:Api_4}" as Pack4 {
+	rectangle "Infrastructure" as Infra4 {
+		'class "Foo" as Infra4Foo {
+		'}
+	}
+
+	rectangle "Domain" as Domain4 {
+		'class "Foo" as Domain4Foo {
+		'}
+	}
+
+	rectangle "Application" as App4 {
+		'class "Foo" as App4Foo {
+		'}
+	}
+
+	rectangle "Api / Dto" as Api4 {
+		'class "Foo" as Api4Foo {
+		'}
+	}
+}
+\`\`\`
+endsnippet
+
+snippet mm "mindmap diagram" b
+\`\`\`puml_mindmap
+mainframe ${1:Not only customer collaboration, but also productive partnerships}
+'https://plantuml.com/fr/mindmap-diagram
+
+*[#lightblue] ${2:Information Access}
+** ${3:By page reference}
+$0
+\`\`\`
+endsnippet
