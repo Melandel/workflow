@@ -93,3 +93,33 @@ echo "The application-input&output-mapping-tests project provides confidence tha
 echo "`n## Tests expected here"                                                                                                                                     >> APPNAME.Application.IO.Tests/README.md
 echo "`n## Tests NOT expected here"                                                                                                                                 >> APPNAME.Application.IO.Tests/README.md
 echo "`n## Other guidelines"                                                                                                                                        >> APPNAME.Application.IO.Tests/README.md
+
+## first commitS
+adr/
+contribution/
+   Fearless Programming
+   Fearless Deployment
+   Fearless Review
+   Living Documentation
+onboarding/
+    Tutorials/
+    Howtos/
+    Background/
+    Reference/
+ressources/
+src/
+
+What do we want for this codebase? (first commits: Explaining the architecture/Intro to the codebase)
+  1. Application Layer (with classic unit tests & archetypes, testCases, testDoubles, etc.)
+      Input Validation
+  1. Infrastructure Layer (with public record Configuration!)
+      External Failures
+  1. Domain Layer (with classic unit tests)
+      Model Integrity Invariance
+  1. Delivery Mechanism (with classic unit tests)
+  1. Logging
+  1. Improved test strategy: IO delivery mechanism between AppCaller and App
+  1. Improved test strategy: App behaviour (TestEnvironment-based) 
+
+Documentation structure (second commits: [doc])
+  1. Create welcome/ folder
