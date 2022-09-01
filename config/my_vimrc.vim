@@ -2830,7 +2830,7 @@ function! StartPlantumlToSvgCB(array, pos, scratchbufnr, plantumlbufnr, job, sta
 		return
 	endif
 	call setbufvar(a:scratchbufnr, '&buftype', 'nofile')
-	let output = getbufline(a:scratchbufnr, 3, '$')
+	let output = getbufline(a:scratchbufnr, 1, '$')
 	let firstDiagramLine = 0
 	for lineNr in range(len(output))
 		if stridx(output[lineNr], '<?xml') >= 0
