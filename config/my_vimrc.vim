@@ -1219,7 +1219,7 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, outputFileWithoutExt, dir
 	let ext = 'output'
 	if line('$') > 1
 		let isXml = getline('$') =~ '^<.*>$'
-		let isJson = getline('$') =~ '^{\|[\|}\|]'
+		let isJson = getline('$') =~ '^\({\|\[\|}\|]\)'
 		if isXml
 			silent $!xmllint --format --recover --c14n -
 		elseif isJson
@@ -1232,7 +1232,7 @@ function! DisplayScriptOutputInNewWindow(scratchbufnr, outputFileWithoutExt, dir
 	if getline('1') =~ '^<.*>$'
 		set ft=xml
 		let ext = 'xml'
-	elseif getline('1') =~ '^{\|('
+	elseif getline('1') =~ '^{\|(\|['
 		set ft=json
 		let ext = 'json'
 	endif
