@@ -175,7 +175,7 @@ endsnippet
 
 snippet seq "sequence diagram" b
 \`\`\`puml_sequence
-mainframe ${5:Not only individuals and interactions, but also a community of professionals}
+title __${5:Not only individuals and interactions, but also a community of professionals}__
 'https://plantuml.com/fr/sequence-diagram
 skinparam BoxPadding 10
 skinparam ParticipantPadding 30
@@ -194,7 +194,7 @@ endsnippet
 
 snippet act "activity diagram" b
 \`\`\`puml_activity
-mainframe ${1:Not only working software, but also well-crafted software}
+title __${1:Not only working software, but also well-crafted software}__
 'https://plantuml.com/fr/activity-diagram-beta
 start
 
@@ -219,14 +219,69 @@ stop
 \`\`\`
 endsnippet
 
-snippet cls "class diagram (1 API)" b
+snippet cls "class diagram (2 packs)" b
 \`\`\`puml_class
-mainframe ${0:Not only responding to change, but also steadily adding value}
+title __${1:Not only responding to change, but also steadily adding value}__
 'https://plantuml.com/fr/class-diagram
 
+$0
+\`\`\`
+endsnippet
+
+snippet pack "pack of classes" b
+package "${1:Api}" as Package {
+	$0rectangle "Infrastructure" as Infra {
+		${6:'}class "${2:Foo}" as InfraFoo {
+		$6}
+	}
+
+	rectangle "Domain" as Domain {
+		$6class "${3:Foo}" as DomainFoo {
+		$6}
+	}
+
+	rectangle "Application" as App {
+		$6class "${4:Foo}" as AppFoo {
+		$6}
+	}
+
+	rectangle "Api / Dto" as Api {
+		$6class "${5:Foo}" as ApiFoo {
+		$6}
+	}
+}
+
+endsnippet
+
+snippet "pack([1-9])" "pack of classes with suffix" br
+package "${1:Api_`!p snip.rv = match.group(1)`}" as Package`!p snip.rv = match.group(1)` {
+	$0rectangle "Infrastructure" as Infra`!p snip.rv = match.group(1)` {
+		${6:'}class "${2:Foo}" as Infra`!p snip.rv = match.group(1)`Foo {
+		$6}
+	}
+
+	rectangle "Domain" as Domain`!p snip.rv = match.group(1)` {
+		$6class "${3:Foo}" as Domain`!p snip.rv = match.group(1)`Foo {
+		$6}
+	}
+
+	rectangle "Application" as App`!p snip.rv = match.group(1)` {
+		$6class "${4:Foo}" as App`!p snip.rv = match.group(1)`Foo {
+		$6}
+	}
+
+	rectangle "Api / Dto" as Api`!p snip.rv = match.group(1)` {
+		$6class "${5:Foo}" as Api`!p snip.rv = match.group(1)`Foo {
+		$6}
+	}
+}
+
+endsnippet
+
+snippet archi "class diagram (architecture)" b
 package "Api / Dto" as Api {
 	class "Controller" as Controller {
-			+ Response DoStuff(request)
+		+ Response DoStuff(request)
 	}
 	class "Request" as Request {
 	}
@@ -278,231 +333,11 @@ package "Infrastructure" as Infrastructure {
 
 UseCase -up-|> IUseCase
 ServiceProvider -up-|> IServiceProvider
-\`\`\`
-endsnippet
-
-snippet cls2 "class diagram (2 APIs)" b
-\`\`\`puml_class
-mainframe ${0:Not only responding to change, but also steadily adding value}
-'https://plantuml.com/fr/class-diagram
-
-package "${1:Api_1}" as Pack1 {
-	rectangle "Infrastructure" as Infra1 {
-		'class "Foo" as Infra1Foo {
-		'}
-	}
-
-	rectangle "Domain" as Domain1 {
-		'class "Foo" as Domain1Foo {
-		'}
-	}
-
-	rectangle "Application" as App1 {
-		'class "Foo" as App1Foo {
-		'}
-	}
-
-	rectangle "Api / Dto" as Api1 {
-		'class "Foo" as Api1Foo {
-		'}
-	}
-}
-
-package "${2:Api_2}" as Pack2{
-	rectangle "Infrastructure" as Infra2 {
-		'class "Foo" as Infra2Foo {
-		'}
-	}
-
-	rectangle "Domain" as Domain2 {
-		'class "Foo" as Domain2Foo {
-		'}
-	}
-
-	rectangle "Application" as App2 {
-		'class "Foo" as App2Foo {
-		'}
-	}
-
-	rectangle "Api / Dto" as Api2 {
-		'class "Foo" as Api2Foo {
-		'}
-	}
-}
-\`\`\`
-endsnippet
-
-snippet cls3 "class diagram (3 blocks)" b
-\`\`\`puml_class
-mainframe ${0:Not only responding to change, but also steadily adding value}
-'https://plantuml.com/fr/class-diagram
-
-package "${1:Api_1}" as Pack1 {
-	rectangle "Infrastructure" as Infra1 {
-		'class "Foo" as Infra1Foo {
-		'}
-	}
-
-	rectangle "Domain" as Domain1 {
-		'class "Foo" as Domain1Foo {
-		'}
-	}
-
-	rectangle "Application" as App1 {
-		'class "Foo" as App1Foo {
-		'}
-	}
-
-	rectangle "Api / Dto" as Api1 {
-		'class "Foo" as Api1Foo {
-		'}
-	}
-}
-
-package "${2:Api_2}" as Pack2 {
-	rectangle "Infrastructure" as Infra2 {
-		'class "Foo" as Infra2Foo {
-		'}
-	}
-
-	rectangle "Domain" as Domain2 {
-		'class "Foo" as Domain2Foo {
-		'}
-	}
-
-	rectangle "Application" as App2 {
-		'class "Foo" as App2Foo {
-		'}
-	}
-
-	rectangle "Api / Dto" as Api2 {
-		'class "Foo" as Api2Foo {
-		'}
-	}
-}
-
-package "${3:Api_3}" as Pack3 {
-	rectangle "Infrastructure" as Infra3 {
-		'class "Foo" as Infra3Foo {
-		'}
-	}
-
-	rectangle "Domain" as Domain3 {
-		'class "Foo" as Domain3Foo {
-		'}
-	}
-
-	rectangle "Application" as App3 {
-		'class "Foo" as App3Foo {
-		'}
-	}
-
-	rectangle "Api / Dto" as Api3 {
-		'class "Foo" as Api3Foo {
-		'}
-	}
-}
-\`\`\`
-endsnippet
-
-snippet cls4 "class diagram (4 blocks)" b
-\`\`\`puml_class
-mainframe ${0:Not only responding to change, but also steadily adding value}
-'https://plantuml.com/fr/class-diagram
-
-package "${1:Api_1}" as Pack1 {
-	rectangle "Infrastructure" as Infra1 {
-		'class "Foo" as Infra1Foo {
-		'}
-	}
-
-	rectangle "Domain" as Domain1 {
-		'class "Foo" as Domain1Foo {
-		'}
-	}
-
-	rectangle "Application" as App1 {
-		'class "Foo" as App1Foo {
-		'}
-	}
-
-	rectangle "Api / Dto" as Api1 {
-		'class "Foo" as Api1Foo {
-		'}
-	}
-}
-
-package "${2:Api_2}" as Pack2 {
-	rectangle "Infrastructure" as Infra2 {
-		'class "Foo" as Infra2Foo {
-		'}
-	}
-
-	rectangle "Domain" as Domain2 {
-		'class "Foo" as Domain2Foo {
-		'}
-	}
-
-	rectangle "Application" as App2 {
-		'class "Foo" as App2Foo {
-		'}
-	}
-
-	rectangle "Api / Dto" as Api2 {
-		'class "Foo" as Api2Foo {
-		'}
-	}
-}
-
-package "${3:Api_3}" as Pack3 {
-	rectangle "Infrastructure" as Infra3 {
-		'class "Foo" as Infra3Foo {
-		'}
-	}
-
-	rectangle "Domain" as Domain3 {
-		'class "Foo" as Domain3Foo {
-		'}
-	}
-
-	rectangle "Application" as App3 {
-		'class "Foo" as App3Foo {
-		'}
-	}
-
-	rectangle "Api / Dto" as Api3 {
-		'class "Foo" as Api3Foo {
-		'}
-	}
-}
-
-package "${4:Api_4}" as Pack4 {
-	rectangle "Infrastructure" as Infra4 {
-		'class "Foo" as Infra4Foo {
-		'}
-	}
-
-	rectangle "Domain" as Domain4 {
-		'class "Foo" as Domain4Foo {
-		'}
-	}
-
-	rectangle "Application" as App4 {
-		'class "Foo" as App4Foo {
-		'}
-	}
-
-	rectangle "Api / Dto" as Api4 {
-		'class "Foo" as Api4Foo {
-		'}
-	}
-}
-\`\`\`
 endsnippet
 
 snippet mm "mindmap diagram" b
 \`\`\`puml_mindmap
-mainframe ${1:Not only customer collaboration, but also productive partnerships}
+title __${1:Not only customer collaboration, but also productive partnerships}__
 'https://plantuml.com/fr/mindmap-diagram
 
 *[#lightblue] ${2:Information Access}
