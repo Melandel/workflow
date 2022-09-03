@@ -1391,6 +1391,7 @@ function! Grep(qf_or_loclist, ...)
 	let cmdParams += a:000[firstTokenWithDoubleQuote:]
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/grep')
 	let cmd = printf('rg --vimgrep --no-heading --smart-case -g "!**/obj/**" -g "!**/bin/**" %s', join(cmdParams))
+	let cmd .= ' \\?\%cd%' "https://github.com/BurntSushi/ripgrep/issues/364
 	echomsg "<start> ".cmd
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
@@ -1426,7 +1427,7 @@ function! GrepCB(winnr, cmd, cwd, pattern, scratchbufnr, qf_or_loclist, job, exi
 	"endif
 	"echomsg printf('[%s] %d found.', a:pattern, nb)
 	exec 'lcd' a:cwd
-	set errorformat=%f:%l:%c:%m
+	set errorformat=%*[^C]%f:%l:%c:%m
 	let prefix = (a:qf_or_loclist == 'qf' ? 'c' : 'l')
 	silent exec prefix.'getbuffer' a:scratchbufnr
 	let title = printf("[grep] %s", a:pattern)
