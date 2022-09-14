@@ -1,6 +1,8 @@
 source ./my_viebworkenv.vieb
 colorscheme Melandel
 
+set suspendbackgroundtab=false
+
 set permissionmediadevices=allowfull
 set permissioncamera=allow
 set permissionmicrophone=allow
