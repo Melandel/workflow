@@ -327,7 +327,7 @@ $0
 endsnippet
 
 snippet r "rectangle" b
-rectangle "${1:Some rectangle}" as `!p snip.rv = ''.join(''.join([w[0].upper(), w[1:].lower()]) for w in t[1].split())` {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else " }" if t[2] == "" else "\n}"`
+rectangle "${1:Some rectangle}" as `!p snip.rv = ''.join(''.join([w[0].upper(), w[1:].lower()]) for w in t[1].split())` {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else "\n}"`
 $0
 endsnippet
 
