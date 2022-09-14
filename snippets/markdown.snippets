@@ -231,29 +231,21 @@ endsnippet
 snippet "archi([0-9]*)" "pack of classes with suffix" br
 package "${1:Api`!p snip.rv = match.group(1)`}" as Package`!p snip.rv = match.group(1)` {
 	$0rectangle "Infrastructure" as Infra`!p snip.rv = match.group(1)` {
-		${2:'}class "${3:Foo}" as Infra`!p snip.rv = match.group(1)`$3 {
-		$2}
 	}
 
 	rectangle "Domain" as Domain`!p snip.rv = match.group(1)` {
-		$2class "${4:Bar}" as Domain`!p snip.rv = match.group(1)`$4 {
-		$2}
 	}
 
 	rectangle "Application" as Application`!p snip.rv = match.group(1)` {
-		$2class "${5:Baz}" as Application`!p snip.rv = match.group(1)`$5 {
-		$2}
 	}
 
 	rectangle "Api / Dto" as Api`!p snip.rv = match.group(1)` {
-		$2class "${6:Foobar}" as Api`!p snip.rv = match.group(1)`$6 {
-		$2}
 	}
 }
 
 endsnippet
 
-snippet archi+ "class diagram (architecture)" b
+snippet Archi "class diagram (architecture)" b
 package "Api / Dto" as Api {
 	class "Controller" as Controller {
 		+ Response DoStuff(request)
