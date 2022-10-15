@@ -53,6 +53,7 @@ function! MinpacInit()
 	call minpac#add('prabirshrestha/asyncomplete.vim')
 	call minpac#add('puremourning/vimspector')
 	call minpac#add('nickspoons/vim-sharpenup')
+	call minpac#add('Olical/vim-enmasse')
 	call minpac#add('SirVer/ultisnips')
 	call minpac#add('honza/vim-snippets')
 	call minpac#add('justinmk/vim-dirvish')
@@ -2133,10 +2134,10 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 	endif
 	if has('win32')
 		let bufnr = bufnr(item)
-		if item =~ '\.cs' && bufnr >= 0
+		if item =~ '\.cs'
+			if bufnr == -1 | let bufnr = bufadd(item) | endif
 			call OmniSharp#stdio#Request('/updatebuffer', {'BufNum': bufnr, 'EmptyBuffer': 1})
 		endif
-		if bufnr >= 0 | silent! exec bufnr.'bdelete!' | endif
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', item, item_finalname)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
@@ -2144,7 +2145,7 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 			\{
 				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
-				\'exit_cb':  function('RefreshBufferAndMoveToPath', [item_finalname])
+				\'exit_cb':  function('RefreshBufferAndMoveToPath', [bufnr, item_finalname])
 			\}
 		\)
 	else
@@ -2164,10 +2165,10 @@ function! RenameItemUnderCursor()
 	let bufnr = bufnr(filename)
 	let newname = input('Rename into:', filename)
 	if has('win32')
-		if filename =~ '\.cs' && bufnr >= 0
+		if filename =~ '\.cs'
+			if bufnr == -1 | let bufnr = bufadd(item) | endif
 			call OmniSharp#stdio#Request('/updatebuffer', {'BufNum': bufnr, 'EmptyBuffer': 1})
 		endif
-		if bufnr >= 0 | silent! exec bufnr.'bdelete!' | endif
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', filename, newname)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
@@ -2175,7 +2176,7 @@ function! RenameItemUnderCursor()
 			\{
 				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
-				\'exit_cb':  function('RefreshBufferAndMoveToPath', [newname])
+				\'exit_cb':  function('RefreshBufferAndMoveToPath', [bufnr, newname])
 			\}
 		\)
 	else
@@ -2248,7 +2249,7 @@ function! CreateDirectory()
 			\{
 				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
-				\'exit_cb':  function('RefreshBufferAndMoveToPath', [dirname])
+				\'exit_cb':  function('RefreshBufferAndMoveToPath', [bufnr, dirname])
 			\}
 		\)
 	else
@@ -2259,14 +2260,13 @@ function! CreateDirectory()
 	nohlsearch
 endf
 
-function! RefreshBufferAndMoveToPath(path, ...)
+function! RefreshBufferAndMoveToPath(bufnr, path, ...)
 	normal R
-	if empty(a:path)
-		return
-	endif
+	if empty(a:path) | return | endif
 	let search = escape(getcwd(), '\').'\\'.a:path.(isdirectory(a:path) ? '\\$' : '$')
 	silent! exec '/'.search
 	let @/=search
+	if a:bufnr >= 0 | silent! exec a:bufnr.'bdelete!' | endif
 endfunction
 
 function! CreateFile()
