@@ -2166,7 +2166,7 @@ function! RenameItemUnderCursor()
 	let newname = input('Rename into:', filename)
 	if has('win32')
 		if filename =~ '\.cs'
-			if bufnr == -1 | let bufnr = bufadd(item) | endif
+			if bufnr == -1 | let bufnr = bufadd(filename) | endif
 			call OmniSharp#stdio#Request('/updatebuffer', {'BufNum': bufnr, 'EmptyBuffer': 1})
 		endif
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', filename, newname)
@@ -2934,8 +2934,8 @@ endfunction
 command! ToggleConditionalBreakpoint call ToggleConditionalBreakpoint()
 
  function! IsDebuggingTab(...)
-		let tabnr = a:0 ? a:1 : tabpagenr()
- 	return tabnr == get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 0)
+    	let tabnr = a:0 ? a:1 : tabpagenr()
+	return tabnr == get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 0)
  endfunction
  
  function! IsDebuggingHappening()
@@ -3265,7 +3265,12 @@ endfunction
 command! MyOmniSharpGoToDefinition call OmniSharp#actions#definition#Find(function('MyOmniSharpGoToDefinition'))
 
 function! MyOmniSharpCodeFormat(...)
+	let formerIndentexpr = &indentexpr
+
+	setlocal indentexpr=CSharpIndent()
 	silent! normal! m'gg=G``
+	exec 'setlocal indentexpr='.formerIndentexpr
+
 	silent! call OmniSharp#actions#format#Format()
 endfunction
 command! MyOmniSharpCodeFormat call OmniSharp#actions#format#Format(function('MyOmniSharpCodeFormat'))
@@ -3347,8 +3352,11 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
 
-	autocmd FileType cs setlocal indentkeys+=.,=,:
-	autocmd FileType cs setlocal indentexpr=CSharpIndent()
+	" Messes with OmniSharpRename
+	" autocmd FileType cs setlocal indentkeys+=.,=,:
+
+	" Messes with Indent all parameters
+	"autocmd FileType cs setlocal indentexpr=CSharpIndent() 
 augroup end
 
 
