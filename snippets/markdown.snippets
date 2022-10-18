@@ -175,17 +175,17 @@ endsnippet
 
 snippet seq "sequence diagram" b
 \`\`\`puml_sequence
-title __${5:Not only individuals and interactions, but also a community of professionals}__
+title __${1:Not only individuals and interactions, but also a community of professionals}__
 'https://plantuml.com/fr/sequence-diagram
 skinparam BoxPadding 10
 skinparam ParticipantPadding 30
 
-box "${1:Foo}"
-	participant "${3:Foo}" as $3
+box "${4:Foo}"
+	participant "${2:Foo}" as $3
 $0end box
 
-box "${2:Bar}"
-	participant "${4:Bar}" as $4
+box "${5:Bar}"
+	participant "${3:Bar}" as $4
 end box
 
 $3 -> $4
@@ -313,17 +313,17 @@ $0
 \`\`\`
 endsnippet
 
-snippet p "package" b
-package "${1:Some package}" as `!p snip.rv = ''.join(''.join([w[0].upper(), w[1:].lower()]) for w in t[1].split())` {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else " }" if t[2] == "" else "\n}"`
+snippet "p([0-9]*)" "package" br
+package "${1:Some package `!p snip.rv = match.group(1)`}" as `!p snip.rv = ''.join(''.join([w[0].upper(), w[1:].lower()]) for w in t[1].split())` {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else " }" if t[2] == "" else "\n}"`
 $0
 endsnippet
 
-snippet r "rectangle" b
-rectangle "${1:Some rectangle}" as `!p snip.rv = ''.join(''.join([w[0].upper(), w[1:].lower()]) for w in t[1].split())` {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else "\n}"`
+snippet "r([0-9]*)" "rectangle" br
+rectangle "${1:Some rectangle `!p snip.rv = match.group(1)`}" as `!p snip.rv = ''.join(''.join([w[0].upper(), w[1:].lower()]) for w in t[1].split())` {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else "\n}"`
 $0
 endsnippet
 
-snippet c "class" b
-class ${1:ClassName} {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else " }" if t[2] == "" else "\n}"`
+snippet "c([0-9]*)" "class" br
+class ${1:ClassName`!p snip.rv = match.group(1)`} {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else " }" if t[2] == "" else "\n}"`
 $0
 endsnippet

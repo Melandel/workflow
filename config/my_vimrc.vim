@@ -48,6 +48,7 @@ function! MinpacInit()
 	call minpac#add('junegunn/fzf.vim')
 	call minpac#add('itchyny/lightline.vim')
 	call minpac#add('itchyny/vim-gitbranch')
+	"call minpac#add('nickspoons/omnisharp-vim', {'branch': 'test-runner'})
 	call minpac#add('OmniSharp/omnisharp-vim')
 	"call minpac#add('Melandel/omnisharp-vim') ", {'branch': 'improve_vimspector_config_file_generated'})
 	call minpac#add('prabirshrestha/asyncomplete.vim')
@@ -64,7 +65,7 @@ function! MinpacInit()
 	call minpac#add('tpope/vim-obsession')
 	"call minpac#add('ap/vim-css-color')
 	call minpac#add('wellle/targets.vim')
-	call minpac#add('bfrg/vim-qf-preview')
+	call minpac#add('bfrg/vim-qf-preview', {'rev': '6ff79680cb08625800599c9d5f043a62e4c829d3'})
 	call minpac#add('zigford/vim-powershell')
 	call minpac#add('Melandel/vim-empower')
 	call minpac#add('Melandel/fzfcore.vim')
@@ -371,6 +372,14 @@ augroup lcd
 augroup end
 
 " Utils"-------------------------------{{{
+function! RemoveDiacritics(str)
+	let diacs = 'áâãàçéêèïíóôõüúù'  " lowercase diacritical signs
+	let diacs .= toupper(diacs)
+	let repls = 'aaaaceeeiiooouuu'  " corresponding replacements
+	let repls .= toupper(repls)
+	return tr(a:str, diacs, repls)
+endfunction
+
 function! ToggleQuickfixList()
 	let quickfixWindows = filter(range(1, winnr('$')), {_,x -> getwinvar(x, '&syntax') == 'qf' && !getwininfo(win_getid(x))[0].loclist && !get(getbufinfo(winbufnr(x))[0].variables, 'is_custom_loclist', 0)})
 	silent! execute empty(quickfixWindows) ? 'cwin' : 'ccl'
@@ -2379,7 +2388,7 @@ endfunction
 function! BuildViebUrl(path)
 	let url = a:path
 	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
-	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0 | let url.= ' "' |	endif
+	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0 | let url.= ' "' | endif
 	let url = trim(url)
 	if url =~ '\.md$'
 		let url = 'markdownviewer:/'.url
@@ -2464,7 +2473,7 @@ nnoremap <leader>b :call ToggleWorkInProgress()<CR>
 nnoremap <leader>B :exec 'WebBrowser' $adosBoard<CR>
 
 function! BuildWipFileForWorkItem(workItemId)
-	echomsg 'workItemId' a:workItemId
+	"echomsg 'workItemId' a:workItemId
 	let filenameParts = js_decode(substitute(system(printf('curl -sLk -X GET -u:%s %s/%s/_apis/wit/workitems/%d?api-version=6.0 | jq -r "{id, title: .fields[\"System.Title\"], assignedTo: .fields[\"System.AssignedTo\"].displayName}"', $pat, $ados, $adosProject, a:workItemId)), '[\x0]', '', 'g'))
 	if !empty(glob($wip.'/'.filenameParts.id.'*.md'))
 		echomsg 'There is already a file for workitem' a:workItemId
@@ -2480,29 +2489,55 @@ function! BuildWipFileForWorkItem(workItemId)
 	let filename = substitute(filename, '<', 'lt;', 'g')
 	let filename = substitute(filename, '>', 'gt;', 'g')
 	let filename = substitute(filename, '|', ';', 'g')
-	let filepath = $wip.'/'.filename
-	let filecontent = [printf('# %s', filename)]
+	"Vieb limitation: https://github.com/Jelmerro/Vieb/issues/414
+	let filepath = $wip.'/'.RemoveDiacritics(filename)
+	let filecontent = [printf('# [%s](https://younitedcredit.visualstudio.com/Evaluation/_workitems/edit/%d)', filename, a:workItemId)]
 	call add(filecontent, '')
-	call add(filecontent, '## Checklist')
-	call add(filecontent, '* [ ] Integration tests are listed')
-	call add(filecontent, '  * Input fields: ')
-	call add(filecontent, '  * Rules to test: ')
-	call add(filecontent, '  * Test plan:')
+	call add(filecontent, '## Make the implicits, explicit')
+	call add(filecontent, '1. [ ] Stakeholders/Consumers are informed/equipped about the impacts of this implementation')
 	call add(filecontent, '')
-	call add(filecontent, '* [ ] Codebase has no warnings')
-	call add(filecontent, '* [ ] Conditions that result in triggering the new behavior are identifed')
-	call add(filecontent, '* [ ] Application dependencies are wired as expected')
-	call add(filecontent, '* [ ] Integration test dataset (fakes, bankreaders, etc) are ready')
-	call add(filecontent, '* [ ] Integration test suite is red')
-	call add(filecontent, '* [ ] Application receives input as expected')
-	call add(filecontent, '* [ ] Application handles errors as expected')
-	call add(filecontent, '* [ ] Application behaves as expected')
-	call add(filecontent, '* [ ] Integration test suite is green')
-	call add(filecontent, '* [ ] Stakeholders/Consumers are informed/equipped about the impacts of this implementation')
+	call add(filecontent, '## Acceptance tests')
+	call add(filecontent, '**Input fields**')
 	call add(filecontent, '')
-	call add(filecontent, '## Foo bar baz foobar?')
-	call add(filecontent, 'barbaz.')
+	call add(filecontent, '**Rules to test**')
 	call add(filecontent, '')
+	call add(filecontent, '**Test plan**')
+	call add(filecontent, '')
+	call add(filecontent, '**Resources readiness**')
+	call add(filecontent, '')
+	call add(filecontent, '## Codebase is ready')
+	call add(filecontent, '1. [ ] Codebase has no warnings')
+	call add(filecontent, '1. [ ] Naming is relevant')
+	call add(filecontent, '1. [ ] Naming is consistent')
+	call add(filecontent, '1. [ ] Layers are robust')
+	call add(filecontent, '1. [ ] Files are well-organized')
+	call add(filecontent, '')
+	call add(filecontent, '## Listing of Red Integration Tests (pre-dev)')
+	call add(filecontent, '')
+	call add(filecontent, '| Test Name | Namespace | Reason why it''s red | Logs |')
+	call add(filecontent, '| -- | -- | -- | -- |')
+	call add(filecontent, '| | | | |')
+	call add(filecontent, '')
+	call add(filecontent, '## Codebase can be merged')
+	call add(filecontent, '1. [ ] Codebase has no warnings')
+	call add(filecontent, '1. [ ] Naming is relevant')
+	call add(filecontent, '1. [ ] Naming is consistent')
+	call add(filecontent, '1. [ ] Exposed contract is pristine')
+	call add(filecontent, '1. [ ] Layers are robust')
+	call add(filecontent, '1. [ ] Files are well-organized')
+	call add(filecontent, '1. [ ] Resources & Permissions are created in every environment')
+	call add(filecontent, '1. [ ] Integration tests run correctly locally')
+	call add(filecontent, '1. [ ] Application receives input as expected')
+	call add(filecontent, '1. [ ] Application handles errors as expected')
+	call add(filecontent, '1. [ ] Client receives output/exceptions as expected')
+	call add(filecontent, '')
+	call add(filecontent, '## Listing of Red Integration Tests (post-dev)')
+	call add(filecontent, '| Test Name | Namespace | Reason why it''s red | Logs |')
+	call add(filecontent, '| -- | -- | -- | -- |')
+	call add(filecontent, '| | | | |')
+	call add(filecontent, '')
+	call add(filecontent, '## Codebase is ready for test')
+	call add(filecontent, '1. [ ] Integration tests run correctly in IC pipeline')
 	call writefile(filecontent, filepath)
 	echomsg 'File' "'".workItem."'" 'was successfully created.'
 endfunction
