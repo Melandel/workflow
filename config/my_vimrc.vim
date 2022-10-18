@@ -2154,7 +2154,7 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 			\{
 				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
-				\'exit_cb':  function('RefreshBufferAndMoveToPath', [bufnr, item_finalname])
+				\'exit_cb':  function('RefreshBufferAndMoveToPathAndCleanMovedBuffer', [bufnr, item_finalname])
 			\}
 		\)
 	else
@@ -2185,7 +2185,7 @@ function! RenameItemUnderCursor()
 			\{
 				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
-				\'exit_cb':  function('RefreshBufferAndMoveToPath', [bufnr, newname])
+				\'exit_cb':  function('RefreshBufferAndMoveToPathAndCleanMovedBuffer', [bufnr, newname])
 			\}
 		\)
 	else
@@ -2258,7 +2258,7 @@ function! CreateDirectory()
 			\{
 				\'cwd': cwd,
 				\'err_cb':   { chan,msg  -> execute("echomsg '".substitute(msg,"'","''","g")."'",  1) },
-				\'exit_cb':  function('RefreshBufferAndMoveToPath', [bufnr, dirname])
+				\'exit_cb':  function('RefreshBufferAndMoveToPath', [dirname])
 			\}
 		\)
 	else
@@ -2269,12 +2269,16 @@ function! CreateDirectory()
 	nohlsearch
 endf
 
-function! RefreshBufferAndMoveToPath(bufnr, path, ...)
+function! RefreshBufferAndMoveToPath(path, ...)
 	normal R
 	if empty(a:path) | return | endif
 	let search = escape(getcwd(), '\').'\\'.a:path.(isdirectory(a:path) ? '\\$' : '$')
 	silent! exec '/'.search
 	let @/=search
+endfunction
+
+function! RefreshBufferAndMoveToPathAndCleanMovedBuffer(bufnr, path, ...)
+	RefreshBufferAndMoveToPath(a:path, a:000)
 	if a:bufnr >= 0 | silent! exec a:bufnr.'bdelete!' | endif
 endfunction
 
