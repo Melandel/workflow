@@ -1603,7 +1603,7 @@ function! SortLinesByLengthBeforeFirstSpaceChar() range
 endfunction
 command! -range=% SortByLengthBeforeFirstSpaceChar <line1>,<line2>call SortLinesByLengthBeforeFirstSpaceChar()
 " Autocompletion (Insert Mode)" -------{{{
-set updatetime=125
+set updatetime=500
 set complete=.,w
 set completeopt+=menuone,noselect,noinsert
 " when typing too fast, typically after a dot, omnifunc sometimes needs to be reset. This prevents that from happening
