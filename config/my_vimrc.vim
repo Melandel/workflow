@@ -2278,7 +2278,7 @@ function! RefreshBufferAndMoveToPath(path, ...)
 endfunction
 
 function! RefreshBufferAndMoveToPathAndCleanMovedBuffer(bufnr, path, ...)
-	RefreshBufferAndMoveToPath(a:path, a:000)
+	call RefreshBufferAndMoveToPath(a:path, a:000)
 	if a:bufnr >= 0 | silent! exec a:bufnr.'bdelete!' | endif
 endfunction
 
