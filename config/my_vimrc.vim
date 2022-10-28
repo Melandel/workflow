@@ -2583,7 +2583,7 @@ function! GetCommitTypes(findstart, base)
 		\{ 'word': '✨ feature',  'menu': 'A new feature' },
 		\{ 'word': '🐛 fix',      'menu': 'A bug fix' },
 		\{ 'word': '⚡️ perf',     'menu': 'A code change that improves performance' },
-		\{ 'word': '♻️ refactor', 'menu': 'A code change that neither fixes a bug nor adds a feature' },
+		\{ 'word': '♻️ refactor',  'menu': 'A code change that neither fixes a bug nor adds a feature' },
 		\{ 'word': '💄 style',    'menu': 'Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)' },
 		\{ 'word': '✅ test',     'menu': 'Adding missing tests or correcting existing tests' }
 	\]
