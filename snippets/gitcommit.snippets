@@ -2,13 +2,13 @@ clearsnippets
 priority 10
 
 snippet "✨ feature|♻️ refactor|✅ test|🐛 fix|📝 docs|⚡️ perf|👷 build|🛠 ci|💄 style" "Conventional Commit" br
-`!p snip.rv='{s:{c}<{n}}'.format(s=match.group(0),n=8,c=' ')` (${1:scope}): $2
+`!p snip.rv='{s:{c}<{n}}'.format(s=match.group(0),n=10,c=' ')` (${1:scope}): $2
 
 💌 Motivation: ${3:code consistency/dead code}
 endsnippet
 
 snippet "(✨ feature|♻️ refactor|✅ test|🐛 fix|📝 docs|⚡️ perf|👷 build|🛠 ci|💄 style)!" "Convention Commit with breaking changes" br
-`!p snip.rv='{s:{c}<{n}}'.format(s=match.group(1),n=8,c=' ')` (${1:scope})[BREAKING CHANGE]: $2
+`!p snip.rv='{s:{c}<{n}}'.format(s=match.group(1),n=10,c=' ')` (${1:scope})[BREAKING CHANGE]: $2
 
 💌 Motivation: ${3:code consistency/dead code}
 
