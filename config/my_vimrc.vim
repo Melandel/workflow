@@ -2573,22 +2573,20 @@ command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
 
 function! GetCommitTypes(findstart, base)
-	if a:findstart
-		return col('.')
-	endif
-	if line('.') == 1 && col('.') == 1
-		return [
-			\{ 'word': 'build',    'menu': 'Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)' },
-			\{ 'word': 'ci',       'menu': 'Changes to our CI configuration files and scripts (example scopes: Circle, BrowserStack, SauceLabs)' },
-			\{ 'word': 'docs',     'menu': 'Documentation only changes' },
-			\{ 'word': 'feature',  'menu': 'A new feature' },
-			\{ 'word': 'fix',      'menu': 'A bug fix' },
-			\{ 'word': 'perf',     'menu': 'A code change that improves performance' },
-			\{ 'word': 'refactor', 'menu': 'A code change that neither fixes a bug nor adds a feature' },
-			\{ 'word': 'test',     'menu': 'Adding missing tests or correcting existing tests' }
-		\]
-	endif
-	return []
+	if a:findstart | return col('.') | endif
+
+	if line('.') != 1 || col('.') != 1 | return [] | endif
+	return [
+		\{ 'word': '👷 build',    'menu': 'Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)' },
+		\{ 'word': '🛠 ci',       'menu': 'Changes to our CI configuration files and scripts (example scopes: Circle, BrowserStack, SauceLabs)' },
+		\{ 'word': '📝 docs',     'menu': 'Documentation only changes' },
+		\{ 'word': '✨ feature',  'menu': 'A new feature' },
+		\{ 'word': '🐛 fix',      'menu': 'A bug fix' },
+		\{ 'word': '⚡️ perf',     'menu': 'A code change that improves performance' },
+		\{ 'word': '♻️ refactor', 'menu': 'A code change that neither fixes a bug nor adds a feature' },
+		\{ 'word': '💄 style',    'menu': 'Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)' },
+		\{ 'word': '✅ test',     'menu': 'Adding missing tests or correcting existing tests' }
+	\]
 endfunc
 
 augroup dashboard
@@ -3379,6 +3377,7 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> <LocalLeader>r <Plug>(omnisharp_rename)
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>= :MyOmniSharpCodeFormat<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>f <Plug>(omnisharp_fix_usings)
+	autocmd FileType cs nmap <buffer> <LocalLeader>n <Plug>(omnisharp_code_action_repeat)
 	autocmd FileType cs nmap <buffer> <LocalLeader>R <Plug>(omnisharp_restart_server)
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>t :OmniSharpRunTest!<CR>
