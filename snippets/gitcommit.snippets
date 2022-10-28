@@ -3,41 +3,15 @@ priority 10
 
 snippet "feature|refactor|test|fix|docs|perf|build|ci" "Conventional Commit" br
 `!p snip.rv='{s:{c}<{n}}'.format(s=match.group(0),n=8,c=' ')` (${1:scope}): $2
+
+Motivation: ${3:code consistency/dead code}
 endsnippet
 
 snippet "(feature|refactor|test|fix|docs|perf|build|ci)!" "Convention Commit with breaking changes" br
 `!p snip.rv='{s:{c}<{n}}'.format(s=match.group(1),n=8,c=' ')` (${1:scope})[BREAKING CHANGE]: $2
 
-BREAKING CHANGE: ${3:stuff is not available on version X/contract changed from A to B}
+Motivation: ${3:code consistency/dead code}
 
-endsnippet
+BREAKING CHANGE: ${4:stuff is not available on version X/contract changed from A to B}
 
-snippet break "Breaking Change" b
-BREAKING CHANGE: ${9:stuff is not available on version X/contract changed from A to B}
-
-endsnippet
-
-snippet context "Context" b
-Given $0
-When
-The system
-
-endsnippet
-
-snippet value "Value" b
-In order to $0
-${1:someone} wants ${2:some behavior}
-
-endsnippet
-
-snippet adr "Decision Record" b
-The following options were considered:
-* Option 1: $0
-* Option 2:
-
-${1:I} decided to go with Option 1 because:
-* A
-* B
-
-${1:${2:The ticket #123} was created in order to refund the resulting technical debt.}
 endsnippet
