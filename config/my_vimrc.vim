@@ -2577,15 +2577,26 @@ function! GetCommitTypes(findstart, base)
 
 	if line('.') != 1 || col('.') != 1 | return [] | endif
 	return [
-		\{ 'word': '👷 build',    'menu': 'Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)' },
-		\{ 'word': '🛠 ci',       'menu': 'Changes to our CI configuration files and scripts (example scopes: Circle, BrowserStack, SauceLabs)' },
-		\{ 'word': '📝 docs',     'menu': 'Documentation only changes' },
-		\{ 'word': '✨ feature',  'menu': 'A new feature' },
-		\{ 'word': '🐛 fix',      'menu': 'A bug fix' },
-		\{ 'word': '⚡️ perf',     'menu': 'A code change that improves performance' },
-		\{ 'word': '♻️ refactor',  'menu': 'A code change that neither fixes a bug nor adds a feature' },
-		\{ 'word': '💄 style',    'menu': 'Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)' },
-		\{ 'word': '✅ test',     'menu': 'Adding missing tests or correcting existing tests' }
+		\{ 'word': '🏘 architecture',   'menu': 'Changes that affect the architectural layers                (example scopes: persistence, logging, view-rendering, api-contract)' },
+		\{ 'word': '🔧 build',          'menu': 'Changes that affect the build system                        (example scopes: msbuild, nswag)' },
+		\{ 'word': '🆗 ci|cd',          'menu': 'Changes to our CI configuration files, scripts or pipelines (example scopes: azure-devops, github-actions)' },
+		\{ 'word': '🧹 cleanup',        'menu': "Chores that do not affect the code's design                 (example scopes: code-warnings, filesystem, code-consistency)" },
+		\{ 'word': '🙅 deprecate',      'menu': 'Deprecating an element in the codebase                      (example scopes: exposed-method, payload-property)' },
+		\{ 'word': '➕ deps-add',       'menu': 'Changes that add dependencies to the system                 (example scopes: mapping, fixture-generation, ioc)' },
+		\{ 'word': '➖ deps-remove',    'menu': 'Changes that remove dependencies from the system            (example scopes: mapping, fixture-generation, ioc)' },
+		\{ 'word': '⬆ deps-upgrade',    'menu': 'Changes that upgrade dependencies in the system             (example scopes: mapping, fixture-generation, ioc)' },
+		\{ 'word': '⬇ deps-downgrade',  'menu': 'Changes that downgrade dependencies in the system           (example scopes: mapping, fixture-generation, ioc)' },
+		\{ 'word': '📝 docs',           'menu': 'Documentation only' },
+		\{ 'word': '🚀 feature',        'menu': 'One new green test with its attached production code' },
+		\{ 'word': '🐛 fix',            'menu': 'One new green test with its attached production code' },
+		\{ 'word': '🗡 kill',           'menu': 'Killing something harmful in the whole codebase' },
+		\{ 'word': '🗡 kill-a-bit',     'menu': 'Killing something harmful but not everywhere... Yet.' },
+		\{ 'word': '⚡️ perf',           'menu': 'Changes that improves performance' },
+		\{ 'word': '♻️ refactor',        'menu': 'Same behaviour, different design' },
+		\{ 'word': '🔙 revert',         'menu': 'Reverting some changes to a former version' },
+		\{ 'word': '✒ style',           'menu': 'Personal preferences in terms of how and where to write code' },
+		\{ 'word': '🧪 test-suite',     'menu': 'Adding missing tests or correcting existing tests           (example scopes: unit-tests, fearless-programming, integration-tests)' },
+		\{ 'word': '🛡 test-framework', 'menu': 'Changes that affect existing and future tests               (example scopes: unit-tests, fearless-programming, integration-tests)' }
 	\]
 endfunc
 
