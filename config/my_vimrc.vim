@@ -2561,16 +2561,30 @@ function! OpenDashboard()
 	let t:is_dashboard_tabpage = 1
 	if tabpagenr() > 1 | -tabmove | endif
 	normal gU
-	Git log -20
-	set bt=nofile
-	resize 15
-	nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
-	nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
-	windo nnoremap <buffer> <silent> <leader>L 99<C-W>W<C-W>L:exec 'vert resize' &columns/2<CR>
-	wincmd w
+	RefreshGitLogBuffer
 endfunction
 command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
+
+function! RefreshGitLogBuffer()
+	let originalWinId = win_getid()
+	let bufnr = bufnr('log')
+	if index(tabpagebuflist(), bufnr) >= 0
+		silent exec bufnr.'bwipeout'
+		silent exec '$wincmd w'
+	endif
+	silent Git log -20
+	let bufnr = bufnr('log') 
+	if bufnr >= 0 | silent exec bufnr.'bwipeout' | endif
+	silent file log
+	set bt=nofile
+	wincmd J
+	resize 15
+	nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
+	nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
+	silent call win_gotoid(originalWinId)
+endfunction
+command! RefreshGitLogBuffer call RefreshGitLogBuffer()
 
 function! GetCommitTypes(findstart, base)
 	if a:findstart | return col('.') | endif
@@ -2603,6 +2617,7 @@ endfunc
 augroup dashboard
 	au!
 	autocmd FileType fugitive,git nnoremap <buffer> <silent> <LocalLeader>m :Git push --force-with-lease<CR>
+	autocmd FileType fugitive,git nnoremap <buffer> <silent> R :RefreshGitLogBuffer<CR>
 	autocmd FileType fugitive     nmap <silent> <buffer> <space> =
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>l <C-W>l
 	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>h <C-W>h
