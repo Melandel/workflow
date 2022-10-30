@@ -2605,12 +2605,13 @@ function! GetCommitTypes(findstart, base)
 		\{ 'word': '🐛 fix',            'menu': 'One new green test with its attached production code' },
 		\{ 'word': '🗡 kill-whole',     'menu': 'Killing something harmful in the whole codebase' },
 		\{ 'word': '🗡 kill-partial',   'menu': 'Killing something harmful but not everywhere... Yet.' },
-		\{ 'word': '⚡️ perf',           'menu': 'Changes that improves performance' },
+		\{ 'word': '⚡️ perf',           'menu': 'Changes that improve performance' },
 		\{ 'word': '♻️ refactor',        'menu': 'Same behaviour, different design' },
 		\{ 'word': '🔙 revert',         'menu': 'Reverting some changes to a former version' },
 		\{ 'word': '✒ style',           'menu': 'Personal preferences in terms of how and where to write code' },
 		\{ 'word': '🧪 test-suite',     'menu': 'Adding missing tests or correcting existing tests           (example scopes: unit-tests, fearless-programming, integration-tests)' },
-		\{ 'word': '🛡 test-framework', 'menu': 'Changes that affect existing and future tests               (example scopes: unit-tests, fearless-programming, integration-tests)' }
+		\{ 'word': '🛡 test-framework', 'menu': 'Changes that affect existing and future tests               (example scopes: unit-tests, fearless-programming, integration-tests)' },
+		\{ 'word': '🔤 typo|wording',   'menu': 'Fixing typos/improving wording' }
 	\]
 endfunc
 
