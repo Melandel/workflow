@@ -2614,7 +2614,7 @@ augroup dashboard
 	autocmd FileType gitcommit    set completefunc=GetCommitTypes
 	autocmd FileType gitcommit    set textwidth=0
 	autocmd FileType gitcommit    call feedkeys("i\<C-X>\<C-U>")
-	autocmd FileType gitcommit    setlocal complete=.,b
+	autocmd FileType gitcommit    set complete=.,w,b
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
 augroup end
