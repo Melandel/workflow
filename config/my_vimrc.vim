@@ -2616,6 +2616,56 @@ function! GetCommitTypes(findstart, base)
 	\]
 endfunc
 
+function! OpenTabWithPullRequestDescription(...)
+	let commitOrBranchName = a:0 ? a:1 : trim(system("git remote show origin | sed -n '/HEAD branch/s/.*: //p'"))
+	tabnew
+	set ft=markdown
+	call setline(1, BuildPullRequestDescription(commitOrBranchName))
+endfunction
+command! -nargs=? PullRequestDescription call OpenTabWithPullRequestDescription(<f-args>)
+
+function! BuildPullRequestDescription(commitOrBranchName)
+	let commitBodies = systemlist(printf('git log --format=++%%B %s..', a:commitOrBranchName))
+	let commitBodies = filter(commitBodies, { _,x -> len(x) > 0})
+	let commitsAsMarkdownTableRow = []
+	let currentCommitAsRow = ''
+	for i in range(len(commitBodies))
+		let commitLine = commitBodies[i]
+		let isNewCommit = stridx(commitLine, '++') == 0
+		if isNewCommit
+			if len(currentCommitAsRow) > 0 | call add(commitsAsMarkdownTableRow, FormatAsMarkdownTableRow(currentCommitAsRow)) | endif
+			let currentCommitAsRow = commitLine
+		else
+			let currentCommitAsRow = currentCommitAsRow . ' èé ' . commitLine
+		endif
+	endfor
+	return ["## 🔨 Requested behavior's implementation", "| Scope | Behavior | Notes |", "|-|-|-|"] 
+		\+ map(filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'behavior'}), 'v:val.content')
+		\+ ["", "## 🚦 Regression test suite", "| Scope | Behavior | Notes |", "|-|-|-|"]
+		\+ ["", "## ⚜ Clean Code's [Boy Scout Rule](](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch08.html))",
+		\   "> If you find a mess on the ground, you clean it up regardless of who might have made it. You intentionally improve the environment for the next group of campers.",
+		\   "", "| Scope | (subjective) improvement type | Description |  Notes |", "|-|-|-|-|"]
+		\+ map(filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'structure'}), 'v:val.content')
+endfunction
+
+function! FormatAsMarkdownTableRow(commitBodyWithMarks)
+	let startMark = '++'
+	let newlineMark = ' èé '
+	let commitBody = a:commitBodyWithMarks[len(startMark):]
+	let subject = trim(commitBody[:stridx(commitBody, newlineMark)])
+	let commitScope = escape(matchlist(subject, '(\zs.\{-1,}\ze)')[0], '|')
+	let commitType = escape(subject[:match(subject, ' *(')], '|')
+	let commitDescription = escape(subject[match(subject, '): ') + len('): '):], '|')
+	let commitNotes = stridx(commitBody, newlineMark) >= 0
+		\? escape(trim(join(mapnew(split(commitBody[stridx(commitBody, newlineMark) + len(newlineMark):], newlineMark), { _,x -> '▪ '. ((stridx(x, ': ') >=0) ? ('**'.x[:stridx(x, ': ')-1].'**'.x[stridx(x, ': '):]) : x) }), '<br/>'), newlineMark), '|')
+		\: '-'
+	if stridx(commitType, '🚀') >=0 || stridx(commitType, '🐛') >=0
+		return { 'type': 'behavior', 'content': printf('| %s | %s | %s |', commitScope, substitute(commitDescription, 'should', 'will', ''), commitNotes) }
+	else
+		return { 'type': 'structure', 'content': printf('| %s | %s | %s | %s |', commitScope, commitType, commitDescription, commitNotes) }
+	endif
+endfunc
+
 augroup dashboard
 	au!
 	autocmd FileType fugitive,git nnoremap <buffer> <silent> <LocalLeader>m :Git push --force-with-lease<CR>
