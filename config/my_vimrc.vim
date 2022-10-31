@@ -2575,7 +2575,7 @@ function! RefreshGitLogBuffer()
 	endif
 	silent Git log -20
 	let bufnr = bufnr('log') 
-	if bufnr >= 0 | silent exec bufnr.'bwipeout' | endif
+	if bufnr >= 0 | silent! exec bufnr.'bwipeout' | endif
 	silent file log
 	set bt=nofile
 	wincmd J
