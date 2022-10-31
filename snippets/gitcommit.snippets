@@ -1,14 +1,14 @@
 clearsnippets
 priority 10
 
-snippet "🏘 architecture|🔧 build|🆗 ci\|cd|🧹 cleanup|🙅 deprecate|➕ deps-add|➖ deps-remove|⬆ deps-upgrade|⬇ deps-downgrade|📝 docs|🚀 feature|🐛 fix|🗡 kill-whole|🗡 kill-partial|⚡️ perf|♻️ refactor|💄 renaming|🔙 revert|✒ style|🧪 test-suite|🛡 test-framework|🔤 typo\|wording|🔖 versioning" "Conventional Commit" br
+snippet "🏘 architecture|🔧 build|🆗 ci\|cd|🧹 cleanup|🙅 deprecate|➕ deps-add|➖ deps-remove|⬆ deps-upgrade|⬇ deps-downgrade|📝 docs|🚀 feature|🐛 fix|🗡 kill-whole|🗡 kill-partial|🎠 moving-files|⚡️ perf|♻️ refactor|💄 renaming|🔙 revert|✒ style|🧪 test-suite|🛡 test-framework|🔤 typo\|wording|🔖 versioning" "Conventional Commit" br
 `!p snip.rv='{s:{c}<{n}}'.format(s=match.group(0),n=16,c=' ')` (${1:scope}): $2
 
 💌 Motivation: ${3:code consistency/dead code}
 🛤 Step for $4
 endsnippet
 
-snippet "(🏘 architecture|🔧 build|🆗 ci\|cd|🧹 cleanup|🙅 deprecate|➕ deps-add|➖ deps-remove|⬆ deps-upgrade|⬇ deps-downgrade|📝 docs|🚀 feature|🐛 fix|🗡 kill-whole|🗡 kill-partial|⚡️ perf|♻️ refactor|💄 renaming|🔙 revert|✒ style|🧪 test-suite|🛡 test-framework|🔤 typo\|wording|🔖 versioning)!" "Convention Commit with breaking changes" br
+snippet "(🏘 architecture|🔧 build|🆗 ci\|cd|🧹 cleanup|🙅 deprecate|➕ deps-add|➖ deps-remove|⬆ deps-upgrade|⬇ deps-downgrade|📝 docs|🚀 feature|🐛 fix|🗡 kill-whole|🗡 kill-partial|🎠 moving-files|⚡️ perf|♻️ refactor|💄 renaming|🔙 revert|✒ style|🧪 test-suite|🛡 test-framework|🔤 typo\|wording|🔖 versioning)!" "Convention Commit with breaking changes" br
 `!p snip.rv='{s:{c}<{n}}'.format(s=match.group(1),n=16,c=' ')` (${1:scope})[BREAKING CHANGE]: $2
 
 ‼ BREAKING CHANGE: ${3:stuff is not available on version X/contract changed from A to B}
