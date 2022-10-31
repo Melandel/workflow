@@ -2640,6 +2640,7 @@ function! BuildPullRequestDescription(commitOrBranchName)
 			let currentCommitAsRow = currentCommitAsRow . ' èé ' . commitLine
 		endif
 	endfor
+	call add(commitsAsMarkdownTableRow, FormatAsMarkdownTableRow(currentCommitAsRow))
 	return ["## 🔨 Requested behavior's implementation", "| Scope | Behavior | Notes |", "|-|-|-|"] 
 		\+ map(filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'behavior'}), 'v:val.content')
 		\+ ["", "## 🚦 Regression test suite", "| Scope | Behavior | Notes |", "|-|-|-|"]
