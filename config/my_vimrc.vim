@@ -2612,7 +2612,8 @@ function! GetCommitTypes(findstart, base)
 		\{ 'word': '✒ style',           'menu': 'Personal preferences in terms of how and where to write code' },
 		\{ 'word': '🧪 test-suite',     'menu': 'Adding missing tests or correcting existing tests           (example scopes: unit-tests, fearless-programming, integration-tests)' },
 		\{ 'word': '🛡 test-framework', 'menu': 'Changes that affect existing and future tests               (example scopes: unit-tests, fearless-programming, integration-tests)' },
-		\{ 'word': '🔤 typo|wording',   'menu': 'Fixing typos/improving wording' }
+		\{ 'word': '🔤 typo|wording',   'menu': 'Fixing typos/improving wording' },
+		\{ 'word': '🔖 versioning',     'menu': 'Changes that affect the product version                     (example scopes: api-version, client-version)' }
 	\]
 endfunc
 
