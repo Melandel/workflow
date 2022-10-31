@@ -2568,15 +2568,19 @@ nnoremap <silent> <Leader>m :Dashboard<CR>
 
 function! RefreshGitLogBuffer()
 	let originalWinId = win_getid()
-	let bufnr = bufnr('log')
-	if index(tabpagebuflist(), bufnr) >= 0
-		silent exec bufnr.'bwipeout'
-		silent exec '$wincmd w'
+	let logBuffers = map(filter(getbufinfo(), { _,x -> get(x.variables, 'fugitive_type', '') == 'temp'}), { _,x -> x.bufnr})
+	if len(logBuffers) > 0
+		for i in range(len(logBuffers))
+			let bufnr = logBuffers[i]
+			if index(tabpagebuflist(), bufnr) >= 0
+				silent exec bufnr.'bwipeout'
+				silent exec '$wincmd w'
+			endif
+		endfor
 	endif
 	silent Git log -20
-	let bufnr = bufnr('log') 
-	if bufnr >= 0 | silent! exec bufnr.'bwipeout' | endif
-	silent file log
+	let logBuffers = map(filter(getbufinfo(), { _,x -> get(x.variables, 'fugitive_type', '') == 'temp'}), { _,x -> x.bufnr})
+	let bufnr = logBuffers[0]
 	set bt=nofile
 	wincmd J
 	resize 15
