@@ -2610,6 +2610,7 @@ function! GetCommitTypes(findstart, base)
 		\{ 'word': '♻️ refactor',        'menu': 'Same behaviour, different design' },
 		\{ 'word': '💄 renaming',       'menu': 'Different name, same responsability' },
 		\{ 'word': '🔙 revert',         'menu': 'Reverting some changes to a former version' },
+		\{ 'word': '✂ split-files',     'menu': 'Changes that split files' },
 		\{ 'word': '✒ style',           'menu': 'Personal preferences in terms of how and where to write code' },
 		\{ 'word': '🧪 test-suite',     'menu': 'Adding missing tests or correcting existing tests           (example scopes: unit-tests, fearless-programming, integration-tests)' },
 		\{ 'word': '🛡 test-framework', 'menu': 'Changes that affect existing and future tests               (example scopes: unit-tests, fearless-programming, integration-tests)' },
