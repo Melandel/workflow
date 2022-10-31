@@ -2605,6 +2605,7 @@ function! GetCommitTypes(findstart, base)
 		\{ 'word': '🐛 fix',            'menu': 'One new green test with its attached production code' },
 		\{ 'word': '🗡 kill-whole',     'menu': 'Killing something harmful in the whole codebase' },
 		\{ 'word': '🗡 kill-partial',   'menu': 'Killing something harmful but not everywhere... Yet.' },
+		\{ 'word': '⛓ merge-files',    'menu': 'Changes that merge files' },
 		\{ 'word': '🎠 move-files',     'menu': 'Changes that move files' },
 		\{ 'word': '⚡️ perf',           'menu': 'Changes that improve performance' },
 		\{ 'word': '♻️ refactor',        'menu': 'Same behaviour, different design' },
