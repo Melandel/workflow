@@ -1003,6 +1003,9 @@ function! BrowseLayoutDown()
 	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
 		ALENext
 		normal! zz
+	elseif &ft == 'fugitive'
+		execute "normal \<Plug>fugitive:]]"
+		normal! zz
 	elseif &ft == 'git'
 		execute "normal \<Plug>fugitive:J"
 		normal! zz
@@ -1029,6 +1032,9 @@ function! BrowseLayoutUp()
 		silent! normal! [czxzz
 	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
 		ALEPrevious
+		normal! zz
+	elseif &ft == 'fugitive'
+		execute "normal \<Plug>fugitive:[["
 		normal! zz
 	elseif &ft == 'git'
 		execute "normal \<Plug>fugitive:K"
