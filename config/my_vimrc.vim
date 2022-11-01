@@ -1003,6 +1003,9 @@ function! BrowseLayoutDown()
 	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
 		ALENext
 		normal! zz
+	elseif &ft == 'git'
+		execute "normal \<Plug>fugitive:J"
+		normal! zz
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
@@ -1026,6 +1029,9 @@ function! BrowseLayoutUp()
 		silent! normal! [czxzz
 	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
 		ALEPrevious
+		normal! zz
+	elseif &ft == 'git'
+		execute "normal \<Plug>fugitive:K"
 		normal! zz
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
@@ -2694,6 +2700,7 @@ augroup dashboard
 	autocmd FileType gitcommit    set complete=.,w,b
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
+	autocmd FileType          git set foldmethod=syntax
 augroup end
 
 nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
