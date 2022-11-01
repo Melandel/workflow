@@ -1846,9 +1846,9 @@ function! SetParticularQuickFixBehaviour()
 	if empty(get(w:, 'quickfix_title'))
 		return
 	endif
-	nnoremap <buffer> <silent> dd <CR>:Gdiffsplit !~<CR>
-	vnoremap <buffer> <silent> dd :<C-U>let v1=GetFileVersionID("'<") \| let v2=GetFileVersionID("'>") \| exec 'Gtabedit' v1 \| exec 'Gdiffsplit' v2<CR>
-	nnoremap <buffer> <silent> D  <CR>:Gdiffsplit<CR><C-W>h
+	nnoremap <buffer> <silent> dd :let v1=GetFileVersionID('.') \| let v2=GetFileVersionID(line('.')+1) \| exec 'Gtabedit' v1 \| exec 'Gdiffsplit!' v2<CR>
+	vnoremap <buffer> <silent> dd :<C-U>let v1=GetFileVersionID("'<") \| let v2=GetFileVersionID("'>") \| exec 'Gtabedit' v1 \| exec 'Gdiffsplit!' v2<CR>
+	nnoremap <buffer> <silent> D  :let v=GetFileVersionID('.') \| let bufnr=winbufnr(winnr('#')) \| exec 'tab sbuffer' bufnr \| exec 'Gdiffsplit!' v<CR>
 	nnoremap <buffer> <silent> C  :exec 'Gtabedit' GetSha()<CR>
 	cnoremap <buffer> <C-R><C-G> <C-R>=GetSha()<CR>
 endfunction
