@@ -2342,7 +2342,7 @@ function! PreviewFile(splitcmd)
 	let previewwinid = getbufvar(bufnr, 'preview'.a:splitcmd, 0)
 	if previewwinid == 0
 		exec a:splitcmd path
-		call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
+		call setbufvar(bufnr, 'preview'.substitute(a:splitcmd, ' ', '', 'g'), win_getid())
 		if is_wip_buffer | let b:is_wip_buffer = 1 | endif
 		if is_script_buffer | let b:is_script_buffer = 1 | endif
 		if is_script_history_buffer
@@ -2356,7 +2356,7 @@ function! PreviewFile(splitcmd)
 			silent exec 'edit' path
 		else
 			exec a:splitcmd path
-			call setbufvar(bufnr, 'preview'.a:splitcmd, win_getid())
+			call setbufvar(bufnr, 'preview'.substitute(a:splitcmd, ' ', '', 'g'), win_getid())
 		endif
 	endif
 		exec 'wincmd' (a:splitcmd == 'vsplit' ? 'h' : 'k')
@@ -2382,6 +2382,7 @@ endif
 	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
 	autocmd FileType dirvish unmap <buffer> a
 	autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split')<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> t :call PreviewFile('tab split')<CR>
 	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | setlocal foldcolumn=1
 	autocmd FileType dirvish nnoremap <silent> <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> i :call CreateDirectory()<CR>
