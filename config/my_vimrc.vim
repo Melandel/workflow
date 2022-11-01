@@ -804,7 +804,7 @@ nnoremap <silent> <Leader>s :let buffers = w:buffers \| silent! split  \| let w:
 nnoremap <silent> <Leader>v :let buffers = w:buffers \| silent! vsplit \| let w:buffers = buffers<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
-nnoremap <silent> <Leader>O mW:-tabnew<CR>`W
+nnoremap <silent> <Leader>O :tab split<CR>
 nnoremap <silent> <Leader>x :tabclose<CR>
 
 function! SynchronizeBufferHistoryWithLastWindow()
