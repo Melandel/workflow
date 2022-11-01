@@ -767,6 +767,21 @@ function! MyTabLabel(n)
 		endif
 endfunction
 
+
+function! ShouldMoveToPreviousTab()
+	let previousLastTabNr=max([g:TabLeave_TabsStatus.last, g:WinClosed_TabsStatus.last])
+	return tabpagenr('$') < previousLastTabNr && g:TabLeave_TabsStatus.current != previousLastTabNr
+endfunction
+
+let g:WinClosed_TabsStatus = { 'current': 1, 'last': 1 } 
+let g:TabLeave_TabsStatus =  { 'current': 1, 'last': 1 }
+augroup tabcloseleft
+	au!
+	au TabLeave  * let g:TabLeave_TabsStatus  = { 'current': tabpagenr(), 'last': tabpagenr('$') }
+	au WinClosed * let g:WinClosed_TabsStatus = { 'current': tabpagenr(), 'last': tabpagenr('$') }
+	au TabClosed * if ShouldMoveToPreviousTab() | tabprevious | endif
+augroup end
+
 function! CloseDashboardTabPages()
 	let dashboardTabPages = map(filter(gettabinfo(), {_,x-> get(x.variables, 'is_dashboard_tabpage', 0)}), "v:val.tabnr")
 	for tabnr in dashboardTabPages
@@ -1756,7 +1771,6 @@ command! -bar SplitQfItemBelow call OpenQfListCurrentItem('sbuffer')
 command! -bar SplitQfItemAbove SplitQfItemBelow | wincmd x | wincmd k
 command! -bar VSplitQfItemRight call OpenQfListCurrentItem('vertical sbuffer')
 command! -bar VSplitQfItemLeft VSplitQfItemRight | wincmd x | wincmd h
-command! -bar TSplitQfItemBefore call OpenQfListCurrentItem('-tab sbuffer')
 command! -bar TSplitQfItemAfter call OpenQfListCurrentItem('tab sbuffer')
 
 function! LocListOlder()
@@ -1823,8 +1837,7 @@ augroup quickfix
 	autocmd FileType qf nnoremap <buffer> <silent> O :VSplitQfItemLeft<CR>
 	autocmd FileType qf nnoremap <buffer> <silent> a :SplitQfItemBelow<CR>
 	autocmd FileType qf nnoremap <buffer> <silent> A :SplitQfItemAbove<CR>
-	autocmd FileType qf nnoremap <buffer> <silent> t :TSplitQfItemBefore<CR>
-	autocmd FileType qf nnoremap <buffer> <silent> T :TSplitQfItemAfter<CR>
+	autocmd FileType qf nnoremap <buffer> <silent> t :TSplitQfItemAfter<CR>
 	autocmd FileType qf     nmap <buffer> <silent> i :EditQfItemInPreviousWindow<CR>
 	autocmd FileType qf     nmap <buffer> p <plug>(qf-preview-open)
 	autocmd FileType qf if IsQuickFixWindow() | nnoremap <buffer> <CR> <CR>:Reframe<CR>| endif
@@ -2572,7 +2585,6 @@ function! OpenDashboard()
 	silent tab G
 	if alreadyExistingDashboard | return | endif
 	let t:is_dashboard_tabpage = 1
-	if tabpagenr() > 1 | -tabmove | endif
 	normal gU
 	RefreshGitLogBuffer
 endfunction
@@ -2597,7 +2609,7 @@ function! RefreshGitLogBuffer()
 	set bt=nofile
 	wincmd J
 	resize 15
-	nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:-tabmove<CR>
+	nnoremap <buffer> <silent> t <Home>:Gtabedit <C-R><C-W><CR>:tabmove<CR>
 	nnoremap <buffer> <silent> i <Home>:Gedit <C-R><C-W><CR>
 	silent call win_gotoid(originalWinId)
 endfunction
