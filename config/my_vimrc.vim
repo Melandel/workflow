@@ -756,7 +756,7 @@ function! MyTabLabel(n)
 		let bufnr = buflist[winnr - 1]
   let filepath = bufname(bufnr)
   let filename = fnamemodify(filepath, ':t')
-		if filename == 'index' && getbufvar(bufnr, '&ft') =='fugitive'
+	if !empty(filter(tabpagebuflist(a:n), {_,x -> getbufvar(x, 'fugitive_type', '') == 'index' }))
 			return 'Git'
 		elseif isdirectory(filepath)
 			let relativePathFromGitRoot = FolderRelativePathFromGit(bufnr)
