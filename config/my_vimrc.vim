@@ -1186,7 +1186,9 @@ function! RunCurrentlySelectedScriptInNewBufferAsync()
 		wincmd l
 		bdelete!
 	endif
+	let bufnr=bufnr()
 	exec printf('enew "%s"', commandFile)
+	exec bufnr.'bwipeout!'
 	let b:is_script_execution_buffer = 1
 	let b:is_script_buffer = 1
 	set ft=powershell
