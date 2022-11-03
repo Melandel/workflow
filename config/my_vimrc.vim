@@ -1716,6 +1716,9 @@ augroup diff
 augroup end
 
 " QuickFix, Preview, Location window" -{{{
+nnoremap <C-H> :cpfile<CR>
+nnoremap <C-L> :cnfile<CR>
+
 let g:ale_set_loclist = 0
 augroup ale
 	au!
@@ -3474,8 +3477,6 @@ augroup csharpfiles
 	autocmd FileType cs vnoremap <buffer> <LocalLeader>m :Map varname
 	autocmd FileType cs nnoremap <buffer> <silent> <C-P> :MyOmniSharpNavigateUp<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <C-N> :MyOmniSharpNavigateDown<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <C-H> :keepjumps exec 'normal! gg' \| :MyOmniSharpNavigateDown<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <C-L> :keepjumps exec 'normal! G' \| :MyOmniSharpNavigateUp<CR>
 	autocmd FileType cs nmap <buffer> z! :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_members)
 	autocmd FileType cs nmap <buffer> gd :MyOmniSharpGoToDefinition<CR>
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
