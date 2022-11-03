@@ -2582,10 +2582,10 @@ function! OpenDashboard()
 	let cwd = getcwd()
 	let alreadyExistingDashboard = !empty(filter(gettabinfo(), {_,x -> get(x.variables, 'is_dashboard_tabpage', 0)}))
 	silent tab G
+	RefreshGitLogBuffer
 	if alreadyExistingDashboard | return | endif
 	let t:is_dashboard_tabpage = 1
 	normal gU
-	RefreshGitLogBuffer
 endfunction
 command! -bar Dashboard call OpenDashboard()
 nnoremap <silent> <Leader>m :Dashboard<CR>
