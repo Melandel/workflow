@@ -2675,13 +2675,26 @@ function! BuildPullRequestDescription(commitOrBranchName)
 		endif
 	endfor
 	call add(commitsAsMarkdownTableRow, FormatAsMarkdownTableRow(currentCommitAsRow))
-	return ["## 🔨 Requested behavior's implementation", "| Scope | Behavior | Notes |", "|-|-|-|"] 
-		\+ map(filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'behavior'}), 'v:val.content')
-		\+ ["", "## 🚦 Regression test suite", "| Scope | Behavior | Notes |", "|-|-|-|"]
-		\+ ["", "## ⚜ Clean Code's [Boy Scout Rule](](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch08.html))",
-		\   "> If you find a mess on the ground, you clean it up regardless of who might have made it. You intentionally improve the environment for the next group of campers.",
-		\   "", "| Scope | (subjective) improvement type | Description |  Notes |", "|-|-|-|-|"]
-		\+ map(filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'structure'}), 'v:val.content')
+	let descriptionLines = []
+	let descriptionLines += ["## 🔨 Requested behavior's implementation"]
+	let behaviorCommitsAsMarkdownTableRows = filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'behavior'})
+	if(empty(behaviorCommitsAsMarkdownTableRows))
+		call extend(descriptionLines, [ "_Nothing._", "" ])
+	else
+		call extend(descriptionLines, [ "| Scope | Behavior | Notes |", "|-|-|-|" ])
+		call extend(descriptionLines, empty(behaviorCommitsAsMarkdownTableRows) ? ['-'] : map(behaviorCommitsAsMarkdownTableRows, 'v:val.content'))
+		call extend(descriptionLines, [ "", "## 🚦 Regression test suite", "| Scope | Behavior | Notes |", "|-|-|-|", "" ])
+	endif
+	call add(descriptionLines, "## ⚜ Clean Code's [Boy Scout Rule](](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch08.html))")
+	let structureCommitsAsMarkdownTableRows = filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'structure'})
+	if(empty(structureCommitsAsMarkdownTableRows))
+		call extend(descriptionLines, [ "_Nothing._", ""])
+	else
+		call extend(descriptionLines, [ "", "> If you find a mess on the ground, you clean it up regardless of who might have made it. You intentionally improve the environment for the next group of campers.", "" ])
+		call extend(descriptionLines, [ "| Scope | (subjective) improvement type | Description |  Notes |", "|-|-|-|-|" ])
+		call extend(descriptionLines, map(structureCommitsAsMarkdownTableRows, 'v:val.content'))
+	endif
+	return descriptionLines
 endfunction
 
 function! FormatAsMarkdownTableRow(commitBodyWithMarks)
