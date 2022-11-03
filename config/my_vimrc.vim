@@ -356,10 +356,8 @@ function! UpdateEnvironmentLocationVariables()
 			let sln = g:csprojs2sln[csproj]
 		endif
 	endif
-	let gitfolder = gitbranch#dir(expand('%:p'))
-	if gitfolder != ''
-		let $git = fnamemodify(gitfolder, ':h')
-	endif
+	let nonDesktopRepo = fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
+	if nonDesktopRepo != 'Desktop' | let $repo = nonDesktopRepo | endif
 endfunc
 
 augroup lcd
@@ -4197,7 +4195,8 @@ function! LocListToAdosBuilds()
 		\$pat,
 		\$ados,
 		\$adosProject,
-		\matchingRepository
+		\matchingRepositore
+
 	\)
 	let builds = js_decode(substitute(system(cmd), '[\x0]', '', 'g'))
 	let builds = map(builds, {_, x -> extend(x, {'displayedStatus': (x.status == 'completed' ? x.result : x.status), 'displayedDate': x.startTime[:9].' '.x.startTime[11:15]})})
@@ -4219,8 +4218,7 @@ command! AdosBuilds call LocListToAdosBuilds()
 "nnoremap <Leader>A :AdosBuilds<CR>
 
 function! BuildRepositoryPullRequestsWebUrl(...)
-	let repository = a:0 ? a:1 : fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
-	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosSourceProject, repository)
+	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosSourceProject, $repo)
 endfunction
 
 function! GetWorkItemsAssignedToMeInCurrentIteration(...)
