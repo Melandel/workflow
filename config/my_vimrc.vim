@@ -471,7 +471,7 @@ function! IsLocListWindow()
 endfunction
 
 function! IsQuickFixWindow()
-	return &ft == 'qf' && !getwininfo(win_getid())[0].loclist && !get(getbufinfo(winbufnr(winnr()))[0].variables, 'is_custom_loclist', 0)
+	return &ft == 'qf' && !getwininfo(win_getid())[0].loclist
 endfunction
 
 
