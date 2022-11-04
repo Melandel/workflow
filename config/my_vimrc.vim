@@ -4291,5 +4291,5 @@ nnoremap <Leader>A :Ados <tab>
 " Formatting" -------------------------{{{
 augroup Formatting
 au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -
-au FileType json setlocal equalprg=jq\ -
+au FileType json setlocal equalprg=jq\ .
 augroup end
