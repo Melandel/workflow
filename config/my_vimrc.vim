@@ -2469,7 +2469,8 @@ function! HideWipBuffers()
 endfunction
 
 function! DisplayWipBuffers()
-	silent botright split +let\ b:is_wip_buffer=1 $wip
+	silent tabedit +let\ b:is_wip_buffer=1 $n/think.md
+	botright split +let\ b:is_wip_buffer=1 $wip
 	exec 'resize' (0.5 * &lines)
 	silent! keeppatterns g@\v\\\.[^\/]+\\?$@d _
 	let t = timer_start(10, {_ -> execute('setl conceallevel=3')})
@@ -2477,7 +2478,7 @@ function! DisplayWipBuffers()
 	nnoremap <silent> <buffer> x :call SetCurrentAdosWorkItemIdFromWip()<CR>
 	silent 9split +let\ b:is_wip_buffer=1 $wip/.pending
 	silent exec float2nr(0.6 * &columns).'vsplit +let\ b:is_wip_buffer=1 $wip/.priority'
-	wincmd k
+	1wincmd w
 endfunction
 
 function! SetCurrentAdosWorkItemIdFromWip()
