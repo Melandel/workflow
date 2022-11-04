@@ -4291,5 +4291,22 @@ nnoremap <Leader>A :Ados <tab>
 " Formatting" -------------------------{{{
 augroup Formatting
 au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -
+au FileType xml nnoremap <silent> <buffer> <LocalLeader>= :FormatEvenWhenStringified<CR>
 au FileType json setlocal equalprg=jq\ .
+au FileType json nnoremap <silent> <buffer> <LocalLeader>= :FormatEvenWhenStringified<CR>
 augroup end
+
+function! FormatEvenWhenStringified()
+	let firstNonEmptyLine = 1
+	while(empty(getline(firstNonEmptyLine))) |let firstNonEmptyLine += 1 | endwhile
+	let lines = getline(firstNonEmptyLine, '$')
+	if empty(lines) | return | endif
+	let isString = stridx(trim(lines[0]), '"') == 0
+	if isString
+		normal! gg"vdG
+		exec "let v = " @v
+		put=v
+	endif
+	normal! gg=G
+endfunction
+command! FormatEvenWhenStringified call FormatEvenWhenStringified()
