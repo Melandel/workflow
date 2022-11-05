@@ -24,6 +24,7 @@ let $scripts   = $HOME.'/Desktop/scripts'            | let $s = $scripts
 let $gtools    = $HOME.'/Desktop/tools/git/usr/bin'
 let $wip       = $HOME.'/Desktop/work_in_progress'
 let $checklists= $HOME.'/Desktop/checklists'
+let $queries   = $HOME.'/Desktop/queries'            | let $q = $queries
 
 let $rc         = $HOME.'/Desktop/config/my_vimrc.vim'
 let $rce        = $HOME.'/Desktop/config/my_vimworkenv.vim'
@@ -4311,3 +4312,67 @@ function! FormatEvenWhenStringified()
 	normal! gg=G
 endfunction
 command! FormatEvenWhenStringified call FormatEvenWhenStringified()
+
+" Query rows "-------------------------{{{
+command! ToggleQueryRow if AreQueryRowsActive() | call RemoveSingleOrCurrentQueryRow() | else | call CreateQueryRow() | endif
+nnoremap <Leader>q :ToggleQueryRow<CR>
+nnoremap <Leader>Q :CreateQueryRow<CR>
+
+function! CreateQueryRow()
+	exec 'botright new' $queries
+	let historyWindowWidth = 26
+	let queryRowId = win_getid() | call InitQueryRowWindow(queryRowId, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
+	vnew                         | call InitQueryRowWindow(queryRowId, 'query', 'request', 0.5*(&columns-historyWindowWidth))
+	vnew                         | call InitQueryRowWindow(queryRowId, 'query', 'response', 0.5*(&columns-historyWindowWidth))
+	wincmd p
+endfunction
+command! CreateQueryRow call CreateQueryRow()
+
+function! InitQueryRowWindow(rowId, rowType, windowContent, ...)
+	let w:row = {
+		\'id': a:rowId,
+		\'type': a:rowType,
+		\'content': a:windowContent
+	\}
+	if a:0 | exec 'vert resize' a:1 | endif
+	set winfixwidth
+endfunction
+
+function! RemoveSingleOrCurrentQueryRow()
+	let rowsWindows = map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> has_key(getwininfo(x)[0].variables, 'row')}), 'win_id2win(v:val)')
+	if(len(rowsWindows) <= 3)
+		while !empty(rowsWindows)
+			exec rowsWindows[0].'wincmd c'
+			let rowsWindows = map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> has_key(getwininfo(x)[0].variables, 'row')}), 'win_id2win(v:val)')
+		endwhile
+	elseif index(rowsWindows, winnr()) >= 0
+		let currentWindowRowId = w:row.id
+		let currentRowWindows = map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> get(get(getwininfo(x)[0].variables, 'row', {}), 'id', -1) == currentWindowRowId}), 'win_id2win(v:val)')
+		while !empty(currentRowWindows)
+			exec currentRowWindows[0].'wincmd c'
+			let currentRowWindows = map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> get(get(getwininfo(x)[0].variables, 'row', {}), 'id', -1) == currentWindowRowId}), 'win_id2win(v:val)')
+		endwhile
+	endif
+	call ResizeAllRowsWindowsAfterRemovingRowWindow()
+endfunction
+
+function! AreQueryRowsActive()
+		let rowsWindows = map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> get(get(getwininfo(x)[0].variables, 'row', {}), 'id', -1) >= 0}), 'win_id2win(v:val)')
+		return !empty(rowsWindows)
+endfunction
+
+function! ResizeAllRowsWindowsAfterCreatingNewRowWindow(...)
+	let rowsWindowsThatNeedsResizing = sort(map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> has_key(getwininfo(x)[0].variables, 'row') && get(getwininfo(x)[0].variables.row, 'content') == 'history' }), 'win_id2win(v:val)'), 'n')
+	if empty(rowsWindowsThatNeedsResizing) | return | endif
+	let windowBeforeFirstRow = rowsWindowsThatNeedsResizing[0] - 1
+	exec windowBeforeFirstRow.'resize -9'
+	for winnr in rowsWindowsThatNeedsResizing | exec winnr.'resize' 8 | endfor
+endfunction
+
+function! ResizeAllRowsWindowsAfterRemovingRowWindow(...)
+	let rowsWindowsThatNeedsResizing = sort(map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> has_key(getwininfo(x)[0].variables, 'row') && get(getwininfo(x)[0].variables.row, 'content') == 'history' }), 'win_id2win(v:val)'), 'n')
+	if empty(rowsWindowsThatNeedsResizing) | return | endif
+	let windowBeforeFirstRow = rowsWindowsThatNeedsResizing[0] - 1
+	exec windowBeforeFirstRow.'resize +9'
+	for winnr in rowsWindowsThatNeedsResizing | exec winnr.'resize' 8 | endfor
+endfunction
