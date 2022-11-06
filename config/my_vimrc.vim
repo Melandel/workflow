@@ -4104,18 +4104,33 @@ endfunction
 command! CreateQueryRow call CreateQueryRow()
 
 function! InitQueryRowWindow(rowId, rowType, windowContent, ...)
-	let w:row = {
-		\'id': a:rowId,
-		\'type': a:rowType,
-		\'content': a:windowContent
-	\}
+	if !has_key(w:, 'row')
+		let w:row = {
+			\'id': a:rowId,
+			\'type': a:rowType,
+			\'content': a:windowContent
+		\}
+	endif
 	if a:0 | exec 'vert resize' a:1 | endif
 	set winfixwidth
-	if a:windowContent == 'request'
+	set bt=nofile
+	if a:windowContent == 'history'
+		call InitQueryRowHistoryWindow()
+	elseif a:windowContent == 'request'
+		call InitQueryRowRequestWindow()
+	endif
+endfunction
+
+function! InitQueryRowHistoryWindow()
+		normal R
+		sort!
+		let b:dirvish._c = b:changedtick
+endfunction
+
+function! InitQueryRowRequestWindow()
 		set filetype=powershell
 		set omnifunc=CosmosCompletion
-		nnoremap <silent> <buffer> <Leader>S :<C-U>RunQuery<CR>
-	endif
+		nnoremap <silent> <buffer> <Leader>S :RunQuery<CR>
 endfunction
 
 function! RemoveSingleOrCurrentQueryRow()
@@ -4201,6 +4216,7 @@ function! RunQuery()
 	endif
 	set ft=powershell
 	pu!=requestLines | exec 'saveas' (queryFilenameWithoutExtension . '.script')
+	call InitQueryRowWindow(w:row.id, 'query', w:row.content)
 	echomsg "<start> ".request | redraw
 	let s:job = job_start(BuildCommandToRunAsJob(request), BuildQueryRowJobOptions(w:row, queryFilenameWithoutExtension))
 endfunction
@@ -4286,7 +4302,7 @@ function! DisplayQueryJobOutput(bufnr, dirvishDirValue, queryFilenameWithoutExte
 	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:rowId, 'history')[0])
 	if get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '') == a:dirvishDirValue
 		for bufnr in win_findbuf(historyBufNr)
-			call win_execute(bufnr, ['normal R', 'sort!', 'let b:dirvish._c = b:changedtick'])
+			call win_execute(bufnr, 'call InitQueryRowHistoryWindow()')
 		endfor
 	endif
 endfunction
@@ -4329,8 +4345,12 @@ function! ComputeQueryFiles()
 endfunction
 
 function! DisplayQueryFile(file, content)
+	let currentWinId = win_getid()
 	let winid = GetRowsWinIdsInCurrentTabPage(w:row.id, a:content)[0]
-	call win_execute(winid, printf('edit %s', a:file))
+	call win_gotoid(winid)
+	exec 'edit' a:file
+	call InitQueryRowWindow(w:row.id, 'query', a:content)
+	call win_gotoid(currentWinId)
 endfunction
 
 function! CosmosCompletion(findstart, base)
