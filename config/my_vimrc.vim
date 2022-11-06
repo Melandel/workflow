@@ -331,17 +331,19 @@ function! GetInterestingParentDirectory()
 endfunction
 
 function! UpdateLocalCurrentDirectory()
-	if &buftype == 'terminal'
-		return
-	endif
+	if &buftype == 'terminal' | return | endif
 	let dir = GetInterestingParentDirectory()
-	if dir =~ '^fugitive://'
+	if dir =~ '^fugitive://' | return | endif
+	if has_key(w:, 'row')
+		redraw
+		exec 'lcd' w:row.cwd
 		return
 	endif
 	let current_wd = getcwd()
 	if current_wd != dir
 		redraw
 		exec 'lcd' dir
+		return
 	endif
 endfunction
 command! -bar Lcd call UpdateLocalCurrentDirectory()
@@ -357,7 +359,7 @@ function! UpdateEnvironmentLocationVariables()
 			let sln = g:csprojs2sln[csproj]
 		endif
 	endif
-	let nonDesktopRepo = fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
+	let nonDesktopRepo = fnamemodify(GetNearestParentFolderContainingFile('.git'), ':p')
 	if nonDesktopRepo != 'Desktop' | let $repo = nonDesktopRepo | endif
 endfunc
 
@@ -4094,11 +4096,12 @@ nnoremap <silent> <Leader>q :ToggleQueryRow<CR>
 nnoremap <silent> <Leader>Q :CreateQueryRow<CR>
 
 function! CreateQueryRow()
+	let cwd = getcwd()
 	silent exec 'botright new' $queries
 	let historyWindowWidth = 48
-	let queryRowId = win_getid() | call InitQueryRowWindow(queryRowId, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
-	vnew                         | call InitQueryRowWindow(queryRowId, 'query', 'request', 0.5*(&columns-historyWindowWidth))
-	vnew                         | call InitQueryRowWindow(queryRowId, 'query', 'response', 0.5*(&columns-historyWindowWidth))
+	let queryRowId = win_getid() | call InitQueryRowWindow(queryRowId, cwd, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
+	vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'request', 0.5*(&columns-historyWindowWidth))
+	vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'response', 0.5*(&columns-historyWindowWidth))
 	let historyWinId = GetRowsWinIdsInCurrentTabPage(w:row.id, 'history')[0]
 	if getwininfo(historyWinId)[0].botline == 1
 		wincmd p
@@ -4111,12 +4114,13 @@ function! CreateQueryRow()
 endfunction
 command! CreateQueryRow call CreateQueryRow()
 
-function! InitQueryRowWindow(rowId, rowType, windowContent, ...)
+function! InitQueryRowWindow(rowId, cwd, rowType, windowContent, ...)
 	if !has_key(w:, 'row')
 		let w:row = {
 			\'id': a:rowId,
 			\'type': a:rowType,
-			\'content': a:windowContent
+			\'content': a:windowContent,
+			\'cwd': a:cwd
 		\}
 	endif
 	if a:0 | exec 'vert resize' a:1 | endif
@@ -4126,19 +4130,26 @@ function! InitQueryRowWindow(rowId, rowType, windowContent, ...)
 		call InitQueryRowHistoryWindow()
 	elseif a:windowContent == 'request'
 		call InitQueryRowRequestWindow()
+	elseif a:windowContent == 'response'
+		call InitQueryRowResponseWindow()
 	endif
 endfunction
 
 function! InitQueryRowHistoryWindow()
-		normal R
-		sort!
-		let b:dirvish._c = b:changedtick
+	normal R
+	sort!
+	let b:dirvish._c = b:changedtick
 endfunction
 
 function! InitQueryRowRequestWindow()
-		set filetype=powershell
-		set omnifunc=CosmosCompletion
-		nnoremap <silent> <buffer> <Leader>S :RunQuery<CR>
+	set filetype=powershell
+	set omnifunc=CosmosCompletion
+	nnoremap <silent> <buffer> <Leader>S :RunQuery<CR>
+	exec 'lcd' w:row.cwd
+endfunction
+
+function! InitQueryRowResponseWindow()
+	exec 'lcd' w:row.cwd
 endfunction
 
 function! RemoveSingleOrCurrentQueryRow()
@@ -4224,7 +4235,7 @@ function! RunQuery()
 	endif
 	set ft=powershell
 	pu!=requestLines | exec 'saveas' (queryFilenameWithoutExtension . '.script')
-	call InitQueryRowWindow(w:row.id, 'query', w:row.content)
+	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', w:row.content)
 	echomsg "<start> ".request | redraw
 	let s:job = job_start(BuildCommandToRunAsJob(request), BuildQueryRowJobOptions(w:row, queryFilenameWithoutExtension))
 endfunction
@@ -4357,7 +4368,7 @@ function! DisplayQueryFile(file, content)
 	let winid = GetRowsWinIdsInCurrentTabPage(w:row.id, a:content)[0]
 	call win_gotoid(winid)
 	silent exec 'edit' a:file
-	call InitQueryRowWindow(w:row.id, 'query', a:content)
+	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', a:content)
 	call win_gotoid(currentWinId)
 endfunction
 
