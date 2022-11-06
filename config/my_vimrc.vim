@@ -4513,8 +4513,9 @@ function! BuildQueryOutputFilenameWithoutExtension(title)
 endfunction
 
 function! BuildQueryTitle(request)
-	let program = a:request[:stridx(a:request, ' ')-1]
-	return program
+	let spaceIndex = stridx(a:request, ' ')
+	if spaceIndex == -1 | return a:request | endif
+	return a:request[:spaceIndex-1]
 endfunction
 
 function! DisplayQueryFiles()
