@@ -4099,7 +4099,15 @@ function! CreateQueryRow()
 	let queryRowId = win_getid() | call InitQueryRowWindow(queryRowId, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
 	vnew                         | call InitQueryRowWindow(queryRowId, 'query', 'request', 0.5*(&columns-historyWindowWidth))
 	vnew                         | call InitQueryRowWindow(queryRowId, 'query', 'response', 0.5*(&columns-historyWindowWidth))
-	wincmd p
+	let historyWinId = GetRowsWinIdsInCurrentTabPage(w:row.id, 'history')[0]
+	if getwininfo(historyWinId)[0].botline == 1
+		wincmd p
+	else
+		call win_gotoid(historyWinId)
+		normal! gg
+		DisplayQueryFiles
+		silent wincmd l
+	endif
 endfunction
 command! CreateQueryRow call CreateQueryRow()
 
