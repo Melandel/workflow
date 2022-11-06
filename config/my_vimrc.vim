@@ -453,7 +453,7 @@ function! GetNearestPathInParentFolders(regex, path)
 endfunc
 
 function! BufferIsEmpty()
-	return line('$') == 1 && getline(1) == ''
+	return line('$') == 1 && empty(trim(getline(1)))
 endfunction
 
 function! DeleteEmptyScratchBuffers()
@@ -4320,7 +4320,7 @@ nnoremap <Leader>Q :CreateQueryRow<CR>
 
 function! CreateQueryRow()
 	exec 'botright new' $queries
-	let historyWindowWidth = 26
+	let historyWindowWidth = 48
 	let queryRowId = win_getid() | call InitQueryRowWindow(queryRowId, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
 	vnew                         | call InitQueryRowWindow(queryRowId, 'query', 'request', 0.5*(&columns-historyWindowWidth))
 	vnew                         | call InitQueryRowWindow(queryRowId, 'query', 'response', 0.5*(&columns-historyWindowWidth))
@@ -4336,6 +4336,11 @@ function! InitQueryRowWindow(rowId, rowType, windowContent, ...)
 	\}
 	if a:0 | exec 'vert resize' a:1 | endif
 	set winfixwidth
+	if a:windowContent == 'request'
+		set filetype=powershell
+		set omnifunc=CosmosCompletion
+		nnoremap <silent> <buffer> <Leader>S :<C-U>RunQuery<CR>
+	endif
 endfunction
 
 function! RemoveSingleOrCurrentQueryRow()
@@ -4371,12 +4376,16 @@ endfunction
 
 function! GetRowsWinIdsInCurrentTabPage(...)
 	let Filter = { _,x -> has_key(getwininfo(x)[0].variables, 'row') }
-	if (a:0 && type(a:1) == type(0))
+	if (a:0 == 1 && type(a:1) == type(0))
 		let historyWindowId = a:1
 		let Filter = { _,x -> has_key(getwininfo(x)[0].variables, 'row') && getwininfo(x)[0].variables.row.id == historyWindowId }
-	elseif (a:0 && type(a:1) == type('a'))
+	elseif (a:0 == 1 && type(a:1) == type('a'))
 		let rowWindowContentType = a:1
 		let Filter = { _,x -> has_key(getwininfo(x)[0].variables, 'row') && getwininfo(x)[0].variables.row.content == rowWindowContentType }
+	elseif (a:0 == 2 && type(a:1) == type(0) && type(a:2) == type('a'))
+		let historyWindowId = a:1
+		let rowWindowContentType = a:2
+		let Filter = { _,x -> has_key(getwininfo(x)[0].variables, 'row') && getwininfo(x)[0].variables.row.id == historyWindowId && getwininfo(x)[0].variables.row.content == rowWindowContentType }
 	endif
 	return filter(map(range(1, winnr('$')), 'win_getid(v:val)'), Filter)
 endfunction
@@ -4399,4 +4408,103 @@ function! ResizeAllRowsWindowsAfterRemovingRowWindow(...)
 	let windowBeforeFirstRow = rowsWindowsThatNeedsResizing[0] - 1
 	exec windowBeforeFirstRow.'resize +9'
 	for winnr in rowsWindowsThatNeedsResizing | exec winnr.'resize' 8 | endfor
+endfunction
+
+function! RunQuery()
+	let requestLines = BuildRequestLinesFromCurrentBuffer()
+	let request = join(requestLines, ' ')
+	let title = BuildQueryTitle(request)
+	let queryFilenameWithoutExtension = BuildQueryOutputFilenameWithoutExtension(title)
+	let shouldWipeOut = BufferIsEmpty()
+	enew
+	if shouldWipeOut
+		bwipeout! #
+	endif
+	set ft=powershell
+	pu!=requestLines | exec 'saveas' (queryFilenameWithoutExtension . '.script')
+	echomsg "<start> ".request | redraw
+	let s:job = job_start(BuildCommandToRunAsJob(request), BuildQueryRowJobOptions(w:row, queryFilenameWithoutExtension))
+endfunction
+command! RunQuery call RunQuery()
+
+function! BuildRequestLinesFromCurrentBuffer()
+	let requestLines = getbufline(bufnr(), 1, '$')
+	call map(requestLines, 'trim(v:val)')
+	call filter(requestLines, 'stridx(v:val, ''#'') != 0')
+	call filter(requestLines, 'v:val !~ ''^\s*$''')
+	call map(requestLines, 'ExpandEnvironmentVariables(v:val)')
+	return requestLines
+endfunction
+
+function! BuildCommandToRunAsJob(script)
+	if !g:isWindows | echoerr 'Aborting: BuildCommandToRunAsJob currently available only for win32' | endif
+	if len(a:script) < 8150 | return 'cmd /C '.a:script | endif
+	return printf('%s %s %s',
+		\executable('pwsh') ? 'pwsh' : 'powershell',
+		\'-NoLogo -NoProfile -NonInteractive -Command remove-item alias:curl;',
+		\substitute(substitute(a:script, "'", "`'", 'g'), '"', "'", 'g')
+	\)
+endfunction
+
+function! BuildQueryRowJobOptions(row, queryFilenameWithoutExtension)
+	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job_Row_'.a:row.id)
+	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:row.id, 'history')[0])
+	let dirvishDirValue = get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '')
+	return {
+		\'cwd': getcwd(),
+		\'out_io': 'buffer',
+		\'out_buf': scratchbufnr,
+		\'out_modifiable': 1,
+		\'err_io': 'buffer',
+		\'err_buf': scratchbufnr,
+		\'err_modifiable': 1,
+		\'in_io': 'null',
+		\'close_cb':  function('DisplayQueryJobOutput', [scratchbufnr, dirvishDirValue, a:queryFilenameWithoutExtension, a:row.id])
+	\}
+endfunction
+
+function! DisplayQueryJobOutput(bufnr, dirvishDirValue, queryFilenameWithoutExtension, rowId, channel)
+	let responseWindowId = GetRowsWinIdsInCurrentTabPage(w:row.id, 'response')[0]
+	call win_gotoid(responseWindowId)
+	exec 'buffer' a:bufnr
+	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
+	if isCurlDashSmallI
+		silent 2,$-1d
+	endif
+	normal! gg
+	let ext = 'output'
+	let isXml = getline('$') =~ '^<.*>$'
+	let isJson = getline('$') =~ '^\({\|\[\|}\|]\)'
+	if isXml
+		silent $!xmllint --format --recover --c14n -
+		set ft=xml
+		let ext = 'xml'
+	elseif isJson
+		let isNotPrettyYet = (len(getline('$')) > 1)
+		if isNotPrettyYet
+			silent! $!jq .
+		endif
+		set ft=json
+		let ext = 'json'
+	endif
+	set bt=
+	silent exec 'saveas' printf('%s.%s', a:queryFilenameWithoutExtension, ext)
+	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:rowId, 'history')[0])
+	if get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '') == a:dirvishDirValue
+		for bufnr in win_findbuf(historyBufNr)
+			call win_execute(bufnr, ['normal R', 'sort!', 'let b:dirvish._c = b:changedtick'])
+		endfor
+	endif
+endfunction
+
+function! BuildQueryOutputFilenameWithoutExtension(title)
+	let date = strftime('%Y-%m-%d-%A')[:len('YYYY-MM-DD-ddd')-1]
+	let index = len(expand($queries.'/*.script', v:true, v:true))
+	let index +=1
+	return printf('%s/%s %03d %s', $queries, date, index, a:title)
+endfunction
+
+function! BuildQueryTitle(request)
+	let program = a:request[:stridx(a:request, ' ')-1]
+	return program
 endfunction
