@@ -4339,30 +4339,54 @@ function! InitQueryRowWindow(rowId, rowType, windowContent, ...)
 endfunction
 
 function! RemoveSingleOrCurrentQueryRow()
-	let rowsWindows = map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> has_key(getwininfo(x)[0].variables, 'row')}), 'win_id2win(v:val)')
+	let rowsWindows = GetRowsWinNrsInCurrentTabPage()
 	if(len(rowsWindows) <= 3)
 		while !empty(rowsWindows)
 			exec rowsWindows[0].'wincmd c'
-			let rowsWindows = map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> has_key(getwininfo(x)[0].variables, 'row')}), 'win_id2win(v:val)')
+			let rowsWindows = GetRowsWinNrsInCurrentTabPage()
 		endwhile
+		call ResizeAllRowsWindowsAfterRemovingRowWindow()
 	elseif index(rowsWindows, winnr()) >= 0
 		let currentWindowRowId = w:row.id
-		let currentRowWindows = map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> get(get(getwininfo(x)[0].variables, 'row', {}), 'id', -1) == currentWindowRowId}), 'win_id2win(v:val)')
+		let currentRowWindows = GetRowsWinNrsInCurrentTabPage(currentWindowRowId)
 		while !empty(currentRowWindows)
 			exec currentRowWindows[0].'wincmd c'
-			let currentRowWindows = map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> get(get(getwininfo(x)[0].variables, 'row', {}), 'id', -1) == currentWindowRowId}), 'win_id2win(v:val)')
+			let currentRowWindows = GetRowsWinNrsInCurrentTabPage(currentWindowRowId)
 		endwhile
+		call ResizeAllRowsWindowsAfterRemovingRowWindow()
 	endif
-	call ResizeAllRowsWindowsAfterRemovingRowWindow()
+endfunction
+
+function! GetRowsWinNrsInCurrentTabPage(...)
+	if !a:0
+		return map(GetRowsWinIdsInCurrentTabPage(), 'win_id2win(v:val)')
+	elseif type(a:1) == type(1)
+		let historyWindowId = a:1
+		return map(GetRowsWinIdsInCurrentTabPage(historyWindowId), 'win_id2win(v:val)')
+	elseif type(a:1) == type('a')
+		let rowWindowContentType = a:1
+		return map(GetRowsWinIdsInCurrentTabPage(rowWindowContentType), 'win_id2win(v:val)')
+	endif
+endfunction
+
+function! GetRowsWinIdsInCurrentTabPage(...)
+	let Filter = { _,x -> has_key(getwininfo(x)[0].variables, 'row') }
+	if (a:0 && type(a:1) == type(0))
+		let historyWindowId = a:1
+		let Filter = { _,x -> has_key(getwininfo(x)[0].variables, 'row') && getwininfo(x)[0].variables.row.id == historyWindowId }
+	elseif (a:0 && type(a:1) == type('a'))
+		let rowWindowContentType = a:1
+		let Filter = { _,x -> has_key(getwininfo(x)[0].variables, 'row') && getwininfo(x)[0].variables.row.content == rowWindowContentType }
+	endif
+	return filter(map(range(1, winnr('$')), 'win_getid(v:val)'), Filter)
 endfunction
 
 function! AreQueryRowsActive()
-		let rowsWindows = map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> get(get(getwininfo(x)[0].variables, 'row', {}), 'id', -1) >= 0}), 'win_id2win(v:val)')
-		return !empty(rowsWindows)
+	return !empty(GetRowsWinIdsInCurrentTabPage())
 endfunction
 
 function! ResizeAllRowsWindowsAfterCreatingNewRowWindow(...)
-	let rowsWindowsThatNeedsResizing = sort(map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> has_key(getwininfo(x)[0].variables, 'row') && get(getwininfo(x)[0].variables.row, 'content') == 'history' }), 'win_id2win(v:val)'), 'n')
+	let rowsWindowsThatNeedsResizing = sort(GetRowsWinNrsInCurrentTabPage('history'), 'n')
 	if empty(rowsWindowsThatNeedsResizing) | return | endif
 	let windowBeforeFirstRow = rowsWindowsThatNeedsResizing[0] - 1
 	exec windowBeforeFirstRow.'resize -9'
@@ -4370,7 +4394,7 @@ function! ResizeAllRowsWindowsAfterCreatingNewRowWindow(...)
 endfunction
 
 function! ResizeAllRowsWindowsAfterRemovingRowWindow(...)
-	let rowsWindowsThatNeedsResizing = sort(map(filter(map(range(1, winnr('$')), 'win_getid(v:val)'), {_,x -> has_key(getwininfo(x)[0].variables, 'row') && get(getwininfo(x)[0].variables.row, 'content') == 'history' }), 'win_id2win(v:val)'), 'n')
+	let rowsWindowsThatNeedsResizing = sort(GetRowsWinNrsInCurrentTabPage('history'), 'n')
 	if empty(rowsWindowsThatNeedsResizing) | return | endif
 	let windowBeforeFirstRow = rowsWindowsThatNeedsResizing[0] - 1
 	exec windowBeforeFirstRow.'resize +9'
