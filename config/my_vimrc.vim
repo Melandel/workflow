@@ -4090,11 +4090,11 @@ command! FormatEvenWhenStringified call FormatEvenWhenStringified()
 
 " Query rows "-------------------------{{{
 command! ToggleQueryRow if AreQueryRowsActive() | call RemoveSingleOrCurrentQueryRow() | else | call CreateQueryRow() | endif
-nnoremap <Leader>q :ToggleQueryRow<CR>
-nnoremap <Leader>Q :CreateQueryRow<CR>
+nnoremap <silent> <Leader>q :ToggleQueryRow<CR>
+nnoremap <silent> <Leader>Q :CreateQueryRow<CR>
 
 function! CreateQueryRow()
-	exec 'botright new' $queries
+	silent exec 'botright new' $queries
 	let historyWindowWidth = 48
 	let queryRowId = win_getid() | call InitQueryRowWindow(queryRowId, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
 	vnew                         | call InitQueryRowWindow(queryRowId, 'query', 'request', 0.5*(&columns-historyWindowWidth))
@@ -4348,7 +4348,7 @@ function! DisplayQueryFile(file, content)
 	let currentWinId = win_getid()
 	let winid = GetRowsWinIdsInCurrentTabPage(w:row.id, a:content)[0]
 	call win_gotoid(winid)
-	exec 'edit' a:file
+	silent exec 'edit' a:file
 	call InitQueryRowWindow(w:row.id, 'query', a:content)
 	call win_gotoid(currentWinId)
 endfunction
