@@ -2233,6 +2233,10 @@ function! GetNextLineAsPath()
 	return trim(getline(line('.')+1), '\')
 endfunc
 
+function! GetPreviousLineAsPath()
+	return trim(getline(line('.')-1), '\')
+endfunc
+
 function! GetCurrentLinePath()
 	let line = getline('.')
 	let farthest = FindLastOccurrencePos(line, '|`')
@@ -2383,7 +2387,7 @@ elseif g:isWsl
 endif
 	autocmd FileType dirvish nnoremap <silent> <buffer> <C-B> :echo gitbranch#name()<CR>
 	autocmd FileType dirvish unmap <buffer> o
-	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> o :if has_key(w:, 'row') \| call DisplayQueryFiles() \| else \| call PreviewFile('vsplit') \| endif<CR>
 	autocmd FileType dirvish unmap <buffer> a
 	autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split')<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> t :call PreviewFile('tab split')<CR>
@@ -4365,12 +4369,16 @@ endfunction
 function! GetRowsWinNrsInCurrentTabPage(...)
 	if !a:0
 		return map(GetRowsWinIdsInCurrentTabPage(), 'win_id2win(v:val)')
-	elseif type(a:1) == type(1)
+	elseif a:0 == 1 && type(a:1) == type(1)
 		let historyWindowId = a:1
 		return map(GetRowsWinIdsInCurrentTabPage(historyWindowId), 'win_id2win(v:val)')
-	elseif type(a:1) == type('a')
+	elseif a:0 == 1 && type(a:1) == type('a')
 		let rowWindowContentType = a:1
 		return map(GetRowsWinIdsInCurrentTabPage(rowWindowContentType), 'win_id2win(v:val)')
+	elseif a:0 == 2 && type(a:1) == type(1) && type(a:2) == type('a')
+		let historyWindowId = a:1
+		let rowWindowContentType = a:2
+		return map(GetRowsWinIdsInCurrentTabPage(historyWindowId, rowWindowContentType), 'win_id2win(v:val)')
 	endif
 endfunction
 
@@ -4507,4 +4515,33 @@ endfunction
 function! BuildQueryTitle(request)
 	let program = a:request[:stridx(a:request, ' ')-1]
 	return program
+endfunction
+
+function! DisplayQueryFiles()
+	let winid = win_getid()
+	let queryFiles = ComputeQueryFiles()
+	call DisplayQueryFile(queryFiles.request, 'request')
+	call DisplayQueryFile(queryFiles.response, 'response')
+	call win_gotoid(winid)
+endfunction
+command! DisplayQueryFiles call DisplayQueryFiles()
+
+function! ComputeQueryFiles()
+	let currentFile = GetCurrentLineAsPath()
+	let filename = fnamemodify(currentFile, ':t:r')
+	if line('.') == 1
+		let below = GetNextLineAsPath()
+		let pairedFile = (stridx(below, filename) >= 0) ? below : GetPreviousLineAsPath()
+	else
+		let above = GetPreviousLineAsPath()
+		let pairedFile = (stridx(above, filename) >= 0) ? above : GetNextLineAsPath()
+	endif
+	return (fnamemodify(pairedFile, ':t:e') == 'script')
+		\? { 'request': pairedFile, 'response': currentFile }
+		\: { 'request': currentFile, 'response': pairedFile }
+endfunction
+
+function! DisplayQueryFile(file, content)
+	let winid = GetRowsWinIdsInCurrentTabPage(w:row.id, a:content)[0]
+	call win_execute(winid, printf('edit %s', a:file))
 endfunction
