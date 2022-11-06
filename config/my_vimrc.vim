@@ -1174,229 +1174,8 @@ set wildignorecase
 set wildmode=full
 
 " Sourcing" ---------------------------{{{
-function! RunCurrentlySelectedScriptInNewBufferAsync()
-	let scriptLines = GetCurrentlySelectedScriptLines()
-	let today = strftime('%Y-%m-%d-%A')
-	let commandFileFolder = printf('%s/curl/%s', $d, today)
-	if !glob(commandFileFolder, ':h') | call mkdir(commandFileFolder, 'p') | endif
-	let index = len(expand(commandFileFolder.'/*.script', v:true, v:true))
-	let index +=1
-	let currentHour = strftime('%Hh%M''%S')
-	let commandFile = printf('%s/%03d %s.%s', commandFileFolder, index, currentHour, 'script')
-	if get(b:, 'is_script_buffer', 0) && winnr() != winnr('$')
-		wincmd l
-		bdelete!
-	endif
-	let bufnr=bufnr()
-	exec printf('enew "%s"', commandFile)
-	exec bufnr.'bwipeout!'
-	let b:is_script_execution_buffer = 1
-	let b:is_script_buffer = 1
-	set ft=powershell
-	pu!=scriptLines | exec 'saveas' commandFile
-	let winid = win_getid()
-	if !empty(filter(tabpagebuflist(), {_,x-> getbufvar(x, 'is_script_history_buffer', 0)}))
-		wincmd h
-		quit
-	endif
-	leftabove vnew %:h
-	let b:is_script_execution_buffer = 1
-	let b:is_script_history_buffer = 1
-	normal R
-	sort!
-	let b:dirvish._c = b:changedtick
-	vert resize 26
-	nnoremap <buffer> o :let file=GetCurrentLineAsPath() \| let file2=GetNextLineAsPath()<CR><C-W>l:exec 'e' file<CR>:exec 'vert resize' float2nr(0.5*(&columns-26))<CR>:let b:is_script_execution_buffer = 1<CR>:if winnr()==winnr('$') \| exec 'vnew' file2 \| else \| wincmd l \| exec 'edit' file2 \| endif<CR>:let b:is_script_execution_buffer = 1<CR>2<C-W>h
-	let dirvishDirValue = b:dirvish._dir
-	let b:previewsplit=winid
-	let scriptOnOneLine = SquashAndTrimLines(scriptLines)
-	let script = ExpandEnvironmentVariables(scriptOnOneLine)
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
-	if g:isWindows
-		let len = len(script)
-		if len < 8150
-			let cmd = 'cmd /C '.script
-		else
-			let powershell = executable('pwsh') ? 'pwsh' : 'powershell'
-			let script = substitute(script, "'", "`'", 'g')
-			let script = substitute(script, '"', "'", 'g')
-			let cmd = powershell.' -NoLogo -NoProfile -NonInteractive -Command remove-item alias:curl; '.script
-		endif
-	endif
-	let outputFileWithoutExt = fnamemodify(commandFile, ':r')
-	echomsg "<start> ".script | redraw
-	let s:job = job_start(
-		\cmd,
-		\{
-			\'cwd': getcwd(),
-			\'out_io': 'buffer',
-			\'out_buf': scratchbufnr,
-			\'out_modifiable': 1,
-			\'err_io': 'buffer',
-			\'err_buf': scratchbufnr,
-			\'err_modifiable': 1,
-			\'in_io': 'null',
-			\'close_cb':  function('DisplayScriptOutputInNewWindow', [scratchbufnr, outputFileWithoutExt, dirvishDirValue])
-		\}
-	\)
-endfunc
-
-function! DisplayScriptOutputInNewWindow(scratchbufnr, outputFileWithoutExt, dirvishDirValue, channel)
-	exec winnr('$').'wincmd w'
-	exec 'vert sbuffer' a:scratchbufnr
-	let b:is_script_execution_buffer = 1
-	let b:is_script_output_buffer = 1
-	call setbufvar(winbufnr(1), 'previewvsplit', win_getid())
-	let b:previewvsplit=win_getid()
-	"modify
-	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
-	if isCurlDashSmallI
-		silent 2,$-1d
-	endif
-	normal! gg
-	let ext = 'output'
-	if line('$') > 1
-		let isXml = getline('$') =~ '^<.*>$'
-		let isJson = getline('$') =~ '^\({\|\[\|}\|]\)'
-		if isXml
-			silent $!xmllint --format --recover --c14n -
-		elseif isJson
-			let isNotPrettyYet = (len(getline('$')) > 1)
-			if isNotPrettyYet
-				silent! $!jq .
-			endif
-		endif
-	endif
-	if getline('1') =~ '^<.*>$'
-		set ft=xml
-		let ext = 'xml'
-	elseif getline('1') =~ '^{\|(\|['
-		set ft=json
-		let ext = 'json'
-	endif
-	set bt=
-	silent exec 'saveas' printf('%s.%s', a:outputFileWithoutExt, ext)
-	let dirvishBufNr = filter(tabpagebuflist(), {_,x-> getbufvar(x, 'is_script_history_buffer', 0)})[0]
-	if get(getbufvar(dirvishBufNr, 'dirvish', {}), '_dir', '') == a:dirvishDirValue
-		call win_execute(win_findbuf(dirvishBufNr)[0], ['normal R', 'sort!', 'let b:dirvish._c = b:changedtick'])
-	endif
-endfunction
-
-function! ToggleQueryBuffers()
-	if AreQueryBuffersOpenInCurrentTab()
-		call HideQueryBuffers()
-	else
-		call DisplayQueryBuffers()
-	endif
-endfunction
-
-function! AreQueryBuffersOpenInCurrentTab()
-	return !empty(filter(tabpagebuflist(), {_,x->getbufvar(x, 'is_script_execution_buffer', 0)}))
-endfunction
-
-function! DisplayQueryBuffers()
-	if get(b:, 'is_script_buffer', 0) | return | endif
-	let today = strftime('%Y-%m-%d-%A')
-	let commandFileFolder = printf('%s/curl/%s', $d, today)
-	if !glob(commandFileFolder, ':h') | call mkdir(commandFileFolder, 'p') | endif
-	exec 'botright new' commandFileFolder
-	let b:is_script_execution_buffer = 1
-	let b:is_script_history_buffer = 1
-	normal R
-	sort!
-	let b:dirvish._c = b:changedtick
-	nnoremap <buffer> o :PreviewOrDisplayScriptExecutionBuffer<CR>
-	vnew
-	exec 'vert resize' &columns-26
-	let b:is_script_buffer = 1
-	let b:is_script_execution_buffer = 1
-	set ft=powershell
-	set omnifunc=CosmosCompletion
-endfunction
-
-function! PreviewOrDisplayScriptExecutionBuffer()
-	let file=GetCurrentLineAsPath()
-	let file2=GetNextLineAsPath()
-	wincmd l
-	exec 'edit' file
-	"exec 'vert resize' (&columns-26)/2
-	let b:is_script_execution_buffer = 1
-	let b:is_script_buffer = 1
-
-	if winnr()==winnr('$')
-		exec 'vnew' file2
-	else
-		wincmd l
-		exec 'edit' file2
-		"exec 'vert resize' (&columns-26)/2
-		let b:is_script_buffer = 1
-	endif
-	let b:is_script_execution_buffer = 1
-	let b:is_script_buffer = 1
-	2wincmd h
-endfunction
-command! PreviewOrDisplayScriptExecutionBuffer call PreviewOrDisplayScriptExecutionBuffer()
-
-function! CosmosCompletion(findstart, base)
-	if a:findstart
-		let line = getline('.')
-		return col('.')
-	endif
-	return map(systemlist('Cosmos list'), {_,x -> trim(x)})
-endfunction
-
-function! HideQueryBuffers()
-	let queryBuffers = filter(map(range(1, winnr('$')), {_,x -> winbufnr(x)}), {_,x -> getbufvar(x, 'is_script_execution_buffer') == 1})
-	for bufnr in queryBuffers | exec 'bd' bufnr | endfor
-endfunction
-
-command! ToggleQueryBuffers call ToggleQueryBuffers()
-nnoremap <silent> <Leader>q :ToggleQueryBuffers<CR>
-
-command! AsyncTSplitCurrentlySelectedScriptInNewBuffer call RunCurrentlySelectedScriptInNewBufferAsync()
-vnoremap <silent> <Leader>S :<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>
-nnoremap <silent> <Leader>S vip}}}:<C-U>AsyncTSplitCurrentlySelectedScriptInNewBuffer<CR>
 vnoremap <silent> <Leader>V mvy:call histadd('cmd', @@)\|exec @@<CR>`v
 nnoremap <silent> <Leader>V mv^y$:exec @@<CR>`v
-
-function! ExpandEnvironmentVariables(script)
-	let mayHaveEnvironmentVars = (stridx(a:script, '$') > -1)
-	if (!mayHaveEnvironmentVars)
-		return a:script
-	endif
-
-	let script = a:script
-	let environmentvars = sort(items(environ()), {a,b -> len(b[0]) - len(a[0])})
-	for [key, value] in environmentvars
-		let var = '$'.key
-		if (stridx(script, var) == -1)
-			continue
-		endif
-		let script = substitute(script, var, value, 'g')
-	endfor
-	return script
-endfunc
-
-function! GetCurrentlySelectedScriptLines()
-	let lines = getline("'<", "'>")
-	if len(lines) == 0 | return [] | endif
-	if len(lines) == 1 | return [trim(lines[0], " \t`")] | endif
-	if !empty(filter(copy(lines), "stridx(v:val, '```') >= 0"))
-		let firstSnippetSep = match(lines, '```')
-		if (firstSnippetSep != -1)
-			let secondSnippetSep = match(lines, '```', firstSnippetSep+1)
-			return lines[firstSnippetSep+1:secondSnippetSep-1]
-		endif
-	endif
-	return filter(lines, {_,x -> x !~ '^\s*$'})
-endfunc
-
-function! SquashAndTrimLines(lines)
-	if empty(a:lines)
-		return a:lines
-	endif
-	return join(mapnew(a:lines, { _,x -> ' '.trim(x, " \t")}), ' ')[1:]
-endfunc
 
 " Write output of a vim command in a buffer
 nnoremap ç :let script=''\|call histadd('cmd',script)\|put=execute(script)<Home><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right><Right>
@@ -2345,19 +2124,11 @@ function! PreviewFile(splitcmd)
 	let path=trim(getline('.'))
 	let bufnr=bufnr()
 	let is_wip_buffer = get(b:, 'is_wip_buffer', 0)
-	let is_script_buffer = get(b:, 'is_script_buffer', 0)
-	let is_script_history_buffer = get(b:, 'is_script_history_buffer', 0)
 	let previewwinid = getbufvar(bufnr, 'preview'.a:splitcmd, 0)
 	if previewwinid == 0
 		exec a:splitcmd path
 		call setbufvar(bufnr, 'preview'.substitute(a:splitcmd, ' ', '', 'g'), win_getid())
 		if is_wip_buffer | let b:is_wip_buffer = 1 | endif
-		if is_script_buffer | let b:is_script_buffer = 1 | endif
-		if is_script_history_buffer
-			let b:is_script_history_buffer = 1
-			silent! nunmap <buffer> o
-			nnoremap <buffer> o :PreviewOrDisplayScriptExecutionBuffer<CR>
-		endif
 	else
 		call win_gotoid(previewwinid)
 		if win_getid() == previewwinid
@@ -4444,6 +4215,21 @@ function! BuildRequestLinesFromCurrentBuffer()
 	return requestLines
 endfunction
 
+function! ExpandEnvironmentVariables(script)
+	let mayHaveEnvironmentVars = (stridx(a:script, '$') > -1)
+	if (!mayHaveEnvironmentVars) | return a:script | endif
+	let script = a:script
+	let environmentvars = sort(items(environ()), {a,b -> len(b[0]) - len(a[0])})
+	for [key, value] in environmentvars
+		let var = '$'.key
+		if (stridx(script, var) == -1)
+			continue
+		endif
+		let script = substitute(script, var, value, 'g')
+	endfor
+	return script
+endfunc
+
 function! BuildCommandToRunAsJob(script)
 	if !g:isWindows | echoerr 'Aborting: BuildCommandToRunAsJob currently available only for win32' | endif
 	if len(a:script) < 8150 | return 'cmd /C '.a:script | endif
@@ -4546,3 +4332,12 @@ function! DisplayQueryFile(file, content)
 	let winid = GetRowsWinIdsInCurrentTabPage(w:row.id, a:content)[0]
 	call win_execute(winid, printf('edit %s', a:file))
 endfunction
+
+function! CosmosCompletion(findstart, base)
+	if a:findstart
+		let line = getline('.')
+		return col('.')
+	endif
+	return map(systemlist('Cosmos list'), {_,x -> trim(x)})
+endfunction
+
