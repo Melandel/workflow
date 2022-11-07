@@ -4101,8 +4101,8 @@ function! CreateQueryRow()
 	let cwd = getcwd()
 	silent exec 'botright new' $queries
 	let queryRowId = win_getid() | call InitQueryRowWindow(queryRowId, cwd, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
-	vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'request', 0.5*(&columns-g:queryRowHistoryWidth))
-	vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'response', 0.5*(&columns-g:queryRowHistoryWidth))
+	silent vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'request', 0.5*(&columns-g:queryRowHistoryWidth))
+	silent vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'response', 0.5*(&columns-g:queryRowHistoryWidth))
 	let historyWinId = GetRowsWinIdsInCurrentTabPage(w:row.id, 'history')[0]
 	if getwininfo(historyWinId)[0].botline == 1
 		wincmd p
@@ -4128,11 +4128,11 @@ function! InitQueryRowWindow(rowId, cwd, rowType, windowContent, ...)
 	set winfixwidth
 	set bt=nofile
 	if a:windowContent == 'history'
-		call InitQueryRowHistoryWindow()
+		silent call InitQueryRowHistoryWindow()
 	elseif a:windowContent == 'request'
-		call InitQueryRowRequestWindow()
+		silent call InitQueryRowRequestWindow()
 	elseif a:windowContent == 'response'
-		call InitQueryRowResponseWindow()
+		silent call InitQueryRowResponseWindow()
 	endif
 endfunction
 
@@ -4232,10 +4232,10 @@ function! RunQuery()
 	let shouldWipeOut = BufferIsEmpty()
 	enew
 	if shouldWipeOut
-		bwipeout! #
+		silent! bwipeout! #
 	endif
 	set ft=powershell
-	pu!=requestLines | exec 'saveas' (queryFilenameWithoutExtension . '.script')
+	silent pu!=requestLines | silent exec 'saveas' (queryFilenameWithoutExtension . '.script')
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', w:row.content)
 	echomsg "<start> ".request | redraw
 	let s:job = job_start(BuildCommandToRunAsJob(request), BuildQueryRowJobOptions(w:row, queryFilenameWithoutExtension))
