@@ -4091,6 +4091,7 @@ endfunction
 command! FormatEvenWhenStringified call FormatEvenWhenStringified()
 
 " Query rows "-------------------------{{{
+let g:queryRowHeight = 15
 command! ToggleQueryRow if AreQueryRowsActive() | call RemoveSingleOrCurrentQueryRow() | else | call CreateQueryRow() | endif
 nnoremap <silent> <Leader>q :ToggleQueryRow<CR>
 nnoremap <silent> <Leader>Q :CreateQueryRow<CR>
@@ -4211,16 +4212,16 @@ function! ResizeAllRowsWindowsAfterCreatingNewRowWindow(...)
 	let rowsWindowsThatNeedsResizing = sort(GetRowsWinNrsInCurrentTabPage('history'), 'n')
 	if empty(rowsWindowsThatNeedsResizing) | return | endif
 	let windowBeforeFirstRow = rowsWindowsThatNeedsResizing[0] - 1
-	exec windowBeforeFirstRow.'resize -9'
-	for winnr in rowsWindowsThatNeedsResizing | exec winnr.'resize' 8 | endfor
+	exec windowBeforeFirstRow.'resize -'.(1 + g:queryRowHeight)
+	for winnr in rowsWindowsThatNeedsResizing | exec winnr.'resize' g:queryRowHeight | endfor
 endfunction
 
 function! ResizeAllRowsWindowsAfterRemovingRowWindow(...)
 	let rowsWindowsThatNeedsResizing = sort(GetRowsWinNrsInCurrentTabPage('history'), 'n')
 	if empty(rowsWindowsThatNeedsResizing) | return | endif
 	let windowBeforeFirstRow = rowsWindowsThatNeedsResizing[0] - 1
-	exec windowBeforeFirstRow.'resize +9'
-	for winnr in rowsWindowsThatNeedsResizing | exec winnr.'resize' 8 | endfor
+	exec windowBeforeFirstRow.'resize +'.(1 + g:queryRowHeight)
+	for winnr in rowsWindowsThatNeedsResizing | exec winnr.'resize' g:queryRowHeight | endfor
 endfunction
 
 function! RunQuery()
