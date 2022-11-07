@@ -4092,6 +4092,7 @@ command! FormatEvenWhenStringified call FormatEvenWhenStringified()
 
 " Query rows "-------------------------{{{
 let g:queryRowHeight = 15
+let g:queryRowHistoryWidth = 48
 command! ToggleQueryRow if AreQueryRowsActive() | call RemoveSingleOrCurrentQueryRow() | else | call CreateQueryRow() | endif
 nnoremap <silent> <Leader>q :ToggleQueryRow<CR>
 nnoremap <silent> <Leader>Q :CreateQueryRow<CR>
@@ -4099,10 +4100,9 @@ nnoremap <silent> <Leader>Q :CreateQueryRow<CR>
 function! CreateQueryRow()
 	let cwd = getcwd()
 	silent exec 'botright new' $queries
-	let historyWindowWidth = 48
 	let queryRowId = win_getid() | call InitQueryRowWindow(queryRowId, cwd, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
-	vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'request', 0.5*(&columns-historyWindowWidth))
-	vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'response', 0.5*(&columns-historyWindowWidth))
+	vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'request', 0.5*(&columns-g:queryRowHistoryWidth))
+	vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'response', 0.5*(&columns-g:queryRowHistoryWidth))
 	let historyWinId = GetRowsWinIdsInCurrentTabPage(w:row.id, 'history')[0]
 	if getwininfo(historyWinId)[0].botline == 1
 		wincmd p
