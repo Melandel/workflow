@@ -4100,7 +4100,7 @@ nnoremap <silent> <Leader>Q :CreateQueryRow<CR>
 function! CreateQueryRow()
 	let cwd = getcwd()
 	silent exec 'botright new' $queries
-	let queryRowId = win_getid() | call InitQueryRowWindow(queryRowId, cwd, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
+	let queryRowId = win_getid()        | call InitQueryRowWindow(queryRowId, cwd, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
 	silent vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'request', 0.5*(&columns-g:queryRowHistoryWidth))
 	silent vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'response', 0.5*(&columns-g:queryRowHistoryWidth))
 	let historyWinId = GetRowsWinIdsInCurrentTabPage(w:row.id, 'history')[0]
@@ -4226,8 +4226,7 @@ endfunction
 
 function! RunQuery()
 	let requestLines = BuildRequestLinesFromCurrentBuffer()
-	let request = join(requestLines, ' ')
-	let title = BuildQueryTitle(request)
+	let title = BuildQueryTitle(requestLines)
 	let queryFilenameWithoutExtension = BuildQueryOutputFilenameWithoutExtension(title)
 	let shouldWipeOut = BufferIsEmpty()
 	enew
@@ -4237,7 +4236,8 @@ function! RunQuery()
 	set ft=powershell
 	silent pu!=requestLines | silent exec 'saveas' (queryFilenameWithoutExtension . '.script')
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', w:row.content)
-	echomsg "<start> ".request | redraw
+	let request = join(map(requestLines, 'ExpandEnvironmentVariables(v:val)'))
+	redraw | echomsg "query: <start>"
 	let s:job = job_start(BuildCommandToRunAsJob(request), BuildQueryRowJobOptions(w:row, queryFilenameWithoutExtension))
 endfunction
 command! RunQuery call RunQuery()
@@ -4247,7 +4247,6 @@ function! BuildRequestLinesFromCurrentBuffer()
 	call map(requestLines, 'trim(v:val)')
 	call filter(requestLines, 'stridx(v:val, ''#'') != 0')
 	call filter(requestLines, 'v:val !~ ''^\s*$''')
-	call map(requestLines, 'ExpandEnvironmentVariables(v:val)')
 	return requestLines
 endfunction
 
@@ -4280,6 +4279,7 @@ function! BuildQueryRowJobOptions(row, queryFilenameWithoutExtension)
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job_Row_'.a:row.id)
 	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:row.id, 'history')[0])
 	let dirvishDirValue = get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '')
+	redraw | echomsg "query: <done>"
 	return {
 		\'cwd': getcwd(),
 		\'out_io': 'buffer',
@@ -4334,10 +4334,11 @@ function! BuildQueryOutputFilenameWithoutExtension(title)
 	return printf('%s/%s %03d %s', $queries, date, index, a:title)
 endfunction
 
-function! BuildQueryTitle(request)
-	let spaceIndex = stridx(a:request, ' ')
-	if spaceIndex == -1 | return a:request | endif
-	return a:request[:spaceIndex-1]
+function! BuildQueryTitle(requestLines)
+	let request = join(a:requestLines)
+	let spaceIndex = stridx(request, ' ')
+	if spaceIndex == -1 | return request | endif
+	return request[:spaceIndex-1]
 endfunction
 
 function! DisplayQueryFiles()
