@@ -4151,6 +4151,7 @@ function! InitQueryRowHistoryWindow()
 	nnoremap <silent> <buffer> o :call DisplayQueryFiles()<CR>
 	nmap <silent> <buffer> <C-J> 2jo
 	nmap <silent> <buffer> <C-K> 2ko
+	nnoremap <silent> <buffer> <Space> <C-W>l`V
 endfunction
 
 function! InitQueryRowRequestWindow()
@@ -4158,6 +4159,7 @@ function! InitQueryRowRequestWindow()
 	set omnifunc=CosmosCompletion
 	nnoremap <silent> <buffer> <LocalLeader>m :RunQuery<CR>
 	nnoremap <silent> <buffer> # :TogglePayloadEditor<CR>
+	nnoremap <silent> <buffer> <Space> `V
 	nmap <silent> <buffer> <C-J> <C-W>h2jo<C-W>l
 	nmap <silent> <buffer> <C-K> <C-W>h2ko<C-W>l
 	exec 'lcd' w:row.cwd
@@ -4222,6 +4224,7 @@ command! ToggleRequestEditor call ToggleRequestEditor()
 
 function! InitQueryRowResponseWindow()
 	exec 'lcd' w:row.cwd
+	nnoremap <silent> <buffer> <Space> <C-W>h`V
 	nmap <silent> <buffer> <C-J> 2<C-W>h2jo2<C-W>l
 	nmap <silent> <buffer> <C-K> 2<C-W>h2ko2<C-W>l
 endfunction
@@ -4307,6 +4310,7 @@ function! RunQuery()
 		silent! bwipeout! #
 	endif
 	call InitQueryRowRequestWindow()
+	mark V
 	silent pu!=requestLines | silent exec 'saveas' (queryFilenameWithoutExtension . '.script')
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', w:row.content)
 	let request = join(map(requestLines, 'ExpandEnvironmentVariables(v:val)'))
