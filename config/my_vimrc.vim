@@ -4300,7 +4300,7 @@ function! RunQuery()
 	silent pu!=requestLines | silent exec 'saveas' (queryFilenameWithoutExtension . '.script')
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', w:row.content)
 	let request = join(map(requestLines, 'ExpandEnvironmentVariables(v:val)'))
-	redraw | echomsg printf("❓ %s ❓", fnamemodify(queryFilenameWithoutExtension, ':t:r')[len('YYYY-MM-DD-ddd '):])
+	redraw | echomsg printf("❓ %s...", fnamemodify(queryFilenameWithoutExtension, ':t:r')[len('YYYY-MM-DD-ddd '):])
 	let s:job = job_start(BuildCommandToRunAsJob(request), BuildQueryRowJobOptions(w:row, queryFilenameWithoutExtension))
 endfunction
 command! RunQuery call RunQuery()
@@ -4342,7 +4342,6 @@ function! BuildQueryRowJobOptions(row, queryFilenameWithoutExtension)
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job_Row_'.a:row.id)
 	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:row.id, 'history')[0])
 	let dirvishDirValue = get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '')
-	redraw | echomsg printf("✅ %s 👍", fnamemodify(a:queryFilenameWithoutExtension, ':t:r')[len('YYYY-MM-DD-ddd '):])
 	return {
 		\'cwd': getcwd(),
 		\'out_io': 'buffer',
@@ -4388,6 +4387,7 @@ function! DisplayQueryJobOutput(bufnr, dirvishDirValue, queryFilenameWithoutExte
 			call win_execute(bufnr, 'call InitQueryRowHistoryWindow()')
 		endfor
 	endif
+	redraw | echomsg printf("👍 %s --> %s", fnamemodify(a:queryFilenameWithoutExtension, ':t:r')[len('YYYY-MM-DD-ddd '):], getline(1))
 endfunction
 
 function! BuildQueryOutputFilenameWithoutExtension(title)
