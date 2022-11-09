@@ -4156,7 +4156,7 @@ endfunction
 function! InitQueryRowRequestWindow()
 	set filetype=zsh
 	set omnifunc=CosmosCompletion
-	nnoremap <silent> <buffer> <Space> :RunQuery<CR>
+	nnoremap <silent> <buffer> <LocalLeader>m :RunQuery<CR>
 	nnoremap <silent> <buffer> # :TogglePayloadEditor<CR>
 	nmap <silent> <buffer> <C-J> <C-W>h2jo<C-W>l
 	nmap <silent> <buffer> <C-K> <C-W>h2ko<C-W>l
@@ -4173,7 +4173,7 @@ function! TogglePayloadEditor()
 	silent FormatEvenWhenStringified
 	let w:row.payloadEditionBufNr = bufnr()
 	nnoremap <silent> <buffer> # :ToggleRequestEditor<CR>
-	nnoremap <silent> <buffer> <Space> :ToggleRequestEditor<CR>:RunQuery<CR>
+	nnoremap <silent> <buffer> <LocalLeader>m :ToggleRequestEditor<CR>:RunQuery<CR>
 	nnoremap <silent> <buffer> <C-J> <C-W>h
 	nnoremap <silent> <buffer> <C-K> <C-W>l
 endfunction
