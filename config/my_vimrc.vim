@@ -2160,7 +2160,7 @@ elseif g:isWsl
 endif
 	autocmd FileType dirvish nnoremap <silent> <buffer> <C-B> :echo gitbranch#name()<CR>
 	autocmd FileType dirvish unmap <buffer> o
-	autocmd FileType dirvish nnoremap <silent> <buffer> o :if has_key(w:, 'row') \| call DisplayQueryFiles() \| else \| call PreviewFile('vsplit') \| endif<CR>
+	autocmd FileType dirvish nnoremap <silent> <buffer> o :call PreviewFile('vsplit')<CR>
 	autocmd FileType dirvish unmap <buffer> a
 	autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split')<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> t :call PreviewFile('tab split')<CR>
@@ -4145,29 +4145,35 @@ function! InitQueryRowHistoryWindow()
 	normal R
 	sort!
 	let b:dirvish._c = b:changedtick
+	nnoremap <silent> <buffer> <C-K> <C-W>l
+	nnoremap <silent> <buffer> o :call DisplayQueryFiles()<CR>
+	nmap <silent> <buffer> <C-J> 2jo
+	nmap <silent> <buffer> <C-K> 2ko
 endfunction
 
 function! InitQueryRowRequestWindow()
 	set filetype=zsh
 	set omnifunc=CosmosCompletion
-	nnoremap <silent> <buffer> <Leader>S :RunQuery<CR>
+	nnoremap <silent> <buffer> <Space> :RunQuery<CR>
 	nnoremap <silent> <buffer> # :TogglePayloadEditor<CR>
+	nmap <silent> <buffer> <C-J> <C-W>h2jo<C-W>l
+	nmap <silent> <buffer> <C-K> <C-W>h2ko<C-W>l
 	exec 'lcd' w:row.cwd
 endfunction
 
 function! TogglePayloadEditor()
 	let payloadEditionBufnr = get(w:row, 'payloadEditionBufNr', '')
-	if !empty(payloadEditionBufnr)
-		silent exec 'buffer' w:row.payloadEditionBufNr
-	else
-		let w:row.requestEditionBufNr = bufnr()
-		let w:row.requestStructure = GetRequestStructure()
-		silent enew | set bt=nofile | set ft=json
-		silent call setline(1, ConvertRequestPayloadToStringifiedJson(w:row.requestStructure.payload))
-		silent FormatEvenWhenStringified
-		let w:row.payloadEditionBufNr = bufnr()
-		nnoremap <silent> <buffer> # :ToggleRequestEditor<CR>
-	endif
+	if !empty(payloadEditionBufnr) | silent exec 'buffer' w:row.payloadEditionBufNr | endif
+	let w:row.requestEditionBufNr = bufnr()
+	let w:row.requestStructure = GetRequestStructure()
+	silent enew | set bt=nofile | set ft=json
+	silent call setline(1, ConvertRequestPayloadToStringifiedJson(w:row.requestStructure.payload))
+	silent FormatEvenWhenStringified
+	let w:row.payloadEditionBufNr = bufnr()
+	nnoremap <silent> <buffer> # :ToggleRequestEditor<CR>
+	nnoremap <silent> <buffer> <Space> :ToggleRequestEditor<CR>:RunQuery<CR>
+	nnoremap <silent> <buffer> <C-J> <C-W>h
+	nnoremap <silent> <buffer> <C-K> <C-W>l
 endfunction
 command! TogglePayloadEditor call TogglePayloadEditor()
 
@@ -4214,6 +4220,8 @@ command! ToggleRequestEditor call ToggleRequestEditor()
 
 function! InitQueryRowResponseWindow()
 	exec 'lcd' w:row.cwd
+	nmap <silent> <buffer> <C-J> 2<C-W>h2jo2<C-W>l
+	nmap <silent> <buffer> <C-K> 2<C-W>h2ko2<C-W>l
 endfunction
 
 function! RemoveSingleOrCurrentQueryRow()
@@ -4381,6 +4389,7 @@ function! DisplayQueryJobOutput(bufnr, dirvishDirValue, queryFilenameWithoutExte
 	endif
 	set bt=
 	silent exec 'saveas' printf('%s.%s', a:queryFilenameWithoutExtension, ext)
+	call InitQueryRowResponseWindow()
 	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:rowId, 'history')[0])
 	if get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '') == a:dirvishDirValue
 		for bufnr in win_findbuf(historyBufNr)
