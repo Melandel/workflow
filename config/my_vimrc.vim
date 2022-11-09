@@ -4148,7 +4148,7 @@ function! InitQueryRowHistoryWindow()
 	sort!
 	let b:dirvish._c = b:changedtick
 	nnoremap <silent> <buffer> <C-K> <C-W>l
-	nnoremap <silent> <buffer> o :call DisplayQueryFiles()<CR>
+	nnoremap <silent> <buffer> o :DisplayQueryFiles<CR>
 	nmap <silent> <buffer> <C-J> 2jo
 	nmap <silent> <buffer> <C-K> 2ko
 	nnoremap <silent> <buffer> <Space> <C-W>l`V
