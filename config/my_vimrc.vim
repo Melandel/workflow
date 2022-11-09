@@ -4116,6 +4116,11 @@ endfunction
 command! CreateQueryRow call CreateQueryRow()
 
 function! InitQueryRowWindow(rowId, cwd, rowType, windowContent, ...)
+	if has_key(w:, 'row')
+		if has_key(w:row, 'payloadEditionBufNr') | unlet! w:row.payloadEditionBufNr | endif
+		if has_key(w:row, 'requestEditionBufNr') | unlet! w:row.requestEditionBufNr | endif
+		if has_key(w:row, 'requestStructure')    | unlet! w:row.requestStructure    | endif
+	endif
 	if !has_key(w:, 'row')
 		let w:row = {
 			\'id': a:rowId,
@@ -4146,8 +4151,66 @@ function! InitQueryRowRequestWindow()
 	set filetype=zsh
 	set omnifunc=CosmosCompletion
 	nnoremap <silent> <buffer> <Leader>S :RunQuery<CR>
+	nnoremap <silent> <buffer> # :TogglePayloadEditor<CR>
 	exec 'lcd' w:row.cwd
 endfunction
+
+function! TogglePayloadEditor()
+	let payloadEditionBufnr = get(w:row, 'payloadEditionBufNr', '')
+	if !empty(payloadEditionBufnr)
+		silent exec 'buffer' w:row.payloadEditionBufNr
+	else
+		let w:row.requestEditionBufNr = bufnr()
+		let w:row.requestStructure = GetRequestStructure()
+		silent enew | set bt=nofile | set ft=json
+		silent call setline(1, ConvertRequestPayloadToStringifiedJson(w:row.requestStructure.payload))
+		silent FormatEvenWhenStringified
+		let w:row.payloadEditionBufNr = bufnr()
+		nnoremap <silent> <buffer> # :ToggleRequestEditor<CR>
+	endif
+endfunction
+command! TogglePayloadEditor call TogglePayloadEditor()
+
+function! GetRequestStructure()
+	let lines = getline(1, '$')
+	let structure = {
+		\'payloadPre': [],
+		\'payload': [],
+		\'payloadPost': []
+	\}
+	let dataParameterLine = search('^\s*--data')
+	normal! j%
+	let dataEndLine = line('.')
+	return {
+		\'payloadPre': lines[0:dataParameterLine-1],
+		\'payload': lines[dataParameterLine:dataEndLine-1],
+		\'payloadPost': lines[dataEndLine:line('$')-1]
+	\}
+endfunction
+
+function! ConvertRequestPayloadToStringifiedJson(payload)
+	let len = len(a:payload)
+	if len == 0
+		return a:payload
+	elseif len == 1
+		return map(a:payload, '"v:val"')
+	else
+		return ['"'.a:payload[0]] + a:payload[1:-2] + [a:payload[-1].'"']
+	endif
+endfunction
+
+function! ConvertJsonToRequestPayload(json)
+	return mapnew(a:json, {_,x -> substitute(escape(string(x)[1:-2], '\"'), "''", "'", 'g') })
+endfunction
+
+function! ToggleRequestEditor()
+	let payload = getline(1, '$')
+	let request = w:row.requestStructure
+	silent call deletebufline(w:row.requestEditionBufNr, 1, '$')
+	silent call setbufline(w:row.requestEditionBufNr, 1, request.payloadPre + ConvertJsonToRequestPayload(payload) + request.payloadPost)
+	silent exec 'buffer' w:row.requestEditionBufNr
+endfunction
+command! ToggleRequestEditor call ToggleRequestEditor()
 
 function! InitQueryRowResponseWindow()
 	exec 'lcd' w:row.cwd
@@ -4237,14 +4300,14 @@ function! RunQuery()
 	silent pu!=requestLines | silent exec 'saveas' (queryFilenameWithoutExtension . '.script')
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', w:row.content)
 	let request = join(map(requestLines, 'ExpandEnvironmentVariables(v:val)'))
-	redraw | echomsg "query: <start>"
+	redraw | echomsg printf("❓ %s ❓", fnamemodify(queryFilenameWithoutExtension, ':t:r')[len('YYYY-MM-DD-ddd '):])
 	let s:job = job_start(BuildCommandToRunAsJob(request), BuildQueryRowJobOptions(w:row, queryFilenameWithoutExtension))
 endfunction
 command! RunQuery call RunQuery()
 
 function! BuildRequestLinesFromCurrentBuffer()
 	let requestLines = getbufline(bufnr(), 1, '$')
-	call map(requestLines, 'trim(v:val)')
+	call map(requestLines, 'v:val')
 	call filter(requestLines, 'stridx(v:val, ''#'') != 0')
 	call filter(requestLines, 'v:val !~ ''^\s*$''')
 	return requestLines
@@ -4279,7 +4342,7 @@ function! BuildQueryRowJobOptions(row, queryFilenameWithoutExtension)
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job_Row_'.a:row.id)
 	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:row.id, 'history')[0])
 	let dirvishDirValue = get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '')
-	redraw | echomsg "query: <done>"
+	redraw | echomsg printf("✅ %s 👍", fnamemodify(a:queryFilenameWithoutExtension, ':t:r')[len('YYYY-MM-DD-ddd '):])
 	return {
 		\'cwd': getcwd(),
 		\'out_io': 'buffer',
@@ -4296,7 +4359,7 @@ endfunction
 function! DisplayQueryJobOutput(bufnr, dirvishDirValue, queryFilenameWithoutExtension, rowId, channel)
 	let responseWindowId = GetRowsWinIdsInCurrentTabPage(w:row.id, 'response')[0]
 	call win_gotoid(responseWindowId)
-	exec 'buffer' a:bufnr
+	silent exec 'buffer' a:bufnr
 	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
 	if isCurlDashSmallI
 		silent 2,$-1d
