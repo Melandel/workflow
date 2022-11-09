@@ -4166,10 +4166,17 @@ function! InitQueryRowRequestWindow()
 endfunction
 
 function! TogglePayloadEditor()
+	if search('--data', 'n') == 0
+		echomsg 'Payload not found: keyword "--data" not found in the buffer'
+		return
+	endif
 	let payloadEditionBufnr = get(w:row, 'payloadEditionBufNr', '')
-	if !empty(payloadEditionBufnr) | silent exec 'buffer' w:row.payloadEditionBufNr | endif
 	let w:row.requestEditionBufNr = bufnr()
 	let w:row.requestStructure = GetRequestStructure()
+	if !empty(payloadEditionBufnr)
+		silent exec 'buffer' w:row.payloadEditionBufNr
+		return
+	endif
 	silent enew | set bt=nofile | set ft=json
 	silent call setline(1, ConvertRequestPayloadToStringifiedJson(w:row.requestStructure.payload))
 	silent FormatEvenWhenStringified
@@ -4216,6 +4223,9 @@ endfunction
 function! ToggleRequestEditor()
 	let payload = getline(1, '$')
 	let request = w:row.requestStructure
+	if !empty(filter(copy(payload), { _,x ->  stridx(x, 'parse error') >= 0 }))
+		let payload = request.payload
+	endif
 	silent call deletebufline(w:row.requestEditionBufNr, 1, '$')
 	silent call setbufline(w:row.requestEditionBufNr, 1, request.payloadPre + ConvertJsonToRequestPayload(payload) + request.payloadPost)
 	silent exec 'buffer' w:row.requestEditionBufNr
