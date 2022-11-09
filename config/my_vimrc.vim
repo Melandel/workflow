@@ -4451,7 +4451,7 @@ function! DisplayQueryFile(file, content)
 	let currentWinId = win_getid()
 	let winid = GetRowsWinIdsInCurrentTabPage(w:row.id, a:content)[0]
 	call win_gotoid(winid)
-	silent exec 'edit' a:file
+	silent exec (BufferIsEmpty() ? '0read' : 'edit') a:file
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', a:content)
 	call win_gotoid(currentWinId)
 endfunction
