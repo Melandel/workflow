@@ -359,8 +359,10 @@ function! UpdateEnvironmentLocationVariables()
 			let sln = g:csprojs2sln[csproj]
 		endif
 	endif
-	let nonDesktopRepo = fnamemodify(GetNearestParentFolderContainingFile('.git'), ':p')
-	if nonDesktopRepo != 'Desktop' | let $repo = nonDesktopRepo | endif
+	let repoPath = trim(fnamemodify(GetNearestParentFolderContainingFile('.git'), ':p'), '\')
+	if repoPath !~ 'Desktop' | let $repoPath = repoPath | endif
+	let repoName = fnamemodify(repoPath, ':t')
+	if repoName != 'Desktop' | let $repoName = repoName | endif
 endfunc
 
 augroup lcd
@@ -4013,7 +4015,7 @@ command! AdosBuilds call LocListToAdosBuilds()
 "nnoremap <Leader>A :AdosBuilds<CR>
 
 function! BuildRepositoryPullRequestsWebUrl(...)
-	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosSourceProject, $repo)
+	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosSourceProject, $repoName)
 endfunction
 
 function! GetWorkItemsAssignedToMeInCurrentIteration(...)
