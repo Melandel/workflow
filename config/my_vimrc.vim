@@ -4143,7 +4143,7 @@ function! InitQueryRowHistoryWindow()
 endfunction
 
 function! InitQueryRowRequestWindow()
-	set filetype=powershell
+	set filetype=zsh
 	set omnifunc=CosmosCompletion
 	nnoremap <silent> <buffer> <Leader>S :RunQuery<CR>
 	exec 'lcd' w:row.cwd
@@ -4233,7 +4233,7 @@ function! RunQuery()
 	if shouldWipeOut
 		silent! bwipeout! #
 	endif
-	set ft=powershell
+	call InitQueryRowRequestWindow()
 	silent pu!=requestLines | silent exec 'saveas' (queryFilenameWithoutExtension . '.script')
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', w:row.content)
 	let request = join(map(requestLines, 'ExpandEnvironmentVariables(v:val)'))
