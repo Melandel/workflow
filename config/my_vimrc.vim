@@ -375,6 +375,23 @@ augroup lcd
 augroup end
 
 " Utils"-------------------------------{{{
+function! MoveCursorInsideWindowAndExecuteCommands(winid, move, ...)
+	let pos = getcurpos(a:winid)
+	let lnum = pos[1]
+	let col = pos[2]
+	let newLnum = type(a:move) == type(1)
+		\? a:move
+		\: type(a:move) == type('a') && a:move =~ '^+\d\+$'
+			\? lnum + a:move[1:]
+			\: type(a:move) == type('a') && a:move =~ '^-\d\+$'
+				\? lnum - a:move[1:]
+				\: lnum
+	let newLnum = max([1, min([newLnum, line('$', a:winid)])])
+	let commands = [printf('call cursor(%d,%d)', newLnum, col)]
+	call extend(commands, a:000)
+	call win_execute(a:winid, commands)
+endfunction
+
 function! RemoveDiacritics(str)
 	let diacs = 'áâãàçéêèïíóôõüúù'  " lowercase diacritical signs
 	let diacs .= toupper(diacs)
@@ -4160,8 +4177,8 @@ function! InitQueryRowRequestWindow()
 	nnoremap <silent> <buffer> <LocalLeader>m :RunQuery<CR>
 	nnoremap <silent> <buffer> # :TogglePayloadEditor<CR>
 	nnoremap <silent> <buffer> <Space> `V
-	nmap <silent> <buffer> <C-J> <C-W>h2jo<C-W>l
-	nmap <silent> <buffer> <C-K> <C-W>h2ko<C-W>l
+	nnoremap <silent> <buffer> <C-J> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '+2', 'DisplayQueryFilesFromHistoryWindow')<CR>
+	nnoremap <silent> <buffer> <C-K> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '-2', 'DisplayQueryFilesFromHistoryWindow')<CR>
 	exec 'lcd' w:row.cwd
 endfunction
 
@@ -4235,8 +4252,8 @@ command! ToggleRequestEditor call ToggleRequestEditor()
 function! InitQueryRowResponseWindow()
 	exec 'lcd' w:row.cwd
 	nnoremap <silent> <buffer> <Space> <C-W>h`V
-	nmap <silent> <buffer> <C-J> 2<C-W>h2jo2<C-W>l
-	nmap <silent> <buffer> <C-K> 2<C-W>h2ko2<C-W>l
+	nnoremap <silent> <buffer> <C-J> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '+2', 'DisplayQueryFilesFromHistoryWindow')<CR>
+	nnoremap <silent> <buffer> <C-K> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '-2', 'DisplayQueryFilesFromHistoryWindow')<CR>
 endfunction
 
 function! RemoveSingleOrCurrentQueryRow()
