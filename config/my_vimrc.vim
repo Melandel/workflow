@@ -4463,6 +4463,7 @@ function! DisplayQueryFile(file, content)
 	call win_gotoid(winid)
 	silent exec (BufferIsEmpty() ? '0read' : 'edit') a:file
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', a:content)
+	normal! gg
 	call win_gotoid(currentWinId)
 endfunction
 
