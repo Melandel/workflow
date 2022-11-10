@@ -4111,7 +4111,7 @@ function! CreateQueryRow()
 	else
 		call win_gotoid(historyWinId)
 		normal! gg
-		DisplayQueryFiles
+		DisplayQueryFilesFromHistoryWindow
 		silent wincmd l
 	endif
 endfunction
@@ -4148,7 +4148,7 @@ function! InitQueryRowHistoryWindow()
 	sort!
 	let b:dirvish._c = b:changedtick
 	nnoremap <silent> <buffer> <C-K> <C-W>l
-	nnoremap <silent> <buffer> o :DisplayQueryFiles<CR>
+	nnoremap <silent> <buffer> o :DisplayQueryFilesFromHistoryWindow<CR>
 	nmap <silent> <buffer> <C-J> 2jo
 	nmap <silent> <buffer> <C-K> 2ko
 	nnoremap <silent> <buffer> <Space> <C-W>l`V
@@ -4433,14 +4433,14 @@ function! BuildQueryTitle(requestLines)
 	return request[:spaceIndex-1]
 endfunction
 
-function! DisplayQueryFiles()
+function! DisplayQueryFilesFromHistoryWindow()
 	let winid = win_getid()
 	let queryFiles = ComputeQueryFiles()
 	call DisplayQueryFile(queryFiles.request, 'request')
 	call DisplayQueryFile(queryFiles.response, 'response')
 	call win_gotoid(winid)
 endfunction
-command! DisplayQueryFiles call DisplayQueryFiles()
+command! DisplayQueryFilesFromHistoryWindow call DisplayQueryFilesFromHistoryWindow()
 
 function! ComputeQueryFiles()
 	let currentFile = GetCurrentLineAsPath()
