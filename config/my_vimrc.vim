@@ -4197,6 +4197,7 @@ function! TogglePayloadEditor()
 	silent enew | set bt=nofile | set ft=json
 	silent call setline(1, ConvertRequestPayloadToStringifiedJson(w:row.requestStructure.payload))
 	silent FormatEvenWhenStringified
+	Retab
 	let w:row.payloadEditionBufNr = bufnr()
 	nnoremap <silent> <buffer> # :ToggleRequestEditor<CR>
 	nnoremap <silent> <buffer> <LocalLeader>m :ToggleRequestEditor<CR>:RunQuery<CR>
