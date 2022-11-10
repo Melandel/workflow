@@ -4437,8 +4437,9 @@ function! BuildQueryOutputFilenameWithoutExtension(title)
 	let date = strftime('%Y-%m-%d-%A')[:len('YYYY-MM-DD-ddd')-1]
 	let index = len(expand($queries.'/*.script', v:true, v:true))
 	let index +=1
+	let displayedEnv = empty($env) ? 'no-env' : $env
 	if a:title == 'curl'
-		return printf('%s/%s %03d %s %s', $queries, date, index, $env, a:title)
+		return printf('%s/%s %03d %s %s', $queries, date, index, displayedEnv, a:title)
 	else
 		return printf('%s/%s %03d %s', $queries, date, index, a:title)
 	endif
