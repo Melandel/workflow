@@ -4400,6 +4400,7 @@ function! DisplayQueryJobOutput(bufnr, dirvishDirValue, queryFilenameWithoutExte
 	let responseWindowId = GetRowsWinIdsInCurrentTabPage(w:row.id, 'response')[0]
 	call win_gotoid(responseWindowId)
 	silent exec 'buffer' a:bufnr
+	if BufferIsEmpty() | call setline(1, 'NO-OUTPUT') | endif
 	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
 	if isCurlDashSmallI
 		silent 2,$-1d
