@@ -2537,6 +2537,7 @@ augroup dashboard
 	autocmd FileType gitcommit    set complete=.,w,b
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
+	autocmd FileType          git nmap <silent> <buffer> D :Git difftool -y <C-R><C-G> <C-R><C-G>^<CR>
 	autocmd FileType          git set foldmethod=syntax
 augroup end
 
