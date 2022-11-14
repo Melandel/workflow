@@ -370,7 +370,7 @@ augroup lcd
 	" enew has a delay before updating bufname()
 	autocmd BufCreate * call timer_start(100, { timerid -> execute('if &ft != "qf" && bufname() == "" | set bt=nofile | endif', '') })
 	autocmd BufEnter  * call timer_start(100, { timerid -> execute('if &ft == "dosbatch" | | elseif &ft!="dirvish" | Lcd | else | lcd %:p:h | endif', '') })
-	autocmd QuickFixCmdPre * let g:lcd_qf = getcwd()
+	autocmd QuickFixCmdPre * call timer_start(100, { timerid -> execute('let g:lcd_qf = getcwd()', '') })
 	autocmd BufEnter * call UpdateEnvironmentLocationVariables()
 augroup end
 
@@ -1630,7 +1630,6 @@ command! QfNewer call QfNewer()
 augroup quickfix
 	au!
 	autocmd FileType qf set nowrap
-	autocmd FileType qf call SetParticularQuickFixBehaviour()
 	autocmd FileType qf if IsQuickFixWindow() | wincmd J | endif
 	autocmd FileType qf exec 'resize' min([15, line('$')])
 	autocmd CompleteDone * if pumvisible() == 0 | silent! pclose | endif
@@ -1647,6 +1646,7 @@ augroup quickfix
 	autocmd FileType qf if IsQuickFixWindow() | nnoremap <buffer> <CR> <CR>:Reframe<CR>| endif
 	autocmd FileType qf nnoremap <silent> <buffer> H :QfOlder<CR>
 	autocmd FileType qf nnoremap <silent> <buffer> L :QfNewer<CR>
+	autocmd FileType qf call SetParticularQuickFixBehaviour()
 augroup end
 
 function! FilterQf()
