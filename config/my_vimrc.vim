@@ -2423,9 +2423,10 @@ function! GetCommitTypes(findstart, base)
 	if line('.') != 1 || col('.') != 1 | return [] | endif
 	return [
 		\{ 'word': '🏘 architecture',   'menu': 'Changes that affect the architectural layers                (example scopes: persistence, logging, view-rendering, api-contract)' },
-		\{ 'word': '🔧 build',          'menu': 'Changes that affect the build system                        (example scopes: msbuild, nswag)' },
+		\{ 'word': '👷 build',          'menu': 'Changes that affect the build system                        (example scopes: msbuild, nswag)' },
 		\{ 'word': '🆗 ci|cd',          'menu': 'Changes to our CI configuration files, scripts or pipelines (example scopes: azure-devops, github-actions)' },
 		\{ 'word': '🧹 cleanup',        'menu': "Chores that do not affect the code's design                 (example scopes: code-warnings, filesystem, code-consistency)" },
+		\{ 'word': '🔧 config',         'menu': 'Changes on configuration files' },
 		\{ 'word': '🙅 deprecate',      'menu': 'Deprecating an element in the codebase                      (example scopes: exposed-method, payload-property)' },
 		\{ 'word': '➕ deps-add',       'menu': 'Changes that add dependencies to the system                 (example scopes: mapping, fixture-generation, ioc)' },
 		\{ 'word': '➖ deps-remove',    'menu': 'Changes that remove dependencies from the system            (example scopes: mapping, fixture-generation, ioc)' },
