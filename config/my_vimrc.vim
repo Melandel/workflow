@@ -1679,7 +1679,7 @@ function! SetParticularQuickFixBehaviour()
 	vnoremap <buffer> <silent> dd :<C-U>let v1=GetFileVersionID("'<") \| let v2=GetFileVersionID("'>") \| exec 'Gtabedit' v1 \| exec 'Gdiffsplit!' v2<CR>
 	nnoremap <buffer> <silent> D  :let v=GetFileVersionID('.') \| let bufnr=winbufnr(winnr('#')) \| exec 'tab sbuffer' bufnr \| exec 'Gdiffsplit!' v<CR>
 	nnoremap <buffer> <silent> c  :exec 'Gtabedit' GetSha()<CR>
-	nnoremap <buffer> <silent> C  :exec 'Git difftool -y' GetSha()<CR>
+	nnoremap <buffer> <silent> C  :exec 'Git difftool -y' GetSha() GetSha().'^'<CR>
 	cnoremap <buffer> <C-R><C-G> <C-R>=GetSha()<CR>
 endfunction
 
