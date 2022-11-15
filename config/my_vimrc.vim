@@ -2275,7 +2275,7 @@ function! DisplayWipBuffers()
 	nnoremap <silent> <buffer> x :call SetCurrentAdosWorkItemIdFromWip()<CR>
 	silent 9split +let\ b:is_wip_buffer=1 $wip/.pending
 	silent exec float2nr(0.6 * &columns).'vsplit +let\ b:is_wip_buffer=1 $wip/.priority'
-	1wincmd w
+	2wincmd w
 endfunction
 
 function! SetCurrentAdosWorkItemIdFromWip()
