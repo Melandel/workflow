@@ -1211,7 +1211,7 @@ augroup vimsourcing
 augroup end
 
 " Find, Grep, Make, Equal" ------------{{{
-function! Grep(qf_or_loclist, ...)
+function! Grep(qf_or_loclist, bang, ...)
 	let cwd = getcwd()
 	let winnr = winnr()
 	let params = join(a:000)
@@ -1228,7 +1228,11 @@ function! Grep(qf_or_loclist, ...)
 	endif
 	let cmdParams += a:000[firstTokenWithDoubleQuote:]
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/grep')
-	let cmd = printf('rg --vimgrep --no-heading --smart-case -g "!**/obj/**" -g "!**/bin/**" %s', join(cmdParams))
+	if a:bang
+		let cmd = printf('rg --no-ignore --vimgrep --no-heading --smart-case -g "!**/obj/**" -g "!**/bin/**" %s', join(cmdParams))
+	else
+		let cmd = printf('rg --vimgrep --no-heading --smart-case -g "!**/obj/**" -g "!**/bin/**" %s', join(cmdParams))
+	endif
 	let cmd .= ' \\?\%cd%' "https://github.com/BurntSushi/ripgrep/issues/364
 	echomsg "<start> ".cmd
 	if g:isWindows
@@ -1271,8 +1275,8 @@ function! GrepCB(winnr, cmd, cwd, pattern, scratchbufnr, qf_or_loclist, job, exi
 	let title = printf("[grep] %s", a:pattern)
 	silent exec printf('call setwinvar(winnr("$"), "quickfix_title", "%s")', title)
 endfunction
-command! -nargs=+ Grep  call Grep('qf',     <f-args>)
-command! -nargs=+ Lgrep call Grep('loclist',<f-args>)
+command! -nargs=+ -bang Grep  call Grep('qf',     <bang>0,<f-args>)
+command! -nargs=+ -bang Lgrep call Grep('loclist',<bang>0,<f-args>)
 
 function! EscapeRipgrepPattern(pattern)
 	let surroundWithDoubleQuotes = 0
@@ -1734,48 +1738,48 @@ if has('vim9script')
 	enddef
 else
 	function! QuickFixTextFunc(info)
-	return len(a:info) > 42 ? a:info : QuickFixVerticalAlign(a:info)
+		return len(a:info) > 42 ? a:info : QuickFixVerticalAlign(a:info)
 	endfunc
 
 	function! QuickFixVerticalAlign(info)
-	if a:info.quickfix
-		let qfl = getqflist({'id': a:info.id, 'items': 0}).items
-	else
-		let qfl = getloclist(a:info.winid, {'id': a:info.id, 'items': 0}).items
-	endif
-	let modules_are_used = empty(qfl) ? 1 : (get(qfl[0], 'module', '') != '')
-	let l = []
-	let efm_type = {'e': 'error', 'w': 'warning', 'i': 'info', 'n': 'note'}
-	let lnum_width =   len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), { _,v -> qfl[v].lnum })))
-	let col_width =    len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> qfl[v].col})))
-	let fname_width =  max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), modules_are_used ? {_, v -> strchars(qfl[v].module, 1)} : {_, v -> strchars(substitute(fnamemodify(bufname(qfl[v].bufnr), ':.'), '\\', '/', 'g'), 1)}))
-	let type_width =   max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> strlen(get(efm_type, qfl[v].type, ''))}))
-	let errnum_width = len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1),{_, v -> qfl[v].nr})))
-	for idx in range(a:info.start_idx - 1, a:info.end_idx - 1)
-		let e = qfl[idx]
-		let e.text = substitute(e.text, '\%x00', ' ', 'g')
-		if stridx(e.text, ' Expected: ') >= 0
-			let e.text = substitute(e.text, ' Actual:   ', '   Actual: ', '')
-		endif
-		if !e.valid
-			call add(l, '|| '.e.text)
+		if a:info.quickfix
+			let qfl = getqflist({'id': a:info.id, 'items': 0}).items
 		else
-			let fname = printf('%-*S', fname_width, modules_are_used ? e.module : substitute(fnamemodify(bufname(e.bufnr), ':.'), '\\', '/', 'g'))
-			if e.lnum == 0 && e.col == 0
-				call add(l, printf('%s|| %s', fname, e.text))
-			else
-				let lnum = printf('%*d', lnum_width, e.lnum)
-				let col = printf('%*d', col_width, e.col)
-				let type = printf('%-*S', type_width, get(efm_type, e.type, ''))
-				let errnum = ''
-				if e.nr
-					let errnum = printf('%*d', errnum_width + 1, e.nr)
-				endif
-				call add(l, printf('%s|%s col %s %s%s| %s', fname, lnum, col, type, errnum, e.text))
-			endif
+			let qfl = getloclist(a:info.winid, {'id': a:info.id, 'items': 0}).items
 		endif
-	endfor
-	return l
+		let modules_are_used = empty(qfl) ? 1 : (get(qfl[0], 'module', '') != '')
+		let l = []
+		let efm_type = {'e': 'error', 'w': 'warning', 'i': 'info', 'n': 'note'}
+		let lnum_width =   len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), { _,v -> qfl[v].lnum })))
+		let col_width =    len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> qfl[v].col})))
+		let fname_width =  max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), modules_are_used ? {_, v -> strchars(qfl[v].module, 1)} : {_, v -> strchars(substitute(fnamemodify(bufname(qfl[v].bufnr), ':.'), '\\', '/', 'g'), 1)}))
+		let type_width =   max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> strlen(get(efm_type, qfl[v].type, ''))}))
+		let errnum_width = len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1),{_, v -> qfl[v].nr})))
+		for idx in range(a:info.start_idx - 1, a:info.end_idx - 1)
+			let e = qfl[idx]
+			let e.text = substitute(e.text, '\%x00', ' ', 'g')
+			if stridx(e.text, ' Expected: ') >= 0
+				let e.text = substitute(e.text, ' Actual:   ', '   Actual: ', '')
+			endif
+			if !e.valid
+				call add(l, '|| '.e.text)
+			else
+				let fname = printf('%-*S', fname_width, modules_are_used ? e.module : substitute(fnamemodify(bufname(e.bufnr), ':.'), '\\', '/', 'g'))
+				if e.lnum == 0 && e.col == 0
+					call add(l, printf('%s|| %s', fname, e.text))
+				else
+					let lnum = printf('%*d', lnum_width, e.lnum)
+					let col = printf('%*d', col_width, e.col)
+					let type = printf('%-*S', type_width, get(efm_type, e.type, ''))
+					let errnum = ''
+					if e.nr
+						let errnum = printf('%*d', errnum_width + 1, e.nr)
+					endif
+					call add(l, printf('%s|%s col %s %s%s| %s', fname, lnum, col, type, errnum, e.text))
+				endif
+			endif
+		endfor
+		return l
 	endfunction
 endif
 set quickfixtextfunc=QuickFixTextFunc
