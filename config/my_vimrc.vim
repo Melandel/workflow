@@ -1695,11 +1695,49 @@ function! GetFileVersionID(...)
 	return line[:stridx(line,'|')-1] 
 endfunction
 
-function! QuickFixTextFunc(info)
+if has('vim9script')
+	def QuickFixTextFunc(info: dict<number>): list<string>
+		var qfl = info.quickfix ? getqflist({'id': info.id, 'items': 0}).items : getloclist(info.winid, {'id': info.id, 'items': 0}).items
+		var modules_are_used = empty(qfl) ? 1 : (get(qfl[0], 'module', '') != '')
+		var l = []
+		var efm_type = {'e': 'error', 'w': 'warning', 'i': 'info', 'n': 'note'}
+		var lnum_width =   len(max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => qfl[v].lnum )))
+		var col_width =    len(max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => qfl[v].col)))
+		var fname_width =  max(map(range(info.start_idx - 1, info.end_idx - 1), modules_are_used ? (_, v) => strchars(qfl[v].module, 1) : (_, v) => strchars(substitute(fnamemodify(bufname(qfl[v].bufnr), ':.'), '\\', '/', 'g'), 1)))
+		var type_width =   max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => strlen(get(efm_type, qfl[v].type, ''))))
+		var errnum_width = len(max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => qfl[v].nr)))
+		for idx in range(info.start_idx - 1, info.end_idx - 1)
+			var e = qfl[idx]
+			e.text = substitute(e.text, '\%x00', ' ', 'g')
+			if stridx(e.text, ' Expected: ') >= 0
+				e.text = substitute(e.text, ' Actual:   ', '   Actual: ', '')
+			endif
+			if !e.valid
+				add(l, '|| ' .. e.text)
+			else
+				var fname = printf('%-*S', fname_width, modules_are_used ? e.module : substitute(fnamemodify(bufname(e.bufnr), ':.'), '\\', '/', 'g'))
+				if e.lnum == 0 && e.col == 0
+					add(l, printf('%s|| %s', fname, e.text))
+				else
+					var lnum = printf('%*d', lnum_width, e.lnum)
+					var col = printf('%*d', col_width, e.col)
+					var type = printf('%-*S', type_width, get(efm_type, e.type, ''))
+					var errnum = ''
+					if !!e.nr
+						errnum = printf('%*d', errnum_width + 1, e.nr)
+					endif
+					add(l, printf('%s|%s col %s %s%s| %s', fname, lnum, col, type, errnum, e.text))
+				endif
+			endif
+		endfor
+		return l
+	enddef
+else
+	function! QuickFixTextFunc(info)
 	return len(a:info) > 42 ? a:info : QuickFixVerticalAlign(a:info)
-endfunc
+	endfunc
 
-function! QuickFixVerticalAlign(info)
+	function! QuickFixVerticalAlign(info)
 	if a:info.quickfix
 		let qfl = getqflist({'id': a:info.id, 'items': 0}).items
 	else
@@ -1738,7 +1776,8 @@ function! QuickFixVerticalAlign(info)
 		endif
 	endfor
 	return l
-endfunction
+	endfunction
+endif
 set quickfixtextfunc=QuickFixTextFunc
 
 " Marks"-------------------------------{{{
