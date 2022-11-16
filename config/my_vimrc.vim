@@ -2479,7 +2479,7 @@ function! BuildPullRequestDescription(commitOrBranchName)
 	call add(commitsAsMarkdownTableRow, FormatAsMarkdownTableRow(currentCommitAsRow))
 	let descriptionLines = []
 	let descriptionLines += ["## 🔨 Requested behavior's implementation"]
-	let behaviorCommitsAsMarkdownTableRows = filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'behavior'})
+	let behaviorCommitsAsMarkdownTableRows = reverse(filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'behavior'}))
 	if(empty(behaviorCommitsAsMarkdownTableRows))
 		call extend(descriptionLines, [ "_Nothing._", "" ])
 	else
@@ -2488,7 +2488,7 @@ function! BuildPullRequestDescription(commitOrBranchName)
 		call extend(descriptionLines, [ "", "## 🚦 Regression test suite", "| Scope | Behavior | Notes |", "|-|-|-|", "" ])
 	endif
 	call add(descriptionLines, "## ⚜ Clean Code's [Boy Scout Rule](](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch08.html))")
-	let structureCommitsAsMarkdownTableRows = filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'structure'})
+	let structureCommitsAsMarkdownTableRows = reverse(filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'structure'}))
 	if(empty(structureCommitsAsMarkdownTableRows))
 		call extend(descriptionLines, [ "_Nothing._", ""])
 	else
