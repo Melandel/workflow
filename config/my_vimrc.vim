@@ -37,7 +37,7 @@ elseif g:isWsl
 endif
 
 " Desktop Integration:-----------------{{{
-" Plugins" ----------------------------{{{
+" Plugins: ----------------------------{{{
 set packpath=$vim,$vimFiles
 packadd! matchit
 packadd! cfilter
@@ -76,7 +76,7 @@ command! -bar MinPacInit call MinpacInit()
 command! -bar MinPacUpdate call MinpacInit()| call minpac#clean()| call minpac#update()
 let loaded_netrwPlugin = 1 " do not load netrw
 
-" First time" -------------------------{{{
+" First time: -------------------------{{{
 if !isdirectory($vimFiles.'/pack/plugins')
 	call system('git clone https://github.com/k-takata/minpac.git ' . $vimFiles . '/pack/packmanager/opt/minpac')
 	call MinpacInit()
@@ -84,14 +84,14 @@ if !isdirectory($vimFiles.'/pack/plugins')
 	packloadall
 endif
 
-" Duplicated/Generated files" ---------{{{
+" Duplicated/Generated files: ---------{{{
 augroup duplicatefiles
 	au!
 	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out '.$desktop.'\myAzertyKeyboard.RunMeAsAdmin.exe'
 augroup end
 
 " General:-----------------------------{{{
-" Settings" ---------------------------{{{
+" Settings: ---------------------------{{{
 syntax on
 filetype plugin indent on
 silent! language messages English_United states
@@ -148,7 +148,7 @@ if g:isWsl
 	augroup END
 endif
 
-" Tabs and Indentation" ---------------{{{
+" Tabs and Indentation: ---------------{{{
 set smartindent
 set tabstop=1
 set shiftwidth=1
@@ -304,11 +304,11 @@ endfunction
 
 
 
-" Leader keys" ------------------------{{{
+" Leader keys: ------------------------{{{
 let mapleader = 's'
 let maplocalleader = 'q'
 
-" Local Current Directories" ----------{{{
+" Local Current Directories: ----------{{{
 let g:lcd_qf = getcwd()
 
 function! GetInterestingParentDirectory()
@@ -374,7 +374,7 @@ augroup lcd
 	autocmd BufEnter * call UpdateEnvironmentLocationVariables()
 augroup end
 
-" Utils"-------------------------------{{{
+" Utils:-------------------------------{{{
 function! MoveCursorInsideWindowAndExecuteCommands(winid, move, ...)
 	let pos = getcurpos(a:winid)
 	let lnum = pos[1]
@@ -670,7 +670,7 @@ function! Alert(text)
 endfunction
 
 " AZERTY Keyboard:---------------------{{{
-" AltGr keys" -------------------------{{{
+" AltGr keys: -------------------------{{{
 inoremap ^q {|		cnoremap ^q {
 inoremap ^s [|		cnoremap ^d [
 inoremap ^d ]|		cnoremap ^f ]
@@ -689,17 +689,17 @@ inoremap § <C-O><C-Z>
 nnoremap § <C-Z>
 cnoremap § <C-U>ter 
 
-" Arrows" -----------------------------{{{
+" Arrows: -----------------------------{{{
 inoremap <C-J> <Left>|  cnoremap <C-J> <Left>|  tnoremap <C-J> <Left>
 inoremap <C-K> <Right>| cnoremap <C-K> <Right>| tnoremap <C-K> <Right>
 tnoremap <C-N> <Down>| tnoremap <C-W><C-N> <C-N>
 tnoremap <C-P> <Up>| tnoremap <C-W><C-P> <C-P>
 
-" Home,End" ---------------------------{{{
+" Home,End: ---------------------------{{{
 inoremap ^j <Home>| cnoremap ^j <Home>| tnoremap ^j <Home>
 inoremap ^k <End>|  cnoremap ^k <End>|  tnoremap ^k <End>
 
-" Backspace,Delete" -------------------{{{
+" Backspace,Delete: -------------------{{{
 tnoremap <C-L> <Del>
 inoremap <C-L> <Del>|   cnoremap <C-L> <Del>| smap <C-L> <Del>
 
@@ -708,7 +708,7 @@ inoremap <C-U> <C-G>u<C-U>
 inoremap <C-W> <C-G>u<C-W>
 
 " Graphical Layout:--------------------{{{
-" Colorscheme, Highlight groups" ------{{{
+" Colorscheme, Highlight groups: ------{{{
 colorscheme empower
 "nnoremap <LocalLeader>h :echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')<CR>
 "nnoremap <LocalLeader>H :OmniSharpHighlightEchoKind<CR>
@@ -736,7 +736,7 @@ elseif &term == 'win32' && empty($SSH_TTY)
   let &t_te.=" \<Esc>[0 q"
 	endif
 
-" Buffers, Windows & Tabs" ------------{{{
+" Buffers, Windows & Tabs: ------------{{{
 set hidden
 set splitbelow
 set splitright
@@ -897,7 +897,7 @@ nnoremap <silent> <Leader>= <C-W>=
 nnoremap <silent> <Leader>\| <C-W>\|
 nnoremap <silent> <Leader>_ <C-W>_
 
-" Status bar" -------------------------{{{
+" Status bar: -------------------------{{{
 set laststatus=2
 
 function! TabInfo()
@@ -982,7 +982,7 @@ nnoremap zL zl
 nnoremap zH zh
 nnoremap zh zH
 
-" Browsing File Architecture" ---------{{{
+" Browsing File Architecture: ---------{{{
 let g:qfprio = 'c'
 let g:framingoffset = 5
 
@@ -1116,7 +1116,7 @@ augroup end
 nnoremap gi `^
 nnoremap <expr> gI v:count == 0 ? '`I' : 'gI'
 
-" Current Line" -----------------------{{{
+" Current Line: -----------------------{{{
 nnoremap <silent> . :let c= strcharpart(getline('.')[col('.') - 1:], 0, 1)\|exec "normal! f".c<CR>
 
 function! ExtendedHome()
@@ -1145,7 +1145,7 @@ nnoremap <silent> <End> :End<CR>
 vnoremap <silent> <End> m'$m'
 onoremap <silent> <End> :End<CR>
 
-" Text objects" -----------------------{{{
+" Text objects: -----------------------{{{
 vnoremap iz [zjo]zkVg_| onoremap iz :normal viz<CR>
 vnoremap az [zo]zVg_|   onoremap az :normal vaz<CR>
 vnoremap if ggoGV| onoremap if :normal vif<CR>
@@ -1153,7 +1153,7 @@ vnoremap if ggoGV| onoremap if :normal vif<CR>
 let g:targets_jumpRanges = 'cr cb cB lc ac Ac lr rr ll lb ar ab lB Ar aB Ab AB rb al rB Al bb aa bB Aa BB AA'
 
 " Text Operations:---------------------{{{
-" Visualization" ----------------------{{{
+" Visualization: ----------------------{{{
 " select until end of line
 nnoremap vv ^vg_
 nnoremap <C-V><C-V> ^<C-V>
@@ -1161,7 +1161,7 @@ nnoremap <C-V><C-V> ^<C-V>
 vnoremap <silent> <C-J> <C-V><esc>gvVojo
 vnoremap <silent> <C-K> <C-V><esc>gvVoko
 
-" Copy & Paste" -----------------------{{{
+" Copy & Paste: -----------------------{{{
 nnoremap Y y$
 nnoremap zy "+y
 nnoremap zY "+Y
@@ -1174,27 +1174,27 @@ tnoremap <C-V> <C-W>"+
 vnoremap gy y`]
 nnoremap <expr> vp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
-" Repeat-Last-Action" -----------------{{{
+" Repeat-Last-Action: -----------------{{{
 nnoremap ù .
 
-" Vertical Alignment" -----------------{{{
+" Vertical Alignment: -----------------{{{
 xmap ga :Tabular /
 nmap ga :Tabular /
 xnoremap gA :Tabular /\|<CR>
 nnoremap gA vip:Tabular /\|<CR>
 
 " Vim Core Functionalities:------------{{{
-" Command Line"------------------------{{{
+" Command Line:------------------------{{{
 set cmdwinheight=40
 set cedit=<C-F>
 
-" Wild Menu" --------------------------{{{
+" Wild Menu: --------------------------{{{
 set wildmenu
 set wildcharm=<Tab>
 set wildignorecase
 set wildmode=full
 
-" Sourcing" ---------------------------{{{
+" Sourcing: ---------------------------{{{
 vnoremap <silent> <Leader>V mvy:call histadd('cmd', @@)\|exec @@<CR>`v
 nnoremap <silent> <Leader>V mv^y$:exec @@<CR>`v
 
@@ -1210,7 +1210,7 @@ augroup vimsourcing
 	autocmd FileType vim nnoremap <buffer> z! :BLines function!\\|{{{<CR>
 augroup end
 
-" Find, Grep, Make, Equal" ------------{{{
+" Find, Grep, Make, Equal: ------------{{{
 function! Grep(qf_or_loclist, ...)
 	let cwd = getcwd()
 	let winnr = winnr()
@@ -1294,7 +1294,7 @@ nnoremap <Leader>! :Grep -F ""<left>
 vnoremap <silent> <Leader>r "vy:Grep -F "<C-R>=GetCurrentSelection()<CR>"<CR>
 nnoremap <LocalLeader>m :silent make<CR>
 
-" Terminal" ---------------------------{{{
+" Terminal: ---------------------------{{{
 tnoremap <silent> <Esc> <C-W>N| tnoremap <silent> <C-W>N <Esc>
 tnoremap <silent> <C-U> <Esc>| tnoremap <silent> <C-W>u <C-U>
 tnoremap <silent> <Leader>hh <C-W>h
@@ -1321,7 +1321,7 @@ augroup terminal
 	au!
 	autocmd! TerminalWinOpen * setl termwinsize=0*9999
 augroup end
-" Folding" ----------------------------{{{
+" Folding: ----------------------------{{{
 vnoremap <silent> <space> <Esc>zE:let b:focus_mode=1 \| setlocal foldmethod=manual<CR>`<kzfgg`>jzfG`<
 nnoremap <silent> <space> :exec('normal! '.(b:focus_mode==1 ? 'zR' : 'zM')) \| let b:focus_mode=!b:focus_mode<CR>
 
@@ -1334,7 +1334,7 @@ function! FoldText()
 	let title = getline(foldstart)[len(v:folddashes)-1:]
 	return repeat('-', len(v:folddashes)-1).title.' ('.(v:foldend-v:foldstart+1).'rows)'
 endfunction
-" Search" -----------------------------{{{
+" Search: -----------------------------{{{
 set hlsearch
 set incsearch
 set ignorecase
@@ -1412,7 +1412,7 @@ augroup quicksearch
 	autocmd BufEnter * nnoremap <silent> <buffer> [` /\(\s\|\[\|\(\|"\|'\)`\zs\s*\w\+.*\ze`<CR>
 augroup end
 
-" Sort" -------------------------------{{{
+" Sort: -------------------------------{{{
 function! SortLinesByLength() range
 	let range = a:firstline.','.a:lastline
 	silent exec range 's/.*/\=printf("%03d", len(submatch(0)))."|".submatch(0)/'
@@ -1431,7 +1431,7 @@ function! SortLinesByLengthBeforeFirstSpaceChar() range
 endfunction
 command! -range=% SortByLengthBeforeFirstSpaceChar <line1>,<line2>call SortLinesByLengthBeforeFirstSpaceChar()
 
-" Autocompletion (Insert Mode)" -------{{{
+" Autocompletion (Insert Mode): -------{{{
 let g:UltiSnipsSnippetDirectories = [ 'UltiSnips', 'specificSnippets' ]
 if index(split(&runtimepath, ','), $vimFiles) < 0
 	" access to pythonx folder
@@ -1517,7 +1517,7 @@ function! ExpandSnippetOrValidateAutocompletionSelection()
 	endif
 endfunction
 
-" Diff" -------------------------------{{{
+" Diff: -------------------------------{{{
 set diffopt+=algorithm:histogram,indent-heuristic,vertical,iwhite
 
 augroup diff
@@ -1526,7 +1526,7 @@ augroup diff
 	autocmd OptionSet diff silent! 1 | silent! normal! ]c
 augroup end
 
-" QuickFix, Preview, Location window" -{{{
+" QuickFix, Preview, Location window: -{{{
 nnoremap <C-H> :cpfile<CR>
 nnoremap <C-L> :cnfile<CR>
 
@@ -1788,7 +1788,7 @@ else
 endif
 set quickfixtextfunc=QuickFixTextFunc
 
-" Marks"-------------------------------{{{
+" Marks:-------------------------------{{{
 " H and L are used for cycling between buffers and `A is a pain to type
 nnoremap M `
 
@@ -1835,16 +1835,16 @@ augroup marks
 	"autocmd CursorHold * call MarkCurrentPosition()
 augroup end
 
-" Changelist"--------------------------{{{
+" Changelist:--------------------------{{{
 nnoremap g; g;zv
 nnoremap g, g,zv
 
 " Additional Functionalities:----------{{{
-" Buffer navigation"-------------------{{{
+" Buffer navigation:-------------------{{{
 nnoremap <silent> H :CycleBackwards<CR>
 nnoremap <silent> L :CycleForward<CR>
 
-" Fuzzy Finder"------------------------{{{
+" Fuzzy Finder:------------------------{{{
 " Makes Omnishahrp-vim code actions select both two elements
 "let g:fzf_layout = { 'window': { 'width': 0.39, 'height': 0.25 } }
 "let g:fzf_preview_window = []
@@ -1870,7 +1870,7 @@ nnoremap <leader>G :BCommits<CR>
 nnoremap q, :History<CR>
 nnoremap q; :Buffers<CR>
 
-" Window buffer navigation"------------{{{
+" Window buffer navigation:------------{{{
 augroup cycleWindowBuffer
 	au!
 	autocmd BufEnter * call AddCurrentBufferToWindowBufferList()
@@ -1914,7 +1914,7 @@ function! CycleWindowBuffersHistoryBackwards()
 endfunction
 command! CycleBackwards call CycleWindowBuffersHistoryBackwards()
 
-" Full screen & Opacity" --------------{{{
+" Full screen & Opacity: --------------{{{
 if has('win32') && has('gui_running')
 	let g:gvimtweak#window_alpha=255 " alpha value (180 ~ 255) default: 245
 	let g:gvimtweak#enable_alpha_at_startup=1
@@ -1927,7 +1927,7 @@ if has('win32') && has('gui_running')
 	nnoremap <silent> <A-o> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
 	inoremap <silent> <A-n> <C-O>:GvimTweakToggleTransparency<CR>
 endif
-" File explorer (graphical)" ----------{{{
+" File explorer (graphical): ----------{{{
 function! IsPreviouslyYankedItemValid()
 	return @d != ''
 endfunction
@@ -2262,7 +2262,7 @@ function! GoToGitRoot()
 	exec 'lcd' gitroot
 endfunction
 
-" Web Browsing" -----------------------{{{
+" Web Browsing: -----------------------{{{
 function! BuildViebUrl(path)
 	let url = a:path
 	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
@@ -2422,7 +2422,7 @@ function! BuildWipFileForWorkItem(workItemId)
 endfunction
 command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Wip call BuildWipFileForWorkItem(str2nr(matchlist(<f-args>, '\d\{5,}')[0]))
 
-" Dashboard" --------------------------{{{
+" Dashboard: --------------------------{{{
 cnoremap <C-B> <C-R>=gitbranch#name()<CR>
 
 function! OpenDashboard()
@@ -2591,7 +2591,7 @@ augroup end
 nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
 nnoremap <silent> <leader>D :Gdiffsplit<CR>
 
-" Drafts (Diagrams & Notes)"-----------{{{
+" Drafts (Diagrams & Notes):-----------{{{
 function! LocListNotes()
 	exec 'Lgrep' '"^# "' $n '-g "*.md" -g "!*.withsvgs.md"' '--sort path'
 endfunction
@@ -2900,7 +2900,7 @@ augroup mydiagrams
 	autocmd FileType           dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
 
-" Notes"-------------------------------{{{
+" Notes:-------------------------------{{{
 function! GenerateMarkdownForRequestResponse(title, responseLines, requestLines)
 	let markdown =  ['### '.a:title, '<div style="display: flex"><div style="flex: 50%; max-width: 50%;">', '', '**Request**', '```']
 	let markdown += a:requestLines
@@ -2916,7 +2916,7 @@ function! TraceRequestResponseIntoFile(requestLines, responseLines, filename, ti
 endfunction
 command! -nargs=1 Keep call TraceRequestResponseIntoFile(get(b:, 'scriptLines'), getline(1, '$'), get(g:, 'keepfile', $d.'/keep.md'), <q-args>)
 
-" Debugging"---------------------------{{{
+" Debugging:---------------------------{{{
  let g:vimspector_enable_mappings = 'HUMAN'
 	"sign define vimspectorBP text=o             texthl=WarningMsg
 	"sign define vimspectorBPCond text=o?        texthl=WarningMsg
@@ -3067,7 +3067,7 @@ function! RemoveDebugMappings() abort
 endfunction
 
 " Specific Workflows:------------------{{{
-" Nuget" ------------------------------{{{
+" Nuget: ------------------------------{{{
 function! FindOrListNugets(...)
 	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Nugets')
 	if empty(a:000) && &ft == 'cs'
@@ -3137,7 +3137,7 @@ function! FindOrListNugetsExitCb(foundNugets, tokens, scratchbufnr, job, status)
 	normal! gg"_dd
 endfunction
 
-" cs(c#)" -----------------------------{{{
+" cs(c#): -----------------------------{{{
 if has('win32') | let g:OmniSharp_server_path = $desktop . '/tools/omnisharp/OmniSharp.exe' | endif
 let $DOTNET_NEW_LOCAL_SEARCH_FILE_ONLY=1
 let g:OmniSharp_start_server = 0
@@ -4136,7 +4136,7 @@ nnoremap <silent> <Leader>a :if exists('g:previousWorkItemId') \| call LocListAd
 command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Ados call LocListAdos(str2nr(<f-args>))
 nnoremap <Leader>A :Ados <tab>
 
-" Formatting" -------------------------{{{
+" Formatting: -------------------------{{{
 augroup Formatting
 au FileType xml setlocal equalprg=xmllint\ --format\ --recover\ -
 au FileType xml nnoremap <silent> <buffer> <LocalLeader>= :FormatEvenWhenStringified<CR>
@@ -4159,7 +4159,7 @@ function! FormatEvenWhenStringified()
 endfunction
 command! FormatEvenWhenStringified call FormatEvenWhenStringified()
 
-" Query rows "-------------------------{{{
+" Query rows :-------------------------{{{
 let g:queryRowHeight = 15
 let g:queryRowHistoryWidth = 48
 command! ToggleQueryRow if AreQueryRowsActive() | call RemoveSingleOrCurrentQueryRow() | else | call CreateQueryRow() | endif
