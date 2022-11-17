@@ -1239,6 +1239,7 @@ function! Grep(qf_or_loclist, ...)
 		\{ _,x -> '-g "!**/'.x.'/*"' }))
 	let cmd = printf('rg --no-ignore --vimgrep --no-heading --smart-case %s %s %s', leafFoldersIgnoreOpts, foldersIgnoreOpts, join(cmdParams))
 	let cmd .= ' \\?\%cd%' "https://github.com/BurntSushi/ripgrep/issues/364
+	set cmdheight=2
 	echomsg cwd.':' cmd
 	if g:isWindows | let cmd = 'cmd /C '.cmd | endif
 	let s:job = job_start(
@@ -1255,7 +1256,6 @@ function! Grep(qf_or_loclist, ...)
 			\'exit_cb': function("GrepCB", [winnr, cmd, cwd, pattern, scratchbufnr, a:qf_or_loclist])
 		\}
 	\)
-	redraw
 endfunction
 
 function! GrepCB(winnr, cmd, cwd, pattern, scratchbufnr, qf_or_loclist, job, exit_status)
@@ -1277,6 +1277,8 @@ function! GrepCB(winnr, cmd, cwd, pattern, scratchbufnr, qf_or_loclist, job, exi
 	silent exec prefix.'getbuffer' a:scratchbufnr
 	let title = printf("[grep] %s", a:pattern)
 	silent exec printf('call setwinvar(winnr("$"), "quickfix_title", "%s")', title)
+	set cmdheight=1
+	echomsg title
 endfunction
 command! -nargs=+ Grep  call Grep('qf',     <f-args>)
 command! -nargs=+ Lgrep call Grep('loclist',<f-args>)
