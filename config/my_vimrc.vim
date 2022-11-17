@@ -9,6 +9,7 @@ if g:isWindows
 let $HOME = substitute($HOME, '\\', '/', 'g')
 let $config    = $HOME.'/Desktop/config'
 let $vimFiles  = $HOME.'/Desktop/config/myVim'
+let $plugins   = $vimFiles.'/pack/plugins/start'
 let $desktop   = $HOME.'/Desktop'                    | let $d = $desktop
 let $downloads = $HOME.'/Downloads'
 let $notes     = $HOME.'/Desktop/notes'              | let $n = $notes
