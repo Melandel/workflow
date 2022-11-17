@@ -1211,7 +1211,7 @@ augroup vimsourcing
 augroup end
 
 " Find, Grep, Make, Equal" ------------{{{
-function! Grep(qf_or_loclist, bang, ...)
+function! Grep(qf_or_loclist, ...)
 	let cwd = getcwd()
 	let winnr = winnr()
 	let params = join(a:000)
@@ -1228,11 +1228,7 @@ function! Grep(qf_or_loclist, bang, ...)
 	endif
 	let cmdParams += a:000[firstTokenWithDoubleQuote:]
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/grep')
-	if a:bang
 		let cmd = printf('rg --no-ignore --vimgrep --no-heading --smart-case -g "!**/obj/**" -g "!**/bin/**" %s', join(cmdParams))
-	else
-		let cmd = printf('rg --vimgrep --no-heading --smart-case -g "!**/obj/**" -g "!**/bin/**" %s', join(cmdParams))
-	endif
 	let cmd .= ' \\?\%cd%' "https://github.com/BurntSushi/ripgrep/issues/364
 	echomsg "<start> ".cmd
 	if g:isWindows
@@ -1275,8 +1271,8 @@ function! GrepCB(winnr, cmd, cwd, pattern, scratchbufnr, qf_or_loclist, job, exi
 	let title = printf("[grep] %s", a:pattern)
 	silent exec printf('call setwinvar(winnr("$"), "quickfix_title", "%s")', title)
 endfunction
-command! -nargs=+ -bang Grep  call Grep('qf',     <bang>0,<f-args>)
-command! -nargs=+ -bang Lgrep call Grep('loclist',<bang>0,<f-args>)
+command! -nargs=+ Grep  call Grep('qf',     <f-args>)
+command! -nargs=+ Lgrep call Grep('loclist',<f-args>)
 
 function! EscapeRipgrepPattern(pattern)
 	let surroundWithDoubleQuotes = 0
