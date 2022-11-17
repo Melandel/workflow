@@ -11,3 +11,4 @@
 /work_in_progress/*
 /config/viebfiles/Code Cache/
 /config/my_vimrc.vim
+/config/myVim/pythonx/__pycache__/

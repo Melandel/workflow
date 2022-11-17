@@ -1,8 +1,9 @@
-def Mohamed(arg):
- """TODO: Docstring for Mohamed.
+import os.path
+import uuid
 
- :arg: TODO
- :returns: TODO
+def rnd():
+ return str(uuid.uuid4())
 
- """
- return "toto"
+def path_to_namespace(path):
+ return os.path.dirname(path).replace('src\\', '').replace('\\', '.')
+
