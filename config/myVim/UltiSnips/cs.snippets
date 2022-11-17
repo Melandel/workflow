@@ -1,3 +1,12 @@
+global !p
+import sys
+from my_snippets_helpers import *
+endglobal
+
+snippet mm "mm" b
+mm `!p snip.rv=Mohamed(0)` mm
+endsnippet
+
 snippet ns "namespace" b
 namespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\', '.')`;
 

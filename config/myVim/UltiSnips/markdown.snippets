@@ -1,0 +1,329 @@
+snippet madr "Description" b
+problem$0
+drivers
+options
+decision
+prosConsUnknowns
+extra
+endsnippet
+
+snippet problem "Context & Problem Statement" b
+
+## 📋 Context and Problem Statement
+> **${1:Which format and structure should our architectural records follow?}**
+${2:
+We lost entire days tracking why some code was written this way on the following items:
+<details><summary>Item 1</summary>
+
+\`\`\`
+Time lost: 5 days
+\`\`\`
+</details>
+
+<details><summary>Item 2</summary>
+
+\`\`\`
+Time lost: 4 days
+\`\`\`
+</details>}
+endsnippet
+
+snippet drivers "Decision Drivers" b
+
+## 🔰 Decision Drivers
+* $0Impact on existing API
+* Impact on existing workflow
+* Impact on future decisions
+* Maintenability
+* Testability
+* Security
+* Performances
+
+endsnippet
+
+snippet options "Considered Options" b
+
+## 💡 Considered Options
+* **Option 1:** $0Use Markdown Architectural Decision Record
+* **Option 2:** Create custom architectural decision record format
+* **Option 3:** Do not use any form of template
+
+endsnippet
+
+snippet decision "Decision Outcome" b
+
+## 🎯 Decision Outcome
+* **Option ${0}1:** Use Markdown Architectural Decision Record
+	* best compromise regarding cost and maintenance
+	* established
+* **Positive Consequences:**
+	* We now have resources to speed up newcomers' training
+* **Negative Consequences:**
+	* Need to create records for existing records
+	* Need to train other teams
+
+endsnippet
+
+snippet prosConsUnknowns "Pros, Cons & Unknowns" b
+
+## 🎭 Pros, Cons & Unknowns of the Options
+
+* **Option 1:** $0Use Markdown Architectural Decision Record
+	* ✅✅ Easy
+	* ✅ Structured, Established
+	* 🚫 Markdown is limited in features
+	* 🚫 Requires markdown viewer
+	* 🤷 Unmeasured effectiveness
+<!-- -->
+* **Option 2:** Create custom architectural decision record format
+	* ✅ Most adapted
+	* 🚫 Not Established
+	* 🤷 Cost, Impact
+<!-- -->
+* **Option 3:** Do not use any form of template
+	* ✅ No cost
+	* 🚫 No time saved
+	* 🤷 May bite us later
+<!-- -->
+
+endsnippet
+
+snippet extra "Additional Information" b
+
+## 📎 Additional Information
+* $0[some link]()
+* [some other link]()
+endsnippet
+
+snippet "spoil(er)?" "spoiler" br
+<details><summary>${2:Title}</summary>
+
+${VISUAL:Content}
+</details>
+
+endsnippet
+
+snippet cols "columns" b
+
+<div style="display: flex"><div style="flex: ${1:50}%; max-width: $1%;">
+
+$0${VISUAL}
+</div><div style="flex: $1%; max-width: $1%;">
+
+\`\`\`
+Example
+\`\`\`
+</div></div>
+
+endsnippet
+
+snippet blog "blog post" b
+---
+layout: post
+title:  "${1:My quest for improved craftsmanship}"
+date:   `!v strftime('%Y-%m-%d')`
+categories: ${2:craft}
+---
+
+${3:**"Good Enough"** is often the driving philosophy at the workplace - that's reasonable. But it also means people who go for _"Highest Level of Craft"_ cannot improve correctly at the workplace.}
+
+Hi!
+
+> ${4:Do you feel _agile_?
+Do you feel _proud_ of the codebase you're working on?
+What's your idea about how far (or close) you are from the _state of the art_?
+Do you _trust_ the code you read?
+What are three _positive_ things your codebase inspires to you?}
+
+Let's talk about ${5:stuff.}
+
+&nbsp;
+
+$0
+endsnippet
+
+snippet rq "REST exhange" b
+${1:###} ${2:Verb Noun}
+<div style="display: flex"><div style="flex: 50%; max-width: 50%;">
+
+**Request**
+\`\`\`
+$0curl -X GET $api
+--verbose --silent --location
+-H "Authorization: Bearer $token"
+\`\`\`
+
+
+</div><div style="flex: 50%; max-width: 50%;">
+
+**Response**
+
+🚫 401 Unauthorized
+\`\`\`
+[]
+\`\`\`
+* Caused by this
+* Caused also by that
+
+✅ 200 OK
+\`\`\`
+[]
+\`\`\`
+</div></div>
+
+endsnippet
+
+snippet seq "sequence diagram" b
+\`\`\`puml_sequence
+title __${1:Not only individuals and interactions, but also a community of professionals}__
+'https://plantuml.com/fr/sequence-diagram
+skinparam BoxPadding 10
+skinparam ParticipantPadding 30
+
+box "${4:Foo}"
+	participant "${2:Foo}" as $3
+$0end box
+
+box "${5:Bar}"
+	participant "${3:Bar}" as $4
+end box
+
+$3 -> $4
+\`\`\`
+endsnippet
+
+snippet act "activity diagram" b
+\`\`\`puml_activity
+title __${1:Not only working software, but also well-crafted software}__
+'https://plantuml.com/fr/activity-diagram-beta
+start
+
+$0group Arrange
+	:Build Credit Application Contract;
+	note right
+		foo
+			* bar
+	end note
+	:Build main route request;
+end group
+
+group Act
+	:Call RejectionRule's main route;
+	:Call RejectionRule's details route;
+end group
+
+group Assert
+	:Run assertions on details;
+end group
+stop
+\`\`\`
+endsnippet
+
+snippet cls "class diagram (2 packs)" b
+\`\`\`puml_class
+title __${1:Not only responding to change, but also steadily adding value}__
+'https://plantuml.com/fr/class-diagram
+
+$0
+\`\`\`
+endsnippet
+
+snippet "archi([0-9]*)" "pack of classes with suffix" br
+package "${1:Api`!p snip.rv = match.group(1)`}" as Package`!p snip.rv = match.group(1)` {
+	$0rectangle "Infrastructure" as Infra`!p snip.rv = match.group(1)` {
+	}
+
+	rectangle "Domain" as Domain`!p snip.rv = match.group(1)` {
+	}
+
+	rectangle "Application" as Application`!p snip.rv = match.group(1)` {
+	}
+
+	rectangle "Api / Dto" as Api`!p snip.rv = match.group(1)` {
+	}
+}
+
+endsnippet
+
+snippet Archi "class diagram (architecture)" b
+package "Api / Dto" as Api {
+	class "Controller" as Controller {
+		+ Response DoStuff(request)
+	}
+	class "Request" as Request {
+	}
+	class "Response" as Response {
+	}
+}
+
+package Application {
+	rectangle "ServiceProviders" as ServiceProviders {
+		interface IServiceProvider {
+			+ DomainObject GetDomainObject()
+		}
+	}
+	rectangle "UseCases" as UseCases {
+		interface IUseCase {
+			UseCaseOutput Process(UseCaseInput)
+		}
+		class UseCase {
+			- IServiceProvider
+			+ UseCaseOutput Process(UseCaseInput)
+		}
+
+		class "UseCaseOutput" as UseCaseOutput {
+			+ Guid useCaseExecutionId
+		}
+
+		class "UseCaseInput" as UseCaseInput {
+			+ Guid useCaseExecutionId
+			+ CancellationToken cancellationToken
+		}
+	}
+}
+
+package "Domain" as Domain {
+	class DomainObject {
+		+ foo
+		{static} Create(foo)
+		{static} Reconstitute(guid, foo)
+		+ DoStuff()
+	}
+}
+
+package "Infrastructure" as Infrastructure {
+	class ServiceProvider {
+		- ServiceProviderClient
+		+ DomainObject GetDomainObject()
+	}
+}
+
+UseCase -up-|> IUseCase
+ServiceProvider -up-|> IServiceProvider
+endsnippet
+
+snippet mm "mindmap diagram" b
+\`\`\`puml_mindmap
+title __${1:Not only customer collaboration, but also productive partnerships}__
+'https://plantuml.com/fr/mindmap-diagram
+
+*[#lightblue] ${2:Information Access}
+** ${3:By page reference}
+$0
+\`\`\`
+endsnippet
+
+snippet "p([0-9]*)" "package" br
+package "${1:Some package `!p snip.rv = match.group(1)`}" as `!p snip.rv = ''.join(''.join([w[0].upper(), w[1:].lower()]) for w in t[1].split())` {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else " }" if t[2] == "" else "\n}"`
+$0
+endsnippet
+
+snippet "r([0-9]*)" "rectangle" br
+rectangle "${1:Some rectangle `!p snip.rv = match.group(1)`}" as `!p snip.rv = ''.join(''.join([w[0].upper(), w[1:].lower()]) for w in t[1].split())` {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else "\n}"`
+$0
+endsnippet
+
+snippet "c([0-9]*)" "class" br
+class ${1:ClassName`!p snip.rv = match.group(1)`} {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else " }" if t[2] == "" else "\n}"`
+$0
+endsnippet

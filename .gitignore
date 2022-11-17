@@ -2,12 +2,12 @@
 /*/
 /notes/*
 !/config/
-/config/vimfiles/
+/config/myVim/pack/
+/config/myVim/specificSnippets/
 /config/viebfiles/
-!/snippets/
-!/templates/
 !/tools/filters/
 *.withsvgs.md
 /notes/*
 /work_in_progress/*
 /config/viebfiles/Code Cache/
+/config/my_vimrc.vim

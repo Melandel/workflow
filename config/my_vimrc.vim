@@ -8,13 +8,13 @@ endif
 if g:isWindows
 let $HOME = substitute($HOME, '\\', '/', 'g')
 let $config    = $HOME.'/Desktop/config'
-let $packpath  = $HOME.'/Desktop/config/vimfiles'
+let $vimFiles  = $HOME.'/Desktop/config/myVim'
 let $desktop   = $HOME.'/Desktop'                    | let $d = $desktop
 let $downloads = $HOME.'/Downloads'
 let $notes     = $HOME.'/Desktop/notes'              | let $n = $notes
 let $projects  = $HOME.'/Desktop/projects'           | let $p = $projects
 let $rest      = $HOME.'/Desktop/templates/rest'
-let $snippets  = $HOME.'/Desktop/templates/snippets'
+let $snippets  = $HOME.'/Desktop/snippets'
 let $tmp       = $HOME.'/Desktop/tmp'                | let $t = $tmp
 let $tools     = $HOME.'/Desktop/tools'
 let $templates = $HOME.'/Desktop/templates'
@@ -38,12 +38,12 @@ endif
 
 " Desktop Integration:-----------------{{{
 " Plugins" ----------------------------{{{
-set packpath=$vim,$packpath
+set packpath=$vim,$vimFiles
 packadd! matchit
 packadd! cfilter
 function! MinpacInit()
 	packadd minpac
-	call minpac#init( {'dir':$packpath, 'package_name': 'plugins', 'progress_open': 'none' } )
+	call minpac#init( {'dir':$vimFiles, 'package_name': 'plugins', 'progress_open': 'none' } )
 	call minpac#add('editorconfig/editorconfig-vim')
 	call minpac#add('dense-analysis/ale')
 	call minpac#add('junegunn/fzf.vim')
@@ -77,8 +77,8 @@ command! -bar MinPacUpdate call MinpacInit()| call minpac#clean()| call minpac#u
 let loaded_netrwPlugin = 1 " do not load netrw
 
 " First time" -------------------------{{{
-if !isdirectory($packpath.'/pack/plugins')
-	call system('git clone https://github.com/k-takata/minpac.git ' . $packpath . '/pack/packmanager/opt/minpac')
+if !isdirectory($vimFiles.'/pack/plugins')
+	call system('git clone https://github.com/k-takata/minpac.git ' . $vimFiles . '/pack/packmanager/opt/minpac')
 	call MinpacInit()
 	call minpac#update()
 	packloadall
@@ -1035,7 +1035,7 @@ endfunction
 function! BrowseLayoutDown()
 	if &diff
 		silent! normal! ]czxzz
-	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
+	elseif get(ale#statusline#Count(bufnr('')), 'error', 0) || get(ale#statusline#Count(bufnr('')), 'warning', 0)
 		ALENext
 		normal! zz
 	elseif &ft == 'fugitive'
@@ -1065,7 +1065,7 @@ nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
 function! BrowseLayoutUp()
 	if &diff
 		silent! normal! [czxzz
-	elseif get(ale#statusline#Count(bufnr('')), 'error', 0)
+	elseif get(ale#statusline#Count(bufnr('')), 'error', 0) || get(ale#statusline#Count(bufnr('')), 'warning', 0)
 		ALEPrevious
 		normal! zz
 	elseif &ft == 'fugitive'
@@ -1228,7 +1228,7 @@ function! Grep(qf_or_loclist, ...)
 	endif
 	let cmdParams += a:000[firstTokenWithDoubleQuote:]
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/grep')
-		let cmd = printf('rg --no-ignore --vimgrep --no-heading --smart-case -g "!**/obj/**" -g "!**/bin/**" %s', join(cmdParams))
+	let cmd = printf('rg --no-ignore --vimgrep --no-heading --smart-case -g "!**/obj/**" -g "!**/bin/**" %s', join(cmdParams))
 	let cmd .= ' \\?\%cd%' "https://github.com/BurntSushi/ripgrep/issues/364
 	echomsg "<start> ".cmd
 	if g:isWindows
@@ -1430,7 +1430,15 @@ function! SortLinesByLengthBeforeFirstSpaceChar() range
 	nohlsearch
 endfunction
 command! -range=% SortByLengthBeforeFirstSpaceChar <line1>,<line2>call SortLinesByLengthBeforeFirstSpaceChar()
+
 " Autocompletion (Insert Mode)" -------{{{
+let g:UltiSnipsSnippetDirectories = [ 'UltiSnips', 'specificSnippets' ]
+if index(split(&runtimepath, ','), $vimFiles) < 0
+	" access to pythonx folder
+	let &runtimepath.= printf(','.$vimFiles)
+	exec 'python3' printf("import sys;\r\nif('%s' not in sys.path): sys.path.append('%s')", $vimFiles, $vimFiles)
+endif
+
 set updatetime=500
 set complete=.,w
 set completeopt+=menuone,noselect,noinsert
