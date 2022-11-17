@@ -1228,12 +1228,18 @@ function! Grep(qf_or_loclist, ...)
 	endif
 	let cmdParams += a:000[firstTokenWithDoubleQuote:]
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/grep')
-	let cmd = printf('rg --no-ignore --vimgrep --no-heading --smart-case -g "!**/obj/**" -g "!**/bin/**" %s', join(cmdParams))
-	let cmd .= ' \\?\%cd%' "https://github.com/BurntSushi/ripgrep/issues/364
-	echomsg "<start> ".cmd
-	if g:isWindows
-		let cmd = 'cmd /C '.cmd
+	let foldersToIgnore = [ 'obj', 'bin' ]
+	if WindowsPath(cwd) == WindowsPath($d)
+		let foldersToIgnore += [ 'projects', 'tmp', 'viebfiles', 'myVim/pack', 'templates', 'tools' ]
 	endif
+	let foldersIgnoreOpts = join(map(foldersToIgnore, { _,x -> '-g "!**/'.x.'/**"' }))
+	let leafFoldersIgnoreOpts = join(map(
+		\[ 'config' ],
+		\{ _,x -> '-g "!**/'.x.'/*"' }))
+	let cmd = printf('rg --no-ignore --vimgrep --no-heading --smart-case %s %s %s', leafFoldersIgnoreOpts, foldersIgnoreOpts, join(cmdParams))
+	let cmd .= ' \\?\%cd%' "https://github.com/BurntSushi/ripgrep/issues/364
+	echomsg cwd.':' cmd
+	if g:isWindows | let cmd = 'cmd /C '.cmd | endif
 	let s:job = job_start(
 		\cmd,
 		\{
