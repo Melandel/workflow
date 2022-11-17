@@ -766,7 +766,7 @@ function! MyTabLabel(n)
 		if !empty(omnisharpHosts)
 			let host = omnisharpHosts[0]
 			let sln_or_dir = toupper(fnamemodify(host.sln_or_dir, ':t:r'))
-			if IsDebuggingTab(a:n)
+			if exists('*IsDebuggingTab') && IsDebuggingTab(a:n)
 				return '🔍'.sln_or_dir.'🔍'
 			else
 				let omnisharp_up = get(host, 'initialized', 0)
