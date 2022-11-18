@@ -1713,7 +1713,7 @@ function! GetFileVersionID(...)
 endfunction
 
 if has('vim9script')
-	def QuickFixTextFunc(info: dict<number>): list<string>
+	def g:QuickFixTextFunc(info: dict<number>): list<string>
 		var qfl = info.quickfix ? getqflist({'id': info.id, 'items': 0}).items : getloclist(info.winid, {'id': info.id, 'items': 0}).items
 		var modules_are_used = empty(qfl) ? 1 : (get(qfl[0], 'module', '') != '')
 		var l = []
@@ -1749,6 +1749,7 @@ if has('vim9script')
 		endfor
 		return l
 	enddef
+	set quickfixtextfunc=g:QuickFixTextFunc
 else
 	function! QuickFixTextFunc(info)
 		return len(a:info) > 42 ? a:info : QuickFixVerticalAlign(a:info)
@@ -1794,8 +1795,8 @@ else
 		endfor
 		return l
 	endfunction
-endif
 set quickfixtextfunc=QuickFixTextFunc
+endif
 
 " Marks:-------------------------------{{{
 " H and L are used for cycling between buffers and `A is a pain to type
