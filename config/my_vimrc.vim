@@ -1325,6 +1325,8 @@ tnoremap <silent> <Leader>== <C-W>=
 tnoremap <silent> KK <C-W>:q<CR>
 tnoremap <silent> HH <C-W>:CycleBackwards<CR>
 tnoremap <silent> LL <C-W>:CycleForward<CR>
+tnoremap <silent> <Leader>qq <C-W>:ToggleQueryRow<CR>
+tnoremap <silent> <Leader>qQ <C-W>:CreateQueryRow<CR>
 
 augroup terminal
 	au!
