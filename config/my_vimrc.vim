@@ -1150,6 +1150,10 @@ onoremap <silent> <End> :End<CR>
 vnoremap iz [zjo]zkVg_| onoremap iz :normal viz<CR>
 vnoremap az [zo]zVg_|   onoremap az :normal vaz<CR>
 vnoremap if ggoGV| onoremap if :normal vif<CR>
+nnoremap vii :call TextObjectBackslash()<CR>
+function! TextObjectBackslash()
+	normal vi\ol
+endfunction
 " Always add cursor position to jumplist
 let g:targets_jumpRanges = 'cr cb cB lc ac Ac lr rr ll lb ar ab lB Ar aB Ab AB rb al rB Al bb aa bB Aa BB AA'
 
