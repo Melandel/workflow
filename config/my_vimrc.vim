@@ -2517,7 +2517,7 @@ function! GetCommitTypes(findstart, base)
 endfunc
 
 function! OpenTabWithPullRequestDescription(...)
-	let commitOrBranchName = a:0 ? a:1 : trim(system("git remote show origin | sed -n '/HEAD branch/s/.*: //p'"))
+	let commitOrBranchName = a:0 ? a:1 : 'origin/'.trim(system("git remote show origin | sed -n '/HEAD branch/s/.*: //p'"))
 	tabnew
 	set ft=markdown
 	call setline(1, BuildPullRequestDescription(commitOrBranchName))
