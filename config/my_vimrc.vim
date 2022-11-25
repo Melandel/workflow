@@ -1301,8 +1301,8 @@ endfunction
 set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :Files<CR>
-nnoremap         µ :Grep -F "<C-R>=EscapeRipgrepPattern(expand('<cword>'))<CR>"<CR>
-vnoremap         µ "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
+	nnoremap         <S-µ> :Grep -F "<C-R>=EscapeRipgrepPattern(expand('<cword>'))<CR>"<CR>
+	vnoremap         <S-µ> "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <Leader>! :Grep -F ""<left>
 vnoremap <silent> <Leader>r "vy:Grep -F "<C-R>=GetCurrentSelection()<CR>"<CR>
 nnoremap <LocalLeader>m :silent make<CR>
@@ -1937,7 +1937,7 @@ if has('win32') && has('gui_running')
 	let g:gvimtweak#enable_topmost_at_startup=0
 	let g:gvimtweak#enable_maximize_at_startup=1
 	let g:gvimtweak#enable_fullscreen_at_startup=1
-	nnoremap <silent> ° :GvimTweakToggleFullScreen<CR>
+	nnoremap <silent> <S-°> :GvimTweakToggleFullScreen<CR>
 	nnoremap <silent> <A-n> :GvimTweakToggleTransparency<CR>
 	nnoremap <silent> <A-i> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-o> <C-W>N:GvimTweakSetAlpha -10<CR>i
 	nnoremap <silent> <A-o> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
