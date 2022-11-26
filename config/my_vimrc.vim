@@ -890,10 +890,10 @@ nnoremap <silent> <Leader>K <C-W>K
 nnoremap <silent> <Leader>L <C-W>L
 
 " Resize Window
-nnoremap <silent> <A-h> :vert res -2<CR>| tmap <silent> <A-h> <C-W>N:vert res -2<CR>i
-nnoremap <silent> <A-l> :vert res +2<CR>| tmap <silent> <A-l> <C-W>N:vert res +2<CR>i
-nnoremap <silent> <A-j> :res -2<CR>|      tmap <silent> <A-j> <C-W>N:res -2<CR>i
-nnoremap <silent> <A-k> :res +2<CR>|      tmap <silent> <A-k> <C-W>N:res +2<CR>i
+nnoremap <silent> <A-h> :vert res -2<CR>| tnoremap <silent> <A-h> <C-W>N:vert res -2<CR>i
+nnoremap <silent> <A-l> :vert res +2<CR>| tnoremap <silent> <A-l> <C-W>N:vert res +2<CR>i
+nnoremap <silent> <A-j> :res -2<CR>|      tnoremap <silent> <A-j> <C-W>N:res -2<CR>i
+nnoremap <silent> <A-k> :res +2<CR>|      tnoremap <silent> <A-k> <C-W>N:res +2<CR>i
 nnoremap <silent> <Leader>= <C-W>=
 nnoremap <silent> <Leader>\| <C-W>\|
 nnoremap <silent> <Leader>_ <C-W>_
@@ -1937,11 +1937,11 @@ if has('win32') && has('gui_running')
 	let g:gvimtweak#enable_topmost_at_startup=0
 	let g:gvimtweak#enable_maximize_at_startup=1
 	let g:gvimtweak#enable_fullscreen_at_startup=1
-	nnoremap <silent> <S-°> :GvimTweakToggleFullScreen<CR>
-	nnoremap <silent> <A-n> :GvimTweakToggleTransparency<CR>
-	nnoremap <silent> <A-i> :GvimTweakSetAlpha -10<CR>| tmap <silent> <A-o> <C-W>N:GvimTweakSetAlpha -10<CR>i
-	nnoremap <silent> <A-o> :GvimTweakSetAlpha 10<CR>| tmap <silent> <A-i> <C-W>N:GvimTweakSetAlpha 10<CR>i
+	nnoremap <silent> <S-°> :GvimTweakToggleFullScreen<CR>|tnoremap <S-°> <C-W>N:GvimTweakToggleFullScreen<CR>i
+	nnoremap <silent> <A-n> :GvimTweakToggleTransparency<CR>|tnoremap <A-n> <C-W>N:GvimTweakToggleTransparency<CR>i
 	inoremap <silent> <A-n> <C-O>:GvimTweakToggleTransparency<CR>
+	nnoremap <silent> <A-i> :GvimTweakSetAlpha -10<CR>| tnoremap <silent> <A-i> <C-W>N:GvimTweakSetAlpha -10<CR>i
+	nnoremap <silent> <A-o> :GvimTweakSetAlpha 10<CR>| tnoremap <silent> <A-o> <C-W>N:GvimTweakSetAlpha 10<CR>i
 endif
 " File explorer (graphical): ----------{{{
 function! IsPreviouslyYankedItemValid()
