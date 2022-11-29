@@ -4176,8 +4176,13 @@ endfunction
 command! FormatEvenWhenStringified call FormatEvenWhenStringified()
 
 " Query rows :-------------------------{{{
-let g:queryRowHeight = 15
+let g:queryRowHeight = max([min([(&lines-5)/2, 20]), min([(&lines-7)/3, 25])])
 let g:queryRowHistoryWidth = 48
+augroup queryRow
+	au!
+	autocmd VimResized * let g:queryRowHeight = max([min([(&lines-5)/2, 20]), min([(&lines-7)/3, 25])])
+augroup end
+
 command! ToggleQueryRow if AreQueryRowsActive() | call RemoveSingleOrCurrentQueryRow() | else | call CreateQueryRow() | endif
 nnoremap <silent> <Leader>q :ToggleQueryRow<CR>
 nnoremap <silent> <Leader>Q :CreateQueryRow<CR>
