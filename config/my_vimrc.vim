@@ -4250,6 +4250,7 @@ function! InitQueryRowRequestWindow()
 	nnoremap <silent> <buffer> <Space> `V
 	nnoremap <silent> <buffer> <C-J> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '+2', 'DisplayQueryFilesFromHistoryWindow')<CR>
 	nnoremap <silent> <buffer> <C-K> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '-2', 'DisplayQueryFilesFromHistoryWindow')<CR>
+	nnoremap <silent> <buffer> <LocalLeader>q :exec 'normal dif'<CR>:Snippets<CR>
 	exec 'lcd' w:row.cwd
 endfunction
 
@@ -4566,3 +4567,17 @@ function! CosmosCompletion(findstart, base)
 	return map(systemlist('Cosmos list'), {_,x -> trim(x)})
 endfunction
 
+if executable('cosmos')
+	function! LoadDynamicSnippets()
+		let cosmosDatabases = map(systemlist('Cosmos list'), {_,x -> trim(x)})
+		for i in range(len(cosmosDatabases))
+			let db = cosmosDatabases[i]
+			let trigger = 'cm '.db
+			let snippet = 'cosmos '.db.' ${1:ic} $2'
+			let description = '[Cosmos DB] '.db
+			if !exists('UltiSnips#AddSnippetWithPriority') | packadd ultisnips | endif
+			call UltiSnips#AddSnippetWithPriority(trigger, snippet, description, 'b', 'zsh', 1)
+		endfor
+	endfunction
+	call LoadDynamicSnippets()
+endif
