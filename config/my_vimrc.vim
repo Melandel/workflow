@@ -4176,10 +4176,10 @@ endfunction
 command! FormatEvenWhenStringified call FormatEvenWhenStringified()
 
 " Query rows :-------------------------{{{
-let g:queryRowHeight = max([min([(&lines-5)/2, 20]), min([(&lines-7)/3, 25])])
 let g:queryRowHistoryWidth = 48
 augroup queryRow
 	au!
+	autocmd VimEnter *   let g:queryRowHeight = max([min([(&lines-5)/2, 20]), min([(&lines-7)/3, 25])])
 	autocmd VimResized * let g:queryRowHeight = max([min([(&lines-5)/2, 20]), min([(&lines-7)/3, 25])])
 augroup end
 
