@@ -4252,7 +4252,7 @@ function! InitQueryRowRequestWindow()
 	nnoremap <silent> <buffer> <Space> `V
 	nnoremap <silent> <buffer> <C-J> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '+2', 'DisplayQueryFilesFromHistoryWindow')<CR>
 	nnoremap <silent> <buffer> <C-K> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '-2', 'DisplayQueryFilesFromHistoryWindow')<CR>
-	nnoremap <silent> <buffer> <LocalLeader>q :exec 'normal dif'<CR>:Snippets<CR>
+	nnoremap <silent> <buffer> <LocalLeader>q gg"_dG:Snippets<CR>
 	exec 'lcd' w:row.cwd
 endfunction
 
