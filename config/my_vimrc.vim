@@ -1005,12 +1005,14 @@ function! Qfnext()
 	if g:qfprio == 'l'
 		try
 			lnext
+			lopen
 		catch
 			silent! ll
 		endtry
 	elseif g:qfprio == 'c'
 		try
 			cnext
+			copen
 		catch
 			silent! cc
 		endtry
