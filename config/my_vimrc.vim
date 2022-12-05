@@ -26,6 +26,7 @@ let $gtools    = $HOME.'/Desktop/tools/git/usr/bin'
 let $wip       = $HOME.'/Desktop/work_in_progress'
 let $checklists= $HOME.'/Desktop/checklists'
 let $queries   = $HOME.'/Desktop/queries'            | let $q = $queries
+let $diffs     = $HOME.'/Desktop/diffs'
 
 let $rc         = $HOME.'/Desktop/config/my_vimrc.vim'
 let $rce        = $HOME.'/Desktop/config/my_vimworkenv.vim'
@@ -657,6 +658,19 @@ function! PromptUserForFilename(requestToUser, ...)
 	let GetRetryMessage = { x -> a:0 > 0 ? a:1 : printf('[%s] already exists. %s', finalfilename, a:requestToUser) }
 	while title != '' && len(glob(ComputeFinalPath(title))) > 0
 		redraw | let title= input(GetRetryMessage(title))
+	endwhile
+	redraw
+	return title
+endfunction
+
+function! PromptUserForFilenameWithSuggestion(default, ...)
+	let title = input('', a:default)
+	let ComputeFinalPath = a:0 ? a:1 : { x -> x }
+	let finalpath = ComputeFinalPath(title)
+	let finalfilename = fnamemodify(finalpath, ':t')
+	let GetRetryMessage = { x -> a:0 > 0 ? a:1 : printf('[%s] already exists. ', title) }
+	while title != '' && len(glob(ComputeFinalPath(title))) > 0
+		redraw | let title= input(GetRetryMessage(title), title)
 	endwhile
 	redraw
 	return title
@@ -1544,6 +1558,31 @@ augroup diff
 	autocmd OptionSet diff let &cursorline=!v:option_new
 	autocmd OptionSet diff silent! 1 | silent! normal! ]c
 augroup end
+
+function! SaveAsDiffFile()
+	let incompleteFilename = BuildDiffFilenameWithoutExtension()
+	let ext = empty(&ft) ? '' : printf('.%s', &ft)
+	let filename = PromptUserForFilenameWithSuggestion(incompleteFilename, { n -> printf('%s/%s%s', $diffs, n, ext) })
+	if empty(trim(filename)) | return | endif
+	let filepath = printf('%s/%s%s', $diffs, filename, ext)
+	set bt=
+	echomsg 'Saving as' filepath
+	exec 'saveas' filepath
+endfunction
+command! Diff call SaveAsDiffFile()
+
+function! BuildDiffFilenameWithoutExtension(...)
+	let title = a:0 ? a:1 : ''
+	let date = strftime('%Y-%m-%d-%A')[:len('YYYY-MM-DD-ddd')-1]
+	let index = float2nr(str2float(string(len(expand($diffs.'/*', v:true, v:true)))) / 2)
+	let index +=1
+	if empty(title)
+		return printf('%s %03d', date, index)
+	else
+		return printf('%s %03d %s', date, index, title)
+	endif
+endfunction
+
 
 " QuickFix, Preview, Location window: -{{{
 nnoremap <C-H> :cpfile<CR>
