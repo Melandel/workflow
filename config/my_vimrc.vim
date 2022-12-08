@@ -1564,6 +1564,7 @@ function! SaveAsDiffFile()
 	let ext = empty(&ft) ? '' : printf('.%s', &ft)
 	let filename = PromptUserForFilenameWithSuggestion(incompleteFilename, { n -> printf('%s/%s%s', $diffs, n, ext) })
 	if empty(trim(filename)) | return | endif
+	let @d = filename
 	let filepath = printf('%s/%s%s', $diffs, filename, ext)
 	set bt=
 	echomsg 'Saving as' filepath
