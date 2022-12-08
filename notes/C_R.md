@@ -1,4 +1,4 @@
-# Pioneering practices from around the globe
+# Pioneering practices [in organisations] from around the globe
 
 ## Chapter 1: Purpose & Values
 Higher corporate purposes and core values may sound air-fairy, but once you consider the potential benefits you may come to view them as imperative. Out Bucket List pioneers have proved that purpose pays off. It improves staff motivation and involvement and is directly linked to better financial results. Companies with a focus on a higher purpose perform up to 10 times better than the competition[^12]. Consumers are willing to pay more for products and services from companies that focus on having a positive influence [^13].
