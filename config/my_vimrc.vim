@@ -377,6 +377,14 @@ augroup lcd
 augroup end
 
 " Utils:-------------------------------{{{
+function! ParseJsonFile(path)
+	let lines = readfile(a:path)
+	call filter(lines, 'match(v:val, "^\\s*//") == -1')
+	call map(lines,   'trim(v:val)')
+	let jsonWithoutCommentLines = join(lines)
+	return json_decode(jsonWithoutCommentLines)
+endfunc
+
 function! MoveCursorInsideWindowAndExecuteCommands(winid, move, ...)
 	let pos = getcurpos(a:winid)
 	let lnum = pos[1]
