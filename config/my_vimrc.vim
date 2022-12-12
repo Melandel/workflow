@@ -9,6 +9,7 @@ if g:isWindows
 let $HOME = substitute($HOME, '\\', '/', 'g')
 let $config    = $HOME.'/Desktop/config'
 let $vimFiles  = $HOME.'/Desktop/config/myVim'
+let $workenv   = $HOME.'/Desktop/config/workenv'
 let $plugins   = $vimFiles.'/pack/plugins/start'
 let $desktop   = $HOME.'/Desktop'                    | let $d = $desktop
 let $downloads = $HOME.'/Downloads'
@@ -4610,6 +4611,9 @@ function! DisplayQueryFile(file, content)
 	normal! gg
 	call win_gotoid(currentWinId)
 endfunction
+
+" Work environment config: ------------{{{
+let $wiki = ParseJsonFile($workenv.'/documentation.jsonc').wikis.main.url
 
 function! CosmosCompletion(findstart, base)
 	if a:findstart
