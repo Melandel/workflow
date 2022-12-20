@@ -4613,7 +4613,27 @@ function! DisplayQueryFile(file, content)
 endfunction
 
 " Work environment config: ------------{{{
-let $wiki = ParseJsonFile($workenv.'/documentation.jsonc').wikis.main.url
+let environments = ParseJsonFile($workenv.'/envs.jsonc')
+let resources = ParseJsonFile($workenv.'/rsx.jsonc')
+"let $wiki = config.wikis.main.url
+let repositoryHostingConfig = ParseJsonFile($workenv.'/tool-azureDevOps.jsonc')
+let resourcesByAppFiles = expand($workenv.'/rsx-*.jsonc', 1, 1)
+let resourcesByApp = {}
+for i in range(len(resourcesByAppFiles))
+	let file = resourcesByAppFiles[i]
+	let app = matchstr(file, 'rsx-\zs.*\ze.jsonc')
+	let resourcesByApp[app] = ParseJsonFile(file)
+endfor
+"let $ados                     = config.root
+"let $adosProject              = config.projectWithKanbanBoard.name
+"let $adosBoard                = config.projectWithKanbanBoard.kanbanBoardUrl
+"let $adosMyAssignedActiveWits = config.projectWithKanbanBoard.queryIdForMyAssignedActiveWorkItems
+"let $adosSourceProject        = config.projectWithSourceCode.name
+"let $adosDeploymentPipeline   = config.deploymentPipelineUrl
+"let $pat                      = config.pat
+"let config = ParseJsonFile($workenv.'/filesToIgnore.jsonc')
+"call extend(g:OmniSharp_diagnostic_exclude_paths, config.inSourceCode.forWarnings)
+"let config = ParseJsonFile($workenv.'/ressourcesByProject.jsonc')
 
 function! CosmosCompletion(findstart, base)
 	if a:findstart
