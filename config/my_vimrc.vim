@@ -4613,17 +4613,23 @@ function! DisplayQueryFile(file, content)
 endfunction
 
 " Work environment config: ------------{{{
-let environments = ParseJsonFile($workenv.'/envs.jsonc')
-let resources = ParseJsonFile($workenv.'/rsx.jsonc')
-"let $wiki = config.wikis.main.url
-let repositoryHostingConfig = ParseJsonFile($workenv.'/tool-azureDevOps.jsonc')
-let resourcesByAppFiles = expand($workenv.'/rsx-*.jsonc', 1, 1)
-let resourcesByApp = {}
-for i in range(len(resourcesByAppFiles))
+function! BuildWorkenvVariable()
+	let workenv = {
+		\"environments":            ParseJsonFile($workenv.'/envs.jsonc'),
+		\"resources":               ParseJsonFile($workenv.'/rsx.jsonc'),
+		\"repositoryHostingConfig": ParseJsonFile($workenv.'/tool-azureDevOps.jsonc'),
+		\"resourcesByApp": {}
+	\}
+	let resourcesByAppFiles = expand($workenv.'/rsx-*.jsonc', 1, 1)
+	for i in range(len(resourcesByAppFiles))
 	let file = resourcesByAppFiles[i]
 	let app = matchstr(file, 'rsx-\zs.*\ze.jsonc')
-	let resourcesByApp[app] = ParseJsonFile(file)
-endfor
+		let workenv.resourcesByApp[app] = ParseJsonFile(file)
+	endfor
+	return workenv
+endfunction
+let g:workenv = BuildWorkenvVariable()
+
 "let $ados                     = config.root
 "let $adosProject              = config.projectWithKanbanBoard.name
 "let $adosBoard                = config.projectWithKanbanBoard.kanbanBoardUrl
