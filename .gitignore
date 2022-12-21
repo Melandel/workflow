@@ -2,6 +2,7 @@
 /*/
 /notes/*
 !/config/
+!/config/workenv/
 /config/myVim/pack/
 /config/myVim/specificSnippets/
 /config/viebfiles/
@@ -12,3 +13,4 @@
 /config/viebfiles/Code Cache/
 /config/my_vimrc.vim
 /config/myVim/pythonx/__pycache__/
+/config/my_vimrc.vim
