@@ -2544,7 +2544,7 @@ function! GetCommitTypes(findstart, base)
 		\{ 'word': '🧹 cleanup',        'menu': "Chores that do not affect the code's design                 (example scopes: code-warnings, filesystem, code-consistency)" },
 		\{ 'word': '👁️ comment',        'menu': 'Changes on comments' },
 		\{ 'word': '🔧 config',         'menu': 'Changes on configuration files' },
-		\{ 'word': '🧩 contract-add',   'menu': 'Changes that add elements to a contract' },
+		\{ 'word': '🧩 contract-extend', 'menu': 'Changes that add elements to a contract' },
 		\{ 'word': '🙅 deprecate',      'menu': 'Deprecating an element in the codebase                      (example scopes: exposed-method, payload-property)' },
 		\{ 'word': '➕ deps-add',       'menu': 'Changes that add dependencies to the system                 (example scopes: mapping, fixture-generation, ioc)' },
 		\{ 'word': '➖ deps-remove',    'menu': 'Changes that remove dependencies from the system            (example scopes: mapping, fixture-generation, ioc)' },
