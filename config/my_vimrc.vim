@@ -2791,7 +2791,12 @@ function! RenderMarkdownFile()
 		exec 'write!' inputfile
 	endif
 	if (FileContainsPlantumlSnippets())
+		try
 		let inputfile = CreateFileWithRenderedSvgs()
+		catch
+			echomsg v:exception
+			return
+		endtry
 	endif
 	let inputfile = substitute(inputfile, '/', '\\', 'g')
 	exec 'WebBrowser' inputfile
@@ -2868,9 +2873,12 @@ function! CreateFileWithRenderedSvgs()
 		endif
 	endfor
 	let textSplits += lines[lastStop+2:]
-	while !empty(filter(copy(textSplits), {_,x -> x == 'generated diagram'}))
+	while !empty(filter(copy(textSplits), {_,x -> x == 'generated diagram'})) || empty(filter(copy(textSplits), {_,x -> x == 'DIAGRAM NOT GENERATED' }))
 		sleep 50m
 	endwhile
+	if !empty(filter(copy(textSplits), {_,x -> x == 'DIAGRAM NOT GENERATED'}))
+		throw "Diagram syntax error"
+	endif
 	call writefile(textSplits, newinputfile)
 	return newinputfile
 endfunc
@@ -2915,6 +2923,7 @@ function! StartPlantumlToSvgCB(array, pos, scratchbufnr, plantumlbufnr, job, sta
 	if a:status != 0
 		exec 'botright sbuffer' a:scratchbufnr 
 		exec a:plantumlbufnr.'bdelete!'
+		let a:array[a:pos] = "DIAGRAM NOT GENERATED"
 		return
 	endif
 	call setbufvar(a:scratchbufnr, '&buftype', 'nofile')
