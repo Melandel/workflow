@@ -1,3 +1,7 @@
+global !p
+from my_snippets_helpers import *
+endglobal
+
 snippet madr "Description" b
 problem$0
 drivers
@@ -314,16 +318,13 @@ $0
 endsnippet
 
 snippet "p([0-9]*)" "package" br
-package "${1:Some package `!p snip.rv = match.group(1)`}" as `!p snip.rv = ''.join(''.join([w[0].upper(), w[1:].lower()]) for w in t[1].split())` {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else " }" if t[2] == "" else "\n}"`
-$0
+package "${1:Some package `!p snip.rv = match.group(1)`}" as `!p snip.rv = pascal_case(t[1])` {`!p snip.rv = newline_if_content(snip.v.text, t[2])`$2`!p snip.rv = add_indent(snip.v.text)``!p snip.rv = space_or_newline_depending_on_content(snip.v.text, t[2])`}
 endsnippet
 
 snippet "r([0-9]*)" "rectangle" br
-rectangle "${1:Some rectangle `!p snip.rv = match.group(1)`}" as `!p snip.rv = ''.join(''.join([w[0].upper(), w[1:].lower()]) for w in t[1].split())` {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else "\n}"`
-$0
+rectangle "${1:Some rectangle `!p snip.rv = match.group(1)`}" as `!p snip.rv = pascal_case(t[1])` {`!p snip.rv = newline_if_content(snip.v.text, t[2])`$2`!p snip.rv = add_indent(snip.v.text)``!p snip.rv = space_or_newline_depending_on_content(snip.v.text, t[2])`}
 endsnippet
 
 snippet "c([0-9]*)" "class" br
-class ${1:ClassName`!p snip.rv = match.group(1)`} {`!p snip.rv = "\n\t" if snip.v.text != "" else "" if t[2] == "" else "\n\t"`$2${VISUAL}`!p snip.rv = "\n}" if snip.v.text != "" else " }" if t[2] == "" else "\n}"`
-$0
+class ${1:ClassName`!p snip.rv = match.group(1)`} {`!p snip.rv = newline_if_content(snip.v.text, t[2])`$2`!p snip.rv = add_indent(snip.v.text)``!p snip.rv = space_or_newline_depending_on_content(snip.v.text, t[2])`}
 endsnippet
