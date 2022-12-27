@@ -1015,7 +1015,7 @@ function! Reframe()
 	let bottomOffset = abs(line('.') - line('w$'))
 	let minimalMargin = max([5, float2nr(round(winheight(winnr()) * 0.3))])
 	if min([topOffset, bottomOffset]) < minimalMargin
-		let &scrolloff=minimalMargin
+		execute 'setlocal scrolloff='.minimalMargin
 		let timer = timer_start(10, {_ -> execute('setlocal scrolloff=-1')})
 	endif
 endfunction
