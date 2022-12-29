@@ -2886,6 +2886,9 @@ endfunc
 function! StartPlantumlToSvg(diagram, diagramtype, array, pos)
 	let pumlDelimiter = GetPlantumlDelimiter(a:diagramtype)
 	let diagram = a:diagram
+	if a:diagramtype == 'class'
+		let diagram = CompleteClassPlantuml(diagram)
+	endif
 	if diagram[0] !~ '\s*@'
 		let diagram = flatten(['@start'.pumlDelimiter, diagram, '@end'.pumlDelimiter])
 	endif
@@ -2917,6 +2920,122 @@ function! StartPlantumlToSvg(diagram, diagramtype, array, pos)
 			\'exit_cb':  function('StartPlantumlToSvgCB', [a:array, a:pos, scratchbufnr, plantumlbufnr])
 		\}
 	\)
+endfunction
+
+function! CompleteClassPlantuml(diagram)
+	let tree = []
+	let currentIndentLevel = -1
+	let pos = []
+	let indentMinLengths = [len(matchstr(a:diagram[0], '^\s\+'))]
+	let previousIndentLevel = -1
+	for diagramLine in range(len(a:diagram))
+		let line = a:diagram[diagramLine]
+		let element = matchstr(line, '^\s*.* as \zs[^ ]\+\ze')
+		if empty(element) | continue | endif
+		let indentLength = len(matchstr(line, '^\s\+'))
+		let indentLevel = 0
+		for i in range(len(indentMinLengths))
+			if indentLength >= indentMinLengths[i]
+				if i < len(indentMinLengths) - 1
+					if indentLength < indentMinLengths[i+1]
+						let indentLevel = i
+						break
+					endif
+				elseif indentLength == indentMinLengths[-1]
+					let indentLevel = i
+					break
+				else
+					call add(indentMinLengths, indentLength)
+					let indentLevel = i+1
+					break
+				endif
+			else
+				let indentLevel = i
+				break
+			endif
+		endfor
+		if indentLevel > previousIndentLevel
+			call CreateChildArrayAtLastKnownPosition(tree, element, pos)
+		elseif indentLevel == previousIndentLevel
+			call CreateSiblingArrayAtLastKnownPosition(tree, element, pos)
+		else
+			call CreateArrayAtGivenParentPosition(tree, element, pos, indentLevel)
+		endif
+		let previousIndentLevel = indentLevel
+	endfor
+	let arrows = []
+	let firsts = []
+	for arrayOrSingle in tree
+		call add(firsts, (type(arrayOrSingle) == type([]) ? arrayOrSingle[0] : arrayOrSingle))
+		for childrenArraysOrSingles in arrayOrSingle
+			call GetSuccessivePairs(childrenArraysOrSingles, arrows)
+		endfor
+	endfor
+	for i in range(len(firsts)-1)
+		let aos1 = firsts[i]
+		let aos2 = firsts[i+1]
+		call add(arrows, { 'a': (type(aos1) == type([]) ? aos1[0] : aos1), 'b': (type(aos2) == type([]) ? aos2[0] : aos2) })
+	endfor
+	let finalDiagram = a:diagram + map(arrows, { _,x -> printf('%s -[hidden]> %s', x.a, x.b) })
+	return finalDiagram
+endfunction
+
+function! GetSuccessivePairs(arrayOrSingle, arr)
+	if type(a:arrayOrSingle) != type([]) | return | endif
+	for i in range(len(a:arrayOrSingle)-1)
+		let aos1 = a:arrayOrSingle[i]
+		let aos2 = a:arrayOrSingle[i+1]
+		call add(a:arr, { 'a': (type(aos1) == type([]) ? aos1[0] : aos1), 'b': (type(aos2) == type([]) ? aos2[0] : aos2) })
+		call GetSuccessivePairs(aos1, a:arr)
+	endfor
+	call GetSuccessivePairs(a:arrayOrSingle[-1], a:arr)
+endfunction
+
+function! CreateChildArrayAtLastKnownPosition(tree, element, pos)
+	if empty(a:tree)
+		call add(a:tree, a:element)
+		call add(a:pos, 0)
+	else
+		let treeNode = GetTreeNodeAt(a:tree, a:pos)
+		let node = [treeNode.node, [a:element]]
+		call remove(treeNode.parent, -1)
+		call add(treeNode.parent, node)
+		if a:pos[-1] == 0 || len(a:pos) == 1
+			call add(a:pos, 1)
+		else
+			let a:pos[-1] += 1
+		endif
+		call add(a:pos, 0)
+	endif
+endfunction
+
+function! CreateSiblingArrayAtLastKnownPosition(tree, element, pos)
+	let parentNode = GetTreeNodeAt(a:tree, a:pos).parent
+	call add(parentNode, a:element)
+	let a:pos[-1] += 1
+endfunction
+
+function! CreateArrayAtGivenParentPosition(tree, element, pos, indentLevel)
+	let nbIndexes = 1
+	if a:indentLevel == 0
+		let nbIndexes = 1
+	else
+		let nbIndexes = 1 + a:indentLevel * 2
+	endif
+
+	call remove(a:pos, nbIndexes, len(a:pos)-1)
+	call CreateSiblingArrayAtLastKnownPosition(a:tree, a:element, a:pos)
+endfunction
+
+function! GetTreeNodeAt(tree, pos)
+	let array = a:tree
+	let parent = a:tree
+	for i in range(len(a:pos))
+		let index = a:pos[i]
+		let parent = array
+		let array = array[index]
+	endfor
+	return { 'node': array, 'parent': parent }
 endfunction
 
 function! StartPlantumlToSvgCB(array, pos, scratchbufnr, plantumlbufnr, job, status)
