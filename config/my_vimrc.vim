@@ -3490,6 +3490,26 @@ function! MyOmniSharpCodeFormat(...)
 endfunction
 command! MyOmniSharpCodeFormat call OmniSharp#actions#format#Format(function('MyOmniSharpCodeFormat'))
 
+function! MyOmniSharpGlobalCodeCheck()
+	let g:old_OmniSharp_diagnostic_exclude_paths = g:OmniSharp_diagnostic_exclude_paths
+	let currentAppName = matchstr(fnamemodify(GetNearestPathInCurrentFileParents('*.sln'), ':t:r'), '[^.]*$')
+	if has_key(g:workenv.resourcesByApp, currentAppName)
+		let foldersToIgnore = g:resourcesByApp[currentAppName].sourcecode.foldersWithWarningsToIgnore
+		let g:OmniSharp_diagnostic_exclude_paths = extendnew(g:OmniSharp_diagnostic_exclude_paths, foldersToIgnore)
+	endif
+	call OmniSharp#actions#diagnostics#CheckGlobal(function('MyOmniSharpGlobalCodeCheckCallback'))
+endfunction
+
+function! MyOmniSharpGlobalCodeCheckCallback(quickfixes, ...)
+	let g:OmniSharp_diagnostic_exclude_paths = g:old_OmniSharp_diagnostic_exclude_paths
+	if len(a:quickfixes) > 0
+		call OmniSharp#locations#SetQuickfix(a:quickfixes, 'Code Check Messages')
+	else
+		echo 'No Code Check messages'
+	endif
+endfunction
+command! MyOmniSharpGlobalCodeCheck call MyOmniSharpGlobalCodeCheck()
+
 function! Map(variableName) range
 	execute a:firstline.','.a:lastline 'normal!' '^d2W"vyeelC = '.a:variableName.".\<c-r>v,"
 	execute a:lastline 'normal!' 'g_"_x'
