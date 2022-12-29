@@ -2873,7 +2873,7 @@ function! CreateFileWithRenderedSvgs()
 		endif
 	endfor
 	let textSplits += lines[lastStop+2:]
-	while !empty(filter(copy(textSplits), {_,x -> x == 'generated diagram'})) || empty(filter(copy(textSplits), {_,x -> x == 'DIAGRAM NOT GENERATED' }))
+	while !empty(filter(copy(textSplits), {_,x -> x == 'generated diagram'})) && empty(filter(copy(textSplits), {_,x -> x == 'DIAGRAM NOT GENERATED' }))
 		sleep 50m
 	endwhile
 	if !empty(filter(copy(textSplits), {_,x -> x == 'DIAGRAM NOT GENERATED'}))
