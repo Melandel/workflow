@@ -1203,8 +1203,6 @@ cnoremap <C-V> <C-R>=@+<CR>| cnoremap <C-C> <C-V>
 tnoremap <C-V> <C-W>"+
 vnoremap gy y`]
 nnoremap <expr> vp '`[' . strpart(getregtype(), 0, 1) . '`]'
-vnoremap p "0p
-vnoremap P "0P
 
 " Repeat-Last-Action: -----------------{{{
 nnoremap ù .
