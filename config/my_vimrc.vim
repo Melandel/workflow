@@ -2543,6 +2543,7 @@ function! GetCommitTypes(findstart, base)
 		\{ 'word': '👁️ comment',        'menu': 'Changes on comments' },
 		\{ 'word': '🔧 config',         'menu': 'Changes on configuration files' },
 		\{ 'word': '🧩 contract-extend', 'menu': 'Changes that add elements to a contract' },
+		\{ 'word': '🗃 data-structure', 'menu': 'Changes that add or modify a data structure' },
 		\{ 'word': '🙅 deprecate',      'menu': 'Deprecating an element in the codebase                      (example scopes: exposed-method, payload-property)' },
 		\{ 'word': '➕ deps-add',       'menu': 'Changes that add dependencies to the system                 (example scopes: mapping, fixture-generation, ioc)' },
 		\{ 'word': '➖ deps-remove',    'menu': 'Changes that remove dependencies from the system            (example scopes: mapping, fixture-generation, ioc)' },
