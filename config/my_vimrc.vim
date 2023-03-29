@@ -2565,7 +2565,8 @@ function! GetCommitTypes(findstart, base)
 		\{ 'word': '🧪 test-suite',     'menu': 'Adding missing tests or correcting existing tests           (example scopes: unit-tests, fearless-programming, integration-tests)' },
 		\{ 'word': '🛡 test-framework', 'menu': 'Changes that affect existing and future tests               (example scopes: unit-tests, fearless-programming, integration-tests)' },
 		\{ 'word': '🔤 typo|wording',   'menu': 'Fixing typos/improving wording' },
-		\{ 'word': '🔖 versioning',     'menu': 'Changes that affect the product version                     (example scopes: api-version, client-version)' }
+		\{ 'word': '🔖 versioning',      'menu': 'Changes that affect the product version                     (example scopes: api-version, client-version)' },
+		\{ 'word': '🚧 work-in-progress','menu': 'Partial and possibly non-functional implementation' }
 	\]
 endfunc
 
