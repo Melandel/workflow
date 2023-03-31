@@ -1472,6 +1472,8 @@ endfunction
 command! -range=% SortByLengthBeforeFirstSpaceChar <line1>,<line2>call SortLinesByLengthBeforeFirstSpaceChar()
 
 " Autocompletion (Insert Mode): -------{{{
+inoremap <C-F> <C-R>=expand("%:t:r")<CR>
+
 let g:UltiSnipsSnippetDirectories = [ 'UltiSnips', 'specificSnippets' ]
 if index(split(&runtimepath, ','), $vimFiles) < 0
 	" access to pythonx folder
