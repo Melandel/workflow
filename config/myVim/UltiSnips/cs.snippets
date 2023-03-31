@@ -2,282 +2,68 @@ global !p
 from my_snippets_helpers import *
 endglobal
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 snippet ns "namespace" b
 namespace `!p snip.rv = path_to_namespace(path)`;
 
 $0
 endsnippet
 
-snippet from "Constructor through Factory method" b
-public static `!p snip.rv=snip.basename` ${2:From}(
-	${3})
-=> new `!p snip.rv=snip.basename`(
-	${0});
-endsnippet
-
-snippet m+^ "Public static method" b
-	public static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet m&^ "Internal static method" b
-	internal static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet m|^ "protected static method" b
-	protected static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet m-^ "Private static method" b
-	public static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mi+^ "Public static method (int)" b
-	public static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mi&^ "Internal static method (int)" b
-	internal static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mi|^ "protected static method (int)" b
-	protected static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mi-^ "Private static method (int)" b
-	public static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet ms+^ "Public static method (string)" b
-	public static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet ms&^ "Internal static method (string)" b
-	internal static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet ms|^ "protected static method (string)" b
-	protected static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet ms-^ "Private static method (string)" b
-	public static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mb+^ "Public static method (bool)" b
-	public static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mb&^ "Internal static method (bool)" b
-	internal static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mb|^ "protected static method (bool)" b
-	protected static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mb-^ "Private static method (bool)" b
-	public static ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet m+% "Public abstract method" b
-	public abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet m&% "Internal abstract method" b
-	internal abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet m|% "protected abstract method" b
-	protected abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet m-% "Private abstract method" b
-	public abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mi+% "Public abstract method (int)" b
-	public abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mi&% "Internal abstract method (int)" b
-	internal abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mi|% "protected abstract method (int)" b
-	protected abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mi-% "Private abstract method (int)" b
-	public abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet ms+% "Public abstract method (string)" b
-	public abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet ms&% "Internal abstract method (string)" b
-	internal abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet ms|% "protected abstract method (string)" b
-	protected abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet ms-% "Private abstract method (string)" b
-	public abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mb+% "Public abstract method (bool)" b
-	public abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mb&% "Internal abstract method (bool)" b
-	internal abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mb|% "protected abstract method (bool)" b
-	protected abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
-snippet mb-% "Private abstract method (bool)" b
-	public abstract ${1:void} ${2}(${3})
-	{
-		${0}
-	}
-endsnippet
-
 snippet itf "Interface" b
-${1:public} interface ${2:`!p snip.rv = snip.basename`}
+public interface ${1:`!p snip.rv = basename_to_classname(snip.basename)`}
 {
 	$0
 }
 endsnippet
 
-snippet itf+ "Public Interface" b
-public interface ${1:`!p snip.rv = snip.basename`}
+snippet cls "class" b
+$0class $2${1: : I$2}
 {
+	public ${2:`!p snip.rv = basename_to_classname(snip.basename)`}()
+	{
+	}
+
+}
+endsnippet
+
+snippet rc "record" b
+record ${1:`!p snip.rv = basename_to_classname(snip.basename)`}(
 	$0
-}
+);
 endsnippet
 
-snippet itf& "Internal Interface" b
-internal interface ${1:`!p snip.rv = snip.basename`}
+
+snippet m "method" b
+${4:static }${3:`!p snip.rv=basename_to_classname(snip.basename)`} ${1:DoSomething}(${2:TInput} `!p snip.rv = t[2][0].lower() + t[2][1:]`)
 {
-	${0}
 }
+
 endsnippet
 
-snippet itf- "Private interface" b
-private interface ${1:`!p snip.rv = snip.basename`}
+snippet M "public method" b
+public${4: static} ${3:`!p snip.rv=basename_to_classname(snip.basename)`} ${1:DoSomething}($0)
+${5:=> new $3();}
+
+endsnippet
+
+snippet _ "field" b
+${3:static }readonly ${1:SomeType} ${2:`!p snip.rv = "_" + (t[1][1].lower()+t[1][2:] if (t[1][0].isupper() and t[1][1].isupper()) else t[1][0].lower()+t[1][1:]) if len(t[1]) > 1 else ""`};
+
+endsnippet
+
+snippet p "property" b
+public ${1:`!p snip.rv = basename_to_classname(snip.basename)`} ${2:Stuff} { get;${3: init;} }
+
+endsnippet
+
+snippet P "property with getter" b
+public${3: static}${4: readonly} ${1:`!p snip.rv = basename_to_classname(snip.basename)`} ${2:With_SomeValue_In_Every_Field}
 {
-	${0}
+	get
+	{
+		${4:return new $1();}
+	}
 }
+
 endsnippet
 
 snippet fact "XUnit Fact" b
@@ -326,9 +112,9 @@ snippet md "MemberData" b
 endsnippet
 
 snippet interactor "Interactor Contract" b
-namespace ${2:MyNameSpace};
+namespace `!p snip.rv = path_to_namespace(path)`;
 
-public interface ${1:`!p snip.rv = snip.basename`}
+public interface ${1:`!p snip.rv = basename_to_classname(snip.basename)`}
 {
 	Response Process(Request req);
 
@@ -355,7 +141,27 @@ endsnippet
 
 
 
+snippet ext "ExtensionMethods file" b
+namespace `!p snip.rv = path_to_namespace(path)`;
 
+public static class `!p snip.rv = snip.basename.replace(".", "")`
+{
+	mape$0
+}
+endsnippet
+
+snippet me "mapping extension method" b
+public static ${3:TOutput} ${2:ToUseCaseInputField}(this ${1:`!p snip.rv = basename_to_classname(snip.basename)`} `!p snip.rv = t[1][0].lower() + t[1][1:]`)
+=> $1 switch
+{
+	null => null,
+	_ => new $3()
+		with
+		{
+		}
+};
+
+endsnippet
 
 
 
@@ -363,106 +169,30 @@ endsnippet
 
 
 snippet td "Test Double" b
-foonamespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\', '.')`;
+namespace `!p snip.rv = path_to_namespace(path)`;
 
 public static class `!p snip.rv = snip.basename.replace('TestDoubles', 'TestDouble')`
 {
-	public static I`!p snip.rv = snip.basename.replace('TestDoubles', '')` Dummy => Substitute.For<I`!p snip.rv = snip.basename.replace('TestDoubles', '')`>();
-}
-endsnippet
-
-snippet tdg "Test Double with Getter" b
-
-public static $0I`!p snip.rv = snip.basename.replace('TestDoubles', '')` ${1:That_Returns_With_Zero_Data}
-{
-	get
-	{
-		var testDouble = Substitute.For<I`!p snip.rv = snip.basename.replace('TestDoubles', '')`>();
-		return testDouble;
-	}
-}
-endsnippet
-
-snippet tdp "Test Double with parameters" b
-
-public static $0I`!p snip.rv = snip.basename.replace('TestDoubles', '')` ${2:That_Results_Stuff_Only_For}(${4:object o})
-{
-	var testDouble = Substitute.For<I`!p snip.rv = snip.basename.replace('TestDoubles', '')`>();
-	testDouble
-		.${3:Method}()
-		.Returns();
-	return testDouble;
+	public static I`!p snip.rv = basename_to_classname(snip.basename)` Dummy => Substitute.For<I`!p snip.rv = basename_to_classname(snip.basename)`>();
 }
 endsnippet
 
 snippet arch "Archetype" b
-namespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\', '.')`;
+namespace `!p snip.rv = path_to_namespace(path)`;
 
-public static class `!p snip.rv = snip.basename.replace('Archetypes', 'Archetype')`
+public static class `!p snip.rv = basename_to_classname(snip.basename).replace('Archetypes', 'Archetype')`
 {
-	public static `!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:With_SomeValue_In_Every_Field}
-		=> new `!p snip.rv = snip.basename.replace('Archetypes', '')`()${2:
-		{
-			${3:Foo}
-		}};
-}
-endsnippet
-
-snippet archa "Archetype with array" b
-public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:With_SomeValue_In_Every_Field}
-	=> new `!p snip.rv = snip.basename.replace('Archetypes', '')`()${2:
+	public static `!p snip.rv = basename_to_classname(snip.basename)` ${1:With_SomeValue_In_Every_Field}
+	=> new `!p snip.rv = basename_to_classname(snip.basename)`()${2:
 	{
 		${3:Foo}
 	}};
-endsnippet
-
-snippet archg "Archetype with getter" b
-public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:With_SomeValue_In_Every_Field}
-{
-	get
-	{
-		var ${2:variable} = new `!p snip.rv = snip.basename.replace('Archetypes', '')`();
-		return ${2};
-	}
 }
 endsnippet
 
-snippet archp "Archetype with parameters" b
-public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:With_SomeValue_In_Every_Field}(${2:string stuff})
-{
-	var `!p snip.rv = snip.basename[0]+snip.basename[1:].replace('Archetypes', '')` = new `!p snip.rv = snip.basename.replace('Archetypes', '')`();
-	return `!p snip.rv = snip.basename[0]+snip.basename[1:].replace('Archetypes', '')`;
-}
-endsnippet
 
-snippet ext "ExtensionMethods file" b
-namespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\', '.')`
-{
-	public static class `!p snip.rv = snip.basename`
-	{
-		$0
-	}
-}
-endsnippet
 
-snippet mape "mapping extension method" b
-public static $0${1:TOutput} ${2:ToUseCaseInputField}(this ${3:TInput} `!p snip.rv = t[3][0].lower() + t[3][1:]`)
-{
-	return new $1()
-		with {
-		};
-}
-endsnippet
 
-snippet pr "record property (init)" b
-public ${1:int} ${2:MyProperty} { get; init; }
-endsnippet
-
-snippet rc "record" b
-record ${1:`!p snip.rv = snip.basename`}(
-	$0
-);
-endsnippet
 
 snippet am "Assert Multiple" b
 Assert.Multiple(() =>
