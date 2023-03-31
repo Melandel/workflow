@@ -338,12 +338,11 @@ public interface ${1:`!p snip.rv = snip.basename`}
 endsnippet
 
 snippet td "Test Double" b
-namespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\', '.')`
+namespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\', '.')`;
+
+public static class `!p snip.rv = snip.basename.replace('TestDoubles', 'TestDouble')`
 {
-	public static class `!p snip.rv = snip.basename.replace('TestDoubles', 'TestDouble')`
-	{
-		public static I`!p snip.rv = snip.basename.replace('TestDoubles', '')` Dummy => Substitute.For<I`!p snip.rv = snip.basename.replace('TestDoubles', '')`>();
-	}
+	public static I`!p snip.rv = snip.basename.replace('TestDoubles', '')` Dummy => Substitute.For<I`!p snip.rv = snip.basename.replace('TestDoubles', '')`>();
 }
 endsnippet
 
@@ -376,7 +375,7 @@ namespace `!p snip.rv = os.path.dirname(path).replace('src\\', '').replace('\\',
 
 public static class `!p snip.rv = snip.basename.replace('Archetypes', 'Archetype')`
 {
-	public static `!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_Returns_Stuff}
+	public static `!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:With_SomeValue_In_Every_Field}
 		=> new `!p snip.rv = snip.basename.replace('Archetypes', '')`()${2:
 		{
 			${3:Foo}
@@ -385,7 +384,7 @@ public static class `!p snip.rv = snip.basename.replace('Archetypes', 'Archetype
 endsnippet
 
 snippet archa "Archetype with array" b
-public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_Returns_Stuff}
+public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:With_SomeValue_In_Every_Field}
 	=> new `!p snip.rv = snip.basename.replace('Archetypes', '')`()${2:
 	{
 		${3:Foo}
@@ -393,7 +392,7 @@ public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_
 endsnippet
 
 snippet archg "Archetype with getter" b
-public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_Returns_Stuff}
+public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:With_SomeValue_In_Every_Field}
 {
 	get
 	{
@@ -404,7 +403,7 @@ public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_
 endsnippet
 
 snippet archp "Archetype with parameters" b
-public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:That_Returns_Stuff}(${2:string stuff})
+public static $0`!p snip.rv = snip.basename.replace('Archetypes', '')` ${1:With_SomeValue_In_Every_Field}(${2:string stuff})
 {
 	var `!p snip.rv = snip.basename[0]+snip.basename[1:].replace('Archetypes', '')` = new `!p snip.rv = snip.basename.replace('Archetypes', '')`();
 	return `!p snip.rv = snip.basename[0]+snip.basename[1:].replace('Archetypes', '')`;
@@ -435,10 +434,9 @@ public ${1:int} ${2:MyProperty} { get; init; }
 endsnippet
 
 snippet rc "record" b
-${1:public} record ${2:`!p snip.rv = snip.basename`}
-{
+record ${1:`!p snip.rv = snip.basename`}(
 	$0
-}
+);
 endsnippet
 
 snippet am "Assert Multiple" b
