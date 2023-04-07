@@ -1,6 +1,10 @@
 import os.path
 import uuid
 import textwrap
+from datetime import datetime
+
+def today():
+ return datetime.today().strftime('%Y-%m-%d')
 
 def rnd():
  return str(uuid.uuid4())

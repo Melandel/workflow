@@ -2,7 +2,34 @@ global !p
 from my_snippets_helpers import *
 endglobal
 
+snippet adr "Architectural Decision Record" b
+\`\`\`text
+Current Status: ${6:Waiting for approval} - By: ${7:Minh-Tâm} - Since: `!p snip.rv=today()`
+\`\`\`
+
+## 📋 Context and Problem Statement
+> **${1:Which foo should we bar? How should we foobar?}**
+
+${2:Decision taken:}
+${3:\`\`\`${4:text}
+${5:foobar}
+\`\`\`}
+
+## 💡 Considered Options
+* _Option 1: $0_
+	* ✅ It works
+	* ✅ It is simple
+
+## 📎 Additional Information
+* [some link]()
+* [some other link]()
+endsnippet
+
 snippet madr "Description" b
+\`\`\`text
+Current Status: ${1:Waiting for approval} - By: ${2:Minh-Tâm} - Since: `!p snip.rv=today()`
+\`\`\`
+
 problem$0
 drivers
 options

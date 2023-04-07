@@ -1,3 +1,11 @@
+global !p
+from my_snippets_helpers import *
+endglobal
+
+snippet today "today" i
+`!p snip.rv=today()`
+endsnippet
+
 snippet :todo "todo emoticon" i
 ✘
 endsnippet
@@ -36,7 +44,7 @@ endsnippet
 
 snippet curl "curl request" b
 curl -siLk -X POST ${1:$api}/$0
--H "Content-Type: application/json" 
+-H "Content-Type: application/json"
 -H "Authorization: Bearer $token"
 --data-raw "{
   'foo': 'bar'
