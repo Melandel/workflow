@@ -171,19 +171,19 @@ endsnippet
 snippet td "Test Double" b
 namespace `!p snip.rv = path_to_namespace(path)`;
 
-public static class `!p snip.rv = snip.basename.replace('TestDoubles', 'TestDouble')`
+public static class `!p snip.rv = basename_to_classname(snip.basename)`
 {
-	public static I`!p snip.rv = basename_to_classname(snip.basename)` Dummy => Substitute.For<I`!p snip.rv = basename_to_classname(snip.basename)`>();
+	public static I`!p snip.rv = basename_to_classname(snip.basename).replace('TestDouble', '')` Dummy => Substitute.For<I`!p snip.rv = basename_to_classname(snip.basename).replace('TestDouble', '')`>();
 }
 endsnippet
 
 snippet arch "Archetype" b
 namespace `!p snip.rv = path_to_namespace(path)`;
 
-public static class `!p snip.rv = basename_to_classname(snip.basename).replace('Archetypes', 'Archetype')`
+public static class `!p snip.rv = basename_to_classname(snip.basename)`
 {
-	public static `!p snip.rv = basename_to_classname(snip.basename)` ${1:With_SomeValue_In_Every_Field}
-	=> new `!p snip.rv = basename_to_classname(snip.basename)`()${2:
+	public static `!p snip.rv = basename_to_classname(snip.basename).replace('Archetype', '')` ${1:With_SomeValue_In_Every_Field}
+	=> new `!p snip.rv = basename_to_classname(snip.basename).replace('Archetype', '')`()${2:
 	{
 		${3:Foo}
 	}};

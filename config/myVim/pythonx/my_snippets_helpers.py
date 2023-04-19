@@ -13,7 +13,7 @@ def path_to_namespace(path):
  return os.path.dirname(path).replace('src\\', '').replace('\\', '.')
 
 def basename_to_classname(basename):
- return basename.replace('Archetypes', '').replace('TestDoubles', '').replace('Extension', '').replace('Methods', '').replace('.', '')
+ return basename.replace('Archetypes', 'Archetype').replace('TestDoubles', 'TestDouble').replace('Extension', '').replace('Methods', '').replace('.', '')
 
 def pascal_case(value):
  return "".join(value.title().split())
