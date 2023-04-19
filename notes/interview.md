@@ -1,5 +1,11 @@
 # Interview
 
+* In a typical day, what time do you spend on using which tool?
+* What's your vision of an ideal work environment?
+* What's your vision of an ideal codebase?
+* Does it matter?
+* Behaviour vs Structure. Priorities?
+
 * Can you give me three things that the codebase inspires to you?
 * What are your thoughts on your position relative to the state of the art?
 * What are three things that you can tell me right now to convince me the codebase isn't an absolute mess?
