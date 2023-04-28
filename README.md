@@ -114,6 +114,11 @@ Add environment variable:
 * `VIEB_CONFIG_FILE` to `%HOMEPATH%\Desktop\config\my_viebrc.vieb`
 * `VIEB_DATAFOLDER` to `%HOMEPATH%\Desktop\config\viebfiles\`
 
+Also:
+```txt
+cd %homepath%
+mklink /d vimfiles %HOMEPATH%\Desktop\config\myVim
+```
 #### Startup programs ####
 `gvim`, `tools/myAzertyKeyboard.RunMeAsAdmin.exe` and your internet browser should be run when the system starts up.
 
