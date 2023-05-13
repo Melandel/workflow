@@ -2573,7 +2573,17 @@ function! GetCommitTypes(findstart, base)
 endfunc
 
 function! OpenTabWithPullRequestDescription(...)
-	let commitOrBranchName = a:0 ? a:1 : 'origin/'.trim(system("git remote show origin | sed -n '/HEAD branch/s/.*: //p'"))
+	let commitOrBranchName = ''
+	if a:0
+		let commitOrBranchName = a:1
+	else
+		let gitFlowDevBranches = filter(map(systemlist("git branch"), {_,x -> trim(x, '* ')}), 'v:val =~ "^develop.*"')
+		if !empty(gitFlowDevBranches)
+			let commitOrBranchName = 'origin/'.gitFlowDevBranches[0]
+		else
+			let commitOrBranchName = 'origin/'.trim(system("git remote show origin | sed -n '/HEAD branch/s/.*: //p'"))
+		endif
+	endif
 	tabnew
 	set ft=markdown
 	call setline(1, BuildPullRequestDescription(commitOrBranchName))
