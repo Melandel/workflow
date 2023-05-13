@@ -1252,7 +1252,7 @@ function! Grep(qf_or_loclist, ...)
 	call histadd('/', pattern) | let @/ = pattern
 	let patternHasDash = stridx(pattern, '-') >= 0
 	let firstTokenWithDoubleQuote = index(map(copy(a:000), {i,x -> x =~ '^"'}), 1)
-	let cmdParams = a:000[0:firstTokenWithDoubleQuote-1]
+	let cmdParams = firstTokenWithDoubleQuote ? a:000[0:firstTokenWithDoubleQuote-1] : []
 	if patternHasDash
 		call add(cmdParams, '-e')
 	endif
@@ -1293,19 +1293,17 @@ function! GrepCB(winnr, cmd, cwd, pattern, scratchbufnr, qf_or_loclist, job, exi
 		0put=a:cmd
 		return
 	endif
-	"let result = getbufline(a:scratchbufnr, 1, '$')
-	"let nb = len(result)
-	"if nb == 1 && empty(result[0])
-	"	echomsg printf('[%s] 0 found.', a:pattern)
-	"	return
-	"endif
-	"echomsg printf('[%s] %d found.', a:pattern, nb)
 	exec 'lcd' a:cwd
 	set errorformat=%*[^C]%f:%l:%c:%m
 	let prefix = (a:qf_or_loclist == 'qf' ? 'c' : 'l')
 	silent exec prefix.'getbuffer' a:scratchbufnr
+	let winnr = winnr()
 	let title = printf("[grep] %s", a:pattern)
-	silent exec printf('call setwinvar(winnr("$"), "quickfix_title", "%s")', title)
+	let firstDoubleQuotePos = stridx(title, '"')
+	if firstDoubleQuotePos >= 1
+		let title = title[:firstDoubleQuotePos-1]
+	endif
+	silent exec printf('call setwinvar(%d, "quickfix_title", ''%s'')', winnr, title)
 	set cmdheight=1
 	echomsg title
 endfunction
@@ -2675,7 +2673,10 @@ nnoremap <silent> <leader>D :Gdiffsplit<CR>
 
 " Drafts (Diagrams & Notes):-----------{{{
 function! LocListNotes()
-	exec 'Lgrep' '"^# "' $n '-g "*.md" -g "!*.withsvgs.md"' '--sort path'
+	let cwd = getcwd()
+	lcd $n
+	exec 'Lgrep' '"^# "' '-g "*.md" -g "!*.withsvgs.md"' '--sort path'
+	exec 'lcd' cwd
 endfunction
 nnoremap <silent> <leader>en :call LocListNotes()<CR>
 
