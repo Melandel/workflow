@@ -2,6 +2,10 @@
 	<head>
 		<Title>Homepage</Title>
 		<style>
+html {
+	background: none! important;
+}
+
 ul {
 	-moz-column-count: 4;
 	-moz-column-gap: 20px;
@@ -26,8 +30,48 @@ a {
 <body></body>
 <script>
 	function link(title, url, emoji = '') { return { title: title, url: url, emoji: emoji }; }
-	let links = [
-			link('Mails', 'https://outlook.office.com/mail/', '✉')
+	function group(title, links) { return { title: title, links: links }; }
+	let links_groups = [
+			group('Documentation',
+			[
+				link('Confluence', 'https://confluence.tf1.fr/pages/viewpage.action?pageId=199002755', '📖'),
+				link('My Google Drive', 'https://drive.google.com/drive/u/0/mobile/my-drive', '📘'),
+				link('Google Drives Shared with me', 'https://drive.google.com/drive/u/0/mobile/shared-with-me', '📘'),
+				link('Glossaire', 'https://tf1.sharepoint.com/:x:/s/PleProduitsPublicitaires/EekT2NmujPBGixDxqWoayv0B6ZDXQL_gQdAaHOtReefM7A?e=FVuR8u', '📖')
+			]),
+			group('Organisation',
+			[
+				link('Board New Age', 'https://dev.azure.com/groupe-tf1/Publicite/_boards/board/t/Stream%20New%20Age/Stories', '🔖'),
+				link('Board Commercialisation', 'https://dev.azure.com/groupe-tf1/Publicite/_boards/board/t/Stream%20Referentiel/Stories', '🔖'),
+				link('Mails', 'https://mail.google.com/mail/u/0/#inbox', '✉'),
+				link('Azure DevOps', 'https://dev.azure.com/groupe-tf1/Publicite/_git/pub-adref-605', '🧿'),
+				link('Google Chat', 'https://mail.google.com/mail/u/0/#chat/welcome', '💭'),
+				link('Teams', 'https://teams.microsoft.com/_#/conversations/', '🗨')
+			]),
+			group('Investigation',
+			[
+				link('DataDog', 'https://tf1.datadoghq.eu/apm/home', '👁'),
+			]),
+			group('Absences & Feuilles de temps',
+			[
+				link('Congés', 'https://docs.google.com/spreadsheets/d/1A8Uiq9ryOdVUGquONPn5YnWSxmG3yn4PhMJDNP78iSs/edit#gid=638832441', '📕'),
+				link('Triskel', 'https://triskell.tf1.fr/', '📘'),
+				link('Boondmanager', 'https://ui.boondmanager.com/resources/102/times-reports', '📙'),
+				link('Lucca Shodo', 'https://shodo.ilucca.net/timmi-absences#/leave-request', '📗'),
+				link('Votes Télétravail', 'https://docs.google.com/spreadsheets/d/15nU4v2pnfV-K9eu9b7ADI_pOiNEn1xxHxvno4t17M-4/edit#gid=620042849', '📘')
+			])
 		];
-	document.body.insertAdjacentHTML('beforeend', `<ul>${links.map(x => `<li><a href="${x.url}">${x.emoji} ${x.title}</a></li>`).join('')}</ul>`);
+	function build_links_html_groups(links_groups)
+	{
+		let border_color = '#8cb369';
+		let html = '';
+		for (const group of links_groups)
+		{
+			let title = `<div style="font:14px 'DejaVu Sans Mono', 'Courier', monospace;font-size: 1.5em;font-weight: bold;color: ${border_color}!important; padding-left:40px;">${group.title}</div>`;
+			let links = `<div><ul>${group.links.map(l => `<li><a href="${l.url}">${l.emoji} ${l.title}</a></li>`).join('')}</ul></div>`;
+			html += `<div style="border:3px solid ${border_color}; border-radius:25px; margin-bottom: 20px;">${title}${links}</div>`;
+		}
+		return html;
+	}
+	document.body.insertAdjacentHTML('beforeend', build_links_html_groups(links_groups));
 </script>
