@@ -4466,7 +4466,7 @@ endfunction
 
 function! InitQueryRowRequestWindow()
 	set filetype=zsh
-	set omnifunc=CosmosCompletion
+	set omnifunc=DbCompletion
 	nnoremap <silent> <buffer> <LocalLeader>m :RunQuery<CR>
 	nnoremap <silent> <buffer> # :TogglePayloadEditor<CR>
 	nnoremap <silent> <buffer> <Space> `V
@@ -4810,22 +4810,22 @@ let g:workenv = BuildWorkenvVariable()
 "call extend(g:OmniSharp_diagnostic_exclude_paths, config.inSourceCode.forWarnings)
 "let config = ParseJsonFile($workenv.'/ressourcesByProject.jsonc')
 
-function! CosmosCompletion(findstart, base)
+function! DbCompletion(findstart, base)
 	if a:findstart
 		let line = getline('.')
 		return col('.')
 	endif
-	return map(systemlist('Cosmos list'), {_,x -> trim(x)})
+	return map(systemlist('Db list'), {_,x -> trim(x)})
 endfunction
 
-if executable('cosmos')
+if executable('Db')
 	function! LoadDynamicSnippets()
-		let cosmosDatabases = map(systemlist('Cosmos list'), {_,x -> trim(x)})
-		for i in range(len(cosmosDatabases))
-			let db = cosmosDatabases[i]
+		let DbDatabases = map(systemlist('Db list'), {_,x -> trim(x)})
+		for i in range(len(DbDatabases))
+			let db = DbDatabases[i]
 			let trigger = 'cm '.db
-			let snippet = 'cosmos '.db.' ${1:ic} $2'
-			let description = '[Cosmos DB] '.db
+			let snippet = 'Db '.db.' ${1:ic} $2'
+			let description = '[Db DB] '.db
 			if !exists('UltiSnips#AddSnippetWithPriority') | packadd ultisnips | endif
 			call UltiSnips#AddSnippetWithPriority(trigger, snippet, description, 'b', 'zsh', 1)
 		endfor
