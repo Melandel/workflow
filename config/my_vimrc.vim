@@ -4546,6 +4546,22 @@ command! ToggleRequestEditor call ToggleRequestEditor()
 
 function! InitQueryRowResponseWindow()
 	exec 'lcd' w:row.cwd
+	let lastNonSpaceLine = line('$')
+	while lastNonSpaceLine =~ '^\s*$' || lastNonSpaceLine != 1
+		let lastNonSpaceLine -= 1
+	endwhile
+	let isXml = getline(lastNonSpaceLine) =~ '^<.*>$'
+	let isJson = getline(lastNonSpaceLine) =~ '^\({\|\[\|}\|]\)'
+	if isXml
+		silent $!xmllint --format --recover --c14n -
+		set ft=xml
+	elseif isJson
+		let isNotPrettyYet = (len(getline(lastNonSpaceLine)) > 1)
+		if isNotPrettyYet
+			silent! $!jq .
+		endif
+		set ft=jsonc
+	endif
 	nnoremap <silent> <buffer> <Space> <C-W>h`V
 	nnoremap <silent> <buffer> <C-J> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '+2', 'DisplayQueryFilesFromHistoryWindow')<CR>
 	nnoremap <silent> <buffer> <C-K> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '-2', 'DisplayQueryFilesFromHistoryWindow')<CR>
@@ -4713,7 +4729,7 @@ function! DisplayQueryJobOutput(bufnr, dirvishDirValue, queryFilenameWithoutExte
 		if isNotPrettyYet
 			silent! $!jq .
 		endif
-		set ft=json
+		set ft=jsonc
 		let ext = 'json'
 	endif
 	set bt=
