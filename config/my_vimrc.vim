@@ -4558,7 +4558,10 @@ function! InitQueryRowResponseWindow()
 	elseif isJson
 		let isNotPrettyYet = (len(getline(lastNonSpaceLine)) > 1)
 		if isNotPrettyYet
-			silent! $!jq .
+			let firstLine = getline(1)
+			call setline(1, firstLine[0])
+			silent! execute '1,'.lastNonSpaceLine.'!jq .'
+			call setline(1, firstLine)
 		endif
 		set ft=jsonc
 	endif
@@ -4718,23 +4721,34 @@ function! DisplayQueryJobOutput(bufnr, dirvishDirValue, queryFilenameWithoutExte
 	endif
 	normal! gg
 	let ext = 'output'
-	let isXml = getline('$') =~ '^<.*>$'
-	let isJson = getline('$') =~ '^\({\|\[\|}\|]\)'
+	let lastNonSpaceLine = line('$')
+	while lastNonSpaceLine =~ '^\s*$' || lastNonSpaceLine != 1
+		let lastNonSpaceLine -= 1
+	endwhile
+	let isXml = lastNonSpaceLine =~ '^<.*>$'
+	let isJson = lastNonSpaceLine =~ '^\({\|\[\|}\|]\)'
 	if isXml
 		silent $!xmllint --format --recover --c14n -
 		set ft=xml
 		let ext = 'xml'
 	elseif isJson
-		let isNotPrettyYet = (len(getline('$')) > 1)
+		let isNotPrettyYet = (len(getline(lastNonSpaceLine)) > 1)
 		if isNotPrettyYet
-			silent! $!jq .
+			let firstLine = getline(1)
+			call setline(1, firstLine[0])
+			silent! execute '1,'.lastNonSpaceLine.'!jq .'
+			call setline(1, firstLine)
 		endif
 		set ft=jsonc
 		let ext = 'json'
 	endif
 	set bt=
 	silent exec 'saveas' printf('%s.%s', a:queryFilenameWithoutExtension, ext)
+	echomsg "foo"
+	echomsg getline(1, '$')
 	call InitQueryRowResponseWindow()
+	echomsg "bar"
+	echomsg getline(1, '$')
 	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:rowId, 'history')[0])
 	if get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '') == a:dirvishDirValue
 		for bufnr in win_findbuf(historyBufNr)
