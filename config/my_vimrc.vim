@@ -4556,12 +4556,16 @@ function! InitQueryRowResponseWindow()
 		silent $!xmllint --format --recover --c14n -
 		set ft=xml
 	elseif isJson
+		let firstLine = getline(1)
+  let isDbFormat = (firstLine =~ '^{ "count": ') && (firstLine =~ ', "_":$')
+  if !isDbFormat
 		let isNotPrettyYet = (len(getline(lastNonSpaceLine)) > 1)
 		if isNotPrettyYet
 			let firstLine = getline(1)
 			call setline(1, firstLine[0])
 			silent! execute '1,'.lastNonSpaceLine.'!jq .'
 			call setline(1, firstLine)
+    endif
 		endif
 		set ft=jsonc
 	endif
@@ -4732,12 +4736,15 @@ function! DisplayQueryJobOutput(bufnr, dirvishDirValue, queryFilenameWithoutExte
 		set ft=xml
 		let ext = 'xml'
 	elseif isJson
+  let isDbFormat = (firstLine =~ '^{ "count": ') && (firstLine =~ ', "_":$')
+  if !isDbFormat
 		let isNotPrettyYet = (len(getline(lastNonSpaceLine)) > 1)
 		if isNotPrettyYet
 			let firstLine = getline(1)
 			call setline(1, firstLine[0])
 			silent! execute '1,'.lastNonSpaceLine.'!jq .'
 			call setline(1, firstLine)
+   endif
 		endif
 		set ft=jsonc
 		let ext = 'json'
