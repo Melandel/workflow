@@ -2646,7 +2646,7 @@ function! FormatAsMarkdownTableRow(commitBodyWithMarks)
 	let commitNotes = stridx(commitBody, newlineMark) >= 0
 		\? escape(trim(join(mapnew(split(commitBody[stridx(commitBody, newlineMark) + len(newlineMark):], newlineMark), { _,x -> '▪ '. ((stridx(x, ': ') >=0) ? ('**'.x[:stridx(x, ': ')-1].'**'.x[stridx(x, ': '):]) : x) }), '<br/>'), newlineMark), '|')
 		\: '-'
-	if stridx(commitType, '🚀') >=0 || stridx(commitType, '🐛') >=0
+	if stridx(commitType, '🚀') >=0 || stridx(commitType, '🐛') >=0 || stridx(commitType, '🧩') >=0
 		return { 'type': 'behavior', 'content': printf('| %s | %s | %s |', commitScope, substitute(commitDescription, 'should', 'will', ''), commitNotes) }
 	else
 		return { 'type': 'structure', 'content': printf('| %s | %s | %s | %s |', commitScope, commitType, commitDescription, commitNotes) }
