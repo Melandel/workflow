@@ -2621,7 +2621,7 @@ function! BuildPullRequestDescription(commitOrBranchName)
 		call extend(descriptionLines, empty(behaviorCommitsAsMarkdownTableRows) ? ['-'] : map(behaviorCommitsAsMarkdownTableRows, 'v:val.content'))
 		call extend(descriptionLines, [ "", "## 🚦 Regression test suite", "| Scope | Behavior | Notes |", "|-|-|-|", "" ])
 	endif
-	call add(descriptionLines, "## ⚜ Clean Code's [Boy Scout Rule](](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch08.html))")
+	call add(descriptionLines, "## ⚜ Clean Code's [Boy Scout Rule](https://www.oreilly.com/library/view/97-things-every/9780596809515/ch08.html)")
 	let structureCommitsAsMarkdownTableRows = reverse(filter(copy(commitsAsMarkdownTableRow), {_,x -> x.type == 'structure'}))
 	if(empty(structureCommitsAsMarkdownTableRows))
 		call extend(descriptionLines, [ "_Nothing._", ""])
