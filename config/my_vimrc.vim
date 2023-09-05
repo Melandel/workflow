@@ -2831,6 +2831,7 @@ augroup markdown
 	autocmd FileType markdown nnoremap <buffer> zj /^#<CR>
 	autocmd FileType markdown nnoremap <buffer> zk ?^#<CR>
 	autocmd FileType markdown setlocal omnifunc=
+	autocmd FileType markdown syn match markdownError "\w\@<=\w\@="
 augroup END
 
 
