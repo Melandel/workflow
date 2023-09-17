@@ -2050,6 +2050,9 @@ endfunction
 function! DeleteItemUnderCursor()
 	let target = trim(getline('.'), '/\')
 	let filename = fnamemodify(target, ':t')
+	if target =~ '\.cs'
+		call OmniSharpDeleteFile(target)
+	endif
 	if has('win32')
 		let cmd = printf('cmd /C %s "%s"', $gtools.'/rm -r', target)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
@@ -2089,10 +2092,6 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 	endif
 	if has('win32')
 		let bufnr = bufnr(item)
-		if item =~ '\.cs'
-			if bufnr == -1 | let bufnr = bufadd(item) | endif
-			call OmniSharp#stdio#Request('/updatebuffer', {'BufNum': bufnr, 'EmptyBuffer': 1})
-		endif
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', item, item_finalname)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
 		let s:job = job_start(
@@ -2121,8 +2120,7 @@ function! RenameItemUnderCursor()
 	let newname = input('Rename into:', filename)
 	if has('win32')
 		if filename =~ '\.cs'
-			if bufnr == -1 | let bufnr = bufadd(filename) | endif
-			call OmniSharp#stdio#Request('/updatebuffer', {'BufNum': bufnr, 'EmptyBuffer': 1})
+			call OmniSharpReloadProject()
 		endif
 		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', filename, newname)
 		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
@@ -2230,6 +2228,9 @@ endfunction
 function! RefreshBufferAndMoveToPathAndCleanMovedBuffer(bufnr, path, ...)
 	call RefreshBufferAndMoveToPath(a:path, a:000)
 	if a:bufnr >= 0 | silent! exec a:bufnr.'bdelete!' | endif
+	if a:path =~ '\.cs'
+		call OmniSharpReloadProject()
+	endif
 endfunction
 
 function! CreateFile()
@@ -3388,14 +3389,27 @@ let g:OmniSharp_diagnostic_showid = 1
 let g:omnicomplete_fetch_full_documentation = 0
 let g:OmniSharp_open_quickfix = 1
 
-function! OmniSharpRefreshBuffer(...)
-	let bufnr = a:0 ? a:1 : bufnr()
-	call OmniSharp#stdio#Request('/updatebuffer', {'BufNum': bufnr, 'EmptyBuffer': 1})
+function! OmniSharpReloadProject()
+	if !OmniSharp#proc#IsJobRunning(GetSln()) | return | endif
+	call ch_sendraw(
+		\OmniSharp#GetHost().job.job_id,
+		\json_encode({ 'Seq': 999999, 'Arguments': [ { 'ChangeType': 'Change', 'FileName': GetCsproj() } ], 'Type': 'request', 'Command': '/filesChanged' }) . "\n")
 endfunction
-command! -nargs=? OmniSharpRefreshBuffer call OmniSharpRefreshBuffer(<f-args>)
+
+function! OmniSharpDeleteFile(...)
+	if !OmniSharp#proc#IsJobRunning(GetSln()) | return | endif
+	let filename = a:0 ? a:1 : expand('%:p')
+	call ch_sendraw(
+		\OmniSharp#GetHost().job.job_id,
+		\json_encode({ 'Seq': 999999, 'Arguments': [ { 'ChangeType': 'Delete', 'FileName': filename } ], 'Type': 'request', 'Command': '/filesChanged' }) . "\n")
+endfunction
 
 function! GetCsproj()
 	return GetNearestPathInCurrentFileParents('*.csproj')
+endfunction
+
+function! GetSln()
+	return GetNearestPathInCurrentFileParents('*.sln')
 endfunction
 
 function! GetDirOrSln()
@@ -3415,6 +3429,13 @@ function! GetDirOrSln()
 		return csproj
 	endif
 endfunction
+
+function! MyOmniSharpReloadProjectAndLinter()
+	call OmniSharp#actions#project#Reload(GetCsproj())
+	call ale#code_action#ReloadBuffer()
+	call add([], timer_start(500, { timerid -> execute('call ale#code_action#ReloadBuffer()', '') }))
+endfunction
+command! MyOmniSharpReloadProjectAndLinter call MyOmniSharpReloadProjectAndLinter()
 
 function! OpenCodeOnAzureDevops() range
 	let s:job= job_start(printf('vieb.exe "%s"', GetCodeUrlOnAzureDevops()))
@@ -3608,6 +3629,7 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <silent> <buffer> <localleader>B :ToggleConditionalBreakpoint<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>L :call vimspector#ListBreakpoints()<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>C :call vimspector#ClearBreakpoints()<CR>
+	autocmd FileType cs nnoremap <silent> <buffer> <LocalLeader>l :MyOmniSharpReloadProjectAndLinter<CR>
 
 	" Messes with OmniSharpRename
 	" autocmd FileType cs setlocal indentkeys+=.,=,:
