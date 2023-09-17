@@ -157,7 +157,9 @@ set tabstop=1
 set shiftwidth=1
 augroup vimOnlyTabSize
 	au!
-	autocmd BufEnter * if(&ts != 1) | set tabstop=1 shiftwidth=1 softtabstop=0 | endif
+	autocmd BufEnter *.cs if(&ts != 1) | set tabstop=1 shiftwidth=1 softtabstop=0 noexpandtab | endif
+	autocmd BufEnter *.md if(&ts != 2) | set tabstop=2 shiftwidth=2 softtabstop=0 expandtab   | endif
+	autocmd BufEnter *.json if(&ts != 2) | set tabstop=2 shiftwidth=2 softtabstop=0 expandtab | endif
 augroup end
 
 command! -bar Retab let ts=&ts|let &et=0|let &ts=(&ts+1) |retab!|let &ts=ts|retab!
