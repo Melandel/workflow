@@ -1046,16 +1046,21 @@ function! Qfmove(nextOrPrevious)
 	silent call win_gotoid(originalWinId)
 endfunction
 
-function! BrowseLayout(direction)
+function! BrowseNext(next)
 	if &diff
-		execute 'silent!' 'normal!' ((a:direction == 'down') ? ']czx' : '[czx')
+		" chunk
+		execute 'silent!' 'normal!' (a:next ? ']czx' : '[czx')
 	elseif get(ale#statusline#Count(bufnr('')), 'error', 0) || get(ale#statusline#Count(bufnr('')), 'warning', 0)
-		execute 'silent!' ((a:direction == 'down') ? 'ALENext' : 'ALEPrevious')
+		" warningOrError
+		execute 'silent!' (a:next ? 'ALENext' : 'ALEPrevious')
 	elseif &ft == 'fugitive'
-		execute 'silent!' 'normal' ((a:direction == 'down') ? "\<Plug>fugitive:]]" : "\<Plug>fugitive:[[")
+		" untracked, unstaged, staged
+		execute 'silent!' 'normal' (a:next ? "\<Plug>fugitive:]]" : "\<Plug>fugitive:[[")
 	elseif &ft == 'git'
-		execute 'silent!' 'normal' ((a:direction == 'down') ? "\<Plug>fugitive:J" : "\<Plug>fugitive:K")
+		" diff chunk
+		execute 'silent!' 'normal' (a:next ? "\<Plug>fugitive:J" : "\<Plug>fugitive:K")
 	else
+		" loclist row / qflist row
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
 			let loclistbuffers = filter(map(copy(quickfixbuffers), {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0) == 1})
@@ -1066,12 +1071,12 @@ function! BrowseLayout(direction)
 				let g:qfprio = 'c'
 			endif
 		endif
-		call Qfmove((a:direction == 'down') ? 'next' : 'previous')
+		call Qfmove(a:next ? 'next' : 'previous')
 	endif
 	silent! normal! zzzv
 endfunction
-nnoremap <silent> <C-J> :call BrowseLayout('down')<CR>
-nnoremap <silent> <C-K> :call BrowseLayout('up')<CR>
+nnoremap <silent> <C-J> :call BrowseNext(v:true)<CR>
+nnoremap <silent> <C-K> :call BrowseNext(v:false)<CR>
 
 function! GetVisibleLocListWinNrs()
 	return filter(range(1, winnr('$')), {_,x -> getwinvar(x, "&ft") == "qf" && get(getwininfo(win_getid(x))[0], 'loclist', 0) == 1 })
