@@ -3494,7 +3494,7 @@ command! MyOmniSharpCodeFormat call OmniSharp#actions#format#Format(function('My
 
 function! MyOmniSharpGlobalCodeCheck()
 	let g:old_OmniSharp_diagnostic_exclude_paths = g:OmniSharp_diagnostic_exclude_paths
-	let currentAppName = matchstr(fnamemodify(GetNearestPathInCurrentFileParents('*.sln'), ':t:r'), '[^.]*$')
+	let currentAppName = matchstr(fnamemodify(GetSln(), ':t:r'), '[^.]*$')
 	if has_key(g:workenv.resourcesByApp, currentAppName)
 		let foldersToIgnore = g:resourcesByApp[currentAppName].sourcecode.foldersWithWarningsToIgnore
 		let g:OmniSharp_diagnostic_exclude_paths = extendnew(g:OmniSharp_diagnostic_exclude_paths, foldersToIgnore)
@@ -3580,8 +3580,8 @@ augroup csharpfiles
 	autocmd FileType cs nnoremap <buffer> <LocalLeader>O :OmniSharpStartServer <C-R>=expand('%:h')<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>t :OmniSharpRunTest!<CR>
 	autocmd FileType cs nmap <buffer> <LocalLeader>T <Plug>(omnisharp_run_tests_in_file)
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>U :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName!~IntegrationTest<CR>
-	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>I :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetNearestPathInCurrentFileParents('*.sln')<CR> --filter FullyQualifiedName~IntegrationTest<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>U :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetSln()<CR> --filter FullyQualifiedName!~IntegrationTest<CR>
+	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>I :set termwinsize=0*9999 \| ter ++hidden ++open dotnet test --nologo <C-R>=GetSln()<CR> --filter FullyQualifiedName~IntegrationTest<CR>
 	autocmd FileType cs nmap <silent> <buffer> <LocalLeader>Q :Debug<CR>
 	autocmd FileType cs nmap <silent> <buffer> <localleader>b :ToggleBreakpoint<CR>
 	autocmd FileType cs nnoremap <silent> <buffer> <localleader>B :ToggleConditionalBreakpoint<CR>
@@ -3755,7 +3755,7 @@ nnoremap <silent> <Leader>et :LocListTerminalBuffers<CR>
 nnoremap <silent> <Leader>eT :LocListTerminalBuffers!<CR>
 
 function! BuildReverseDependencyTree(...)
-	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
+	let sln = a:0 ? a:1 : GetSln()
 	let g:csenvs = get(g:, 'csenvs', {})
 	let cache = get(get(g:csenvs, sln, {}), 'projects', {})
 	if !empty(cache)
@@ -4024,7 +4024,7 @@ function! BuildTestCommit(all, resetCache, ...)
 	if &modified | silent write | endif
 	let buildAndTestJobs=[]
 	let g:btcStartTime = reltime()
-	let sln = a:0 ? a:1 : GetNearestPathInCurrentFileParents('*.sln')
+	let sln = a:0 ? a:1 : GetSln()
 	if sln !~ 'sln$'
 		let csproj = substitute(GetNearestPathInCurrentFileParents('*.csproj'), '\\', '/', 'g')
 		call BuildTestCommitCsproj(csproj, g:csClassesInChangedFiles, buildAndTestJobs)
