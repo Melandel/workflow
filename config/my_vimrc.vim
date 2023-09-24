@@ -1027,37 +1027,23 @@ nnoremap <silent> zt :setlocal scrolloff=5 \| exec 'normal! zt' \| setlocal scro
 nnoremap <silent> zT zt
 
 function! Qfnext()
-	if g:qfprio == 'l'
-		try
-			lnext
-			lopen
-		catch
-			silent! ll
-		endtry
-	elseif g:qfprio == 'c'
-		try
-			cnext
-			copen
-		catch
-			silent! cc
-		endtry
-	endif
+	call Qfmove('next')
 endfunction
 
 function! Qfprev()
-	if g:qfprio == 'l'
-		try
-			lprev
-		catch
-			silent! ll
-		endtry
-	elseif g:qfprio == 'c'
-		try
-			cprev
-		catch
-			silent! cc
-		endtry
-	endif
+	call Qfmove('previous')
+endfunction
+
+function! Qfmove(nextOrPrevious)
+	let originalWinId = win_getid()
+	let commandPrefix = g:qfprio
+	try
+		execute commandPrefix.a:nextOrPrevious
+		execute commandPrefix.'open'
+	catch
+		execute 'silent!' commandPrefix.commandPrefix
+	endtry
+	silent call win_gotoid(originalWinId)
 endfunction
 
 function! BrowseLayoutDown()
