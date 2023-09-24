@@ -1046,18 +1046,15 @@ function! Qfmove(nextOrPrevious)
 	silent call win_gotoid(originalWinId)
 endfunction
 
-function! BrowseLayoutDown()
+function! BrowseLayout(direction)
 	if &diff
-		silent! normal! ]czxzz
+		execute 'silent!' 'normal!' ((a:direction == 'down') ? ']czx' : '[czx')
 	elseif get(ale#statusline#Count(bufnr('')), 'error', 0) || get(ale#statusline#Count(bufnr('')), 'warning', 0)
-		ALENext
-		normal! zz
+		execute 'silent!' ((a:direction == 'down') ? 'ALENext' : 'ALEPrevious')
 	elseif &ft == 'fugitive'
-		execute "normal \<Plug>fugitive:]]"
-		normal! zz
+		execute 'silent!' 'normal' ((a:direction == 'down') ? "\<Plug>fugitive:]]" : "\<Plug>fugitive:[[")
 	elseif &ft == 'git'
-		execute "normal \<Plug>fugitive:J"
-		normal! zz
+		execute 'silent!' 'normal' ((a:direction == 'down') ? "\<Plug>fugitive:J" : "\<Plug>fugitive:K")
 	else
 		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
 		if !empty(quickfixbuffers)
@@ -1069,42 +1066,12 @@ function! BrowseLayoutDown()
 				let g:qfprio = 'c'
 			endif
 		endif
-		call Qfnext()
-		normal! zz
+		call Qfmove((a:direction == 'down') ? 'next' : 'previous')
 	endif
-	silent! normal! zv
+	silent! normal! zzzv
 endfunction
-nnoremap <silent> <C-J> :call BrowseLayoutDown()<CR>
-
-function! BrowseLayoutUp()
-	if &diff
-		silent! normal! [czxzz
-	elseif get(ale#statusline#Count(bufnr('')), 'error', 0) || get(ale#statusline#Count(bufnr('')), 'warning', 0)
-		ALEPrevious
-		normal! zz
-	elseif &ft == 'fugitive'
-		execute "normal \<Plug>fugitive:[["
-		normal! zz
-	elseif &ft == 'git'
-		execute "normal \<Plug>fugitive:K"
-		normal! zz
-	else
-		let quickfixbuffers =filter(range(1, winnr('$')), 'getwinvar(v:val, "&ft") == "qf"')
-		if !empty(quickfixbuffers)
-			let loclistbuffers = filter(map(copy(quickfixbuffers), {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0) == 1})
-			let qflistbuffers = filter(map(copy(quickfixbuffers), {_,x ->getwininfo(win_getid(v:val))[0]}), {_,x -> get(x, 'loclist', 0) == 0})
-			if !empty(loclistbuffers) && empty(qflistbuffers)
-				let g:qfprio = 'l'
-			elseif !empty(qflistbuffers) && empty(loclistbuffers)
-				let g:qfprio = 'c'
-			endif
-		endif
-		call Qfprev()
-		normal! zz
-	endif
-	silent! normal! zv
-endfunction
-nnoremap <silent> <C-K> :call BrowseLayoutUp()<CR>
+nnoremap <silent> <C-J> :call BrowseLayout('down')<CR>
+nnoremap <silent> <C-K> :call BrowseLayout('up')<CR>
 
 function! GetVisibleLocListWinNrs()
 	return filter(range(1, winnr('$')), {_,x -> getwinvar(x, "&ft") == "qf" && get(getwininfo(win_getid(x))[0], 'loclist', 0) == 1 })
