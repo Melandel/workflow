@@ -861,12 +861,22 @@ endfunction
 nnoremap <Leader>c :silent! call DeleteHiddenBuffers()<CR>:ls<CR>
 
 " Open/Close Window or Tab
+function! CloseTab()
+	let nextTabNumber = tabpagenr()+1
+	let isNextTabDiffTab = nextTabNumber <= tabpagenr('$') && gettabwinvar(nextTabNumber, 1, '&diff') != 0
+	if (isNextTabDiffTab) | +tabmove | endif
+	tabclose
+endfunction
+command! CloseTab call CloseTab()
+command! CloseTabsOnTheRight .+1,$tabdo :tabclose
+
 nnoremap <silent> <Leader>s :let buffers = w:buffers \| silent! split  \| let w:buffers = buffers<CR>
 nnoremap <silent> <Leader>v :let buffers = w:buffers \| silent! vsplit \| let w:buffers = buffers<CR>
 nnoremap <silent> K :q<CR>
 nnoremap <silent> <Leader>o <C-W>_<C-W>\|
 nnoremap <silent> <Leader>O mW:-tabnew<CR>`W
-nnoremap <silent> <Leader>x :tabclose<CR>
+nnoremap <silent> <Leader>x :CloseTab<CR>
+nnoremap <silent> <Leader>X :CloseTabsOnTheRight<CR>
 
 function! SynchronizeBufferHistoryWithLastWindow()
 	let lastWinNr = winnr('#')
@@ -1713,7 +1723,7 @@ function! SetParticularQuickFixBehaviour()
 	vnoremap <buffer> <silent> dd :<C-U>let v1=GetFileVersionID("'<") \| let v2=GetFileVersionID("'>") \| exec 'Gtabedit' v1 \| exec 'Gdiffsplit!' v2<CR>
 	nnoremap <buffer> <silent> D  :let v=GetFileVersionID('.') \| let bufnr=winbufnr(winnr('#')) \| exec 'tab sbuffer' bufnr \| exec 'Gdiffsplit!' v<CR>
 	nnoremap <buffer> <silent> c  :exec 'Gtabedit' GetSha()<CR>
-	nnoremap <buffer> <silent> C  :exec 'Git difftool -y' GetSha() GetSha().'^'<CR>
+	nnoremap <buffer> <silent> C  :call DisplayCommitFilesDiffs('fromFileHistoryBuffer')<CR>
 	cnoremap <buffer> <C-R><C-G> <C-R>=GetSha()<CR>
 endfunction
 
@@ -2614,6 +2624,24 @@ function! FormatAsMarkdownTableRow(commitBodyWithMarks)
 	endif
 endfunc
 
+function! DisplayCommitFilesDiffs(from)
+	if (a:from == 'fromFileHistoryBuffer') "git commit
+		let currentLine = GetCurrentLineAsPath()
+		let currentCommitHash = currentLine[:stridx(currentLine, ':')-1]
+	else
+		let isGitLogBuffer = bufname() =~ '\.tmp$'
+		if (isGitLogBuffer)
+			let currentLine = GetCurrentLineAsPath()
+			let currentCommitHash = currentLine[:stridx(currentLine, ' ')-1]
+		else
+			let currentCommitHash = fnameescape(fugitive#Object(@%))
+		endif
+	endif
+	$tabmove
+	let difftoolCommand = printf('Git difftool -y %s^ %s', currentCommitHash, currentCommitHash)
+	call execute(difftoolCommand)
+endfunction
+
 augroup dashboard
 	au!
 	autocmd FileType fugitive,git nnoremap <buffer> <silent> <LocalLeader>m :Git push --force-with-lease<CR>
@@ -2632,7 +2660,7 @@ augroup dashboard
 	autocmd FileType gitcommit    set complete=.,w,b
 	autocmd FileType          git nmap     <silent> <buffer> l <CR>
 	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
-	autocmd FileType          git nmap <silent> <buffer> D :Git difftool -y <C-R><C-G> <C-R><C-G>^<CR>
+	autocmd FileType          git nmap <silent> <buffer> dd :call DisplayCommitFilesDiffs('fromGitLogOrGitCommitBuffer')<CR>
 	autocmd FileType          git set foldmethod=syntax
 augroup end
 
