@@ -115,7 +115,7 @@ nmap zl <scrollRight>
 nmap Y <openNewTabWithCurrentUrl><CR>
 nmap T <reopenTab>
 nmap x <:close>
-set tabclosefocusright
+set tabclosefocus=right
 nmap X <:rclose>
 nmap sp <previousTab>
 nmap sn <nextTab>
@@ -174,7 +174,7 @@ nmap gi <insertAtFirstInput>
 nmap f <startFollowCurrentTab>
 nmap F <startFollowNewTab>
 nmap p <openFromClipboard>
-nmap P <openNewTab><openFromClipboard>
+nmap P <:tabnew><openFromClipboard>
 nmap gu <toParentUrl>
 nmap gU <toRootUrl>
 nmap yf <p.start><startFollowCurrentTab>
