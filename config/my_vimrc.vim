@@ -69,7 +69,7 @@ function! MinpacInit()
 	call minpac#add('tpope/vim-obsession')
 	"call minpac#add('ap/vim-css-color')
 	call minpac#add('wellle/targets.vim')
-	call minpac#add('bfrg/vim-qf-preview', {'rev': '6ff79680cb08625800599c9d5f043a62e4c829d3'})
+	call minpac#add('bfrg/vim-qf-preview')
 	call minpac#add('zigford/vim-powershell')
 	call minpac#add('Melandel/vim-empower')
 	call minpac#add('Melandel/fzfcore.vim')
@@ -1580,8 +1580,8 @@ let g:qfpreview = {
 	\'next': "\<C-j>",
 	\'previous': "\<C-k>",
 	\'reset': "\<space>",
-	\'height': "30",
-	\'offset': "10",
+	\'height': 30,
+	\'offset': 10,
 	\'close': "q",
 	\'number': 1,
 	\'sign': {'texthl': 'PmenuSel', 'linehl': 'PmenuSel'}
