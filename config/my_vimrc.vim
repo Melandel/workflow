@@ -1575,6 +1575,8 @@ augroup end
 let g:qfpreview = {
 	\'top': "\<Home>",
 	\'bottom': "\<End>",
+	\'scrolldown': '',
+	\'scrollup': '',
 	\'halfpagedown': "d",
 	\'halfpageup': "u",
 	\'next': "\<C-j>",
