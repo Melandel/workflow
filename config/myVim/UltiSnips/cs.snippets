@@ -3,9 +3,16 @@ from my_snippets_helpers import *
 endglobal
 
 snippet ns "namespace" b
-namespace `!p snip.rv = path_to_namespace(path)`;
+namespace `!v GetCurrentCsharpNamespace()`;
 
 $0
+endsnippet
+
+snippet Ns "namespace" b
+namespace `!v GetCurrentCsharpNamespace()`
+{
+	$0
+}
 endsnippet
 
 snippet itf "Interface" b

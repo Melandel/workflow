@@ -3400,6 +3400,19 @@ function! GetSln()
 	return GetNearestPathInCurrentFileParents('*.sln')
 endfunction
 
+function! GetCurrentCsharpNamespace()
+	let currentFolderAbs = expand('%:p:h')
+	let slnFileAbs = GetNearestPathInCurrentFileParents('*.sln')
+	if (empty(slnFileAbs))
+		let currentFolder = expand('%:h')
+		return substitute(currentFolder, '\', '.', 'g')
+	else
+		let slnFolder = fnamemodify(slnFileAbs, ':h')
+		let currentFolderRelativeToSlnFolder = currentFolderAbs[len(slnFolder)+1:]
+		return substitute(currentFolderRelativeToSlnFolder, '\', '.', 'g')
+	endif
+endfunction
+
 function! GetDirOrSln()
 	let csproj = GetCsproj()
 	let csprojdir = fnamemodify(csproj, ':h')
