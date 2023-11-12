@@ -1,0 +1,19 @@
+global !p
+from my_snippets_helpers import *
+endglobal
+
+snippet internal "internal types and members visible to other project" b
+<ItemGroup>
+	<InternalsVisibleTo Include="${1:ProjectName.Without.Path.Nor.Extension}" />
+</ItemGroup>
+
+endsnippet
+
+snippet Internal "internal types and members visible to other project (before .NET5)" b
+<ItemGroup>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+		<_Parameter1>${1:ProjectName.Without.Path.Nor.Extension}</_Parameter1>
+	</AssemblyAttribute>
+</ItemGroup>
+
+endsnippet

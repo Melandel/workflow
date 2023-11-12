@@ -1,14 +1,15 @@
+priority 1
 global !p
 from my_snippets_helpers import *
 endglobal
 
-snippet ns "namespace" b
+snippet ns "namespace (file-scoped)" b
 namespace `!v GetCurrentCsharpNamespace()`;
 
 $0
 endsnippet
 
-snippet Ns "namespace" b
+snippet Ns "namespace (old school)" b
 namespace `!v GetCurrentCsharpNamespace()`
 {
 	$0
@@ -23,183 +24,356 @@ public interface ${1:`!p snip.rv = basename_to_classname(snip.basename)`}
 endsnippet
 
 snippet cls "class" b
-$0class $2${1: : I$2}
+$0class `!p snip.rv = basename_to_classname(snip.basename)`
 {
-	public ${2:`!p snip.rv = basename_to_classname(snip.basename)`}()
+	public `!p snip.rv = basename_to_classname(snip.basename)`()
 	{
 	}
+}
+endsnippet
 
+snippet Cls "static class" b
+namespace `!v GetCurrentCsharpNamespace()`;
+
+static class `!p snip.rv = basename_to_classname(snip.basename)`
+{
+	public static$1
+}
+endsnippet
+
+snippet ext "extension methods" b
+namespace `!v GetCurrentCsharpNamespace()`;
+
+static class `!p snip.rv = basename_to_classname(snip.basename).replace('.', '')`
+{
+	public static string ${3:ToSomeString}(this ${1:string} ${2:`!p snip.rv = camel_case(t[1])`})
+	=> $2 s$0witch
+	{
+		null => null,
+		_ => $2.ToString()
+	};
+
+	public static string $3(this $1 $2)
+	{
+		var foo = $2 switch
+		{
+			null => null,
+			_ => $2
+		};
+
+		return foo;
+	}
+}
+endsnippet
+
+snippet type "type defined on top of primitive type" b
+namespace `!v GetCurrentCsharpNamespace()`;
+
+$0class `!p snip.rv = basename_to_classname(snip.basename)`
+{
+	readonly ${1:string} _${2:encapsulated};
+	`!p snip.rv = basename_to_classname(snip.basename)`($1 `!p snip.rv = "value" if (t[2] == "encapsulated") else t[2]`)
+	{
+		_$2 = `!p snip.rv = "value" if (t[2] == "encapsulated") else t[2]` switch
+		{
+			null => throw ${3:ObjectConstructionException}.${4:FromInvalidMemberValue}(GetType(), nameof(_$2), `!p snip.rv = "value" if (t[2] == "encapsulated") else t[2]`),
+			_ => `!p snip.rv = "value" if (t[2] == "encapsulated") else t[2]`
+		};
+	}
+
+	public static implicit operator $1(`!p snip.rv = basename_to_classname(snip.basename)` obj)
+	=> obj._$2;
+
+	public override string ToString()
+	=> _$2.ToString();
+
+	public static `!p snip.rv = basename_to_classname(snip.basename)` From`!p snip.rv = pascal_case(t[1])`($1 $2)
+	{
+		try
+		{
+			return new($2);
+		}
+		catch ($3 `!p snip.rv = camel_case(t[3])`)
+		{
+			AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
+			throw;
+		}
+		catch (Exception developerMistake)
+		{
+			var `!p snip.rv = camel_case(t[3])` = $3.FromDeveloperMistake(typeof(`!p snip.rv = basename_to_classname(snip.basename)`), developerMistake);
+			AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
+			throw `!p snip.rv = camel_case(t[3])`;
+		}
+
+		void AddMethodParametersValuesAsDebuggingInformation($3 `!p snip.rv = camel_case(t[3])`)
+		{
+			`!p snip.rv = camel_case(t[3])`.${4:AddDebuggingInformation}(nameof($2), $2);
+		}
+	}
 }
 endsnippet
 
 snippet rc "record" b
 record ${1:`!p snip.rv = basename_to_classname(snip.basename)`}(
-	$0
-);
+	$0);
 endsnippet
 
+snippet ds "data structure with properties" b
+namespace `!v GetCurrentCsharpNamespace()`;
 
-snippet m "method" b
-${4:static }${3:`!p snip.rv=basename_to_classname(snip.basename)`} ${1:DoSomething}(${2:TInput} `!p snip.rv = t[2][0].lower() + t[2][1:]`)
+record `!p snip.rv = basename_to_classname(snip.basename)`
 {
-}
-
-endsnippet
-
-snippet M "public method" b
-public${4: static} ${3:`!p snip.rv=basename_to_classname(snip.basename)`} ${1:DoSomething}($0)
-${5:=> new $3();}
-
-endsnippet
-
-snippet _ "field" b
-${3:static }readonly ${1:SomeType} ${2:`!p snip.rv = "_" + (t[1][1].lower()+t[1][2:] if (t[1][0].isupper() and t[1][1].isupper()) else t[1][0].lower()+t[1][1:]) if len(t[1]) > 1 else ""`};
-
-endsnippet
-
-snippet p "property" b
-public ${1:`!p snip.rv = basename_to_classname(snip.basename)`} ${2:Stuff} { get;${3: init;} }
-
-endsnippet
-
-snippet P "property with getter" b
-public${3: static}${4: readonly} ${1:`!p snip.rv = basename_to_classname(snip.basename)`} ${2:With_SomeValue_In_Every_Field}
-{
-	get
+	public ${2:string} ${1:Name} { get; init; }
+	`!p snip.rv = basename_to_classname(snip.basename)`($2 `!p snip.rv = camel_case(t[1])`)
 	{
-		${4:return new $1();}
-	}
-}
-
-endsnippet
-
-snippet fact "XUnit Fact" b
-[Fact]
-public void WHEN_${1:happy_path}_EXPECT_${2:target}_TO_${3:DO/BE/NOT}_${4:something}()
-{
-	// Arrange
-	var input = ${5:new Request();}
-	// Act
-	$6
-	// Assert
-	$0
-}
-
-
-endsnippet
-
-snippet theory "XUnit Theory" b
-[Theory]
-$0
-public void WHEN_${1:happy_path}_EXPECT_${2:target}_TO_${3:DO/BE/NOT}_${4:something}($5)
-{
-	// Arrange
-	var input = ${6:new Request();}
-	// Act
-	$7
-	// Assert
-	$8
-}
-
-
-endsnippet
-
-snippet id "InlineData" b
-[InlineData($1)]$0
-endsnippet
-
-snippet md "MemberData" b
-[MemberData(nameof(${1:Data}))]
-	public static TheoryData<${2:string, int}> $1 =>
-		new TheoryData<$2> {
-			{ ${3:"😀 😃 😄", 2} }, // ${4:Emojis}
-			{ ${5:"     ", 2} }, // ${6:Weird characters}
-			{ ${7:new String('x', 2000 + 1), 2} } // ${0:More than 2000 characters}
-		};
-endsnippet
-
-snippet interactor "Interactor Contract" b
-namespace `!p snip.rv = path_to_namespace(path)`;
-
-public interface ${1:`!p snip.rv = basename_to_classname(snip.basename)`}
-{
-	Response Process(Request req);
-
-	public class Request {
-	${3}
-		public static Request Create() {
-			return new Request();
-		}
-	}
-
-	public class Response {
-		${4}
-		public static Response Create() {
-			return new Response();
-		}
-		$0
-	}
-}
-
-endsnippet
-
-
-
-
-
-
-snippet ext "ExtensionMethods file" b
-namespace `!p snip.rv = path_to_namespace(path)`;
-
-public static class `!p snip.rv = snip.basename.replace(".", "")`
-{
-	mape$0
-}
-endsnippet
-
-snippet me "mapping extension method" b
-public static ${3:TOutput} ${2:ToUseCaseInputField}(this ${1:`!p snip.rv = basename_to_classname(snip.basename)`} `!p snip.rv = t[1][0].lower() + t[1][1:]`)
-=> $1 switch
-{
-	null => null,
-	_ => new $3()
-		with
+		$1 = `!p snip.rv = camel_case(t[1])` switch
 		{
-		}
-};
+			null => throw ${3:ObjectConstructionException}.${4:FromInvalidMemberValue}(GetType(), nameof($1), `!p snip.rv = camel_case(t[1])`),
+			_ => `!p snip.rv = camel_case(t[1])`
+		};
+	}
 
+	public static `!p snip.rv = basename_to_classname(snip.basename)` From$0($2 `!p snip.rv = camel_case(t[1])`)
+	{
+		try
+		{
+			return new(`!p snip.rv = camel_case(t[1])`);
+		}
+		catch ($3 `!p snip.rv = camel_case(t[3])`)
+		{
+			AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
+			throw;
+		}
+		catch (Exception developerMistake)
+		{
+			var `!p snip.rv = camel_case(t[3])` = $3.FromDeveloperMistake(typeof(`!p snip.rv = basename_to_classname(snip.basename)`), developerMistake);
+			AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
+			throw `!p snip.rv = camel_case(t[3])`;
+		}
+
+		void AddMethodParametersValuesAsDebuggingInformation($3 `!p snip.rv = camel_case(t[3])`)
+		{
+			`!p snip.rv = camel_case(t[3])`.${4:AddDebuggingInformation}(nameof(`!p snip.rv = camel_case(t[1])`), `!p snip.rv = camel_case(t[1])`);
+		}
+	}
+}
 endsnippet
 
+snippet Ds "data structure with properties (old school)" b
+namespace `!v GetCurrentCsharpNamespace()`;
 
+class `!p snip.rv = basename_to_classname(snip.basename)`
+{
+	public ${2:string} ${1:Name} { get; }
+	`!p snip.rv = basename_to_classname(snip.basename)`($2 `!p snip.rv = camel_case(t[1])`)
+	{
+		$1 = `!p snip.rv = camel_case(t[1])` switch
+		{
+			null => throw ${3:ObjectConstructionException}.${4:FromInvalidMemberValue}(GetType(), nameof($1), `!p snip.rv = camel_case(t[1])`),
+			_ => `!p snip.rv = camel_case(t[1])`
+		};
+	}
 
+	public static `!p snip.rv = basename_to_classname(snip.basename)` From$0($2 `!p snip.rv = camel_case(t[1])`)
+	{
+		try
+		{
+			return new(`!p snip.rv = camel_case(t[1])`);
+		}
+		catch ($3 `!p snip.rv = camel_case(t[3])`)
+		{
+			AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
+			throw;
+		}
+		catch (Exception developerMistake)
+		{
+			var `!p snip.rv = camel_case(t[3])` = $3.FromDeveloperMistake(typeof(`!p snip.rv = basename_to_classname(snip.basename)`), developerMistake);
+			AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
+			throw `!p snip.rv = camel_case(t[3])`;
+		}
 
+		void AddMethodParametersValuesAsDebuggingInformation($3 `!p snip.rv = camel_case(t[3])`)
+		{
+			`!p snip.rv = camel_case(t[3])`.${4:AddDebuggingInformation}(nameof(`!p snip.rv = camel_case(t[1])`), `!p snip.rv = camel_case(t[1])`);
+		}
+	}
+}
+endsnippet
 
+snippet exc "Exception" b
+namespace `!v GetCurrentCsharpNamespace()`;
+
+public class ${1:`!p snip.rv = basename_to_classname(snip.basename)`} : Exception
+{
+	$1(string message, Exception? innerException = null)
+	: base(message, innerException)
+	{
+	}
+	protected $1(
+		System.Runtime.Serialization.SerializationInfo info,
+		System.Runtime.Serialization.StreamingContext context)
+	: base(info, context)
+	{
+	}
+
+	$0public static $1 From${2:InvalidMemberValue}(Exception? innerException = null)
+	=> new("", innerException);
+
+	public static $1 From$2(Exception? innerException = null)
+	{
+		var message = "";
+		return new(message, innerException);
+	}
+}
+endsnippet
+
+snippet ex "Object construction exception" b
+namespace `!v GetCurrentCsharpNamespace()`;
+
+public class ${1:ObjectConstructionException} : Exception
+{
+	readonly Type _typeOfObjectUnderConstruction;
+	$1(Type typeOfObjectUnderConstruction, string message, Exception? innerException = null)
+	: base(message, innerException)
+	{
+		_typeOfObjectUnderConstruction = typeOfObjectUnderConstruction;
+	}
+	protected $1(
+		System.Runtime.Serialization.SerializationInfo info,
+		System.Runtime.Serialization.StreamingContext context)
+	: base(info, context)
+	{
+		_typeOfObjectUnderConstruction = typeof(object);
+	}
+
+	$0public static $1 FromInvalidMemberValue(
+		Type typeOfObjectContainingTheMember,
+		string memberName,
+		object? valueFoundInvalid,
+		string? expectationMakingValueValid = null,
+		Exception? innerException = null)
+	{
+		var messageBuilder = new StringBuilder();
+		messageBuilder.Append($"{typeOfObjectContainingTheMember.Name}: ");
+		messageBuilder.Append($"{memberName} cannot accept value {JsonSerializer.Serialize(valueFoundInvalid ?? "<null>")}");
+		if (expectationMakingValueValid is not null)
+		{
+			messageBuilder.Append($" - {expectationMakingValueValid}");
+		}
+		messageBuilder.Append($" (namespace {typeOfObjectContainingTheMember.Namespace})");
+
+		return new(typeOfObjectContainingTheMember, messageBuilder.ToString(), innerException);
+	}
+
+	public static $1 FromDeveloperMistake(
+		Type typeOfObjectUnderConstruction,
+		Exception developerMistake)
+	=> new(
+		typeOfObjectUnderConstruction,
+		$"{typeOfObjectUnderConstruction.Name}: construction failed - {developerMistake.Message} (namespace {typeOfObjectUnderConstruction.Namespace})",
+		developerMistake);
+
+	public void AddDebuggingInformation(string informationName, object? informationValue)
+	{
+		var keyPrefix = $"{_typeOfObjectUnderConstruction.FullName}::{informationName}";
+		var numberOfExistingKeysFound = 0;
+		while (Data.Contains(BuildDebuggingInformationKey(keyPrefix, numberOfExistingKeysFound)))
+		{
+			numberOfExistingKeysFound++;
+		}
+		var uniqueKey = BuildDebuggingInformationKey(keyPrefix, numberOfExistingKeysFound);
+
+		Data.Add(uniqueKey, informationValue ?? "<null>");
+
+		string BuildDebuggingInformationKey(string keyPrefix, int numberOfExistingKeysFound)
+		=> numberOfExistingKeysFound switch
+		{
+			0 => keyPrefix,
+			_ => $"{keyPrefix}_{numberOfExistingKeysFound}"
+		};
+	}
+}
+endsnippet
 
 snippet td "Test Double" b
-namespace `!p snip.rv = path_to_namespace(path)`;
+namespace `!v GetCurrentCsharpNamespace()`;
 
-public static class `!p snip.rv = basename_to_classname(snip.basename)`
+static class `!p snip.rv = basename_to_classname(snip.basename)`
 {
-	public static I`!p snip.rv = basename_to_classname(snip.basename).replace('TestDouble', '')` Dummy => Substitute.For<I`!p snip.rv = basename_to_classname(snip.basename).replace('TestDouble', '')`>();
+	public static ${1:I`!p snip.rv = basename_to_classname(snip.basename).replace('TestDouble', '')`} That_Does_Not_Trigger_Exceptions
+	=> That_Returns(${2:Something}Archetype.SomeValue);
+
+	public static $1 That_Returns($2 `!p snip.rv = camel_case(t[2])`)
+	{
+		var testDouble = Dummy;
+		testDouble
+			.${3:DoSomething}($0)
+			.ReturnsForAnyArgs(`!p snip.rv = camel_case(t[2])`);
+
+		return testDouble;
+	}
+
+	public static $1 Dummy => Substitute.For<$1>();
 }
 endsnippet
 
 snippet arch "Archetype" b
-namespace `!p snip.rv = path_to_namespace(path)`;
+namespace `!v GetCurrentCsharpNamespace()`;
 
-public static class `!p snip.rv = basename_to_classname(snip.basename)`
+static class `!p snip.rv = basename_to_classname(snip.basename)`
 {
-	public static `!p snip.rv = basename_to_classname(snip.basename).replace('Archetype', '')` ${1:With_SomeValue_In_Every_Field}
-	=> new `!p snip.rv = basename_to_classname(snip.basename).replace('Archetype', '')`()${2:
-	{
-		${3:Foo}
-	}};
+	public static ${1:`!p snip.rv = basename_to_classname(snip.basename).replace('Archetype', '')`} SomeValue => With_SomeValue_In_Every_Field(salt: 0);
+	public static $1 SomeOtherValue => With_SomeValue_In_Every_Field(salt: 1);
+	public static $1 YetAnotherValue => With_SomeValue_In_Every_Field(salt: 2);
+
+	public static $1 With_SomeValue_In_Every_Field(int salt = 0)
+	=> $1.From$0(
+		someParameter: SomeParameterArchetype.With_SomeValue_In_Every_Field(salt));
 }
 endsnippet
 
+snippet Arch "Archetype (with old-school data structures)" b
+namespace `!v GetCurrentCsharpNamespace()`;
 
+static class `!p snip.rv = basename_to_classname(snip.basename)`
+{
+	public static ${1:`!p snip.rv = basename_to_classname(snip.basename).replace('Archetype', '')`} SomeValue => With_SomeValue_In_Every_Field(salt: 0);
+	public static $1 SomeOtherValue => With_SomeValue_In_Every_Field(salt: 1);
+	public static $1 YetAnotherValue => With_SomeValue_In_Every_Field(salt: 2);
 
+	public static $1 With_SomeValue_In_Every_Field(int salt = 0)
+	=> new()
+	{
+		$0SomeParameter = SomeParameterArchetype.With_SomeValue_In_Every_Field(salt))
+	};
+}
+endsnippet
 
+snippet M "Factory method" b
+$0public static `!p snip.rv = basename_to_classname(snip.basename)` From${1:Something}(${2:Foo} `!p snip.rv = camel_case(t[2])`)
+{
+	try
+	{
+		return new($0`!p snip.rv = camel_case(t[2])`);
+	}
+	catch (${3:ObjectConstructionException} `!p snip.rv = camel_case(t[3])`)
+	{
+		AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
+		throw;
+	}
+	catch (Exception developerMistake)
+	{
+		var `!p snip.rv = camel_case(t[3])` = $3.FromDeveloperMistake(typeof(`!p snip.rv = basename_to_classname(snip.basename)`), developerMistake);
+		AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
+		throw `!p snip.rv = camel_case(t[3])`;
+	}
+
+	void AddMethodParametersValuesAsDebuggingInformation($3 `!p snip.rv = camel_case(t[3])`)
+	{
+		`!p snip.rv = camel_case(t[3])`.AddDebuggingInformation(nameof(`!p snip.rv = camel_case(t[2])`), `!p snip.rv = camel_case(t[2])`);
+	}
+}
+endsnippet
 
 snippet am "Assert Multiple" b
 Assert.Multiple(() =>
