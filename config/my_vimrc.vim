@@ -399,6 +399,14 @@ function! MoveCursorInsideWindowAndExecuteCommands(winid, move, ...)
 			\: type(a:move) == type('a') && a:move =~ '^-\d\+$'
 				\? lnum - a:move[1:]
 				\: lnum
+	"if newLnum <= 0 || newLnum > line('$', a:winid)
+	"	return
+	"endif
+	let minLnum = 1
+	let maxLnum = line('$', a:winid)
+	if (lnum == minLnum && newLnum < minLnum) || (lnum == maxLnum && newLnum > maxLnum)
+		return
+	endif
 	let newLnum = max([1, min([newLnum, line('$', a:winid)])])
 	let commands = [printf('call cursor(%d,%d)', newLnum, col)]
 	call extend(commands, a:000)
