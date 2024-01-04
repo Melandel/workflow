@@ -3385,6 +3385,7 @@ let g:OmniSharp_diagnostic_overrides = { 'CS0618': { 'type': 'None'}, 'CS1062': 
 let g:OmniSharp_diagnostic_showid = 1
 let g:omnicomplete_fetch_full_documentation = 0
 let g:OmniSharp_open_quickfix = 1
+let g:OmniSharp_autoselect_existing_sln = 1
 
 function! OmniSharpReloadProject()
 	if !OmniSharp#proc#IsJobRunning(GetSln()) | return | endif
