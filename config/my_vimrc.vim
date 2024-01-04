@@ -801,6 +801,12 @@ function! MyTabLabel(n)
 			let sln_or_dir = toupper(fnamemodify(host.sln_or_dir, ':t:r'))
 			if exists('*IsDebuggingTab') && IsDebuggingTab(a:n)
 				return '🔍'.sln_or_dir.'🔍'
+			elseif empty(sln_or_dir)
+				let winnr = tabpagewinnr(a:n)
+				let bufnr = buflist[winnr - 1]
+				let filepath = bufname(bufnr)
+				let filename = fnamemodify(filepath, ':t')
+				return filename
 			else
 				let omnisharp_up = get(host, 'initialized', 0)
 				return omnisharp_up ? '<'.sln_or_dir.'>' : sln_or_dir
