@@ -3573,7 +3573,13 @@ command! -nargs=1 -range Map <line1>,<line2>call Map(<f-args>)
 function! Build()
 	let slnFolder = GetNearestParentFolderContainingFile('*.sln')
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/buildSln')
+
 	let cmd = 'dotnet build -v q --nologo /clp:NoSummary'
+	let slnPathFromOmniSharp = get(OmniSharp#GetHost(), 'sln_or_dir', '')
+	if !empty(slnPathFromOmniSharp)
+		let cmd .= ' '.slnPathFromOmniSharp
+	endif
+
 	let cmd = 'cmd /C '.cmd
 	let s:job = job_start(
 		\cmd,
