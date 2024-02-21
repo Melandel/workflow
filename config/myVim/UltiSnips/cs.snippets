@@ -74,7 +74,7 @@ endsnippet
 snippet ds "data structure with properties" b
 namespace `!v GetCurrentCsharpNamespace()`;
 
-record `!p snip.rv = basename_to_classname(snip.basename)`
+`!v stridx(GetCurrentCsharpNamespace(), "Domain") >= 0 ? "public " : ""`record `!p snip.rv = basename_to_classname(snip.basename)`
 {
 	$0public override string ToString() => `!p snip.rv = t[1] if t[2] == "string" else '$\"{'+t[1]+'}\"'`;
 	public static implicit operator `!p snip.rv = t[2].rstrip("?")`?(`!p snip.rv = basename_to_classname(snip.basename)`? obj) => obj?.$1;
@@ -118,7 +118,7 @@ endsnippet
 snippet Ds "data structure with properties (old school)" b
 namespace `!v GetCurrentCsharpNamespace()`;
 
-class `!p snip.rv = basename_to_classname(snip.basename)`
+`!v stridx(GetCurrentCsharpNamespace(), "Domain") >= 0 ? "public " : ""`class `!p snip.rv = basename_to_classname(snip.basename)`
 {
 	$0public override string ToString() => `!p snip.rv = t[1] if t[2] == "string" else '$\"{'+t[1]+'}\"'`;
 	public static implicit operator `!p snip.rv = t[2].rstrip("?")`?(`!p snip.rv = basename_to_classname(snip.basename)`? obj) => obj?.$1;
