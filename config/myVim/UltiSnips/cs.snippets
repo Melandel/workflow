@@ -123,6 +123,9 @@ namespace `!v GetCurrentCsharpNamespace()`;
 
 record `!p snip.rv = basename_to_classname(snip.basename)`
 {
+	$0public override string ToString() => `!p snip.rv = t[1] if t[2] == "string" else '$\"{'+t[1]+'}\"'`;
+	public static implicit operator `!p snip.rv = t[2].rstrip("?")`?(`!p snip.rv = basename_to_classname(snip.basename)`? obj) => obj?.$1;
+
 	`!p snip.rv = "readonly" if t[1].startswith("_") else "public"` ${2:string} ${1:Name}`!p snip.rv = ";" if t[1].startswith("_") else " { get; init; }"`
 	`!p snip.rv = basename_to_classname(snip.basename)`($2 `!p snip.rv = camel_case(t[1]).lstrip('_')`)
 	{
@@ -133,7 +136,7 @@ record `!p snip.rv = basename_to_classname(snip.basename)`
 		};
 	}
 
-	public static `!p snip.rv = basename_to_classname(snip.basename)` From$0($2 `!p snip.rv = camel_case(t[1]).lstrip('_')`)
+	public static `!p snip.rv = basename_to_classname(snip.basename)` From($2 `!p snip.rv = camel_case(t[1]).lstrip('_')`)
 	{
 		try
 		{
@@ -164,6 +167,9 @@ namespace `!v GetCurrentCsharpNamespace()`;
 
 class `!p snip.rv = basename_to_classname(snip.basename)`
 {
+	$0public override string ToString() => `!p snip.rv = t[1] if t[2] == "string" else '$\"{'+t[1]+'}\"'`;
+	public static implicit operator `!p snip.rv = t[2].rstrip("?")`?(`!p snip.rv = basename_to_classname(snip.basename)`? obj) => obj?.$1;
+
 	`!p snip.rv = "readonly" if t[1].startswith("_") else "public"` ${2:string} ${1:Name}`!p snip.rv = ";" if t[1].startswith("_") else " { get; }"`
 	`!p snip.rv = basename_to_classname(snip.basename)`($2 `!p snip.rv = camel_case(t[1]).lstrip('_')`)
 	{
@@ -174,7 +180,7 @@ class `!p snip.rv = basename_to_classname(snip.basename)`
 		};
 	}
 
-	public static `!p snip.rv = basename_to_classname(snip.basename)` From$0($2 `!p snip.rv = camel_case(t[1]).lstrip('_')`)
+	public static `!p snip.rv = basename_to_classname(snip.basename)` From($2 `!p snip.rv = camel_case(t[1]).lstrip('_')`)
 	{
 		try
 		{
