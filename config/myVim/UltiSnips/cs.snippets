@@ -66,53 +66,6 @@ static class `!p snip.rv = basename_to_classname(snip.basename).replace('.', '')
 }
 endsnippet
 
-snippet type "type defined on top of primitive type" b
-namespace `!v GetCurrentCsharpNamespace()`;
-
-$0class `!p snip.rv = basename_to_classname(snip.basename)`
-{
-	readonly ${1:string} _${2:encapsulated};
-	`!p snip.rv = basename_to_classname(snip.basename)`($1 `!p snip.rv = "value" if (t[2] == "encapsulated") else t[2]`)
-	{
-		_$2 = `!p snip.rv = "value" if (t[2] == "encapsulated") else t[2]` switch
-		{
-			null => throw ${3:ObjectConstructionException}.${4:FromInvalidMemberValue}(GetType(), nameof(_$2), `!p snip.rv = "value" if (t[2] == "encapsulated") else t[2]`),
-			_ => `!p snip.rv = "value" if (t[2] == "encapsulated") else t[2]`
-		};
-	}
-
-	public static implicit operator $1(`!p snip.rv = basename_to_classname(snip.basename)` obj)
-	=> obj._$2;
-
-	public override string ToString()
-	=> _$2.ToString();
-
-	public static `!p snip.rv = basename_to_classname(snip.basename)` From`!p snip.rv = pascal_case(t[1])`($1 $2)
-	{
-		try
-		{
-			return new($2);
-		}
-		catch ($3 `!p snip.rv = camel_case(t[3])`)
-		{
-			AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
-			throw;
-		}
-		catch (Exception developerMistake)
-		{
-			var `!p snip.rv = camel_case(t[3])` = $3.FromDeveloperMistake(typeof(`!p snip.rv = basename_to_classname(snip.basename)`), developerMistake);
-			AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
-			throw `!p snip.rv = camel_case(t[3])`;
-		}
-
-		void AddMethodParametersValuesAsDebuggingInformation($3 `!p snip.rv = camel_case(t[3])`)
-		{
-			`!p snip.rv = camel_case(t[3])`.${4:AddDebuggingInformation}(nameof($2), $2);
-		}
-	}
-}
-endsnippet
-
 snippet rc "record" b
 record ${1:`!p snip.rv = basename_to_classname(snip.basename)`}(
 	$0);
