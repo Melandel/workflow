@@ -123,21 +123,21 @@ namespace `!v GetCurrentCsharpNamespace()`;
 
 record `!p snip.rv = basename_to_classname(snip.basename)`
 {
-	public ${2:string} ${1:Name} { get; init; }
-	`!p snip.rv = basename_to_classname(snip.basename)`($2 `!p snip.rv = camel_case(t[1])`)
+	`!p snip.rv = "readonly" if t[1].startswith("_") else "public"` ${2:string} ${1:Name}`!p snip.rv = ";" if t[1].startswith("_") else " { get; init; }"`
+	`!p snip.rv = basename_to_classname(snip.basename)`($2 `!p snip.rv = camel_case(t[1]).lstrip('_')`)
 	{
-		$1 = `!p snip.rv = camel_case(t[1])` switch
+		$1 = `!p snip.rv = camel_case(t[1]).lstrip('_')` switch
 		{
-			null => throw ${3:ObjectConstructionException}.${4:FromInvalidMemberValue}(GetType(), nameof($1), `!p snip.rv = camel_case(t[1])`),
-			_ => `!p snip.rv = camel_case(t[1])`
+			null => throw ${3:ObjectConstructionException}.${4:FromInvalidMemberValue}(GetType(), nameof($1), `!p snip.rv = camel_case(t[1]).lstrip('_')`),
+			_ => `!p snip.rv = camel_case(t[1]).lstrip('_')`
 		};
 	}
 
-	public static `!p snip.rv = basename_to_classname(snip.basename)` From$0($2 `!p snip.rv = camel_case(t[1])`)
+	public static `!p snip.rv = basename_to_classname(snip.basename)` From$0($2 `!p snip.rv = camel_case(t[1]).lstrip('_')`)
 	{
 		try
 		{
-			return new(`!p snip.rv = camel_case(t[1])`);
+			return new(`!p snip.rv = camel_case(t[1]).lstrip('_')`);
 		}
 		catch ($3 `!p snip.rv = camel_case(t[3])`)
 		{
@@ -153,7 +153,7 @@ record `!p snip.rv = basename_to_classname(snip.basename)`
 
 		void AddMethodParametersValuesAsDebuggingInformation($3 `!p snip.rv = camel_case(t[3])`)
 		{
-			`!p snip.rv = camel_case(t[3])`.${4:AddDebuggingInformation}(nameof(`!p snip.rv = camel_case(t[1])`), `!p snip.rv = camel_case(t[1])`);
+			`!p snip.rv = camel_case(t[3])`.${4:AddDebuggingInformation}(nameof(`!p snip.rv = camel_case(t[1]).lstrip('_')`), `!p snip.rv = camel_case(t[1]).lstrip('_')`);
 		}
 	}
 }
@@ -164,21 +164,21 @@ namespace `!v GetCurrentCsharpNamespace()`;
 
 class `!p snip.rv = basename_to_classname(snip.basename)`
 {
-	public ${2:string} ${1:Name} { get; }
-	`!p snip.rv = basename_to_classname(snip.basename)`($2 `!p snip.rv = camel_case(t[1])`)
+	`!p snip.rv = "readonly" if t[1].startswith("_") else "public"` ${2:string} ${1:Name}`!p snip.rv = ";" if t[1].startswith("_") else " { get; }"`
+	`!p snip.rv = basename_to_classname(snip.basename)`($2 `!p snip.rv = camel_case(t[1]).lstrip('_')`)
 	{
-		$1 = `!p snip.rv = camel_case(t[1])` switch
+		$1 = `!p snip.rv = camel_case(t[1]).lstrip('_')` switch
 		{
-			null => throw ${3:ObjectConstructionException}.${4:FromInvalidMemberValue}(GetType(), nameof($1), `!p snip.rv = camel_case(t[1])`),
-			_ => `!p snip.rv = camel_case(t[1])`
+			null => throw ${3:ObjectConstructionException}.${4:FromInvalidMemberValue}(GetType(), nameof($1), `!p snip.rv = camel_case(t[1]).lstrip('_')`),
+			_ => `!p snip.rv = camel_case(t[1]).lstrip('_')`
 		};
 	}
 
-	public static `!p snip.rv = basename_to_classname(snip.basename)` From$0($2 `!p snip.rv = camel_case(t[1])`)
+	public static `!p snip.rv = basename_to_classname(snip.basename)` From$0($2 `!p snip.rv = camel_case(t[1]).lstrip('_')`)
 	{
 		try
 		{
-			return new(`!p snip.rv = camel_case(t[1])`);
+			return new(`!p snip.rv = camel_case(t[1]).lstrip('_')`);
 		}
 		catch ($3 `!p snip.rv = camel_case(t[3])`)
 		{
@@ -194,7 +194,7 @@ class `!p snip.rv = basename_to_classname(snip.basename)`
 
 		void AddMethodParametersValuesAsDebuggingInformation($3 `!p snip.rv = camel_case(t[3])`)
 		{
-			`!p snip.rv = camel_case(t[3])`.${4:AddDebuggingInformation}(nameof(`!p snip.rv = camel_case(t[1])`), `!p snip.rv = camel_case(t[1])`);
+			`!p snip.rv = camel_case(t[3])`.${4:AddDebuggingInformation}(nameof(`!p snip.rv = camel_case(t[1]).lstrip('_')`), `!p snip.rv = camel_case(t[1]).lstrip('_')`);
 		}
 	}
 }
@@ -207,12 +207,6 @@ public class ${1:`!p snip.rv = basename_to_classname(snip.basename)`} : Exceptio
 {
 	$1(string message, Exception? innerException = null)
 	: base(message, innerException)
-	{
-	}
-	protected $1(
-		System.Runtime.Serialization.SerializationInfo info,
-		System.Runtime.Serialization.StreamingContext context)
-	: base(info, context)
 	{
 	}
 
@@ -228,6 +222,8 @@ public class ${1:`!p snip.rv = basename_to_classname(snip.basename)`} : Exceptio
 endsnippet
 
 snippet ex "Object construction exception" b
+using System.Text;
+
 namespace `!v GetCurrentCsharpNamespace()`;
 
 public class ${1:ObjectConstructionException} : Exception
@@ -237,13 +233,6 @@ public class ${1:ObjectConstructionException} : Exception
 	: base(message, innerException)
 	{
 		_typeOfObjectUnderConstruction = typeOfObjectUnderConstruction;
-	}
-	protected $1(
-		System.Runtime.Serialization.SerializationInfo info,
-		System.Runtime.Serialization.StreamingContext context)
-	: base(info, context)
-	{
-		_typeOfObjectUnderConstruction = typeof(object);
 	}
 
 	$0public static $1 FromInvalidMemberValue(
