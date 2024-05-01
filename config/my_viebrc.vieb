@@ -30,7 +30,7 @@ nmap sv <:vsplit>
 nmap sf :b<space>
 nmap # <:buffer #>
 
-nmap s! <toExploreMode>
+nmap <space> <toggleTOC>
 
 set nofollownewtabswitch
 nmap S <startFollowNewSplit>
