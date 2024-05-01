@@ -2358,8 +2358,6 @@ command! -nargs=* -range GoogleTranslateEnFr :call WebBrowser('https://translate
 nnoremap <Leader>T :WordreferenceEnFr 
 vnoremap <Leader>T :GoogleTranslateEnFr<CR>
 
-command! Wiki exec 'WebBrowser' $wiki
-nnoremap <Leader>W :Wiki<CR>
 
 " Board & Work-in-progress
 function! AreWipBuffersOpenInCurrentTab()
