@@ -2341,7 +2341,10 @@ function! BuildViebUrl(path)
 endfunction
 
 function! WebBrowser(...)
-	let s:job= job_start('vieb.exe "'. BuildViebUrl((a:0 == 0 || (a:0 == 1 && a:1 == '')) ? GetCurrentSelection() : join(a:000)) .'"')
+	let browser = 'vieb.exe'
+	let rawUrl = (a:0 == 0 || (a:0 == 1 && a:1 == '')) ? GetCurrentSelection() : join(a:000)
+	let cmd = printf('%s "%s"', browser, BuildViebUrl(rawUrl))
+	let s:job= job_start(cmd, {'cwd': $n})
 endfun
 command! -nargs=* -range WebBrowser :call WebBrowser(<q-args>)
 nnoremap <Leader>w :w!<CR>:WebBrowser <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
