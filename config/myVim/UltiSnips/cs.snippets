@@ -331,3 +331,7 @@ endsnippet
 snippet aa "Arg.Any" w
 Arg.Any<${VISUAL}>()
 endsnippet
+
+snippet serialize "serialize" w
+System.Text.Json.JsonSerializer.Serialize(${VISUAL}, new System.Text.Json.JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Default });
+endsnippet
