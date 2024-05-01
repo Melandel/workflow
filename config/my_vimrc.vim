@@ -798,18 +798,21 @@ function! MyTabLabel(n)
 		let omnisharpHosts = filter(map(copy(buflist), {_,x -> getbufvar(x, 'OmniSharp_host')}), {_,x -> !empty(x)})
 		if !empty(omnisharpHosts)
 			let host = omnisharpHosts[0]
-			let sln_or_dir = toupper(fnamemodify(host.sln_or_dir, ':t:r'))
+			let sln_or_dir = fnamemodify(host.sln_or_dir, ':t:r')
 			if exists('*IsDebuggingTab') && IsDebuggingTab(a:n)
 				return '🔍'.sln_or_dir.'🔍'
-			elseif empty(sln_or_dir)
+			else
 				let winnr = tabpagewinnr(a:n)
 				let bufnr = buflist[winnr - 1]
 				let filepath = bufname(bufnr)
 				let filename = fnamemodify(filepath, ':t')
 				return filename
-			else
-				let omnisharp_up = get(host, 'initialized', 0)
-				return omnisharp_up ? '<'.sln_or_dir.'>' : sln_or_dir
+				"if empty(sln_or_dir)
+				"	return filename
+				"else
+				"	let omnisharp_up = get(host, 'initialized', 0)
+				"	return omnisharp_up ? printf('%s <%s>', filename, sln_or_dir) : printf('%s (%s)', filename, sln_or_dir)
+				"endif
 			endif
 		endif
   let winnr = tabpagewinnr(a:n)
