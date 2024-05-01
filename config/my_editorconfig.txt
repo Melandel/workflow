@@ -8,6 +8,13 @@ indent_size = 4
 tab_width = 4
 trim_trailing_whitespace = true
 
+[*.{cs,csx,vb,vbx}]
+tab_width = 1
+
+[*.{json,md,html}]
+indent_style = space
+indent_size = 2
+
 [*.designer.cs]
 trim_trailing_whitespace = false
 
