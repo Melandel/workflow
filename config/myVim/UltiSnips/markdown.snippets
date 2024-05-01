@@ -359,3 +359,14 @@ endsnippet
 snippet "i([0-9]*)" "class" br
 interface "I${1:Name`!p snip.rv = match.group(1)`}" as _I`!p snip.rv = pascal_case(t[1])` {`!p snip.rv = newline_if_content(snip.v.text, t[2])`$2`!p snip.rv = add_indent(snip.v.text)``!p snip.rv = space_or_newline_depending_on_content(snip.v.text, t[2])`}
 endsnippet
+
+snippet d2 "d2 snippet" b
+\`\`\`d2$0
+\`\`\`
+endsnippet
+
+snippet mmd "mermaidjs snippet" b
+\`\`\`mmd$0
+\`\`\`
+endsnippet
+
