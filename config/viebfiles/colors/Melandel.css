@@ -19,7 +19,8 @@
 
 
 #markdownviewer {
-	font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+	padding: 10px 10% 193px;
+	font-family: Lato,Helvetica Neue,Helvetica,sans-serif;
 	font-size: 16px! important;
 	line-height: 1.5;
 	word-wrap: break-word;
@@ -27,11 +28,16 @@
 	margin-top: 0px;
 	margin-bottom: 16px;
 	max-width: none;
-	color: #24292f;
-	background: white;
+	color: black;
+	background: #f3f3f3;
+	tab-size: 4;
 }
 
-markdownviewer h1, markdownviewer h2, markdownviewer h3, markdownviewer h4, markdownviewer h5, markdownviewer h6 {
+#markdownviewer div p:first-child {
+	margin-top: 0;
+}
+
+#markdownviewer h1, h2, h3, h4, h5, h6 {
 	margin-top: 24px;
 	margin-bottom: 16px;
 	font-weight: 600;
@@ -50,27 +56,30 @@ markdownviewer h1, markdownviewer h2, markdownviewer h3, markdownviewer h4, mark
 	border-bottom: 1px solid hsla(210,18%,87%,1);
 }
 
-#markdownviewer pre {
-	max-width: min-content;
-	padding: 16px;
-	overflow: auto;
-	font-size: 85%;
-	line-height: 1.45;
-	background-color: var(--syntax-bg);
-	border-radius: 6px;
+#markdownviewer div {
+	max-width: fit-content;
 }
 
-#markdownviewer pre code {
-	color: #dbd6d0;
+#markdownviewer pre {
+	margin: 0;
 }
 
 #markdownviewer code:not(pre code) {
-	font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-	padding: .2em .4em;
-	margin: 0;
+	background-color: rgba(0,0,0,.05);
+	border-radius: 3px;
+	padding: 2px 4px;
+	font-family: Roboto Mono,Lucida Sans Typewriter,Lucida Console,monaco,Courrier,monospace;
+	font-size: .85em;
+}
+
+#markdownviewer div:has(> pre) {
+	margin: 18px 0px;
+	max-width: min-content;
+	padding: 0.5em;
+	overflow: auto;
 	font-size: 85%;
-	background-color: #afb8c133;
-	border-radius: 6px;
+	line-height: 1.45;
+	border-radius: 3px;
 }
 
 #markdownviewer li input {
@@ -82,16 +91,36 @@ markdownviewer h1, markdownviewer h2, markdownviewer h3, markdownviewer h4, mark
 #markdownviewer table {
 	border-spacing: 0;
 	border-collapse: collapse;
+	margin: 42px 0px;
 }
-#markdownviewer table th, #markdownviewer table td {
-    padding: 6px 13px;
+#markdownviewer table th, table td {
+    padding: 8px 12px;
     border: 1px solid #d0d7de;
 }
-#markdownviewer table th, #markdownviewer table td:nth-child(even) {
-    background: white;
+#markdownviewer table th, table td:nth-child(even) {
+    background: transparent;
 }
-#markdownviewer table th, #markdownviewer table td:nth-child(odd) {
-    background: #f6f8fa;
+#markdownviewer table th, table td:nth-child(odd) {
+    background: transparent;
+}
+
+#markdownviewer table td:first-of-type {
+	border-left: 0;
+}
+#markdownviewer table td:last-of-type {
+	border-right: 0;
+}
+#markdownviewer table tr:last-of-type td {
+	border-bottom: 0;
+}
+#markdownviewer table tr:first-of-type th {
+	border-top: 0;
+}
+#markdownviewer table tr:first-of-type th:first-of-type {
+	border-left: 0;
+}
+#markdownviewer table tr:first-of-type th:last-of-type {
+	border-right: 0;
 }
 
 #markdownviewer a {
@@ -100,6 +129,42 @@ markdownviewer h1, markdownviewer h2, markdownviewer h3, markdownviewer h4, mark
 
 #markdownviewer blockquote {
 	padding: 0 15px;
-	color: #777;
+	color: rgba(0,0,0,.5);
 	border-left: 4px solid #ddd;
+}
+
+#markdownviewer img {
+	max-width: 100%;
+	padding: 5px;
+}
+
+#markdownviewer .contains-task-list {
+	list-style-type: none;
+	padding-left: 0;
+}
+
+#markdownviewer div[class^='generated-diagram-'], div[class*=' generated-diagram-'] {
+	margin: 5px 0px;
+	border: black 1px dotted;
+}
+
+#markdownviewer details {
+	background-color: rgba(0,0,0,.05);
+	margin: 10px 0px;
+	display: flow-root;
+}
+#markdownviewer details > summary {
+	background-color: darkseagreen;
+	list-style-type: '▶️ ';
+	font-weight: bold;
+	padding: 10px;
+	cursor: pointer;
+}
+
+#markdownviewer details[open] > summary {
+	list-style-type: '🔽 ';
+}
+
+#markdownviewer details > :not(:first-child) {
+	margin: 10px 0px 8px 10px;
 }
