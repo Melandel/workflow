@@ -2689,6 +2689,37 @@ nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
 nnoremap <silent> <leader>D :Gdiffsplit<CR>
 
 " Drafts (Diagrams & Notes):-----------{{{
+function! StartLiveNote()
+	let cmd = printf('%s "%s"', 'MarkdownLivePreview.bat', expand('%:p'))
+	let job = job_start(cmd, { 'in_mode': 'nl' })
+	let b:livenote_job = job
+	autocmd TextChangedI <buffer> :call FeedLiveNote()
+endfunction
+command StartLiveNote call StartLiveNote()
+
+function! FeedLiveNote()
+	let markdown = json_encode(join(getline(1, '$'), "\r\n"))
+	let chunks = []
+	let markdownLength = len(markdown)
+	let remaining = markdown
+	while (len(remaining) >= 4000) "👈 https://unix.stackexchange.com/questions/643777/is-there-any-limit-on-line-length-when-pasting-to-a-terminal-in-linux
+		call add(chunks, remaining[:3999])
+		let remaining = remaining[4000:]
+	endwhile
+	call add(chunks, remaining)
+	for i in range(len(chunks))
+		call ch_sendraw(b:livenote_job, chunks[i] . "\n")
+	endfor
+	call ch_sendraw(b:livenote_job, "<LiveNote>\n")
+endfunction
+
+function! StopLiveNote()
+	autocmd! TextChangedI <buffer>
+ call job_stop(b:livenote_job)
+endfunction
+command StopLiveNote call StopLiveNote()
+command! ToggleLiveNote if has_key(b:, 'livenote_job') && job_status(b:livenote_job) == "run" | call StopLiveNote() | else | call StartLiveNote() | endif
+
 function! LocListNotes()
 	let cwd = getcwd()
 	lcd $n
@@ -2820,7 +2851,7 @@ function! RenderMarkdownFile()
 		let inputfile = $tmp.'/markdown.md'
 		exec 'write!' inputfile
 	endif
-	if (FileContainsPlantumlSnippets())
+	if (FileContainsPlantumlSnippets() || FileContainsD2Snippets())
 		try
 		let inputfile = CreateFileWithRenderedSvgs()
 		catch
@@ -2836,18 +2867,31 @@ command! RenderMarkdownFile call RenderMarkdownFile()
 augroup markdown
 	au!
 	autocmd FileType markdown nnoremap <buffer> <leader>w :RenderMarkdownFile<CR>
+	autocmd FileType markdown nnoremap <buffer> <silent> <leader>W :ToggleLiveNote<CR>
 	autocmd FileType markdown nnoremap <buffer> z! :BLines ^##<CR>
 	autocmd FileType markdown nnoremap <buffer> Z! :BLines [<CR>
 	autocmd FileType markdown nnoremap <buffer> zj /^#<CR>
 	autocmd FileType markdown nnoremap <buffer> zk ?^#<CR>
 	autocmd FileType markdown setlocal omnifunc=
 	autocmd FileType markdown syn match markdownError "\w\@<=\w\@="
+	"autocmd TextChangedI *.md :call UpdateAsync()
 augroup END
+
+function! UpdateAsync()
+	if !has_key(b:, 'timers') | let b:timers = [] | endif
+	let tid = timer_start(10, { timerid -> execute('update | call remove(b:timers, 0)') })
+	if empty(b:timers) | call add(b:timers, tid) | endif
+endfunc
 
 
 function! FileContainsPlantumlSnippets()
 	let file = join(getline(1,'$'))
 	return stridx(file, '```puml_') != -1
+endfunc
+
+function! FileContainsD2Snippets()
+	let file = join(getline(1,'$'))
+	return stridx(file, '```d2') != -1
 endfunc
 
 function! GetPlantumlConfigFile(filepath)
