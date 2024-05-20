@@ -337,6 +337,10 @@ endfunction
 
 function! UpdateLocalCurrentDirectory()
 	if &buftype == 'terminal' | return | endif
+	if (&filetype == 'markdown' && filereadable(expand('%')))
+		exec 'lcd' expand('%:h')
+		return
+	endif
 	let dir = GetInterestingParentDirectory()
 	if dir =~ '^fugitive://' | return | endif
 	if has_key(w:, 'row')
@@ -1457,6 +1461,7 @@ endfunction
 command! -range=% SortByLengthBeforeFirstSpaceChar <line1>,<line2>call SortLinesByLengthBeforeFirstSpaceChar()
 
 " Autocompletion (Insert Mode): -------{{{
+set shellslash "file autucompletion on Windows
 inoremap <C-F> <C-R>=expand("%:t:r")<CR>
 
 let g:UltiSnipsEnableSnipMate = 0
