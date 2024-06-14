@@ -3834,6 +3834,10 @@ function! LocListTerminalBuffers(bang)
 		let prefix = '!cmd '
 		let prefixlen = len(prefix.'/k ')
 		let terminalbuffers= map(filter(getbufinfo({'buflisted':1}), {_,x->getbufvar(x.bufnr, '&bt') == 'terminal'}), {_,x -> {'bufnr': x.bufnr, 'valid': 1, 'text': term_getstatus(x.bufnr)}})
+		if (empty(terminalbuffers))
+			botright terminal ++rows=10
+			return
+		endif
 		call setloclist(0, [], ' ', {'nr': '$', 'items': terminalbuffers, 'title': '[Location List] Terminal Buffers'})
 		lwindow
 		if(&ft == 'qf')
@@ -3844,6 +3848,7 @@ function! LocListTerminalBuffers(bang)
 		let terminalbuffers= map(filter(getbufinfo({'buflisted':1}), {_,x->getbufvar(x.bufnr, '&bt') == 'terminal' && stridx(term_getstatus(x.bufnr), 'running') != -1 }), {_,x -> x.bufnr})
 		let bufnb = len(terminalbuffers)
 		if bufnb == 0
+			botright terminal ++rows=10
 			return
 		endif
 		if bufnb > 4
