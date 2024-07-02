@@ -1461,7 +1461,6 @@ endfunction
 command! -range=% SortByLengthBeforeFirstSpaceChar <line1>,<line2>call SortLinesByLengthBeforeFirstSpaceChar()
 
 " Autocompletion (Insert Mode): -------{{{
-set shellslash "file autucompletion on Windows
 inoremap <C-F> <C-R>=expand("%:t:r")<CR>
 
 let g:UltiSnipsEnableSnipMate = 0
@@ -1501,6 +1500,8 @@ augroup autocompletion
 	au!
 	"autocmd CursorHoldI * AsyncAutocomplete
 	autocmd User UltiSnipsEnterFirstSnippet normal! m'
+	autocmd BufEnter *.md set shellslash "file autocompletion on Windows for D2 icons
+	autocmd BufLeave *.md set noshellslash
 augroup end
 
 let g:UltiSnipsExpandTrigger = "<F13>"
