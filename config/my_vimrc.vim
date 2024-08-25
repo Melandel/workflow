@@ -3615,6 +3615,9 @@ function! MyOmniSharpGlobalCodeCheck()
 	call OmniSharp#actions#diagnostics#CheckGlobal(function('MyOmniSharpGlobalCodeCheckCallback'))
 endfunction
 
+command! MyOmniSharpFindSymbols call OmniSharp#actions#symbols#Find(<q-args>)
+command! MyOmniSharpFindType call OmniSharp#actions#symbols#FindType(<q-args>)
+
 function! MyOmniSharpGlobalCodeCheckCallback(quickfixes, ...)
 	let g:OmniSharp_diagnostic_exclude_paths = g:old_OmniSharp_diagnostic_exclude_paths
 	if len(a:quickfixes) > 0
@@ -3683,8 +3686,8 @@ augroup csharpfiles
 	autocmd FileType cs nmap <buffer> gd :MyOmniSharpGoToDefinition<CR>
 	autocmd FileType cs nmap <buffer> gD <Plug>(omnisharp_preview_definition)
 	autocmd FileType cs nmap <buffer> <LocalLeader>i :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_implementations):Reframe<CR>
-	autocmd FileType cs nmap <buffer> <LocalLeader>s <Plug>(omnisharp_signature_help)
-	autocmd FileType cs nmap <buffer> <LocalLeader>S :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui=''<CR>:OmniSharpFindType
+	autocmd FileType cs nmap <buffer> <LocalLeader>s :let g:lcd_qf = getcwd() \| let g:OmniSharp_selector_ui=''<CR>:MyOmniSharpFind<tab>
+	autocmd FileType cs nmap <buffer> <LocalLeader>S <Plug>(omnisharp_signature_help)
 	autocmd FileType cs nmap <buffer> <LocalLeader>u :let g:lcd_qf = getcwd()<CR><Plug>(omnisharp_find_usages)
 	autocmd FileType cs nmap <buffer> <LocalLeader>d <Plug>(omnisharp_type_lookup)
 	autocmd FileType cs nmap <buffer> <LocalLeader>D <Plug>(omnisharp_documentation)
