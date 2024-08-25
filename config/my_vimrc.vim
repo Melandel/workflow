@@ -800,7 +800,7 @@ endfunction
 function! MyTabLabel(n)
   let buflist = tabpagebuflist(a:n)
 		let omnisharpHosts = filter(map(copy(buflist), {_,x -> getbufvar(x, 'OmniSharp_host')}), {_,x -> !empty(x)})
-		if !empty(omnisharpHosts)
+		if (!empty(omnisharpHosts) && !(type(omnisharpHosts[0]) == type(1) && omnisharpHosts[0] >= 0))
 			let host = omnisharpHosts[0]
 			let sln_or_dir = fnamemodify(host.sln_or_dir, ':t:r')
 			if exists('*IsDebuggingTab') && IsDebuggingTab(a:n)
@@ -3674,6 +3674,7 @@ augroup csharpfiles
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
 	autocmd FileType cs set signcolumn=yes
 	autocmd FileType cs set efm=%f(%l\\\,%c):\ %m\ [%.%#,%-G%.%#
+	autocmd FileType cs if (expand('%:h') == WindowsPath($tmp)[3:-2]) | setl foldmethod=expr foldexpr=getline(v:lnum)=~'^\\s*//'\ &&\ getline(v:lnum-1)=~'^\\s*//' foldtext=getline(v:foldstart+1).'\ '.trim(getline(v:foldstart+2),\ \"\\\t\ /\") | endif
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrlForFullLine<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrl<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :OpenAdosCodeUrlForFullLine<CR>
