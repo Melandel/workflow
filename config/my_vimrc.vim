@@ -1315,8 +1315,8 @@ endfunction
 set switchbuf+=uselast
 set errorformat=%m
 nnoremap <Leader>f :Files<CR>
-	nnoremap         <S-µ> :Grep -F "<C-R>=EscapeRipgrepPattern(expand('<cword>'))<CR>"<CR>
-	vnoremap         <S-µ> "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
+nnoremap	 µ :Grep -F "<C-R>=EscapeRipgrepPattern(expand('<cword>'))<CR>"<CR>
+vnoremap	 µ "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <Leader>! :Grep -F ""<left>
 vnoremap <silent> <Leader>r "vy:Grep -F "<C-R>=GetCurrentSelection()<CR>"<CR>
 nnoremap <LocalLeader>m :silent make<CR>
