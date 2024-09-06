@@ -811,12 +811,6 @@ function! MyTabLabel(n)
 				let filepath = bufname(bufnr)
 				let filename = fnamemodify(filepath, ':t')
 				return filename
-				"if empty(sln_or_dir)
-				"	return filename
-				"else
-				"	let omnisharp_up = get(host, 'initialized', 0)
-				"	return omnisharp_up ? printf('%s <%s>', filename, sln_or_dir) : printf('%s (%s)', filename, sln_or_dir)
-				"endif
 			endif
 		endif
   let winnr = tabpagewinnr(a:n)
