@@ -396,22 +396,10 @@ function! MoveCursorInsideWindowAndExecuteCommands(winid, move, ...)
 	let pos = getcurpos(a:winid)
 	let lnum = pos[1]
 	let col = pos[2]
-	let newLnum = type(a:move) == type(1)
-		\? a:move
-		\: type(a:move) == type('a') && a:move =~ '^+\d\+$'
-			\? lnum + a:move[1:]
-			\: type(a:move) == type('a') && a:move =~ '^-\d\+$'
-				\? lnum - a:move[1:]
-				\: lnum
-	"if newLnum <= 0 || newLnum > line('$', a:winid)
-	"	return
-	"endif
-	let minLnum = 1
-	let maxLnum = line('$', a:winid)
-	if (lnum == minLnum && newLnum < minLnum) || (lnum == maxLnum && newLnum > maxLnum)
+	let newLnum = a:move(lnum)
+	if newLnum < 1 || newLnum > line('$', a:winid)
 		return
 	endif
-	let newLnum = max([1, min([newLnum, line('$', a:winid)])])
 	let commands = [printf('call cursor(%d,%d)', newLnum, col)]
 	call extend(commands, a:000)
 	call win_execute(a:winid, commands)
@@ -4494,11 +4482,11 @@ function! FormatEvenWhenStringified()
 	if empty(lines) | return | endif
 	let isString = stridx(trim(lines[0]), '"') == 0
 	if isString
-		normal! gg"vdG
-		exec "let v = " @v
-		put=v
+		silent normal! gg"vdG
+		silent exec "let v = " @v
+		silent put!=v | $d
 	endif
-	normal! gg=G
+	silent normal! gg=G
 endfunction
 command! FormatEvenWhenStringified call FormatEvenWhenStringified()
 
@@ -4537,8 +4525,7 @@ function! InitQueryRowWindow(rowId, cwd, rowType, windowContent, ...)
 		if has_key(w:row, 'payloadEditionBufNr') | unlet! w:row.payloadEditionBufNr | endif
 		if has_key(w:row, 'requestEditionBufNr') | unlet! w:row.requestEditionBufNr | endif
 		if has_key(w:row, 'requestStructure')    | unlet! w:row.requestStructure    | endif
-	endif
-	if !has_key(w:, 'row')
+	else
 		let w:row = {
 			\'id': a:rowId,
 			\'type': a:rowType,
@@ -4564,8 +4551,8 @@ function! InitQueryRowHistoryWindow()
 	let b:dirvish._c = b:changedtick
 	nnoremap <silent> <buffer> <C-K> <C-W>l
 	nnoremap <silent> <buffer> o :DisplayQueryFilesFromHistoryWindow<CR>
-	nmap <silent> <buffer> <C-J> 2jo
-	nmap <silent> <buffer> <C-K> 2ko
+	nmap <silent> <buffer> <C-J> :if (line('$')-line('.')) >= 2 \| normal! '2jo' \| endif<CR>
+	nmap <silent> <buffer> <C-K> :if (line('.')-1) >= 2 \| normal! '2ko' \| endif<CR>
 	nnoremap <silent> <buffer> <Space> <C-W>l`V
 endfunction
 
@@ -4575,8 +4562,8 @@ function! InitQueryRowRequestWindow()
 	nnoremap <silent> <buffer> <LocalLeader>m :RunQuery<CR>
 	nnoremap <silent> <buffer> # :TogglePayloadEditor<CR>
 	nnoremap <silent> <buffer> <Space> `V
-	nnoremap <silent> <buffer> <C-J> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '+2', 'DisplayQueryFilesFromHistoryWindow')<CR>
-	nnoremap <silent> <buffer> <C-K> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '-2', 'DisplayQueryFilesFromHistoryWindow')<CR>
+	nnoremap <silent> <buffer> <C-J> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, {lnum -> lnum + 2}, 'DisplayQueryFilesFromHistoryWindow')<CR>
+	nnoremap <silent> <buffer> <C-K> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, {lnum -> lnum - 2}, 'DisplayQueryFilesFromHistoryWindow')<CR>
 	nnoremap <silent> <buffer> <LocalLeader>q gg"_dG:Snippets<CR>
 	exec 'lcd' w:row.cwd
 endfunction
@@ -4594,9 +4581,9 @@ function! TogglePayloadEditor()
 		return
 	endif
 	silent enew | set bt=nofile | set ft=json
-	silent call setline(1, ConvertRequestPayloadToStringifiedJson(w:row.requestStructure.payload))
+	silent call setline(1, ConvertRequestPayloadLinesToStringifiedJson(w:row.requestStructure.payload))
 	silent FormatEvenWhenStringified
-	Retab
+	silent Retab
 	let w:row.payloadEditionBufNr = bufnr()
 	nnoremap <silent> <buffer> # :ToggleRequestEditor<CR>
 	nnoremap <silent> <buffer> <LocalLeader>m :ToggleRequestEditor<CR>:RunQuery<CR>
@@ -4607,29 +4594,48 @@ command! TogglePayloadEditor call TogglePayloadEditor()
 
 function! GetRequestStructure()
 	let lines = getline(1, '$')
-	let structure = {
-		\'payloadPre': [],
-		\'payload': [],
-		\'payloadPost': []
-	\}
-	let dataParameterLine = search('^\s*--data')
-	normal! j%
-	let dataEndLine = line('.')
+	call search('^\s*--data')
+	let currentLine = line('.')
+	if (stridx(getline('.'), '{') >= 0)
+		silent normal! %
+	else
+		silent normal! j%
+	endif
+	let dataFirstLineInZeroBasedIndex = (currentLine + 1) - 1
+	let dataEndLineInZeroBasedIndex = line('.')-1
+	let payloadPre = lines[0:dataFirstLineInZeroBasedIndex-1]
+	let payload = lines[dataFirstLineInZeroBasedIndex:dataEndLineInZeroBasedIndex]
+	let payloadPost = lines[dataEndLineInZeroBasedIndex+1:line('$')-1]
+	let payloadPreLastChar = matchstr(payloadPre[-1], '.$')
+	if (payloadPreLastChar == '{')
+		let payload = ['{'] + payload
+		let payloadPre[-1] = payloadPre[-1][:-2]
+	endif
+	if (empty(payloadPost))
+		let payloadPost = ['"']
+	else
+		let payloadPostFirstChar = matchstr(payloadPost[0], '^.')
+		if (payloadPostFirstChar != '"')
+			let payload[-1] = payload[-1][:-2]
+			let payloadPost[0] = '"'.payloadPost[0]
+		endif
+	endif
+
 	return {
-		\'payloadPre': lines[0:dataParameterLine-1],
-		\'payload': lines[dataParameterLine:dataEndLine-1],
-		\'payloadPost': lines[dataEndLine:line('$')-1]
+		\'payloadPre': payloadPre,
+		\'payload': payload,
+		\'payloadPost': payloadPost
 	\}
 endfunction
 
-function! ConvertRequestPayloadToStringifiedJson(payload)
-	let len = len(a:payload)
+function! ConvertRequestPayloadLinesToStringifiedJson(payloadLines)
+	let len = len(a:payloadLines)
 	if len == 0
-		return a:payload
+		return a:payloadLines
 	elseif len == 1
-		return map(a:payload, '"v:val"')
+		return [ '"' . a:payloadLines[0] . '"' ]
 	else
-		return ['"'.a:payload[0]] + a:payload[1:-2] + [a:payload[-1].'"']
+		return ['"'.a:payloadLines[0]] + a:payloadLines[1:-2] + [a:payloadLines[-1].'"']
 	endif
 endfunction
 
@@ -4644,39 +4650,35 @@ function! ToggleRequestEditor()
 		let payload = request.payload
 	endif
 	silent call deletebufline(w:row.requestEditionBufNr, 1, '$')
-	silent call setbufline(w:row.requestEditionBufNr, 1, request.payloadPre + ConvertJsonToRequestPayload(payload) + request.payloadPost)
+	call setbufline(w:row.requestEditionBufNr, 1, request.payloadPre + ConvertJsonToRequestPayload(payload) + request.payloadPost)
 	silent exec 'buffer' w:row.requestEditionBufNr
 endfunction
 command! ToggleRequestEditor call ToggleRequestEditor()
 
 function! InitQueryRowResponseWindow()
 	exec 'lcd' w:row.cwd
-	let lastNonSpaceLine = line('$')
-	while lastNonSpaceLine =~ '^\s*$' || lastNonSpaceLine != 1
-		let lastNonSpaceLine -= 1
-	endwhile
+	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
+		let isDbFormat = (getline(1) =~ '^{ "count": \d\+, "_":$')
+	if (isCurlDashSmallI)
+		let lastNonSpaceLine = 2
+	elseif (isDbFormat)
+		let lastNonSpaceLine = 1
+	else
+		let lastNonSpaceLine = line('$')
+		while lastNonSpaceLine =~ '^\s*$' || lastNonSpaceLine != 1
+			let lastNonSpaceLine -= 1
+		endwhile
+	endif
 	let isXml = getline(lastNonSpaceLine) =~ '^<.*>$'
 	let isJson = getline(lastNonSpaceLine) =~ '^\({\|\[\|}\|]\)'
 	if isXml
-		silent $!xmllint --format --recover --c14n -
 		set ft=xml
 	elseif isJson
-		let firstLine = getline(1)
-  let isDbFormat = (firstLine =~ '^{ "count": ') && (firstLine =~ ', "_":$')
-  if !isDbFormat
-		let isNotPrettyYet = (len(getline(lastNonSpaceLine)) > 1)
-		if isNotPrettyYet
-			let firstLine = getline(1)
-			call setline(1, firstLine[0])
-			silent! execute '1,'.lastNonSpaceLine.'!jq .'
-			call setline(1, firstLine)
-    endif
-		endif
 		set ft=jsonc
 	endif
 	nnoremap <silent> <buffer> <Space> <C-W>h`V
-	nnoremap <silent> <buffer> <C-J> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '+2', 'DisplayQueryFilesFromHistoryWindow')<CR>
-	nnoremap <silent> <buffer> <C-K> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, '-2', 'DisplayQueryFilesFromHistoryWindow')<CR>
+	nnoremap <silent> <buffer> <C-J> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, {lnum -> lnum + 2}, 'DisplayQueryFilesFromHistoryWindow')<CR>
+	nnoremap <silent> <buffer> <C-K> :call MoveCursorInsideWindowAndExecuteCommands(w:row.id, {lnum -> lnum - 2}, 'DisplayQueryFilesFromHistoryWindow')<CR>
 endfunction
 
 function! RemoveSingleOrCurrentQueryRow()
@@ -4805,7 +4807,7 @@ endfunction
 function! BuildQueryRowJobOptions(row, queryFilenameWithoutExtension)
 	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job_Row_'.a:row.id)
 	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:row.id, 'history')[0])
-	let dirvishDirValue = get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '')
+	let historyBufDirvishDirValue = get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '')
 	return {
 		\'cwd': getcwd(),
 		\'out_io': 'buffer',
@@ -4815,59 +4817,71 @@ function! BuildQueryRowJobOptions(row, queryFilenameWithoutExtension)
 		\'err_buf': scratchbufnr,
 		\'err_modifiable': 1,
 		\'in_io': 'null',
-		\'close_cb':  function('DisplayQueryJobOutput', [scratchbufnr, dirvishDirValue, a:queryFilenameWithoutExtension, a:row.id])
+		\'close_cb':  function('DisplayQueryJobOutput', [scratchbufnr, historyBufDirvishDirValue, a:queryFilenameWithoutExtension, a:row.id])
 	\}
 endfunction
 
-function! DisplayQueryJobOutput(bufnr, dirvishDirValue, queryFilenameWithoutExtension, rowId, channel)
+function! DisplayQueryJobOutput(bufnr, historyBufDirvishDirValue, queryFilenameWithoutExtension, rowId, channel)
 	let responseWindowId = GetRowsWinIdsInCurrentTabPage(w:row.id, 'response')[0]
 	call win_gotoid(responseWindowId)
 	silent exec 'buffer' a:bufnr
+	normal! gg
 	if BufferIsEmpty() | call setline(1, 'NO-OUTPUT') | endif
+	let firstLine = getline(1)
+	let firstLineOfLastParagraph = line('$')
+	while (getline(firstLineOfLastParagraph) !~ '^\s*$' && firstLineOfLastParagraph >= 1) | let firstLineOfLastParagraph -= 1 | endwhile
+	let firstLineOfLastParagraph += 1
 	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
 	if isCurlDashSmallI
-		silent 2,$-1d
+		exec '2,'.(firstLineOfLastParagraph-1).'d'
+		let firstLineOfLastParagraph = 2
 	endif
-	normal! gg
+	let isXml = getline(firstLineOfLastParagraph) =~ '^<.*>$'
+	let isJson = getline(firstLineOfLastParagraph) =~ '^\({\|\[\|}\|]\)'
 	let ext = 'output'
-	let lastNonSpaceLine = line('$')
-	while lastNonSpaceLine =~ '^\s*$' || lastNonSpaceLine != 1
-		let lastNonSpaceLine -= 1
-	endwhile
-	let isXml = lastNonSpaceLine =~ '^<.*>$'
-	let isJson = lastNonSpaceLine =~ '^\({\|\[\|}\|]\)'
 	if isXml
-		silent $!xmllint --format --recover --c14n -
+		if isCurlDashSmallI
+			1d
+			silent $!xmllint --format --recover --c14n -
+			1pu!=firstLine
+		else
+			silent $!xmllint --format --recover --c14n -
+		endif
 		set ft=xml
 		let ext = 'xml'
 	elseif isJson
-  let isDbFormat = (firstLine =~ '^{ "count": ') && (firstLine =~ ', "_":$')
-  if !isDbFormat
-		let isNotPrettyYet = (len(getline(lastNonSpaceLine)) > 1)
-		if isNotPrettyYet
-			let firstLine = getline(1)
+		let isDbFormat = (firstLine =~ '^{ "count": \d\+, "_":$')
+		if isDbFormat
 			call setline(1, firstLine[0])
-			silent! execute '1,'.lastNonSpaceLine.'!jq .'
+			silent! execute '%!jq .'
 			call setline(1, firstLine)
-   endif
+		elseif isCurlDashSmallI
+			1d
+			silent! execute '%!jq .'
+			1pu!=firstLine
+		else
+			silent! execute '1,'.firstLineOfLastParagraph.'!jq .'
 		endif
 		set ft=jsonc
 		let ext = 'json'
+	else
+		echomsg printf('Neither xml nor json; first data line= %s', getline(firstLineOfLastParagraph))
 	endif
 	set bt=
 	silent exec 'saveas' printf('%s.%s', a:queryFilenameWithoutExtension, ext)
-	echomsg "foo"
-	echomsg getline(1, '$')
 	call InitQueryRowResponseWindow()
-	echomsg "bar"
-	echomsg getline(1, '$')
+	call InitQueryRowHistoryWindows(a:rowId, a:historyBufDirvishDirValue)
+	redraw | echomsg printf("👍 %s --> %s", fnamemodify(a:queryFilenameWithoutExtension, ':t:r')[len('YYYY-MM-DD-ddd '):], getline(1))
+endfunction
+
+function! InitQueryRowHistoryWindows(rowId, historyBufDirvishDirValue)
 	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:rowId, 'history')[0])
-	if get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '') == a:dirvishDirValue
+	let dirvishbufvar = getbufvar(historyBufNr, 'dirvish', {})
+	if get(dirvishbufvar, '_dir', '') == a:historyBufDirvishDirValue
 		for bufnr in win_findbuf(historyBufNr)
 			call win_execute(bufnr, 'call InitQueryRowHistoryWindow()')
 		endfor
 	endif
-	redraw | echomsg printf("👍 %s --> %s", fnamemodify(a:queryFilenameWithoutExtension, ':t:r')[len('YYYY-MM-DD-ddd '):], getline(1))
 endfunction
 
 function! BuildQueryOutputFilenameWithoutExtension(title)
@@ -4916,8 +4930,9 @@ endfunction
 function! DisplayQueryFile(file, content)
 	let currentWinId = win_getid()
 	let winid = GetRowsWinIdsInCurrentTabPage(w:row.id, a:content)[0]
+	let bufferIsEmpty = (line('$', winid) == 1)
 	call win_gotoid(winid)
-	silent exec (BufferIsEmpty() ? '0read' : 'edit') a:file
+	silent exec (bufferIsEmpty ? '0read' : 'edit') a:file
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', a:content)
 	normal! gg
 	call win_gotoid(currentWinId)
