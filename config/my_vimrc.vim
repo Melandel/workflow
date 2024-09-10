@@ -798,6 +798,17 @@ function! MyTabLabel(n)
 				let bufnr = buflist[winnr - 1]
 				let filepath = bufname(bufnr)
 				let filename = fnamemodify(filepath, ':t')
+
+				if (tabpagenr() == a:n && !empty(sln_or_dir))
+					if empty(sln_or_dir)
+						return filename
+					else
+						let currentBufferHost = OmniSharp#GetHost()
+						let sln_or_dir = fnamemodify(currentBufferHost.sln_or_dir, ':t:r')
+						let omnisharp_up = get(currentBufferHost, 'initialized', 0)
+						return omnisharp_up ? printf('<%s> %s', sln_or_dir, filename) : printf('[%s] %s', sln_or_dir, filename)
+					endif
+				endif
 				return filename
 			endif
 		endif
