@@ -113,11 +113,14 @@ Add environment variable:
 * `VIMINIT` to `source %HOMEPATH%\Desktop\config\my_vimrc.vim`
 * `VIEB_CONFIG_FILE` to `%HOMEPATH%\Desktop\config\my_viebrc.vieb`
 * `VIEB_DATAFOLDER` to `%HOMEPATH%\Desktop\config\viebfiles\`
+* `D2_LAYOUT` to `tala`
 
 Also:
 ```txt
 cd %homepath%
 mklink /d vimfiles %HOMEPATH%\Desktop\config\myVim
+mkdir vimfiles
+mklink /J vimfiles/ultisnips %homepath%\Desktop\config\myVim\UltiSnips
 ```
 #### Startup programs ####
 `gvim`, `tools/myAzertyKeyboard.RunMeAsAdmin.exe` and your internet browser should be run when the system starts up.
