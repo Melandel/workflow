@@ -11,31 +11,31 @@ let $config    = $HOME.'/Desktop/config'
 let $vimFiles  = $HOME.'/Desktop/config/myVim'
 let $workenv   = $HOME.'/Desktop/config/workenv'
 let $plugins   = $vimFiles.'/pack/plugins/start'
-let $desktop   = $HOME.'/Desktop'                    | let $d = $desktop
+let $desktop   = $HOME.'/Desktop'			| let $d = $desktop
 let $downloads = $HOME.'/Downloads'
-let $notes     = $HOME.'/Desktop/notes'              | let $n = $notes
-let $projects  = $HOME.'/Desktop/projects'           | let $p = $projects
+let $notes     = $HOME.'/Desktop/notes'		| let $n = $notes
+let $projects  = $HOME.'/Desktop/projects'		| let $p = $projects
 let $rest      = $HOME.'/Desktop/templates/rest'
 let $snippets  = $HOME.'/Desktop/snippets'
-let $tmp       = $HOME.'/Desktop/tmp'                | let $t = $tmp
+let $tmp       = $HOME.'/Desktop/tmp'		| let $t = $tmp
 let $tools     = $HOME.'/Desktop/tools'
 let $templates = $HOME.'/Desktop/templates'
 let $todo      = $HOME.'/Desktop/todo'
 let $today     = $HOME.'/Desktop/today'
-let $scripts   = $HOME.'/Desktop/scripts'            | let $s = $scripts
+let $scripts   = $HOME.'/Desktop/scripts'		| let $s = $scripts
 let $gtools    = $HOME.'/Desktop/tools/git/usr/bin'
 let $wip       = $HOME.'/Desktop/work_in_progress'
 let $checklists= $HOME.'/Desktop/checklists'
-let $queries   = $HOME.'/Desktop/queries'            | let $q = $queries
+let $queries   = $HOME.'/Desktop/queries'		| let $q = $queries
 let $diffs     = $HOME.'/Desktop/diffs'
 
-let $rc         = $HOME.'/Desktop/config/my_vimrc.vim'
-let $rce        = $HOME.'/Desktop/config/my_vimworkenv.vim'
-let $rcfolder   = $VIM
+let $rc	       = $HOME.'/Desktop/config/my_vimrc.vim'
+let $rce	= $HOME.'/Desktop/config/my_vimworkenv.vim'
+let $rcfolder	= $VIM
 let $rcfilename = '_vimrc'
 elseif g:isWsl
-	let $desktop    = $HOME
- let $rcfolder   = $HOME
+	let $desktop	= $HOME
+ let $rcfolder	 = $HOME
 	let $rcfilename = '.vimrc'
 endif
 
@@ -158,7 +158,7 @@ set shiftwidth=1
 augroup vimOnlyTabSize
 	au!
 	autocmd BufEnter *.cs if(&ts != 1) | set tabstop=1 shiftwidth=1 softtabstop=0 noexpandtab | endif
-	autocmd BufEnter *.md if(&ts != 2) | set tabstop=2 shiftwidth=2 softtabstop=0 expandtab   | endif
+	autocmd BufEnter *.md if(&ts != 2) | set tabstop=2 shiftwidth=2 softtabstop=0 expandtab	| endif
 	autocmd BufEnter *.json if(&ts != 2) | set tabstop=2 shiftwidth=2 softtabstop=0 expandtab | endif
 augroup end
 
@@ -188,7 +188,7 @@ function! CSharpIndentClosingBracket(currentLineNr)
 	"echomsg '}'
 	let previousLine = GetPreviousLine(a:currentLineNr, '^\s*$', 1)
 	let followsSoloOpeningBracket = previousLine.line =~ '^\s*{'
-	let followsDotCallChainItem =   previousLine.line =~ '^\s*\.'
+	let followsDotCallChainItem =	previousLine.line =~ '^\s*\.'
 	return (followsSoloOpeningBracket)
 		\ ? previousLine.lineIndent
 		\ : (followsDotCallChainItem)
@@ -378,7 +378,7 @@ augroup lcd
 	au!
 	" enew has a delay before updating bufname()
 	autocmd BufCreate * call timer_start(100, { timerid -> execute('if &ft != "qf" && bufname() == "" | set bt=nofile | endif', '') })
-	autocmd BufEnter  * call timer_start(100, { timerid -> execute('if &ft == "dosbatch" | | elseif &ft!="dirvish" | Lcd | else | lcd %:p:h | endif', '') })
+	autocmd BufEnter	* call timer_start(100, { timerid -> execute('if &ft == "dosbatch" | | elseif &ft!="dirvish" | Lcd | else | lcd %:p:h | endif', '') })
 	autocmd QuickFixCmdPre * call timer_start(100, { timerid -> execute('let g:lcd_qf = getcwd()', '') })
 	autocmd BufEnter * call UpdateEnvironmentLocationVariables()
 augroup end
@@ -387,7 +387,7 @@ augroup end
 function! ParseJsonFile(path)
 	let lines = readfile(a:path)
 	call filter(lines, 'match(v:val, "^\\s*//") == -1')
-	call map(lines,   'trim(v:val)')
+	call map(lines,	'trim(v:val)')
 	let jsonWithoutCommentLines = join(lines)
 	return json_decode(jsonWithoutCommentLines)
 endfunc
@@ -406,9 +406,9 @@ function! MoveCursorInsideWindowAndExecuteCommands(winid, move, ...)
 endfunction
 
 function! RemoveDiacritics(str)
-	let diacs = 'áâãàçéêèïíóôõüúù'  " lowercase diacritical signs
+	let diacs = 'áâãàçéêèïíóôõüúù'	" lowercase diacritical signs
 	let diacs .= toupper(diacs)
-	let repls = 'aaaaceeeiiooouuu'  " corresponding replacements
+	let repls = 'aaaaceeeiiooouuu'	" corresponding replacements
 	let repls .= toupper(repls)
 	return tr(a:str, diacs, repls)
 endfunction
@@ -493,7 +493,7 @@ endfunction
 function! DeleteEmptyScratchBuffers()
     let buffers = filter(range(1, bufnr('$')), 'getbufvar(v:val, "&bt")=="nofile" && len(getbufline(v:val, 1, "$")) == 1 && empty(getbufline(v:val, 1)[0])')
     if !empty(buffers)
-        exec 'bw' join(buffers, ' ')
+	exec 'bw' join(buffers, ' ')
     endif
 endfunction
 
@@ -521,7 +521,7 @@ function! FileNameorQfTitle()
 			if &readonly
 				let res = bufname
 				let cwd = substitute(getcwd(), '\', '/', 'g')
-				let idx = stridx(res, cwd)          | if idx >= 0 | let res = res[idx+len(cwd)+1:] | endif
+				let idx = stridx(res, cwd)		| if idx >= 0 | let res = res[idx+len(cwd)+1:] | endif
 				let shaidx = match(res, '\x\{40\}') | if shaidx >= 0 | let res = res[:shaidx+6].res[shaidx+40:] | endif
 				return res
 			elseif bufname =~ '\\\.git\\\\\d\\'
@@ -616,7 +616,7 @@ function! JobStartExample(...)
 			\'err_buf': scratchbufnr,
 			\'err_modifiable': 1,
 			\'in_io': 'null',
-			\'close_cb': { chan      -> execute('echomsg "[close] '.chan.'"', 1)},
+			\'close_cb': { chan	 -> execute('echomsg "[close] '.chan.'"', 1)},
 			\'exit_cb':  { job,status-> execute('echomsg "[exit] '.status.'" | botright sbuffer '.scratchbufnr, '')}
 		\}
 	\)
@@ -631,7 +631,7 @@ function! WinTextWidth()
     execute 'silent sign place buffer=' . bufnr('%')
     redir END
     if signs !~# '^\n---[^\n]*\n$'
-        let winwidth -= 2
+	let winwidth -= 2
     endif
     return winwidth
 endfunction
@@ -642,8 +642,8 @@ function! LineCount(...)
     let numlines = 0
     let winwidth = WinTextWidth()
     for lnr in range(startlnr, endlnr)
-        let lwidth = strdisplaywidth(getline(lnr))
-        let numlines += max([(lwidth - 1) / winwidth + 1, 1])
+	let lwidth = strdisplaywidth(getline(lnr))
+	let numlines += max([(lwidth - 1) / winwidth + 1, 1])
     endfor
     return numlines
 endfunction
@@ -716,18 +716,18 @@ nnoremap § <C-Z>
 cnoremap § <C-U>ter 
 
 " Arrows: -----------------------------{{{
-inoremap <C-J> <Left>|  cnoremap <C-J> <Left>|  tnoremap <C-J> <Left>
+inoremap <C-J> <Left>|	cnoremap <C-J> <Left>|	tnoremap <C-J> <Left>
 inoremap <C-K> <Right>| cnoremap <C-K> <Right>| tnoremap <C-K> <Right>
 tnoremap <C-N> <Down>| tnoremap <C-W><C-N> <C-N>
 tnoremap <C-P> <Up>| tnoremap <C-W><C-P> <C-P>
 
 " Home,End: ---------------------------{{{
 inoremap ^j <Home>| cnoremap ^j <Home>| tnoremap ^j <Home>
-inoremap ^k <End>|  cnoremap ^k <End>|  tnoremap ^k <End>
+inoremap ^k <End>|  cnoremap ^k <End>|	tnoremap ^k <End>
 
 " Backspace,Delete: -------------------{{{
 tnoremap <C-L> <Del>
-inoremap <C-L> <Del>|   cnoremap <C-L> <Del>| smap <C-L> <Del>
+inoremap <C-L> <Del>|	cnoremap <C-L> <Del>| smap <C-L> <Del>
 
 " Accidental <C-U> or <C-W>
 inoremap <C-U> <C-G>u<C-U>
@@ -924,7 +924,7 @@ augroup windows
 	"
 	" Use foldcolumn to give a visual clue for the current window
 	autocmd WinLeave * if !pumvisible() | setlocal norelativenumber foldcolumn=0 | endif
-	autocmd WinEnter * if !pumvisible() | setlocal relativenumber   foldcolumn=1 | endif
+	autocmd WinEnter * if !pumvisible() | setlocal relativenumber	 foldcolumn=1 | endif
 	" Safety net if I close a window accidentally
 	autocmd QuitPre * normal! mK
 	autocmd FileType nofile nnoremap <buffer> K :bd!<CR>
@@ -941,8 +941,8 @@ nnoremap <silent> <Leader>L <C-W>L
 " Resize Window
 nnoremap <silent> <A-h> :vert res -2<CR>| tnoremap <silent> <A-h> <C-W>N:vert res -2<CR>i
 nnoremap <silent> <A-l> :vert res +2<CR>| tnoremap <silent> <A-l> <C-W>N:vert res +2<CR>i
-nnoremap <silent> <A-j> :res -2<CR>|      tnoremap <silent> <A-j> <C-W>N:res -2<CR>i
-nnoremap <silent> <A-k> :res +2<CR>|      tnoremap <silent> <A-k> <C-W>N:res +2<CR>i
+nnoremap <silent> <A-j> :res -2<CR>|	  tnoremap <silent> <A-j> <C-W>N:res -2<CR>i
+nnoremap <silent> <A-k> :res +2<CR>|	  tnoremap <silent> <A-k> <C-W>N:res +2<CR>i
 nnoremap <silent> <Leader>= <C-W>=
 nnoremap <silent> <Leader>\| <C-W>\|
 nnoremap <silent> <Leader>_ <C-W>_
@@ -1004,19 +1004,19 @@ let g:lightline = {
 	\  },
 	\ 'active':   {
 	\    'left':  [
-	\        [ 'mode', 'paste', 'readonly', 'modified' ],
-	\        [ 'LinesCurrentColumnAndGitBranch' ]
+	\	[ 'mode', 'paste', 'readonly', 'modified' ],
+	\	[ 'LinesCurrentColumnAndGitBranch' ]
 	\    ],
 	\    'right': [
-	\        ['filename_or_qftitle', 'readonly', 'modified' ]
+	\	['filename_or_qftitle', 'readonly', 'modified' ]
 	\    ]
 	\ },
 	\ 'inactive': {
 	\    'left':  [
-	\        ['LinesAndGitBranch']
+	\	['LinesAndGitBranch']
 	\    ],
 	\    'right': [
-	\        [ 'filename_or_qftitle', 'readonly', 'modified' ]
+	\	[ 'filename_or_qftitle', 'readonly', 'modified' ]
 	\    ]
 	\ }
 	\}
@@ -1157,7 +1157,7 @@ onoremap <silent> <End> :End<CR>
 
 " Text objects: -----------------------{{{
 vnoremap iz [zjo]zkVg_| onoremap iz :normal viz<CR>
-vnoremap az [zo]zVg_|   onoremap az :normal vaz<CR>
+vnoremap az [zo]zVg_|	onoremap az :normal vaz<CR>
 vnoremap if ggoGV| onoremap if :normal vif<CR>
 nnoremap vii :call TextObjectBackslash()<CR>
 function! TextObjectBackslash()
@@ -1292,7 +1292,7 @@ function! GrepCB(winnr, cmd, cwd, pattern, scratchbufnr, qf_or_loclist, job, exi
 	set cmdheight=1
 	echomsg title
 endfunction
-command! -nargs=+ Grep  call Grep('qf',     <f-args>)
+command! -nargs=+ Grep	call Grep('qf',     <f-args>)
 command! -nargs=+ Lgrep call Grep('loclist',<f-args>)
 
 function! EscapeRipgrepPattern(pattern)
@@ -1412,24 +1412,24 @@ endfunction
 
 augroup quicksearch
 	au!
-	autocmd BufEnter * nnoremap          <buffer> [( /\w\+\s*(\ze\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ]( /\w\+\s*(\s*\zs
-	autocmd BufEnter * nnoremap          <buffer> [s /\w\+\s*[\ze\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ]d /\w\+\s*[\s*\zs
-	autocmd BufEnter * nnoremap          <buffer> [q /\w\+\s*{\ze\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ]f /\w\+\s*{\s*\zs
-	autocmd BufEnter * nnoremap          <buffer> [< /\w\+\s*<\ze\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ]< /\w\+\s*<\s*\zs
-	autocmd BufEnter * nnoremap          <buffer> [= /\w\+\s*=\ze\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ]= /\w\+\s*=\s*\zs
-	autocmd BufEnter * nnoremap          <buffer> [: /\w\+\s*:\ze\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ]: /\w\+\s*:\s*\zs
-	autocmd BufEnter * nnoremap          <buffer> [, /\w\+\s*,\ze\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ], /\w\+\s*,\s*\zs
-	autocmd BufEnter * nnoremap          <buffer> [& /\w\+\s*&\ze\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ]& /\w\+\s*&\s*\zs
-	autocmd BufEnter * nnoremap          <buffer> [\| /\w\+\s*\|\ze\s*<home>
-	autocmd BufEnter * nnoremap          <buffer> ]\| /\w\+\s*\|\s*\zs
+	autocmd BufEnter * nnoremap	 <buffer> [( /\w\+\s*(\ze\s*<home>
+	autocmd BufEnter * nnoremap	 <buffer> ]( /\w\+\s*(\s*\zs
+	autocmd BufEnter * nnoremap	 <buffer> [s /\w\+\s*[\ze\s*<home>
+	autocmd BufEnter * nnoremap	 <buffer> ]d /\w\+\s*[\s*\zs
+	autocmd BufEnter * nnoremap	 <buffer> [q /\w\+\s*{\ze\s*<home>
+	autocmd BufEnter * nnoremap	 <buffer> ]f /\w\+\s*{\s*\zs
+	autocmd BufEnter * nnoremap	 <buffer> [< /\w\+\s*<\ze\s*<home>
+	autocmd BufEnter * nnoremap	 <buffer> ]< /\w\+\s*<\s*\zs
+	autocmd BufEnter * nnoremap	 <buffer> [= /\w\+\s*=\ze\s*<home>
+	autocmd BufEnter * nnoremap	 <buffer> ]= /\w\+\s*=\s*\zs
+	autocmd BufEnter * nnoremap	 <buffer> [: /\w\+\s*:\ze\s*<home>
+	autocmd BufEnter * nnoremap	 <buffer> ]: /\w\+\s*:\s*\zs
+	autocmd BufEnter * nnoremap	 <buffer> [, /\w\+\s*,\ze\s*<home>
+	autocmd BufEnter * nnoremap	 <buffer> ], /\w\+\s*,\s*\zs
+	autocmd BufEnter * nnoremap	 <buffer> [& /\w\+\s*&\ze\s*<home>
+	autocmd BufEnter * nnoremap	 <buffer> ]& /\w\+\s*&\s*\zs
+	autocmd BufEnter * nnoremap	 <buffer> [\| /\w\+\s*\|\ze\s*<home>
+	autocmd BufEnter * nnoremap	 <buffer> ]\| /\w\+\s*\|\s*\zs
 	autocmd BufEnter * nnoremap <silent> <buffer> [" /\(\s\|\[\|\(\|"\|`\)(\$\|@\|\s\)*"\zs\(\s\)*\w\+.*\ze"<CR>
 	autocmd BufEnter * nnoremap <silent> <buffer> [' /\(\s\|\[\|\(\|"\|'\)(\s\|\[\|(\|"\|`\)'\zs\(\s\)*\w\+.*\ze'<CR>
 	autocmd BufEnter * nnoremap <silent> <buffer> [` /\(\s\|\[\|\(\|"\|'\)`\zs\s*\w\+.*\ze`<CR>
@@ -1705,8 +1705,8 @@ augroup quickfix
 	autocmd FileType qf nnoremap <buffer> <silent> a :SplitQfItemBelow<CR>
 	autocmd FileType qf nnoremap <buffer> <silent> A :SplitQfItemAbove<CR>
 	autocmd FileType qf nnoremap <buffer> <silent> t :TSplitQfItemAfter<CR>
-	autocmd FileType qf     nmap <buffer> <silent> i :EditQfItemInPreviousWindow<CR>
-	autocmd FileType qf     nmap <buffer> p <plug>(qf-preview-open)
+	autocmd FileType qf	nmap <buffer> <silent> i :EditQfItemInPreviousWindow<CR>
+	autocmd FileType qf	nmap <buffer> p <plug>(qf-preview-open)
 	autocmd FileType qf if IsQuickFixWindow() | nnoremap <buffer> <CR> <CR>:Reframe<CR>| endif
 	autocmd FileType qf nnoremap <silent> <buffer> H :QfOlder<CR>
 	autocmd FileType qf nnoremap <silent> <buffer> L :QfNewer<CR>
@@ -1765,16 +1765,16 @@ if has('vim9script')
 		var modules_are_used = empty(qfl) ? 1 : (get(qfl[0], 'module', '') != '')
 		var l = []
 		var efm_type = {'e': 'error', 'w': 'warning', 'i': 'info', 'n': 'note'}
-		var lnum_width =   len(max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => qfl[v].lnum )))
-		var col_width =    len(max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => qfl[v].col)))
+		var lnum_width =	 len(max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => qfl[v].lnum )))
+		var col_width =	 len(max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => qfl[v].col)))
 		var fname_width =  max(map(range(info.start_idx - 1, info.end_idx - 1), modules_are_used ? (_, v) => strchars(qfl[v].module, 1) : (_, v) => strchars(substitute(fnamemodify(bufname(qfl[v].bufnr), ':.'), '\\', '/', 'g'), 1)))
-		var type_width =   max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => strlen(get(efm_type, qfl[v].type, ''))))
+		var type_width =	 max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => strlen(get(efm_type, qfl[v].type, ''))))
 		var errnum_width = len(max(map(range(info.start_idx - 1, info.end_idx - 1), (_, v) => qfl[v].nr)))
 		for idx in range(info.start_idx - 1, info.end_idx - 1)
 			var e = qfl[idx]
 			e.text = substitute(e.text, '\%x00', ' ', 'g')
 			if stridx(e.text, ' Expected: ') >= 0
-				e.text = substitute(e.text, ' Actual:   ', '   Actual: ', '')
+				e.text = substitute(e.text, ' Actual:	', '   Actual: ', '')
 			endif
 			if !e.valid
 				add(l, '|| ' .. e.text)
@@ -1811,10 +1811,10 @@ else
 		let modules_are_used = empty(qfl) ? 1 : (get(qfl[0], 'module', '') != '')
 		let l = []
 		let efm_type = {'e': 'error', 'w': 'warning', 'i': 'info', 'n': 'note'}
-		let lnum_width =   len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), { _,v -> qfl[v].lnum })))
-		let col_width =    len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> qfl[v].col})))
+		let lnum_width =	 len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), { _,v -> qfl[v].lnum })))
+		let col_width =	 len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> qfl[v].col})))
 		let fname_width =  max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), modules_are_used ? {_, v -> strchars(qfl[v].module, 1)} : {_, v -> strchars(substitute(fnamemodify(bufname(qfl[v].bufnr), ':.'), '\\', '/', 'g'), 1)}))
-		let type_width =   max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> strlen(get(efm_type, qfl[v].type, ''))}))
+		let type_width =	 max(map(range(a:info.start_idx - 1, a:info.end_idx - 1), {_, v -> strlen(get(efm_type, qfl[v].type, ''))}))
 		let errnum_width = len(max(map(range(a:info.start_idx - 1, a:info.end_idx - 1),{_, v -> qfl[v].nr})))
 		for idx in range(a:info.start_idx - 1, a:info.end_idx - 1)
 			let e = qfl[idx]
@@ -2528,36 +2528,36 @@ function! GetCommitTypes(findstart, base)
 
 	if line('.') == 1 || col('.') == 1
 		return [
-			\{ 'word': '🏘 architecture',   'menu': 'Changes that affect the architectural layers                (example scopes: persistence, logging, view-rendering, api-contract)' },
-			\{ 'word': '👷 build',          'menu': 'Changes that affect the build system                        (example scopes: msbuild, nswag)' },
-			\{ 'word': '🆗 ci|cd',          'menu': 'Changes to our CI configuration files, scripts or pipelines (example scopes: azure-devops, github-actions)' },
-			\{ 'word': '🧹 cleanup',        'menu': "Chores that do not affect the code's design                 (example scopes: code-warnings, filesystem, code-consistency)" },
-			\{ 'word': '👁️ comment',        'menu': 'Changes on comments' },
-			\{ 'word': '🔧 config',         'menu': 'Changes on configuration files' },
+			\{ 'word': '🏘 architecture',	'menu': 'Changes that affect the architectural layers		  (example scopes: persistence, logging, view-rendering, api-contract)' },
+			\{ 'word': '👷 build',	     'menu': 'Changes that affect the build system			  (example scopes: msbuild, nswag)' },
+			\{ 'word': '🆗 ci|cd',	     'menu': 'Changes to our CI configuration files, scripts or pipelines (example scopes: azure-devops, github-actions)' },
+			\{ 'word': '🧹 cleanup',	     'menu': "Chores that do not affect the code's design		  (example scopes: code-warnings, filesystem, code-consistency)" },
+			\{ 'word': '👁️ comment',	     'menu': 'Changes on comments' },
+			\{ 'word': '🔧 config',	     'menu': 'Changes on configuration files' },
 			\{ 'word': '🧩 contract-extend', 'menu': 'Changes that add elements to a contract' },
 			\{ 'word': '🗃 data-structure', 'menu': 'Changes that add or modify a data structure' },
-			\{ 'word': '🙅 deprecate',      'menu': 'Deprecating an element in the codebase                      (example scopes: exposed-method, payload-property)' },
-			\{ 'word': '➕ deps-add',       'menu': 'Changes that add dependencies to the system                 (example scopes: mapping, fixture-generation, ioc)' },
-			\{ 'word': '➖ deps-remove',    'menu': 'Changes that remove dependencies from the system            (example scopes: mapping, fixture-generation, ioc)' },
-			\{ 'word': '⬆ deps-upgrade',    'menu': 'Changes that upgrade dependencies in the system             (example scopes: mapping, fixture-generation, ioc)' },
-			\{ 'word': '⬇ deps-downgrade',  'menu': 'Changes that downgrade dependencies in the system           (example scopes: mapping, fixture-generation, ioc)' },
-			\{ 'word': '📝 docs',           'menu': 'Documentation only' },
-			\{ 'word': '🚀 feature',        'menu': 'One new green test with its attached production code' },
-			\{ 'word': '🐛 fix',            'menu': 'One new green test with its attached production code' },
-			\{ 'word': '🗡 kill-whole',     'menu': 'Killing something harmful in the whole codebase' },
-			\{ 'word': '🗡 kill-partial',   'menu': 'Killing something harmful but not everywhere... Yet.' },
-			\{ 'word': '⛓ merge-files',    'menu': 'Changes that merge files' },
-			\{ 'word': '🎠 move-files',     'menu': 'Changes that move files' },
-			\{ 'word': '⚡️ perf',           'menu': 'Changes that improve performance' },
-			\{ 'word': '♻️ refactor',        'menu': 'Same behaviour, different design' },
-			\{ 'word': '🖋 renaming',       'menu': 'Different name, same responsability' },
-			\{ 'word': '🔙 revert',         'menu': 'Reverting some changes to a former version' },
-			\{ 'word': '✂ split-files',     'menu': 'Changes that split files' },
-			\{ 'word': '💄 style',          'menu': 'Personal preferences in terms of how and where to write code' },
-			\{ 'word': '🧪 test-suite',     'menu': 'Adding missing tests or correcting existing tests           (example scopes: unit-tests, fearless-programming, integration-tests)' },
-			\{ 'word': '🛡 test-framework', 'menu': 'Changes that affect existing and future tests               (example scopes: unit-tests, fearless-programming, integration-tests)' },
-			\{ 'word': '🔤 typo|wording',   'menu': 'Fixing typos/improving wording' },
-			\{ 'word': '🔖 versioning',      'menu': 'Changes that affect the product version                     (example scopes: api-version, client-version)' },
+			\{ 'word': '🙅 deprecate',	'menu': 'Deprecating an element in the codebase			  (example scopes: exposed-method, payload-property)' },
+			\{ 'word': '➕ deps-add',	     'menu': 'Changes that add dependencies to the system		  (example scopes: mapping, fixture-generation, ioc)' },
+			\{ 'word': '➖ deps-remove',	'menu': 'Changes that remove dependencies from the system		  (example scopes: mapping, fixture-generation, ioc)' },
+			\{ 'word': '⬆ deps-upgrade',	'menu': 'Changes that upgrade dependencies in the system		  (example scopes: mapping, fixture-generation, ioc)' },
+			\{ 'word': '⬇ deps-downgrade',	'menu': 'Changes that downgrade dependencies in the system	  (example scopes: mapping, fixture-generation, ioc)' },
+			\{ 'word': '📝 docs',	     'menu': 'Documentation only' },
+			\{ 'word': '🚀 feature',	     'menu': 'One new green test with its attached production code' },
+			\{ 'word': '🐛 fix',	     'menu': 'One new green test with its attached production code' },
+			\{ 'word': '🗡 kill-whole',	'menu': 'Killing something harmful in the whole codebase' },
+			\{ 'word': '🗡 kill-partial',	'menu': 'Killing something harmful but not everywhere... Yet.' },
+			\{ 'word': '⛓ merge-files',	'menu': 'Changes that merge files' },
+			\{ 'word': '🎠 move-files',	'menu': 'Changes that move files' },
+			\{ 'word': '⚡️ perf',	     'menu': 'Changes that improve performance' },
+			\{ 'word': '♻️ refactor',	     'menu': 'Same behaviour, different design' },
+			\{ 'word': '🖋 renaming',	     'menu': 'Different name, same responsability' },
+			\{ 'word': '🔙 revert',	     'menu': 'Reverting some changes to a former version' },
+			\{ 'word': '✂ split-files',	'menu': 'Changes that split files' },
+			\{ 'word': '💄 style',	     'menu': 'Personal preferences in terms of how and where to write code' },
+			\{ 'word': '🧪 test-suite',	'menu': 'Adding missing tests or correcting existing tests	  (example scopes: unit-tests, fearless-programming, integration-tests)' },
+			\{ 'word': '🛡 test-framework', 'menu': 'Changes that affect existing and future tests		  (example scopes: unit-tests, fearless-programming, integration-tests)' },
+			\{ 'word': '🔤 typo|wording',	'menu': 'Fixing typos/improving wording' },
+			\{ 'word': '🔖 versioning',	 'menu': 'Changes that affect the product version		   (example scopes: api-version, client-version)' },
 			\{ 'word': '🚧 work-in-progress','menu': 'Partial and possibly non-functional implementation' }
 		\]
 	elseif getline('.') =~ 'Motivation'
@@ -2619,7 +2619,7 @@ function! BuildPullRequestDescription(commitOrBranchName)
 		call extend(descriptionLines, [ "_Nothing._", ""])
 	else
 		call extend(descriptionLines, [ "", "> If you find a mess on the ground, you clean it up regardless of who might have made it. You intentionally improve the environment for the next group of campers.", "" ])
-		call extend(descriptionLines, [ "| Scope | (subjective) improvement type | Description |  Notes |", "|-|-|-|-|" ])
+		call extend(descriptionLines, [ "| Scope | (subjective) improvement type | Description |	Notes |", "|-|-|-|-|" ])
 		call extend(descriptionLines, map(structureCommitsAsMarkdownTableRows, 'v:val.content'))
 	endif
 	return descriptionLines
@@ -2667,22 +2667,22 @@ augroup dashboard
 	au!
 	autocmd FileType fugitive,git nnoremap <buffer> <silent> <LocalLeader>m :Git push --force-with-lease<CR>
 	autocmd FileType fugitive,git nnoremap <buffer> <silent> R :RefreshGitLogBuffer<CR>
-	autocmd FileType fugitive     nmap <silent> <buffer> <space> =
-	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>l <C-W>l
-	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>h <C-W>h
-	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>j <C-W>j
-	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>k <C-W>k
-	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>n gt
-	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>p gT
-	autocmd FileType fugitive     nnoremap <silent> <buffer> <Leader>o :only<CR>
+	autocmd FileType fugitive	   nmap <silent> <buffer> <space> =
+	autocmd FileType fugitive	   nnoremap <silent> <buffer> <Leader>l <C-W>l
+	autocmd FileType fugitive	   nnoremap <silent> <buffer> <Leader>h <C-W>h
+	autocmd FileType fugitive	   nnoremap <silent> <buffer> <Leader>j <C-W>j
+	autocmd FileType fugitive	   nnoremap <silent> <buffer> <Leader>k <C-W>k
+	autocmd FileType fugitive	   nnoremap <silent> <buffer> <Leader>n gt
+	autocmd FileType fugitive	   nnoremap <silent> <buffer> <Leader>p gT
+	autocmd FileType fugitive	   nnoremap <silent> <buffer> <Leader>o :only<CR>
 	autocmd FileType gitcommit    set completefunc=GetCommitTypes
 	autocmd FileType gitcommit    set textwidth=0
 	autocmd FileType gitcommit    call feedkeys("i\<C-X>\<C-U>")
 	autocmd FileType gitcommit    set complete=.,w,b
-	autocmd FileType          git nmap     <silent> <buffer> l <CR>
-	autocmd FileType          git nnoremap <silent> <buffer> h <C-O>
-	autocmd FileType          git nmap <silent> <buffer> dd :call DisplayCommitFilesDiffs('fromGitLogOrGitCommitBuffer')<CR>
-	autocmd FileType          git set foldmethod=syntax
+	autocmd FileType		git nmap	   <silent> <buffer> l <CR>
+	autocmd FileType		git nnoremap <silent> <buffer> h <C-O>
+	autocmd FileType		git nmap <silent> <buffer> dd :call DisplayCommitFilesDiffs('fromGitLogOrGitCommitBuffer')<CR>
+	autocmd FileType		git set foldmethod=syntax
 augroup end
 
 nnoremap <silent> <leader>d :0Gllog!<CR><C-W>j
@@ -2757,14 +2757,14 @@ function! Note(...)
 	let args = ParseArgs(a:000, ['filetype', 'markdown'])
 	let filetype = args.filetype
 	let ext = get({
-				\'markdown':      'md',
-				\'json':          'json',
-				\'xml':           'xml',
-				\'puml_mindmap':  'puml_mindmap',
+				\'markdown':	'md',
+				\'json':		'json',
+				\'xml':		'xml',
+				\'puml_mindmap':	'puml_mindmap',
 				\'puml_activity': 'puml_activity',
 				\'puml_sequence': 'puml_sequence',
-				\'puml_class':    'puml_class',
-				\'puml_json':     'puml_json'
+				\'puml_class':	'puml_class',
+				\'puml_json':	'puml_json'
 			\}, filetype, 'md')
 	let filename = PromptUserForFilename('File name:', {n -> printf('%s/%s.%s', $notes, n, ext)})
 	if trim(filename) == '' | return | endif
@@ -2897,17 +2897,17 @@ endfunc
 function! GetPlantumlConfigFile(filepath)
 	return ''
 	let configfilebyft = #{
-		\puml_activity:      'styles',
-		\puml_mindmap:       'styles',
-		\puml_sequence:      'styles',
+		\puml_activity:	   'styles',
+		\puml_mindmap:	   'styles',
+		\puml_sequence:	   'styles',
 		\puml_workbreakdown: 'styles',
-		\puml_class:         'skinparams',
-		\puml_component:     'skinparams',
-		\puml_entities:      'skinparams',
-		\puml_state:         'skinparams',
-		\puml_usecase:       'skinparams',
-		\puml_dot:           'graphviz',
-		\puml_json:          'styles'
+		\puml_class:	   'skinparams',
+		\puml_component:	   'skinparams',
+		\puml_entities:	   'skinparams',
+		\puml_state:	   'skinparams',
+		\puml_usecase:	   'skinparams',
+		\puml_dot:	   'graphviz',
+		\puml_json:	   'styles'
 	\}
 	let fileext = fnamemodify(a:filepath, ':e')
 	if empty(configfilebyft[fileext])
@@ -3157,25 +3157,25 @@ command! -nargs=* -bar CompileDiagramAndShowImage call CompileDiagramAndShowImag
 
 augroup mydiagrams
 	autocmd!
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_dot             set ft=plantuml_dot
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_activity        set ft=plantuml_activity
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_class           set ft=plantuml_class
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_component       set ft=plantuml_component
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_entities        set ft=plantuml_entities
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_mindmap         set ft=plantuml_mindmap
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_sequence        set ft=plantuml_sequence
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_state           set ft=plantuml_state
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_usecase         set ft=plantuml_usecase
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_workbreakdown   set ft=plantuml_workbreakdown
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_json            set ft=plantuml_json
-	autocmd BufRead,BufNewFile,BufWritePost *.puml_*               silent nnoremap <buffer> <Leader>w :silent w<CR>
-	autocmd BufWritePost       *.puml_*               if line('$') > 1 | CompileDiagramAndShowImage svg | endif
-	autocmd FileType           dirvish                nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_dot		set ft=plantuml_dot
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_activity	set ft=plantuml_activity
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_class		set ft=plantuml_class
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_component	set ft=plantuml_component
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_entities	set ft=plantuml_entities
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_mindmap	set ft=plantuml_mindmap
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_sequence	set ft=plantuml_sequence
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_state		set ft=plantuml_state
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_usecase	set ft=plantuml_usecase
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_workbreakdown	set ft=plantuml_workbreakdown
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_json		set ft=plantuml_json
+	autocmd BufRead,BufNewFile,BufWritePost *.puml_*		silent nnoremap <buffer> <Leader>w :silent w<CR>
+	autocmd BufWritePost	*.puml_*		     if line('$') > 1 | CompileDiagramAndShowImage svg | endif
+	autocmd FileType		dirvish		     nnoremap <silent> <buffer> D :call CreateDiagramFile()<CR>
 augroup END
 
 " Notes:-------------------------------{{{
 function! GenerateMarkdownForRequestResponse(title, responseLines, requestLines)
-	let markdown =  ['### '.a:title, '<div style="display: flex"><div style="flex: 50%; max-width: 50%;">', '', '**Request**', '```']
+	let markdown =	['### '.a:title, '<div style="display: flex"><div style="flex: 50%; max-width: 50%;">', '', '**Request**', '```']
 	let markdown += a:requestLines
 	let markdown += ['```', '', '', '</div><div style="flex: 50%; max-width: 50%;">', '', '**Responses**', '', '```']
 	let markdown += a:responseLines
@@ -3191,13 +3191,13 @@ command! -nargs=1 Keep call TraceRequestResponseIntoFile(get(b:, 'scriptLines'),
 
 " Debugging:---------------------------{{{
  let g:vimspector_enable_mappings = 'HUMAN'
-	"sign define vimspectorBP text=o             texthl=WarningMsg
-	"sign define vimspectorBPCond text=o?        texthl=WarningMsg
-	"sign define vimspectorBPDisabled text=o!    texthl=LineNr
-	"sign define vimspectorPC text=\ >           texthl=MatchParen
-	"sign define vimspectorPCBP text=o>          texthl=MatchParen
-	"sign define vimspectorCurrentThread text=>  texthl=MatchParen
-	"sign define vimspectorCurrentFrame text=>   texthl=Special
+	"sign define vimspectorBP text=o		texthl=WarningMsg
+	"sign define vimspectorBPCond text=o?	texthl=WarningMsg
+	"sign define vimspectorBPDisabled text=o!	texthl=LineNr
+	"sign define vimspectorPC text=\ >		texthl=MatchParen
+	"sign define vimspectorPCBP text=o>		texthl=MatchParen
+	"sign define vimspectorCurrentThread text=>	texthl=MatchParen
+	"sign define vimspectorCurrentFrame text=>	texthl=Special
 
 function! ToggleBreakpoint()
 	if NoBreakpointIsPresentOnCurrentLine()
@@ -3224,12 +3224,12 @@ endfunction
 command! ToggleConditionalBreakpoint call ToggleConditionalBreakpoint()
 
  function! IsDebuggingTab(...)
-    	let tabnr = a:0 ? a:1 : tabpagenr()
+	let tabnr = a:0 ? a:1 : tabpagenr()
 	return tabnr == get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 0)
  endfunction
  
  function! IsDebuggingHappening()
- 	return get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 99) <= tabpagenr('$')
+	return get(get(g:, 'vimspector_session_windows', {}), 'tabpage', 99) <= tabpagenr('$')
  endfunction
 
 	function! NoBreakpointIsPresentOnCurrentLine()
@@ -3324,18 +3324,18 @@ function! SetDebugMappings() abort
 endfunction
 
 function! RemoveDebugMappings() abort
- 	silent! nunmap <buffer> <localleader>g
+	silent! nunmap <buffer> <localleader>g
 
- 	silent! nunmap <buffer> <space>
- 	silent! nunmap <buffer> <localleader>j
- 	silent! nunmap <buffer> <localleader>k
- 	silent! nunmap <buffer> <localleader>l
- 	silent! nunmap <buffer> <localleader>h
- 	silent! nunmap <buffer> <localleader>H
+	silent! nunmap <buffer> <space>
+	silent! nunmap <buffer> <localleader>j
+	silent! nunmap <buffer> <localleader>k
+	silent! nunmap <buffer> <localleader>l
+	silent! nunmap <buffer> <localleader>h
+	silent! nunmap <buffer> <localleader>H
 		silent! nunmap <buffer> <C-J>
 		silent! nunmap <buffer> <C-K>
 
- 	silent! nunmap <buffer> <Leader>x
+	silent! nunmap <buffer> <Leader>x
 		silent! nunmap <buffer> <Space>
 endfunction
 
@@ -3370,7 +3370,7 @@ function! FindOrListNugets(...)
 			\'callback': { chan,msg  -> execute('echo ''[cb] '.substitute(msg,"'","''","g").'''',  1)   },
 			\'out_cb':   function('AddNugetIfMatches', [found, tokens, sources]),
 			\'err_cb':   { chan,msg  -> execute('echohl Constant | echomsg '''.substitute(msg,"'","''","g").''' | echohl Normal',  1) },
-			\'close_cb': { chan      -> execute('echomsg ''[close] '.chan.'''', 1)},
+			\'close_cb': { chan	 -> execute('echomsg ''[close] '.chan.'''', 1)},
 			\'exit_cb':  function('FindOrListNugetsExitCb', [found, tokens, scratchbufnr])
 		\}
 	\)
@@ -3432,7 +3432,7 @@ let g:OmniSharp_popup_mappings = {
 \}
 let g:OmniSharp_loglevel = 'none'
 let g:OmniSharp_highlighting = 2
-let g:OmniSharp_selector_ui = ''
+let g:OmniSharp_selector_ui = 'fzf'
 let g:OmniSharp_fzf_options = { 'window': 'botright 7new' }
 let g:OmniSharp_want_snippet=1
 let g:OmniSharp_diagnostic_overrides = { 'CS0618': { 'type': 'None'}, 'CS1062': { 'type': 'None'} } " obsolete attributes
@@ -3571,7 +3571,7 @@ function! MyOmniSharpNavigate(location, ...)
 		Reframe
 	endif
 endfunction
-command! MyOmniSharpNavigateUp   call OmniSharp#actions#navigate#Up  (function('MyOmniSharpNavigate'))
+command! MyOmniSharpNavigateUp	 call OmniSharp#actions#navigate#Up  (function('MyOmniSharpNavigate'))
 command! MyOmniSharpNavigateDown call OmniSharp#actions#navigate#Down(function('MyOmniSharpNavigate'))
 
 function! MyOmniSharpGoToDefinition(location, ...)
@@ -4453,12 +4453,12 @@ function! LocListAdos(...)
 	endfor
 	let repository = fnamemodify(GetNearestParentFolderContainingFile('.git'), ':t')
 	let items={
-		\'Task':                { 'order': 1, 'urlBuilder': function ('BuildAdosWorkItemUrl', [workItemId])},
-		\'Parent':              { 'order': 2, 'urlBuilder': function ('BuildAdosWorkItemParentUrl', [workItemId])},
-		\'Kanban Board':        { 'order': 3, 'urlBuilder': function ('BuildAdosKanbanBoardUrl')},
+		\'Task':		      { 'order': 1, 'urlBuilder': function ('BuildAdosWorkItemUrl', [workItemId])},
+		\'Parent':	      { 'order': 2, 'urlBuilder': function ('BuildAdosWorkItemParentUrl', [workItemId])},
+		\'Kanban Board':	      { 'order': 3, 'urlBuilder': function ('BuildAdosKanbanBoardUrl')},
 		\'Latest Pull Request': { 'order': 4, 'urlBuilder': function ('BuildAdosLatestPullRequestWebUrl', [workItemId])},
-		\'My Pull Requests':    { 'order': 5, 'urlBuilder': function ('BuildRepositoryPullRequestsWebUrl', [repository])},
-		\'Deployment':          { 'order': 6, 'urlBuilder': function ('BuildAdosPipelineOrBuildUrl')}
+		\'My Pull Requests':	{ 'order': 5, 'urlBuilder': function ('BuildRepositoryPullRequestsWebUrl', [repository])},
+		\'Deployment':	      { 'order': 6, 'urlBuilder': function ('BuildAdosPipelineOrBuildUrl')}
 	\}
 	exec len(items).'new'
 	let b:urlBuilders = items
@@ -4517,9 +4517,9 @@ nnoremap <silent> <Leader>Q :CreateQueryRow<CR>
 function! CreateQueryRow()
 	let cwd = getcwd()
 	silent exec 'botright new' $queries
-	let queryRowId = win_getid()        | call InitQueryRowWindow(queryRowId, cwd, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
-	silent vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'request', 0.5*(&columns-g:queryRowHistoryWidth))
-	silent vnew                         | call InitQueryRowWindow(queryRowId, cwd, 'query', 'response', 0.5*(&columns-g:queryRowHistoryWidth))
+	let queryRowId = win_getid()	| call InitQueryRowWindow(queryRowId, cwd, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
+	silent vnew			| call InitQueryRowWindow(queryRowId, cwd, 'query', 'request', 0.5*(&columns-g:queryRowHistoryWidth))
+	silent vnew			| call InitQueryRowWindow(queryRowId, cwd, 'query', 'response', 0.5*(&columns-g:queryRowHistoryWidth))
 	let historyWinId = GetRowsWinIdsInCurrentTabPage(w:row.id, 'history')[0]
 	if getwininfo(historyWinId)[0].botline == 1
 		wincmd p
@@ -4953,8 +4953,8 @@ endfunction
 " Work environment config: ------------{{{
 function! BuildWorkenvVariable()
 	let workenv = {
-		\"environments":            ParseJsonFile($workenv.'/envs.jsonc'),
-		\"resources":               ParseJsonFile($workenv.'/rsx.jsonc'),
+		\"environments":		 ParseJsonFile($workenv.'/envs.jsonc'),
+		\"resources":		 ParseJsonFile($workenv.'/rsx.jsonc'),
 		\"repositoryHostingConfig": ParseJsonFile($workenv.'/tool-azureDevOps.jsonc'),
 		\"resourcesByApp": {}
 	\}
@@ -4968,13 +4968,13 @@ function! BuildWorkenvVariable()
 endfunction
 let g:workenv = BuildWorkenvVariable()
 
-"let $ados                     = config.root
-"let $adosProject              = config.projectWithKanbanBoard.name
-"let $adosBoard                = config.projectWithKanbanBoard.kanbanBoardUrl
+"let $ados		    = config.root
+"let $adosProject		    = config.projectWithKanbanBoard.name
+"let $adosBoard		    = config.projectWithKanbanBoard.kanbanBoardUrl
 "let $adosMyAssignedActiveWits = config.projectWithKanbanBoard.queryIdForMyAssignedActiveWorkItems
-"let $adosSourceProject        = config.projectWithSourceCode.name
+"let $adosSourceProject	    = config.projectWithSourceCode.name
 "let $adosDeploymentPipeline   = config.deploymentPipelineUrl
-"let $pat                      = config.pat
+"let $pat		    = config.pat
 "let config = ParseJsonFile($workenv.'/filesToIgnore.jsonc')
 "call extend(g:OmniSharp_diagnostic_exclude_paths, config.inSourceCode.forWarnings)
 "let config = ParseJsonFile($workenv.'/ressourcesByProject.jsonc')
