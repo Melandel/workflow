@@ -108,6 +108,11 @@ But here, I'm also using VIM (and I know and understand many whom think this is 
 
 ## Installation Details ##
 ### Windows ###
+#### Utilities
+Install:
+* [jq](https://jqlang.github.io/jq/download/)
+* [xmllint](https://code.google.com/archive/p/xmllint/downloads)
+
 #### Using config/vimfiles
 Add environment variable:
 * `VIMINIT` to `source %HOMEPATH%\Desktop\config\my_vimrc.vim`
