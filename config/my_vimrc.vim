@@ -4670,10 +4670,10 @@ command! ToggleRequestEditor call ToggleRequestEditor()
 function! InitQueryRowResponseWindow()
 	exec 'lcd' w:row.cwd
 	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
-		let isDbFormat = (getline(1) =~ '^{ "count": \d\+, "_":$')
+	let isDbFormatWhenMultipleObjects = (getline(1) =~ '^{ "count": \d\+, "_":\s*$')
 	if (isCurlDashSmallI)
 		let lastNonSpaceLine = 2
-	elseif (isDbFormat)
+	elseif (isDbFormatWhenMultipleObjects)
 		let lastNonSpaceLine = 1
 	else
 		let lastNonSpaceLine = line('$')
@@ -4862,17 +4862,24 @@ function! DisplayQueryJobOutput(bufnr, historyBufDirvishDirValue, queryFilenameW
 		set ft=xml
 		let ext = 'xml'
 	elseif isJson
-		let isDbFormat = (firstLine =~ '^{ "count": \d\+, "_":$')
-		if isDbFormat
-			call setline(1, firstLine[0])
+		let isDbFormatWhenMultipleObjects = (firstLine =~ '^{ "count": \d\+, "_":\s*$')
+		if isDbFormatWhenMultipleObjects
+			let lastLine = getline('$')
+			1delete
+			call setline('$', lastLine[0])
 			silent! execute '%!jq .'
-			call setline(1, firstLine)
+			1put!=firstLine
+			call setline('$', lastLine)
 		elseif isCurlDashSmallI
 			1d
 			silent! execute '%!jq .'
 			1pu!=firstLine
 		else
-			silent! execute '1,'.firstLineOfLastParagraph.'!jq .'
+			if (firstLineOfLastParagraph == 1)
+				silent! execute '%!jq .'
+			else
+				silent! execute '1,'.firstLineOfLastParagraph.'!jq .'
+			endif
 		endif
 		set ft=jsonc
 		let ext = 'json'
