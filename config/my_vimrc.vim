@@ -4867,7 +4867,7 @@ function! DisplayQueryJobOutput(bufnr, historyBufDirvishDirValue, queryFilenameW
 			let lastLine = getline('$')
 			1delete
 			call setline('$', lastLine[0])
-			silent! execute '%!jq .'
+			silent! execute '%!jq "del(.[] .SCRIPT_MISE_A_JOUR_DOCUMENTATION, .[] .COLUMN_DESCRIPTION)"'
 			1put!=firstLine
 			call setline('$', lastLine)
 		elseif isCurlDashSmallI
