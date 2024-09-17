@@ -1185,8 +1185,8 @@ nnoremap zP :set paste<CR>O<Esc>"+P:set nopaste<CR>
 inoremap <C-V> <C-O>:set paste<CR><C-R>+<C-O>:set nopaste<CR>| inoremap <C-C> <C-V>
 cnoremap <C-V> <C-R>=@+<CR>| cnoremap <C-C> <C-V>
 tnoremap <C-V> <C-W>"+
-vnoremap gy m'y`]
-vnoremap y  m'y
+vnoremap gy y`]
+vnoremap y  y
 nnoremap <expr> vp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
 " Repeat-Last-Action: -----------------{{{
