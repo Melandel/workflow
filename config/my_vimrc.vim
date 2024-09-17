@@ -4777,7 +4777,7 @@ function! RunQuery()
 	mark V
 	silent pu!=requestLines | silent exec 'saveas' (queryFilenameWithoutExtension . '.script')
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', w:row.content)
-	let request = join(map(requestLines, 'ExpandEnvironmentVariables(v:val)'))
+	let request = join(map(map(requestLines, 'EscapeBatchCharactersAsInBatchFile(v:val)'), 'ExpandEnvironmentVariables(v:val)'))
 	redraw | echomsg printf("❓ %s...", fnamemodify(queryFilenameWithoutExtension, ':t:r')[len('YYYY-MM-DD-ddd '):])
 	let s:job = job_start(BuildCommandToRunAsJob(request), BuildQueryRowJobOptions(w:row, queryFilenameWithoutExtension))
 endfunction
@@ -4789,6 +4789,19 @@ function! BuildRequestLinesFromCurrentBuffer()
 	call filter(requestLines, 'stridx(v:val, ''#'') != 0')
 	call filter(requestLines, 'v:val !~ ''^\s*$''')
 	return requestLines
+endfunction
+
+function! EscapeBatchCharactersAsInBatchFile(script)
+	let script = a:script
+	" 👇 https://www.robvanderwoude.com/escapechars.php
+	let script = substitute(script, '%', '%%', 'g')
+	let script = substitute(script, '\^', '^^', 'g')
+	let script = substitute(script, '&', '^&', 'g')
+	let script = substitute(script, '<', '^<', 'g')
+	let script = substitute(script, '>', '^>', 'g')
+	let script = substitute(script, '|', '^|', 'g')
+	let script = substitute(script, "'", "^'", 'g')
+	return script
 endfunction
 
 function! ExpandEnvironmentVariables(script)
