@@ -4670,7 +4670,7 @@ command! ToggleRequestEditor call ToggleRequestEditor()
 function! InitQueryRowResponseWindow()
 	exec 'lcd' w:row.cwd
 	let isCurlDashSmallI = getline(1) =~ '^HTTP/[^ ]\+ \d\{3\} \a\+$'
-	let isDbFormatWhenMultipleObjects = (getline(1) =~ '^{ "count": \d\+, "_":\s*$')
+	let isDbFormatWhenMultipleObjects = (getline(1) =~ '^{ "count": \d\+, "duration": "\d\+ms", "_":\s*$')
 	if (isCurlDashSmallI)
 		let lastNonSpaceLine = 2
 	elseif (isDbFormatWhenMultipleObjects)
@@ -4875,7 +4875,7 @@ function! DisplayQueryJobOutput(bufnr, historyBufDirvishDirValue, queryFilenameW
 		set ft=xml
 		let ext = 'xml'
 	elseif isJson
-		let isDbFormatWhenMultipleObjects = (firstLine =~ '^{ "count": \d\+, "_":\s*$')
+		let isDbFormatWhenMultipleObjects = (firstLine =~ '^{ "count": \d\+, "duration": "\d\+ms", "_":\s*$')
 		if isDbFormatWhenMultipleObjects
 			let lastLine = getline('$')
 			1delete
