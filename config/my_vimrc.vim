@@ -2321,6 +2321,22 @@ function! GoToGitRoot()
 endfunction
 
 " Web Browsing: -----------------------{{{
+function! BuildFirefoxUrl(path)
+	let url = a:path
+	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
+	if nbDoubleQuotes > 0 && nbDoubleQuotes % 2 != 0 | let url.= ' "' | endif
+	let url = trim(url)
+	if g:isWindows
+		let url = substitute(url, '"', '\\"', 'g')
+	elseif g:isWsl
+		let url = substitute(escape(url, '\'), '"', '\\"', 'g')
+		if url !~ '^http'
+			let url = 'file:\/\/\/\/\/wsl$\/Ubuntu-20.04'.url
+		endif
+	endif
+	return url
+endfunction
+
 function! BuildViebUrl(path)
 	let url = a:path
 	let nbDoubleQuotes = len(substitute(url, '[^"]', '', 'g'))
@@ -2341,9 +2357,10 @@ function! BuildViebUrl(path)
 endfunction
 
 function! WebBrowser(...)
-	let browser = 'vieb.exe'
+	let browser = $browser
 	let rawUrl = (a:0 == 0 || (a:0 == 1 && a:1 == '')) ? GetCurrentSelection() : join(a:000)
-	let cmd = printf('%s "%s"', browser, BuildViebUrl(rawUrl))
+	let url = browser == 'vieb.exe' ? BuildViewUrl(rawUrl) : BuildFirefoxUrl(rawUrl)
+	let cmd = printf('%s "%s"', browser, url)
 	let s:job= job_start(cmd, {'cwd': $n})
 endfun
 command! -nargs=* -range WebBrowser :call WebBrowser(<q-args>)
@@ -3502,22 +3519,6 @@ function! MyOmniSharpReloadProjectAndLinter()
 endfunction
 command! MyOmniSharpReloadProjectAndLinter call MyOmniSharpReloadProjectAndLinter()
 
-function! OpenCodeOnAzureDevops() range
-	let s:job= job_start(printf('vieb.exe "%s"', GetCodeUrlOnAzureDevops()))
-endfunction
-
-function! GetCodeUrlOnAzureDevopsForFullLine()
-	let filepath = expand('%:p')
-	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
-	let gitpath = filepath[len(gitrootfolder)+(has('win32')?1:0):]
-	let gitpath = '/' . substitute(gitpath, '\\', '/', 'g')
-	let gitbranch = gitbranch#name()
-	let gitproject = fnamemodify(gitrootfolder, ':t')
-	let url = $ados.'/'.$adosSourceProject.'/_git/'.gitproject.'?path='.substitute(gitpath, '/', '%2F', 'g').'&version=GB'.substitute(gitbranch, '/', '%2F', 'g')
-	let url .= '&line='.line('.').'&lineStartColumn=1&lineEndColumn=99'
-	return url
-endfunction
-
 function! GetCodeUrlOnAzureDevops(...)
 	let filepath = expand('%:p')
 	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
@@ -3544,27 +3545,54 @@ function! GetCodeUrlOnAzureDevops(...)
 	return url
 endfunction
 
-function! CopyAdosCodeUrl() range
-	let @+=GetCodeUrlOnAzureDevops(a:firstline, a:lastline)
+function! GetCodeUrlOnGithub(...)
+	let filepath = expand('%:p')
+	let gitrootfolder = fnamemodify(gitbranch#dir(filepath), ':h:p')
+	let gitpath = filepath[len(gitrootfolder)+(has('win32')?1:0):]
+	let gitpath = substitute(gitpath, '\\', '/', 'g')
+	let gitbranch = gitbranch#name()
+	let gitproject = fnamemodify(gitrootfolder, ':t')
+	let url = $ghOrganization.'/'.gitproject.'/blob/'.substitute(gitbranch, '/', '%2F', 'g').'/'.gitpath
+	if (a:0 == 0) || (a:1 == a:2)
+		let url .= '#L'.line('.')
+	else
+		let url .= '#L'.a:1
+		let url .= '-L'.a:2
+	endif
+	return url
+endfunction
+
+function! GetCodeUrlOnGitRepoHost(...)
+	if ($ados != '')
+		return call(function('GetCodeUrlOnAzureDevops'), a:000)
+	elseif ($ghOrganization != '')
+		return call(function('GetCodeUrlOnGithub'), a:000)
+	else
+		throw 'Neither $ados nor $ghOrganization seem defined'
+	endif
+endfunction
+
+function! CopyGitRepoHostCodeUrl() range
+	let @+=GetCodeUrlOnGitRepoHost(a:firstline, a:lastline)
 	echomsg 'Code URL copied!'
 endfunction
-command! -range CopyAdosCodeUrl <line1>,<line2>call CopyAdosCodeUrl()
+command! -range CopyGitRepoHostCodeUrl <line1>,<line2>call CopyGitRepoHostCodeUrl()
 
-function! CopyAdosCodeUrlForFullLine()
-	let @+=GetCodeUrlOnAzureDevops()
+function! CopyGitRepoHostCodeUrlForFullLine()
+	let @+=GetCodeUrlOnGitRepoHost()
 	echomsg 'Code URL copied!'
 endfunction
-command! CopyAdosCodeUrlForFullLine call CopyAdosCodeUrlForFullLine()
+command! CopyGitRepoHostCodeUrlForFullLine call CopyGitRepoHostCodeUrlForFullLine()
 
-function! OpenAdosCodeUrl() range
-	exec 'WebBrowser' GetCodeUrlOnAzureDevops(a:firstline, a:lastline)
+function! OpenGitRepoHostCodeUrl() range
+	exec 'WebBrowser' GetCodeUrlOnGitRepoHost(a:firstline, a:lastline)
 endfunction
-command! -range OpenAdosCodeUrl <line1>,<line2>call OpenAdosCodeUrl()
+command! -range OpenGitRepoHostCodeUrl <line1>,<line2>call OpenGitRepoHostCodeUrl()
 
-function! OpenAdosCodeUrlForFullLine()
-	exec 'WebBrowser' GetCodeUrlOnAzureDevops()
+function! OpenGitRepoHostCodeUrlForFullLine()
+	exec 'WebBrowser' GetCodeUrlOnGitRepoHost()
 endfunction
-command! OpenAdosCodeUrlForFullLine call OpenAdosCodeUrlForFullLine()
+command! OpenGitRepoHostCodeUrlForFullLine call OpenGitRepoHostCodeUrlForFullLine()
 
 function! MyOmniSharpNavigate(location, ...)
 	if OmniSharp#locations#Navigate(a:location)
@@ -3669,10 +3697,10 @@ augroup csharpfiles
 	autocmd FileType cs set signcolumn=yes
 	autocmd FileType cs set efm=%f(%l\\\,%c):\ %m\ [%.%#,%-G%.%#
 	autocmd FileType cs if (expand('%:h') == WindowsPath($tmp)[3:-2]) | setl foldmethod=expr foldexpr=getline(v:lnum)=~'^\\s*//'\ &&\ getline(v:lnum-1)=~'^\\s*//' foldtext=getline(v:foldstart+1).'\ '.trim(getline(v:foldstart+2),\ \"\\\t\ /\") | endif
-	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrlForFullLine<CR>
-	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyAdosCodeUrl<CR>
-	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :OpenAdosCodeUrlForFullLine<CR>
-	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :OpenAdosCodeUrl<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyGitRepoHostCodeUrlForFullLine<CR>
+	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyGitRepoHostCodeUrl<CR>
+	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :OpenGitRepoHostCodeUrlForFullLine<CR>
+	autocmd FileType cs vnoremap <buffer> <silent> <Leader>W :OpenGitRepoHostCodeUrl<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <LocalLeader>m :Build<CR>
 	autocmd FileType cs vnoremap <buffer> <LocalLeader>m :Map varname
 	autocmd FileType cs nnoremap <buffer> <silent> <C-P> :MyOmniSharpNavigateUp<CR>
