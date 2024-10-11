@@ -4916,11 +4916,7 @@ function! DisplayQueryJobOutput(bufnr, historyBufDirvishDirValue, queryFilenameW
 			silent! execute '%!jq .'
 			1pu!=firstLine
 		else
-			if (firstLineOfLastParagraph == 1)
-				silent! execute '%!jq .'
-			else
-				silent! execute '1,'.firstLineOfLastParagraph.'!jq .'
-			endif
+			silent! execute firstLineOfLastParagraph.',$!jq .'
 		endif
 		set ft=jsonc
 		let ext = 'json'
