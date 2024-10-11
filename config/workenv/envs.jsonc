@@ -1,7 +1,0 @@
-[
-	{ "name": "local", "alias": "none" },
-	{ "name": "ic",    "alias": "ic" },
-	{ "name": "qa",    "alias": "qa" },
-	{ "name": "pp",    "alias": "pp" },
-	{ "name": "prod",  "alias": "pr" }
-]

@@ -6,47 +6,55 @@ if !g:isWindows && !g:isWsl
 endif
 
 if g:isWindows
-let $HOME = substitute($HOME, '\\', '/', 'g')
-let $config    = $HOME.'/Desktop/config'
-let $vimFiles  = $HOME.'/Desktop/config/myVim'
-let $workenv   = $HOME.'/Desktop/config/workenv'
-let $plugins   = $vimFiles.'/pack/plugins/start'
-let $desktop   = $HOME.'/Desktop'			| let $d = $desktop
-let $downloads = $HOME.'/Downloads'
-let $notes     = $HOME.'/Desktop/notes'		| let $n = $notes
-let $projects  = $HOME.'/Desktop/projects'		| let $p = $projects
-let $rest      = $HOME.'/Desktop/templates/rest'
-let $snippets  = $HOME.'/Desktop/snippets'
-let $tmp       = $HOME.'/Desktop/tmp'		| let $t = $tmp
-let $tools     = $HOME.'/Desktop/tools'
-let $templates = $HOME.'/Desktop/templates'
-let $todo      = $HOME.'/Desktop/todo'
-let $today     = $HOME.'/Desktop/today'
-let $scripts   = $HOME.'/Desktop/scripts'		| let $s = $scripts
-let $gtools    = $HOME.'/Desktop/tools/git/usr/bin'
-let $wip       = $HOME.'/Desktop/work_in_progress'
-let $checklists= $HOME.'/Desktop/checklists'
-let $queries   = $HOME.'/Desktop/queries'		| let $q = $queries
-let $diffs     = $HOME.'/Desktop/diffs'
-
-let $rc	       = $HOME.'/Desktop/config/my_vimrc.vim'
-let $rce	= $HOME.'/Desktop/config/my_vimworkenv.vim'
-let $rcfolder	= $VIM
-let $rcfilename = '_vimrc'
-elseif g:isWsl
-	let $desktop	= $HOME
- let $rcfolder	 = $HOME
-	let $rcfilename = '.vimrc'
+	let desktop = printf('%s/Desktop', substitute($HOME, '\\', '/', 'g'))
+	let $rc       = printf('%s/config/my_vimrc.vim', desktop)
+	let $rce      = printf('%s/config/my_vimworkenv.vim', desktop)
+	let $vimFiles = printf('%s/config/myVim', desktop)
+	let g:rc = {
+		\"desktop": desktop,
+		\"notes":    printf('%s/%s', desktop, 'notes'),
+		\"projects": printf('%s/%s', desktop, 'projects'),
+		\"tmp":      printf('%s/%s', desktop, 'tmp'),
+		\"today":    printf('%s/%s', desktop, 'today'),
+		\"scripts":  printf('%s/%s', desktop, 'scripts'),
+		\"gtools":   printf('%s/%s', desktop, 'tools/git/usr/bin'),
+		\"wip":      printf('%s/%s', desktop, 'work_in_progress'),
+		\"queries":  printf('%s/%s', desktop, 'queries'),
+		\"diffs":    printf('%s/%s', desktop, 'diffs'),
+		\"config":   printf('%s/%s', desktop, 'config'),
+		\"vimFiles": printf('%s/%s', desktop, 'config/myVim'),
+		\"workenv":  printf('%s/%s', desktop, 'config/workenv'),
+		\"ctx": {
+		 \"csproj": '',
+		 \"sln": '',
+		 \"repoPath": '',
+		 \"repoName": '',
+		 \"env": ''
+		\},
+		\"env": {
+			\"browser": "firefox.exe",
+			\"adosBoard": "www.google.fr",
+			\"pat": "azertyuiop1234",
+			\"ados": '',
+			\"adosProject": "foo",
+			\"adosSourceProject": "app",
+			\"adosDeploymentPipeline": "www.google.fr",
+			\"adosMyAssignedActiveWits": "myquery",
+			\"mainBuildUrl": "www.google.fr",
+			\"ghOrganization": '',
+		 \"resourcesFile": $MELANDEL_RESOURCES_JSON != '' ? $MELANDEL_RESOURCES_JSON : printf('%s/config/resources.json', desktop)
+		\}
+	\}
 endif
 
 " Desktop Integration:-----------------{{{
 " Plugins: ----------------------------{{{
-set packpath=$vim,$vimFiles
+let &packpath=printf('%s,%s', $vim, g:rc.vimFiles)
 packadd! matchit
 packadd! cfilter
 function! MinpacInit()
 	packadd minpac
-	call minpac#init( {'dir':$vimFiles, 'package_name': 'plugins', 'progress_open': 'none' } )
+	call minpac#init( {'dir': g:rc.vimFiles, 'package_name': 'plugins', 'progress_open': 'none' } )
 	call minpac#add('editorconfig/editorconfig-vim')
 	call minpac#add('dense-analysis/ale')
 	call minpac#add('junegunn/fzf.vim')
@@ -80,8 +88,8 @@ command! -bar MinPacUpdate call MinpacInit()| call minpac#clean()| call minpac#u
 let loaded_netrwPlugin = 1 " do not load netrw
 
 " First time: -------------------------{{{
-if !isdirectory($vimFiles.'/pack/plugins')
-	call system('git clone https://github.com/k-takata/minpac.git ' . $vimFiles . '/pack/packmanager/opt/minpac')
+if !isdirectory(g:rc.vimFiles.'/pack/plugins')
+	call system('git clone https://github.com/k-takata/minpac.git ' . g:rc.vimFiles . '/pack/packmanager/opt/minpac')
 	call MinpacInit()
 	call minpac#update()
 	packloadall
@@ -90,7 +98,7 @@ endif
 " Duplicated/Generated files: ---------{{{
 augroup duplicatefiles
 	au!
-	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out '.$desktop.'\myAzertyKeyboard.RunMeAsAdmin.exe'
+	au BufWritePost my_keyboard.ahk exec '!Ahk2Exe.exe /in %:p /out '.g:rc.desktop.'\myAzertyKeyboard.RunMeAsAdmin.exe'
 augroup end
 
 " General:-----------------------------{{{
@@ -112,12 +120,12 @@ set list
 set fillchars=vert:\|,fold:\ 
 set nowrap
 set noswapfile
-set directory=$desktop/tmp/vim
+let &directory = printf('%s/vim', g:rc.tmp)
 set backup
-set backupdir=$desktop/tmp/vim
+let &backupdir = printf('%s/vim', g:rc.tmp)
 set undofile
-set undodir=$desktop/tmp/vim
-set viewdir=$desktop/tmp/vim
+let &undodir = printf('%s/vim', g:rc.tmp)
+let &viewdir = printf('%s/vim', g:rc.tmp)
 set sessionoptions=curdir,folds,help,options,tabpages,winsize
 set history=200
 set mouse=a
@@ -323,8 +331,8 @@ function! GetInterestingParentDirectory()
 		return trim(expand('%:p'), '\')
 	endif
 	let dir = substitute(expand('%:p:h'), '\\', '/', 'g')
-	if stridx(dir, $projects) >= 0
-		let dir = dir[:stridx(dir, '/', len($projects)+1)]
+	if stridx(dir, g:rc.projects) >= 0
+		let dir = dir[:stridx(dir, '/', len(g:rc.projects)+1)]
 	elseif IsInsideGitClone()
 		let dir = substitute(fnamemodify(gitbranch#dir(expand('%:p')), ':h'), '\\', '/', 'g')
 	elseif IsOmniSharpRelated()
@@ -360,18 +368,18 @@ command! -bar Lcd call UpdateLocalCurrentDirectory()
 function! UpdateEnvironmentLocationVariables()
 	let csproj = GetNearestParentFolderContainingFile('*.csproj')
 	if csproj != ''
-		let $csproj = csproj
+		let g:rc.ctx.csproj = csproj
 		let sln = GetNearestParentFolderContainingFile('*.sln')
 		if sln != ''
-			let $sln = sln
+			let g:rc.ctx.sln = sln
 		elseif has_key(g:, 'csprojs2sln') && has_key(g:csprojs2sln, csprojdir)
 			let sln = g:csprojs2sln[csproj]
 		endif
 	endif
 	let repoPath = trim(fnamemodify(GetNearestParentFolderContainingFile('.git'), ':p'), '\')
-	if repoPath !~ 'Desktop' | let $repoPath = repoPath | endif
+	if repoPath !~ 'Desktop' | let g:rc.ctx.repoPath = repoPath | endif
 	let repoName = fnamemodify(repoPath, ':t')
-	if repoName != 'Desktop' | let $repoName = repoName | endif
+	if repoName != 'Desktop' | let g:rc.ctx.repoName = repoName | endif
 endfunc
 
 augroup lcd
@@ -591,8 +599,8 @@ function! OmnifunctionExample(findstart, base)
 		return ['workflow', 'planned', 'improvement', 'emergency']
 	elseif previouschar == '+'
   let hits = []
-		call substitute(join(readfile($desktop.'/todo')), '\v\+(\S)+', '\=len(add(hits, submatch(0))) ? submatch(0) : ""', 'gne')
-		call substitute(join(readfile($desktop.'/done')), '\v\+(\S)+', '\=len(add(hits, submatch(0))) ? submatch(0) : ""', 'gne')
+		call substitute(join(readfile(g:rc.desktop.'/todo')), '\v\+(\S)+', '\=len(add(hits, submatch(0))) ? submatch(0) : ""', 'gne')
+		call substitute(join(readfile(g:rc.desktop.'/done')), '\v\+(\S)+', '\=len(add(hits, submatch(0))) ? submatch(0) : ""', 'gne')
 		return map(uniq(sort(hits)), {_,x->x[1:]})
 	endif
 	return ['toto', previouschar]
@@ -600,7 +608,7 @@ endfunction
 
 function! JobStartExample(...)
 	let cmd = a:0 ? (a:1 != '' ? a:1 : 'dir') : 'dir'
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+	let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/Job')
 	echomsg "<start> ".cmd
 	if g:isWindows
 		let cmd = 'cmd /C '.cmd
@@ -1242,9 +1250,9 @@ function! Grep(qf_or_loclist, ...)
 		call add(cmdParams, '-e')
 	endif
 	let cmdParams += a:000[firstTokenWithDoubleQuote:]
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/grep')
+	let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/grep')
 	let foldersToIgnore = [ 'obj', 'bin' ]
-	if WindowsPath(cwd) == WindowsPath($d)
+	if WindowsPath(cwd) == WindowsPath(g:rc.desktop)
 		let foldersToIgnore += [ 'projects', 'tmp', 'viebfiles', 'myVim/pack', 'templates', 'tools' ]
 	endif
 	let foldersIgnoreOpts = join(map(foldersToIgnore, { _,x -> '-g "!**/'.x.'/**"' }))
@@ -1459,10 +1467,10 @@ inoremap <C-F> <C-R>=expand("%:t:r")<CR>
 
 let g:UltiSnipsEnableSnipMate = 0
 let g:UltiSnipsSnippetDirectories = [ 'UltiSnips', 'specificSnippets' ]
-if index(split(&runtimepath, ','), $vimFiles) < 0
+if index(split(&runtimepath, ','), g:rc.vimFiles) < 0
 	" access to pythonx folder
-	let &runtimepath.= printf(','.$vimFiles)
-	exec 'python3' printf("import sys;\r\nif('%s' not in sys.path): sys.path.append('%s')", $vimFiles, $vimFiles)
+	let &runtimepath.= printf(','.g:rc.vimFiles)
+	exec 'python3' printf("import sys;\r\nif('%s' not in sys.path): sys.path.append('%s')", g:rc.vimFiles, g:rc.vimFiles)
 endif
 
 set updatetime=500
@@ -1557,10 +1565,10 @@ augroup end
 function! SaveAsDiffFile()
 	let incompleteFilename = BuildDiffFilenameWithoutExtension()
 	let ext = empty(&ft) ? '' : printf('.%s', &ft)
-	let filename = PromptUserForFilenameWithSuggestion(incompleteFilename, { n -> printf('%s/%s%s', $diffs, n, ext) })
+	let filename = PromptUserForFilenameWithSuggestion(incompleteFilename, { n -> printf('%s/%s%s', g:rc.diffs, n, ext) })
 	if empty(trim(filename)) | return | endif
 	let @d = filename
-	let filepath = printf('%s/%s%s', $diffs, filename, ext)
+	let filepath = printf('%s/%s%s', g:rc.diffs, filename, ext)
 	set bt=
 	echomsg 'Saving as' filepath
 	exec 'saveas' filepath
@@ -1570,7 +1578,7 @@ command! Diff call SaveAsDiffFile()
 function! BuildDiffFilenameWithoutExtension(...)
 	let title = a:0 ? a:1 : ''
 	let date = strftime('%Y-%m-%d-%A')[:len('YYYY-MM-DD-ddd')-1]
-	let index = float2nr(str2float(string(len(expand($diffs.'/*', v:true, v:true)))) / 2)
+	let index = float2nr(str2float(string(len(expand(g:rc.diffs.'/*', v:true, v:true)))) / 2)
 	let index +=1
 	if empty(title)
 		return printf('%s %03d', date, index)
@@ -2018,8 +2026,8 @@ function! CopyPreviouslyYankedItemToCurrentDirectory()
 		endif
 	endif
 	if has('win32')
-		let cmd = printf('cmd /C %s %s "%s" "%s"', $gtools.'/cp', isdirectory(item)?'-r':'', item, item_finalname)
-		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let cmd = printf('cmd /C %s %s "%s" "%s"', g:rc.gtools.'/cp', isdirectory(item)?'-r':'', item, item_finalname)
+		let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
 			\{
@@ -2042,8 +2050,8 @@ function! DeleteItemUnderCursor()
 		call OmniSharpDeleteFile(target)
 	endif
 	if has('win32')
-		let cmd = printf('cmd /C %s "%s"', $gtools.'/rm -r', target)
-		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let cmd = printf('cmd /C %s "%s"', g:rc.gtools.'/rm -r', target)
+		let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
 			\{
@@ -2080,8 +2088,8 @@ function! MovePreviouslyYankedItemToCurrentDirectory()
 	endif
 	if has('win32')
 		let bufnr = bufnr(item)
-		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', item, item_finalname)
-		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let cmd = printf('cmd /C %s "%s" "%s"', g:rc.gtools.'/mv', item, item_finalname)
+		let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
 			\{
@@ -2110,8 +2118,8 @@ function! RenameItemUnderCursor()
 		if filename =~ '\.cs'
 			call OmniSharpReloadProject()
 		endif
-		let cmd = printf('cmd /C %s "%s" "%s"', $gtools.'/mv', filename, newname)
-		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let cmd = printf('cmd /C %s "%s" "%s"', g:rc.gtools.'/mv', filename, newname)
+		let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
 			\{
@@ -2187,8 +2195,8 @@ function! CreateDirectory()
 	endif
 	let cwd = getcwd()
 	if has('win32')
-		let cmd = printf('cmd /C %s %s', $gtools.'/mkdir', shellescape(dirname))
-		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let cmd = printf('cmd /C %s %s', g:rc.gtools.'/mkdir', shellescape(dirname))
+		let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/Job')
 		let s:job = job_start(
 			\cmd,
 			\{
@@ -2228,8 +2236,9 @@ function! CreateFile()
 	endif
 	let cwd = getcwd()
 	if has('win32')
-		let cmd = printf('cmd /C %s %s', $gtools.'/touch', shellescape(filename))
-		let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job')
+		let cmd = printf('cmd /C %s %s', g:rc.gtools.'/touch', shellescape(filename))
+		let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/Job')
+		echomsg cmd
 		let s:job = job_start(
 			\cmd,
 			\{
@@ -2357,11 +2366,11 @@ function! BuildViebUrl(path)
 endfunction
 
 function! WebBrowser(...)
-	let browser = $browser
+	let browser = g:rc.env.browser
 	let rawUrl = (a:0 == 0 || (a:0 == 1 && a:1 == '')) ? GetCurrentSelection() : join(a:000)
 	let url = browser == 'vieb.exe' ? BuildViewUrl(rawUrl) : BuildFirefoxUrl(rawUrl)
 	let cmd = printf('%s "%s"', browser, url)
-	let s:job= job_start(cmd, {'cwd': $n})
+	let s:job= job_start(cmd, {'cwd': g:rc.notes})
 endfun
 command! -nargs=* -range WebBrowser :call WebBrowser(<q-args>)
 nnoremap <Leader>w :w!<CR>:WebBrowser <C-R>=substitute(expand('%:p'), '/', '\\', 'g')<CR><CR>
@@ -2389,15 +2398,15 @@ function! HideWipBuffers()
 endfunction
 
 function! DisplayWipBuffers()
-	silent tabedit +let\ b:is_wip_buffer=1 $n/think.md
-	silent botright split +let\ b:is_wip_buffer=1 $wip
+	silent exec 'tabedit +let\ b:is_wip_buffer=1' printf('%s/think.md', g:rc.notes)
+	silent botright exec 'split +let\ b:is_wip_buffer=1' g:rc.wip
 	silent exec 'resize' (0.5 * &lines)
 	silent! keeppatterns g@\v\\\.[^\/]+\\?$@d _
 	let t = timer_start(10, {_ -> execute('setl conceallevel=3')})
 	silent nunmap <buffer> x
 	silent nnoremap <silent> <buffer> x :call SetCurrentAdosWorkItemIdFromWip()<CR>
-	silent 9split +let\ b:is_wip_buffer=1 $wip/.pending
-	silent exec float2nr(0.6 * &columns).'vsplit +let\ b:is_wip_buffer=1 $wip/.priority'
+	silent exec '9split +let\ b:is_wip_buffer=1' printf('%s/.pending', g:rc.wip)
+	silent exec float2nr(0.6 * &columns).'vsplit +let\ b:is_wip_buffer=1' printf('%s/.priority', g:rc.wip)
 	2wincmd w
 endfunction
 
@@ -2425,12 +2434,12 @@ endfunction
 command! Wip call ToggleWorkInProgress()
 nnoremap <leader>b :call ToggleWorkInProgress()<CR>
 
-nnoremap <leader>B :exec 'WebBrowser' $adosBoard<CR>
+nnoremap <leader>B :exec 'WebBrowser' g:rc.env.adosBoard<CR>
 
 function! BuildWipFileForWorkItem(workItemId)
 	"echomsg 'workItemId' a:workItemId
-	let filenameParts = js_decode(substitute(system(printf('curl -sLk -X GET -u:%s %s/%s/_apis/wit/workitems/%d?api-version=6.0 | jq -r "{id, title: .fields[\"System.Title\"], assignedTo: .fields[\"System.AssignedTo\"].displayName}"', $pat, $ados, $adosProject, a:workItemId)), '[\x0]', '', 'g'))
-	if !empty(glob($wip.'/'.filenameParts.id.'*.md'))
+	let filenameParts = js_decode(substitute(system(printf('curl -sLk -X GET -u:%s %s/%s/_apis/wit/workitems/%d?api-version=6.0 | jq -r "{id, title: .fields[\"System.Title\"], assignedTo: .fields[\"System.AssignedTo\"].displayName}"', g:rc.env.pat, g:rc.env.ados, g:rc.env.adosProject, a:workItemId)), '[\x0]', '', 'g'))
+	if !empty(glob(g:rc.env.wip.'/'.filenameParts.id.'*.md'))
 		echomsg 'There is already a file for workitem' a:workItemId
 		return
 	endif
@@ -2445,7 +2454,7 @@ function! BuildWipFileForWorkItem(workItemId)
 	let filename = substitute(filename, '>', 'gt;', 'g')
 	let filename = substitute(filename, '|', ';', 'g')
 	"Vieb limitation: https://github.com/Jelmerro/Vieb/issues/414
-	let filepath = $wip.'/'.RemoveDiacritics(filename)
+	let filepath = g:rc.env.wip.'/'.RemoveDiacritics(filename)
 	let filecontent = [printf('# [%s](https://younitedcredit.visualstudio.com/Evaluation/_workitems/edit/%d)', filename, a:workItemId)]
 	call add(filecontent, '')
 	call add(filecontent, '## Make the implicits, explicit')
@@ -2739,7 +2748,7 @@ command! ToggleLiveNote if has_key(b:, 'livenote_job') && job_status(b:livenote_
 
 function! LocListNotes()
 	let cwd = getcwd()
-	lcd $n
+	exec 'lcd' g:rc.notes
 	exec 'Lgrep' '"^# "' '-g "*.md" -g "!*.withsvgs.md"' '--sort path'
 	exec 'lcd' cwd
 endfunction
@@ -2747,7 +2756,7 @@ nnoremap <silent> <leader>en :call LocListNotes()<CR>
 
 function! LocListToDirectory(dir, title)
 	let items = expand(fnamemodify(a:dir, ':p').'/*', 0, 1)
-	if a:dir == $projects
+	if a:dir == g:rc.projects
 		call add(items, 'C:\pristineness')
 	endif
 	call setloclist(0, [], " ", {'nr': '$', 'efm': '%f', 'lines': items, 'title': a:title})
@@ -2759,7 +2768,7 @@ function! LocListToDirectory(dir, title)
 		nnoremap <buffer> <silent> F :let f=GetQfListCurrentItemPath() \| exec 'Files' f<CR>
 	endif
 endfunction
-nnoremap <silent> <leader>ep :call LocListToDirectory($projects,  'Projects')<CR>
+nnoremap <silent> <leader>ep :call LocListToDirectory(g:rc.projects,  'Projects')<CR>
 
 function! GetFilename()
 	let line = getline('.')
@@ -2783,10 +2792,10 @@ function! Note(...)
 				\'puml_class':	'puml_class',
 				\'puml_json':	'puml_json'
 			\}, filetype, 'md')
-	let filename = PromptUserForFilename('File name:', {n -> printf('%s/%s.%s', $notes, n, ext)})
+	let filename = PromptUserForFilename('File name:', {n -> printf('%s/%s.%s', g:rc.notes, n, ext)})
 	if trim(filename) == '' | return | endif
 	if &buftype != 'nofile' | exec winnr('$') == 1 ? 'vnew' : 'new' | endif
-	let newpath = printf('%s/%s.%s', $notes, filename, ext)
+	let newpath = printf('%s/%s.%s', g:rc.notes, filename, ext)
 	exec 'set bt= ft='.filetype
 	exec 'saveas' newpath
 	if (ext == 'md' && getline(1) !~ '^#') | execute 'normal!' 'ggO# '.filename."\<esc>:w\<CR>j" | endif
@@ -2805,7 +2814,7 @@ function! JobExitDiagramCompilationJob(outputfile, scratchbufnr, inputfile, chan
 	endif
 	let outputfile = a:outputfile
 	if outputfile =~ '\.svg$'
-		call system(printf($gtools.'/mv "%s" "%s.html"', a:outputfile, a:outputfile))
+		call system(printf(g:rc.gtools.'/mv "%s" "%s.html"', a:outputfile, a:outputfile))
 		let outputfile.='.html'
 	endif
 	call WebBrowser('', substitute(outputfile, '/', '\', 'g'))
@@ -2813,8 +2822,8 @@ endfunc
 
 function! CompileDiagramAndShowImageCommand(outputExtension, ...)
 	let inputfile = expand('%:p')
-	if substitute(inputfile, '\', '/', 'g') == $today
-		let inputfile = $tmp.'/today.puml_mindmap'
+	if substitute(inputfile, '\', '/', 'g') == g:rc.today
+		let inputfile = g:rc.tmp.'/today.puml_mindmap'
 		let diagram = uniq(getline(1, '$'))
 		let emptyLine = ''
 		let separatorBeforeWorld = index(diagram, emptyLine)
@@ -2865,7 +2874,7 @@ endfunction
 function! RenderMarkdownFile()
 	let inputfile =expand('%:p')
 	if empty(inputfile)
-		let inputfile = $tmp.'/markdown.md'
+		let inputfile = g:rc.tmp.'/markdown.md'
 		exec 'write!' inputfile
 	endif
 	if (FileContainsPlantumlSnippets() || FileContainsD2Snippets())
@@ -2930,7 +2939,7 @@ function! GetPlantumlConfigFile(filepath)
 	if empty(configfilebyft[fileext])
 		return ''
 	endif
-	return $desktop.'/config/my_plantuml_'.configfilebyft[fileext].'.config'
+	return g:rc.desktop.'/config/my_plantuml_'.configfilebyft[fileext].'.config'
 endfunction
 
 function! CreateFileWithRenderedSvgs()
@@ -3204,7 +3213,7 @@ function! TraceRequestResponseIntoFile(requestLines, responseLines, filename, ti
 	let markdownLines = GenerateMarkdownForRequestResponse(a:title, a:requestLines, a:responseLines)
 	call writefile(markdownLines, a:filename, "a")
 endfunction
-command! -nargs=1 Keep call TraceRequestResponseIntoFile(get(b:, 'scriptLines'), getline(1, '$'), get(g:, 'keepfile', $d.'/keep.md'), <q-args>)
+command! -nargs=1 Keep call TraceRequestResponseIntoFile(get(b:, 'scriptLines'), getline(1, '$'), get(g:, 'keepfile', g:rc.desktop.'/keep.md'), <q-args>)
 
 " Debugging:---------------------------{{{
  let g:vimspector_enable_mappings = 'HUMAN'
@@ -3359,7 +3368,7 @@ endfunction
 " Specific Workflows:------------------{{{
 " Nuget: ------------------------------{{{
 function! FindOrListNugets(...)
-	let scratchbufnr = ResetScratchBuffer($desktop.'tmp/Nugets')
+	let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'tmp/Nugets')
 	if empty(a:000) && &ft == 'cs'
 		let cmd = printf('dotnet list "%s" package', OmniSharp#GetHost().sln_or_dir)
 		let cmd = 'cmd /C '.cmd
@@ -3428,7 +3437,7 @@ function! FindOrListNugetsExitCb(foundNugets, tokens, scratchbufnr, job, status)
 endfunction
 
 " cs(c#): -----------------------------{{{
-if has('win32') | let g:OmniSharp_server_path = $desktop . '/tools/omnisharp/OmniSharp.exe' | endif
+if has('win32') | let g:OmniSharp_server_path = g:rc.desktop . '/tools/omnisharp/OmniSharp.exe' | endif
 let $DOTNET_NEW_LOCAL_SEARCH_FILE_ONLY=1
 let g:OmniSharp_start_server = 0
 let g:OmniSharp_server_stdio = 1
@@ -3526,7 +3535,7 @@ function! GetCodeUrlOnAzureDevops(...)
 	let gitpath = '/' . substitute(gitpath, '\\', '/', 'g')
 	let gitbranch = gitbranch#name()
 	let gitproject = fnamemodify(gitrootfolder, ':t')
-	let url = $ados.'/'.$adosSourceProject.'/_git/'.gitproject.'?path='.substitute(gitpath, '/', '%2F', 'g').'&version=GB'.substitute(gitbranch, '/', '%2F', 'g')
+	let url = g:rc.env.ados.'/'.g:rc.env.adosSourceProject.'/_git/'.gitproject.'?path='.substitute(gitpath, '/', '%2F', 'g').'&version=GB'.substitute(gitbranch, '/', '%2F', 'g')
 	if (a:0 == 0) || (a:1 == a:2)
 		let url .= '&line='.line('.')
 	else
@@ -3552,7 +3561,7 @@ function! GetCodeUrlOnGithub(...)
 	let gitpath = substitute(gitpath, '\\', '/', 'g')
 	let gitbranch = gitbranch#name()
 	let gitproject = fnamemodify(gitrootfolder, ':t')
-	let url = $ghOrganization.'/'.gitproject.'/blob/'.substitute(gitbranch, '/', '%2F', 'g').'/'.gitpath
+	let url = g:rc.env.ghOrganization.'/'.gitproject.'/blob/'.substitute(gitbranch, '/', '%2F', 'g').'/'.gitpath
 	if (a:0 == 0) || (a:1 == a:2)
 		let url .= '#L'.line('.')
 	else
@@ -3563,12 +3572,12 @@ function! GetCodeUrlOnGithub(...)
 endfunction
 
 function! GetCodeUrlOnGitRepoHost(...)
-	if ($ados != '')
+	if (g:rc.env.ados != '')
 		return call(function('GetCodeUrlOnAzureDevops'), a:000)
-	elseif ($ghOrganization != '')
+	elseif (g:rc.env.ghOrganization != '')
 		return call(function('GetCodeUrlOnGithub'), a:000)
 	else
-		throw 'Neither $ados nor $ghOrganization seem defined'
+		throw 'Neither g:rc.env.ados nor g:rc.env.ghOrganization seem defined'
 	endif
 endfunction
 
@@ -3630,8 +3639,10 @@ command! MyOmniSharpCodeFormat call OmniSharp#actions#format#Format(function('My
 function! MyOmniSharpGlobalCodeCheck()
 	let g:old_OmniSharp_diagnostic_exclude_paths = g:OmniSharp_diagnostic_exclude_paths
 	let currentAppName = matchstr(fnamemodify(GetSln(), ':t:r'), '[^.]*$')
-	if has_key(g:workenv.resourcesByApp, currentAppName)
-		let foldersToIgnore = g:resourcesByApp[currentAppName].sourcecode.foldersWithWarningsToIgnore
+	let resourceCandidates = filter(items(g:rc.env.resources), { i,kvp => kvp[0] == currentAppName && kvp[1].type == 'git' })
+	if (!empty(resourceCandidates))
+		let appAsResource = resourceCandidates[0]
+		let foldersToIgnore = appAsResource.foldersWithWarningsToIgnore
 		let g:OmniSharp_diagnostic_exclude_paths = extendnew(g:OmniSharp_diagnostic_exclude_paths, foldersToIgnore)
 	endif
 	call OmniSharp#actions#diagnostics#CheckGlobal(function('MyOmniSharpGlobalCodeCheckCallback'))
@@ -3658,7 +3669,7 @@ command! -nargs=1 -range Map <line1>,<line2>call Map(<f-args>)
 
 function! Build()
 	let slnFolder = GetNearestParentFolderContainingFile('*.sln')
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/buildSln')
+	let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/buildSln')
 
 	let cmd = 'dotnet build -v q --nologo /clp:NoSummary'
 	let slnPathFromOmniSharp = get(OmniSharp#GetHost(), 'sln_or_dir', '')
@@ -3696,7 +3707,7 @@ augroup csharpfiles
 	autocmd BufWrite *.cs,*.proto %s/^\(\s*\w\+\)\{0,6}\s\+class\s\+\zs\w\+\ze/\=uniq(sort(add(g:csClassesInChangedFiles, submatch(0))))/gne
 	autocmd FileType cs set signcolumn=yes
 	autocmd FileType cs set efm=%f(%l\\\,%c):\ %m\ [%.%#,%-G%.%#
-	autocmd FileType cs if (expand('%:h') == WindowsPath($tmp)[3:-2]) | setl foldmethod=expr foldexpr=getline(v:lnum)=~'^\\s*//'\ &&\ getline(v:lnum-1)=~'^\\s*//' foldtext=getline(v:foldstart+1).'\ '.trim(getline(v:foldstart+2),\ \"\\\t\ /\") | endif
+	autocmd FileType cs if (expand('%:h') == WindowsPath(g:rc.tmp)[3:-2]) | setl foldmethod=expr foldexpr=getline(v:lnum)=~'^\\s*//'\ &&\ getline(v:lnum-1)=~'^\\s*//' foldtext=getline(v:foldstart+1).'\ '.trim(getline(v:foldstart+2),\ \"\\\t\ /\") | endif
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>w :CopyGitRepoHostCodeUrlForFullLine<CR>
 	autocmd FileType cs vnoremap <buffer> <silent> <Leader>w :CopyGitRepoHostCodeUrl<CR>
 	autocmd FileType cs nnoremap <buffer> <silent> <Leader>W :OpenGitRepoHostCodeUrlForFullLine<CR>
@@ -3820,7 +3831,7 @@ function! RunScript(name, bang, ...)
 	exec excmd
 endfunction
 
-for file in expand('$scripts/*.bat', 1, 1)
+for file in expand(printf('%s/*.bat', g:rc.scripts), 1, 1)
 	let filename = fnamemodify(file, ':t:r')
 	let filename = toupper(filename[0]).filename[1:]
 	exec 'command! -nargs=* -bang -bar' GetScriptCommandName(filename) 'call RunScript('''.filename.''', "<bang>", <f-args>)'
@@ -4241,7 +4252,7 @@ function! GetCsprojsWithChanges(sln)
 	echomsg '🔍' printf('[%.2fs]',reltimefloat(reltime(g:btcStartTime))) 'Reading latest modification timestamps from' len(projectsThatMightHaveChanges) 'projects...'
 	for project in projectsThatMightHaveChanges
 		let csprojFolder = substitute(fnamemodify(project, ':h'), '\', '/', 'g')
-		let cmd = printf('"%s/find" "%s" -path "%s/obj" -prune -false -o -path "%s/bin" -prune -false -o -type f -newermt @%d -print0 -quit', $gtools, csprojFolder, csprojFolder, csprojFolder, g:csenvs[a:sln].projects[project].last_build_timestamp)
+		let cmd = printf('"%s/find" "%s" -path "%s/obj" -prune -false -o -path "%s/bin" -prune -false -o -type f -newermt @%d -print0 -quit', g:rc.gtools, csprojFolder, csprojFolder, csprojFolder, g:csenvs[a:sln].projects[project].last_build_timestamp)
 		call add(jobs, job_start(cmd,{'out_cb': function('GetProjectChangedCB', [csprojsWithChanges, project])}))
 	endfor
 	while !empty(filter(copy(jobs), 'v:val =~ "run"'))
@@ -4302,7 +4313,7 @@ function! BuildTestCommitCsharp(modifiedCsprojs, allCsprojsToBuild, reverseDepen
 	endfor
 	redraw
 	silent echomsg	join(map(copy(a:modifiedCsprojs), 'fnamemodify(v:val, ":t:r")'), ", ")
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/JobBuildTestCommit')
+	let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/JobBuildTestCommit')
 	for i in range(len(copy(a:modifiedCsprojs)))
 		let csproj = a:modifiedCsprojs[i]
 		call CascadeBuild(csproj, csprojsWithNbOccurrences, a:reverseDependencyTree, scratchbufnr, a:modifiedClasses, '', a:sln, a:buildAndTestJobs)
@@ -4314,7 +4325,7 @@ if !empty(glob($rce))
 endif
 
 function! GetCurrentTimestamp()
-	return str2nr(system(printf('"%s/date" +%%s', $gtools)))
+	return str2nr(system(printf('"%s/date" +%%s', g:rc.gtools)))
 endfunction
 
 function! GetAdosProjectNameAndIdMapping()
@@ -4326,7 +4337,7 @@ function! GetAdosProjectNameAndIdMapping()
 endfunction
 
 function! BuildAdosProjectNameAndIdMapping()
-	let cmd = printf('curl -s --location -u:%s "%s/_apis/projects?api-version=5.0"', $pat, $ados)
+	let cmd = printf('curl -s --location -u:%s "%s/_apis/projects?api-version=5.0"', g:rc.env.pat, g:rc.env.ados)
 	let cmd .= ' | jq "[.value[]|{id: .id, name: .name}]"'
 	let v = system(cmd)
 	let v = substitute(v, '[\x0]', '', 'g')
@@ -4347,7 +4358,7 @@ function! GetAdosRepositoriesNameAndIdMapping()
 endfunction
 
 function! BuildAdosRepositoriesNameAndIdMapping()
-	let cmd = printf('curl -s --location -u:%s "%s/%s/_apis/git/repositories?api-version=5.0"', $pat, $ados, $adosSourceProject)
+	let cmd = printf('curl -s --location -u:%s "%s/%s/_apis/git/repositories?api-version=5.0"', g:rc.env.pat, g:rc.env.ados, g:rc.env.adosSourceProject)
 	let cmd .= ' | jq "[.value[]|{id: .id, name: .name}]"'
 	let v = system(cmd)
 	let v = substitute(v, '[\x0]', '', 'g')
@@ -4374,7 +4385,7 @@ endfunction
 
 function! BuildAdosWorkItemUrl(...)
 	let workItemId = a:0 ? a:1 : get(g:, 'previousWorkItemId')
-	return printf('%s/_workitems/edit/%d', $ados, workItemId)
+	return printf('%s/_workitems/edit/%d', g:rc.env.ados, workItemId)
 endfunction
 command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosWorkItem exec 'WebBrowser' BuildAdosWorkItemUrl(str2nr(<f-args>))
 
@@ -4382,37 +4393,37 @@ function! BuildAdosWorkItemParentUrl(...)
 	let workItemId = a:0 ? a:1 : get(g:, 'previousWorkItemId')
 	let cmd = printf(
 		\'curl -s --location -u:%s "%s/_apis/wit/workitems/%s?api-version=5.0&$expand=relations" | jq ".relations[] | select (.attributes.name == \"Parent\").url"',
-		\$pat,
-		\$ados,
+		\g:rc.env.pat,
+		\g:rc.env.ados,
 		\workItemId
 	\)
 	let v = substitute(system(cmd), '[\x0]', '', 'g')
 	let v = trim(v, '"')
 	let id = split(v, '/')[-1]
-	return printf('%s/_workitems/edit/%d', $ados, id)
+	return printf('%s/_workitems/edit/%d', g:rc.env.ados, id)
 endfunction
 command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosParentItem exec 'WebBrowser' BuildAdosWorkItemParentUrl(str2nr(<f-args>))
 
 function! BuildAdosKanbanBoardUrl()
-	return $adosBoard
+	return g:rc.env.adosBoard
 endfunction
 
 function! BuildAdosPipelineOrBuildUrl()
-	return $adosDeploymentPipeline
+	return g:rc.env.adosDeploymentPipeline
 endfunction
 
 function! BuildAdosLatestPullRequestWebUrl(...)
 	let workItemId = a:0 ? a:1 : get(g:, 'previousWorkItemId')
 	let cmd = printf(
 		\'curl -s --location -u:%s "%s/_apis/wit/workitems/%s?api-version=5.0&$expand=relations" | jq "[.relations[] | select (.attributes.name == \"Pull Request\")] | max_by(.attributes.resourceCreatedDate).url"',
-		\$pat,
-		\$ados,
+		\g:rc.env.pat,
+		\g:rc.env.ados,
 		\workItemId
 	\)
 	let vstfsUrl = substitute(system(cmd), '[\x0]', '', 'g')
 	let vstfsUrl = trim(vstfsUrl, '"')
 	let infos = ParseVsTfsUrl(vstfsUrl)
-	let webUrl = printf('%s/%s/_git/%s/pullrequest/%s', $ados, infos.project, infos.repository, infos.id)
+	let webUrl = printf('%s/%s/_git/%s/pullrequest/%s', g:rc.env.ados, infos.project, infos.repository, infos.id)
 	return webUrl
 endfunction
 command! -nargs=? -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration AdosPullRequest exec 'WebBrowser' BuildAdosLatestPullRequestWebUrl(str2nr(<f-args>))
@@ -4427,9 +4438,9 @@ function! LocListToAdosBuilds()
 	let matchingRepository = matchingRepositories[0]
 	let cmd = printf(
 		\'curl -s --location -u:%s "%s/%s/_apis/build/builds?requestedFor=Minh-Tam%%20Tran&repositoryType=TfsGit&repositoryId=%s&maxBuildsPerDefinition=5&queryOrder=startTimeDescending&api-version=5.0" | jq "[.value[] | {name:.buildNumber, status, result, url:._links.web.href, startTime, id}]"',
-		\$pat,
-		\$ados,
-		\$adosProject,
+		\g:rc.env.pat,
+		\g:rc.env.ados,
+		\g:rc.env.adosProject,
 		\matchingRepositore
 
 	\)
@@ -4447,21 +4458,21 @@ function! LocListToAdosBuilds()
 	set ft=qf bt=nofile
 	let b:urls = mapnew(builds, {_,x -> x.url})
 	nnoremap <silent> <buffer> i :exec 'WebBrowser' b:urls[line('.')-1]<CR>
-	nnoremap <silent> <buffer> o :exec 'WebBrowser' $mainBuildUrl<CR>
+	nnoremap <silent> <buffer> o :exec 'WebBrowser' g:rc.env.mainBuildUrl<CR>
 endfunction
 command! AdosBuilds call LocListToAdosBuilds()
 "nnoremap <Leader>A :AdosBuilds<CR>
 
 function! BuildRepositoryPullRequestsWebUrl(...)
-	return printf('%s/%s/_git/%s/pullrequests?_a=mine', $ados, $adosSourceProject, $repoName)
+	return printf('%s/%s/_git/%s/pullrequests?_a=mine', g:rc.env.ados, g:rc.env.adosSourceProject, g:rc_context.repoName)
 endfunction
 
 function! GetWorkItemsAssignedToMeInCurrentIteration(...)
 		try
-			let cmd = printf('curl -s --location -u:%s "%s/%s/_apis/wit/wiql/%s" | jq "[.workItems[].id]"', $pat, $ados, $adosProject, $adosMyAssignedActiveWits)
+			let cmd = printf('curl -s --location -u:%s "%s/%s/_apis/wit/wiql/%s" | jq "[.workItems[].id]"', g:rc.env.pat, g:rc.env.ados, g:rc.env.adosProject, g:rc.env.adosMyAssignedActiveWits)
 			let v = system(cmd)
 			let ids= js_decode(substitute(v, '[\x0]', '', 'g'))
-			let list = js_decode(substitute(system(printf('curl -s --location -u:%s "%s/%s/_apis/wit/workitems?ids=%s&api-version=5.0" | jq "[.value[]|{id, title: .fields[\"System.Title\"], status: .fields[\"System.State\"], type: .fields[\"System.WorkItemType\"]}]"', $pat, $ados, $adosProject, join(ids, ','))), '[\x0]', '', 'g'))
+			let list = js_decode(substitute(system(printf('curl -s --location -u:%s "%s/%s/_apis/wit/workitems?ids=%s&api-version=5.0" | jq "[.value[]|{id, title: .fields[\"System.Title\"], status: .fields[\"System.State\"], type: .fields[\"System.WorkItemType\"]}]"', g:rc.env.pat, g:rc.env.ados, g:rc.env.adosProject, join(ids, ','))), '[\x0]', '', 'g'))
 			return map(list, {_,x -> printf('%s {%s-%s:%s}', x.id, x.type, x.status, x.title)})
 		catch
 			return []
@@ -4544,7 +4555,7 @@ nnoremap <silent> <Leader>Q :CreateQueryRow<CR>
 
 function! CreateQueryRow()
 	let cwd = getcwd()
-	silent exec 'botright new' $queries
+	silent exec 'botright new' g:rc.queries
 	let queryRowId = win_getid()	| call InitQueryRowWindow(queryRowId, cwd, 'query', 'history') | call ResizeAllRowsWindowsAfterCreatingNewRowWindow()
 	silent vnew			| call InitQueryRowWindow(queryRowId, cwd, 'query', 'request', 0.5*(&columns-g:queryRowHistoryWidth))
 	silent vnew			| call InitQueryRowWindow(queryRowId, cwd, 'query', 'response', 0.5*(&columns-g:queryRowHistoryWidth))
@@ -4858,7 +4869,7 @@ function! BuildCommandToRunAsJob(script)
 endfunction
 
 function! BuildQueryRowJobOptions(row, queryFilenameWithoutExtension)
-	let scratchbufnr = ResetScratchBuffer($desktop.'/tmp/Job_Row_'.a:row.id)
+	let scratchbufnr = ResetScratchBuffer(g:rc.desktop.'/tmp/Job_Row_'.a:row.id)
 	let historyBufNr = winbufnr(GetRowsWinIdsInCurrentTabPage(a:row.id, 'history')[0])
 	let historyBufDirvishDirValue = get(getbufvar(historyBufNr, 'dirvish', {}), '_dir', '')
 	return {
@@ -4942,13 +4953,13 @@ endfunction
 
 function! BuildQueryOutputFilenameWithoutExtension(title)
 	let date = strftime('%Y-%m-%d-%A')[:len('YYYY-MM-DD-ddd')-1]
-	let index = len(expand($queries.'/*.script', v:true, v:true))
+	let index = len(expand(g:rc.queries.'/*.script', v:true, v:true))
 	let index +=1
-	let displayedEnv = empty($env) ? 'no-env' : $env
+	let displayedEnv = get(g:rc.ctx, 'env', 'no-env')
 	if a:title == 'curl'
-		return printf('%s/%s %03d %s %s', $queries, date, index, displayedEnv, a:title)
+		return printf('%s/%s %03d %s %s', g:rc.queries, date, index, displayedEnv, a:title)
 	else
-		return printf('%s/%s %03d %s', $queries, date, index, a:title)
+		return printf('%s/%s %03d %s', g:rc.queries, date, index, a:title)
 	endif
 endfunction
 
@@ -4995,34 +5006,6 @@ function! DisplayQueryFile(file, content)
 endfunction
 
 " Work environment config: ------------{{{
-function! BuildWorkenvVariable()
-	let workenv = {
-		\"environments":		 ParseJsonFile($workenv.'/envs.jsonc'),
-		\"resources":		 ParseJsonFile($workenv.'/rsx.jsonc'),
-		\"repositoryHostingConfig": ParseJsonFile($workenv.'/tool-azureDevOps.jsonc'),
-		\"resourcesByApp": {}
-	\}
-	let resourcesByAppFiles = expand($workenv.'/rsx-*.jsonc', 1, 1)
-	for i in range(len(resourcesByAppFiles))
-	let file = resourcesByAppFiles[i]
-	let app = matchstr(file, 'rsx-\zs.*\ze.jsonc')
-		let workenv.resourcesByApp[app] = ParseJsonFile(file)
-	endfor
-	return workenv
-endfunction
-let g:workenv = BuildWorkenvVariable()
-
-"let $ados		    = config.root
-"let $adosProject		    = config.projectWithKanbanBoard.name
-"let $adosBoard		    = config.projectWithKanbanBoard.kanbanBoardUrl
-"let $adosMyAssignedActiveWits = config.projectWithKanbanBoard.queryIdForMyAssignedActiveWorkItems
-"let $adosSourceProject	    = config.projectWithSourceCode.name
-"let $adosDeploymentPipeline   = config.deploymentPipelineUrl
-"let $pat		    = config.pat
-"let config = ParseJsonFile($workenv.'/filesToIgnore.jsonc')
-"call extend(g:OmniSharp_diagnostic_exclude_paths, config.inSourceCode.forWarnings)
-"let config = ParseJsonFile($workenv.'/ressourcesByProject.jsonc')
-
 function! DbCompletion(findstart, base)
 	if a:findstart
 		let line = getline('.')

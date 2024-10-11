@@ -119,6 +119,7 @@ Add environment variable:
 * `VIEB_CONFIG_FILE` to `%HOMEPATH%\Desktop\config\my_viebrc.vieb`
 * `VIEB_DATAFOLDER` to `%HOMEPATH%\Desktop\config\viebfiles\`
 * `D2_LAYOUT` to `tala`
+* `MELANDEL_RESOURCES_JSON` to `%HOMEPATH%\Desktop\config\resources.json`
 
 Also:
 ```txt

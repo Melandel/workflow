@@ -1,0 +1,25 @@
+{
+	"appOrStorageOrFileOrWebUrl1":
+	{
+		"type": "api|db|doc|log|config|bookmark|keyvault|...",
+		"aliases": [ "bob", "alice" ],
+		"descr": "a description of the resource",
+		"envName1":
+		{
+			"url": "foo",
+			"fetchables":
+			{
+				"credentialName1": { "value": "", "fetchCommand": "" }
+			}
+		},
+		"envName2":
+		{
+			"url": "qux",
+			"fetchables":
+			{
+				"credentialName1": { "value": "", "fetchCommand": "" }
+			}
+		}
+	}
+}
+

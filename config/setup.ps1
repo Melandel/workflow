@@ -44,6 +44,15 @@ function Add-Path([string]$Uri) {
 	}
 }
 
+function Add-EnvironmenVariable([string] $Name, [string] $Value) {
+	if ([Environment]::GetEnvironmentVariable($Name, 'User').Indexof($uriToAdd)  -ge 0) {
+		Write-Host -NoNewLine "User environment variable $Name already exists (value=$Value)."
+		return
+	}
+	[Environment]::SetEnvironmentVariable($Name, $Value, 'User')
+	Write-Host -NoNewLine "Added user environment variable $Name with value $Value."
+}
+
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 if ($null -eq (Get-Command '7z.exe' -ErrorAction SilentlyContinue)) {
 	Write-Host '7z.exe not found.'
@@ -229,6 +238,8 @@ if ($null -eq (Get-Command "gh.exe" -ErrorAction SilentlyContinue)) {
 	Remove-Item $tmp
 	Write-Host "`n"
 }
+
+Add-EnvironmenVariable('MELANDEL_RESOURCES_JSON', './config')
 
 Remove-Item './autohotkey/ahk.zip' -ErrorAction SilentlyContinue
 Remove-Item './firefox/installer.exe' -ErrorAction SilentlyContinue
