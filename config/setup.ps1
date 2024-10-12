@@ -40,7 +40,7 @@ function Add-Path([string]$Uri) {
 	}
 	if ([Environment]::GetEnvironmentVariable('Path', 'User').Indexof($uriToAdd)  -eq -1){
 		Write-Host -NoNewLine "Added to PATH."
-	[Environment]::SetEnvironmentVariable( 'Path', [Environment]::GetEnvironmentVariable('Path','User') + ";$uriToAdd", 'User')
+		[Environment]::SetEnvironmentVariable( 'Path', [Environment]::GetEnvironmentVariable('Path','User') + ";$uriToAdd", 'User')
 	}
 }
 
@@ -239,6 +239,10 @@ if ($null -eq (Get-Command "gh.exe" -ErrorAction SilentlyContinue)) {
 	Write-Host "`n"
 }
 
+Add-EnvironmenVariable('VIMINIT', 'source %HOMEPATH%\Desktop\config\my_vimrc.vim')
+Add-EnvironmenVariable('D2_LAYOUT', 'tala')
+Add-EnvironmenVariable('D2_THEME', '300')
+Add-EnvironmenVariable('DOTNET_CLI_TELEMETRY_OPTOUT', '1')
 Add-EnvironmenVariable('MELANDEL_RESOURCES_JSON', './config')
 
 Remove-Item './autohotkey/ahk.zip' -ErrorAction SilentlyContinue
