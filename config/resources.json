@@ -1,25 +1,32 @@
 {
-	"appOrStorageOrFileOrWebUrl1":
+	"MyAPI":
 	{
-		"type": "api|db|doc|log|config|bookmark|keyvault|...",
+		"type": "api",
 		"aliases": [ "bob", "alice" ],
 		"descr": "a description of the resource",
-		"envName1":
+		"dev":
 		{
-			"url": "foo",
+			"url": "http://foo.fr",
 			"fetchables":
 			{
-				"credentialName1": { "value": "", "fetchCommand": "" }
+				"bearerToken": "echo toto"
 			}
 		},
-		"envName2":
+		"qa":
 		{
-			"url": "qux",
+			"url": "http://bar.fr",
 			"fetchables":
 			{
-				"credentialName1": { "value": "", "fetchCommand": "" }
+				"bearerToken": "echo tata"
+			}
+		},
+		"local":
+		{
+			"url": "http://localhost.fr:5053",
+			"fetchables":
+			{
+				"bearerToken": "echo tata"
 			}
 		}
 	}
 }
-

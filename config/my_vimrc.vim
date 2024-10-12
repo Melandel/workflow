@@ -42,7 +42,9 @@ if g:isWindows
 			\"adosMyAssignedActiveWits": "myquery",
 			\"mainBuildUrl": "www.google.fr",
 			\"ghOrganization": '',
-		 \"resourcesFile": $MELANDEL_RESOURCES_JSON != '' ? $MELANDEL_RESOURCES_JSON : printf('%s/config/resources.json', desktop)
+			\"resourcesFile": $MELANDEL_RESOURCES_JSON != '' ? $MELANDEL_RESOURCES_JSON : printf('%s/config/resources.json', desktop),
+			\"resourcesAutocompletion": [],
+			\"resourceAutocompletionMaxLength": 60
 		\}
 	\}
 endif
@@ -392,6 +394,10 @@ augroup lcd
 augroup end
 
 " Utils:-------------------------------{{{
+function! StringStartsWith(longer, shorter)
+	return a:longer[:len(a:shorter)-1] == a:shorter
+endfunc
+
 function! ParseJsonFile(path)
 	let lines = readfile(a:path)
 	call filter(lines, 'match(v:val, "^\\s*//") == -1')
@@ -4609,7 +4615,7 @@ endfunction
 
 function! InitQueryRowRequestWindow()
 	set filetype=zsh
-	set omnifunc=DbCompletion
+	set omnifunc=GetResourcesAutocompletion
 	nnoremap <silent> <buffer> <LocalLeader>m :RunQuery<CR>
 	nnoremap <silent> <buffer> # :TogglePayloadEditor<CR>
 	nnoremap <silent> <buffer> <Space> `V
@@ -4853,7 +4859,25 @@ function! ExpandEnvironmentVariables(script)
 		if (stridx(script, var) == -1)
 			continue
 		endif
-		let script = substitute(script, var, value, 'g')
+		if (StringStartsWith(value, '[TO-FETCH-USING] '))
+			let fetchCommand = value[len('[TO-FETCH-USING] '):]
+			let fetchedValue = substitute(system(fetchCommand), '[\x0]', '', 'g')
+			echomsg 'fetchedValue' fetchedValue
+			execute(printf('let %s = ''%s''', var, substitute(fetchedValue, "'", "''", "g")))
+			for i in range(len(g:rc.env.resourcesAutocompletion))
+				let resourceAutocompletion = g:rc.env.resourcesAutocompletion[i]
+				if resourceAutocompletion.word == var
+					let resourceAutocompletion.menu = printf('<FETCHED> %s', fetchedValue)
+					break
+				endif
+			endfor
+			let script = substitute(script, var, fetchedValue, 'g')
+		elseif (StringStartsWith(value, '<FETCHED> '))
+			let fetchedValue = value[len('<FETCHED> '):]
+			let script = substitute(script, var, fetchedValue, 'g')
+		else
+			let script = substitute(script, var, value, 'g')
+		endif
 	endfor
 	return script
 endfunc
@@ -5006,25 +5030,28 @@ function! DisplayQueryFile(file, content)
 endfunction
 
 " Work environment config: ------------{{{
-function! DbCompletion(findstart, base)
+function! GetResourcesAutocompletion(findstart, base)
 	if a:findstart
-		let line = getline('.')
-		return col('.')
+		if (PreviousCharacter() == '$') | return col('.')-2 | endif
+		let currentLine = getline('.')
+		let untilCursor = currentLine[:col('.')]
+		let nbOfChars = len(untilCursor)
+		let c = 1
+		let spaceChar = 32
+		let dollarChar = 36
+		while(c <= nbOfChars && strgetchar(untilCursor, nbOfChars-1-c) != spaceChar)
+			let c = c+1
+			if (strgetchar(untilCursor, nbOfChars-1-c) == dollarChar)
+				break
+			endif
+		endwhile
+		return (strgetchar(untilCursor, nbOfChars-1-c) == dollarChar)
+			\? nbOfChars-c-1
+			\: col('.')
 	endif
-	return map(systemlist('Db list'), {_,x -> trim(x)})
+	let filteredAutocompletions = empty(a:base)
+		\? g:rc.env.resourcesAutocompletion
+		\: filter(copy(g:rc.env.resourcesAutocompletion), { i,x-> StringStartsWith(x.word, a:base) })
+	let completionMaxLength = g:rc.env.resourceAutocompletionMaxLength
+	return mapnew(filteredAutocompletions, { _,x -> { 'word': x.word, 'menu': len(x.menu) > g:rc.env.resourceAutocompletionMaxLength ? printf('%s…', x.menu[:g:rc.env.resourceAutocompletionMaxLength-len('…')-1]) : x.menu } })
 endfunction
-
-if executable('Db')
-	function! LoadDynamicSnippets()
-		let DbDatabases = map(systemlist('Db list'), {_,x -> trim(x)})
-		for i in range(len(DbDatabases))
-			let db = DbDatabases[i]
-			let trigger = 'cm '.db
-			let snippet = 'Db '.db.' ${1:ic} $2'
-			let description = '[Db DB] '.db
-			if !exists('UltiSnips#AddSnippetWithPriority') | packadd ultisnips | endif
-			call UltiSnips#AddSnippetWithPriority(trigger, snippet, description, 'b', 'zsh', 1)
-		endfor
-	endfunction
-	call LoadDynamicSnippets()
-endif
