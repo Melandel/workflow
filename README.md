@@ -116,8 +116,6 @@ Install:
 #### Using config/vimfiles
 Add environment variable:
 * `VIMINIT` to `source %HOMEPATH%\Desktop\config\my_vimrc.vim`
-* `VIEB_CONFIG_FILE` to `%HOMEPATH%\Desktop\config\my_viebrc.vieb`
-* `VIEB_DATAFOLDER` to `%HOMEPATH%\Desktop\config\viebfiles\`
 * `D2_LAYOUT` to `tala`
 * `MELANDEL_RESOURCES_JSON` to `%HOMEPATH%\Desktop\config\resources.json`
 
@@ -136,7 +134,10 @@ Start > run > shell:startup > create a file with `.vbs` extension that looks lik
 
 ```vbs
 Set WshShell = CreateObject("WScript.Shell" )
-WshShell.Run """C:\Users\tranm\Desktop\tools\vieb\Vieb.exe""", 0 'Must quote command if it has spaces; must escape quotes
+Set wshSysEnv = wshShell.Environment("PROCESS")
+webBrowserPath = """" & wshSysEnv("HOMEPATH") & "\Desktop\tools\firefox\firefox.exe" & """"
+
+WshShell.Run webBrowserPath, 0
 Set WshShell = Nothing
 ```
 
