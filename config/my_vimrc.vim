@@ -5076,3 +5076,12 @@ augroup resources
 	au!
 	au BufWritePost $res source $rce
 augroup end
+
+function! Jq(filter)
+	let lastLineOfLastParagraph = line('$')
+	while (getline(lastLineOfLastParagraph) =~ '^\s*$' && lastLineOfLastParagraph >= 1) | let lastLineOfLastParagraph -= 1 | endwhile
+	let firstLineOfLastParagraph = lastLineOfLastParagraph
+	while (getline(firstLineOfLastParagraph) !~ '^\s*$' && firstLineOfLastParagraph >= 1) | let firstLineOfLastParagraph -= 1 | endwhile
+	let firstLineOfLastParagraph += 1
+	execute printf('%s,%s!jq "%s"', firstLineOfLastParagraph, lastLineOfLastParagraph, a:filter)
+endfunction
