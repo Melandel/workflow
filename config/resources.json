@@ -1,4 +1,8 @@
 {
+  "jq":
+  {
+    "format": "."
+  },
   "dev":
   {
     "type": "env",

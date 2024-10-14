@@ -4542,6 +4542,18 @@ au FileType json setlocal equalprg=jq\ .
 au FileType json nnoremap <silent> <buffer> <LocalLeader>= :FormatEvenWhenStringified<CR>
 augroup end
 
+function! Jq(filter)
+	echomsg a:filter
+	return
+	let lastLineOfLastParagraph = line('$')
+	while (getline(lastLineOfLastParagraph) =~ '^\s*$' && lastLineOfLastParagraph >= 1) | let lastLineOfLastParagraph -= 1 | endwhile
+	let firstLineOfLastParagraph = lastLineOfLastParagraph
+	while (getline(firstLineOfLastParagraph) !~ '^\s*$' && firstLineOfLastParagraph >= 1) | let firstLineOfLastParagraph -= 1 | endwhile
+	let firstLineOfLastParagraph += 1
+	execute printf('%s,%s!jq "%s"', firstLineOfLastParagraph, lastLineOfLastParagraph, a:filter)
+endfunction
+command! -nargs=1 -complete=file Jq call Jq(<q-args>)
+
 function! FormatEvenWhenStringified()
 	let firstNonEmptyLine = 1
 	while(empty(getline(firstNonEmptyLine))) |let firstNonEmptyLine += 1 | endwhile
@@ -5076,12 +5088,3 @@ augroup resources
 	au!
 	au BufWritePost $res source $rce
 augroup end
-
-function! Jq(filter)
-	let lastLineOfLastParagraph = line('$')
-	while (getline(lastLineOfLastParagraph) =~ '^\s*$' && lastLineOfLastParagraph >= 1) | let lastLineOfLastParagraph -= 1 | endwhile
-	let firstLineOfLastParagraph = lastLineOfLastParagraph
-	while (getline(firstLineOfLastParagraph) !~ '^\s*$' && firstLineOfLastParagraph >= 1) | let firstLineOfLastParagraph -= 1 | endwhile
-	let firstLineOfLastParagraph += 1
-	execute printf('%s,%s!jq "%s"', firstLineOfLastParagraph, lastLineOfLastParagraph, a:filter)
-endfunction
