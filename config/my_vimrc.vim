@@ -7,9 +7,13 @@ endif
 
 if g:isWindows
 	let desktop = printf('%s/Desktop', substitute($HOME, '\\', '/', 'g'))
-	let $rc       = printf('%s/config/my_vimrc.vim', desktop)
-	let $rce      = printf('%s/config/my_vimworkenv.vim', desktop)
-	let $vimFiles = printf('%s/config/myVim', desktop)
+	let $rc        = printf('%s/config/my_vimrc.vim', desktop)
+	let $rce       = printf('%s/config/my_vimworkenv.vim', desktop)
+	let $vimFiles  = printf('%s/config/myVim', desktop)
+	let resourcesFile = ($MELANDEL_RESOURCES_JSON != '')
+		\? $MELANDEL_RESOURCES_JSON
+		\: printf('%s/config/resources.json', desktop)
+	let $res = resourcesFile
 	let g:rc = {
 		\"desktop": desktop,
 		\"notes":    printf('%s/%s', desktop, 'notes'),
@@ -42,7 +46,7 @@ if g:isWindows
 			\"adosMyAssignedActiveWits": "myquery",
 			\"mainBuildUrl": "www.google.fr",
 			\"ghOrganization": '',
-			\"resourcesFile": $MELANDEL_RESOURCES_JSON != '' ? $MELANDEL_RESOURCES_JSON : printf('%s/config/resources.json', desktop),
+			\"resourcesFile": resourcesFile,
 			\"resourcesAutocompletion": [],
 			\"resourceAutocompletionMaxLength": 60
 		\}
