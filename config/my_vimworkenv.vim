@@ -85,6 +85,14 @@ def BuildEnvironmentVariablesFromLeafItems(node: any, environmentVariables: dict
 	return environmentVariables
 enddef
 
+def RemoveDiacritics(str: string): string
+	var diacs = 'áâãàçéêèïíóôõüúù' #lowercase diacritical signs
+	diacs = diacs .. toupper(diacs)
+	var repls = 'aaaaceeeiiooouuu' #corresponding replacements
+	repls = repls .. toupper(repls)
+	return tr(str, diacs, repls)
+enddef
+
 var parsedFromResources = {
 	deploymentEnvironments: [],
 	dynamicallyGeneratedEnvironmentVariablesWithoutAliases: {},
@@ -102,16 +110,18 @@ endfor
 g:rc.env.resourcesAutocompletion = []
 g:rc.env.resourcesAutocompletionWithAliases = []
 for [name, value] in items(parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases)
-	call add(g:rc.env.resourcesAutocompletion, { 'word': printf('$%s', name), 'menu': value})
-	var scriptGeneratingEnvironmentVariable = printf('$%s = ''%s''', name, substitute(value, "'", "''", 'g'))
+	var normalizedName = RemoveDiacritics(name)
+	call add(g:rc.env.resourcesAutocompletion, { 'word': printf('$%s', normalizedName), 'menu': value})
+	var scriptGeneratingEnvironmentVariable = printf('$%s = ''%s''', normalizedName, substitute(value, "'", "''", 'g'))
 	execute(scriptGeneratingEnvironmentVariable)
 
-	call add(g:rc.env.resourcesAutocompletionWithAliases, { 'word': printf('$%s', name), 'menu': value})
+	call add(g:rc.env.resourcesAutocompletionWithAliases, { 'word': printf('$%s', normalizedName), 'menu': value})
 endfor
 
 for [name, value] in items(parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithAliases)
-	call add(g:rc.env.resourcesAutocompletionWithAliases, { 'word': printf('$%s', name), 'menu': value})
-	var scriptGeneratingEnvironmentVariable = printf('$%s = ''%s''', name, substitute(value, "'", "''", 'g'))
+	var normalizedName = RemoveDiacritics(name)
+	call add(g:rc.env.resourcesAutocompletionWithAliases, { 'word': printf('$%s', normalizedName), 'menu': value})
+	var scriptGeneratingEnvironmentVariable = printf('$%s = ''%s''', normalizedName, substitute(value, "'", "''", 'g'))
 	execute(scriptGeneratingEnvironmentVariable)
 endfor
 
