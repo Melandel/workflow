@@ -5065,3 +5065,8 @@ function! GetResourcesAutocompletion(findstart, base)
 	let completionMaxLength = g:rc.env.resourceAutocompletionMaxLength
 	return mapnew(filteredAutocompletions, { _,x -> { 'word': x.word, 'menu': len(x.menu) > g:rc.env.resourceAutocompletionMaxLength ? printf('%s…', x.menu[:g:rc.env.resourceAutocompletionMaxLength-len('…')-1]) : x.menu } })
 endfunction
+
+augroup resources
+	au!
+	au BufWritePost $res source $rce
+augroup end
