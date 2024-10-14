@@ -48,6 +48,7 @@ if g:isWindows
 			\"ghOrganization": '',
 			\"resourcesFile": resourcesFile,
 			\"resourcesAutocompletion": [],
+			\"resourcesAutocompletionWithAliases": [],
 			\"resourceAutocompletionMaxLength": 60
 		\}
 	\}
@@ -5055,7 +5056,7 @@ function! GetResourcesAutocompletion(findstart, base)
 	endif
 	let filteredAutocompletions = empty(a:base)
 		\? g:rc.env.resourcesAutocompletion
-		\: filter(copy(g:rc.env.resourcesAutocompletion), { i,x-> StringStartsWith(x.word, a:base) })
+		\: filter(copy(g:rc.env.resourcesAutocompletionWithAliases), { i,x-> StringStartsWith(x.word, a:base) })
 	let completionMaxLength = g:rc.env.resourceAutocompletionMaxLength
 	return mapnew(filteredAutocompletions, { _,x -> { 'word': x.word, 'menu': len(x.menu) > g:rc.env.resourceAutocompletionMaxLength ? printf('%s…', x.menu[:g:rc.env.resourceAutocompletionMaxLength-len('…')-1]) : x.menu } })
 endfunction

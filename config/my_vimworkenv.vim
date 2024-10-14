@@ -5,10 +5,15 @@ g:rc.env.resources = js_decode(join(readfile(g:rc.env.resourcesFile)))
 
 var parsedFromResources = {
 	deploymentEnvironments: [],
-	dynamicallyGeneratedEnvironmentVariables: {},
+	dynamicallyGeneratedEnvironmentVariablesWithoutAliases: {},
+	dynamicallyGeneratedEnvironmentVariablesWithAliases: {}
 }
 for [resourceName, resourceProperties] in items(g:rc.env.resources)
+	var aliases = []
 	for [propertyName, property] in items(resourceProperties)
+		if propertyName == 'aliases'
+			aliases = property
+		endif
 		var isEnvironmentProperty = index(['type', 'aliases', 'descr'], propertyName) == -1
 		if (isEnvironmentProperty)
 			var env = propertyName
@@ -18,26 +23,44 @@ for [resourceName, resourceProperties] in items(g:rc.env.resources)
 				if (envPropertyName == 'fetchables')
 					var fetchables = envPropertyValue
 					for [fetchableName, fetchCommand] in items(fetchables)
-						var environmentVariableName = printf('%s_%s_%s', resourceName, env, fetchableName)
 						var environmentVariableValue = printf('[TO-FETCH-USING] %s', fetchCommand)
-						parsedFromResources.dynamicallyGeneratedEnvironmentVariables[environmentVariableName] = environmentVariableValue
+						var environmentVariableName = printf('%s_%s_%s', resourceName, env, fetchableName)
+						parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[environmentVariableName] = environmentVariableValue
+						for alias in aliases
+							var environmentVariableNameUsingAlias = printf('%s_%s_%s', alias, env, fetchableName)
+							parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithAliases[environmentVariableNameUsingAlias] = environmentVariableValue
+						endfor
 					endfor
 				else
-						var environmentVariableName = (envPropertyName == 'url')
-							? printf('%s_%s', resourceName, env)
-							: printf('%s_%s_%s', resourceName, env, envPropertyName)
-						var environmentVariableValue = envPropertyValue
-						parsedFromResources.dynamicallyGeneratedEnvironmentVariables[environmentVariableName] = environmentVariableValue
+					var environmentVariableValue = envPropertyValue
+					var environmentVariableName = (envPropertyName == 'url')
+						? printf('%s_%s', resourceName, env)
+						: printf('%s_%s_%s', resourceName, env, envPropertyName)
+					parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[environmentVariableName] = environmentVariableValue
+					for alias in aliases
+						var environmentVariableNameWithAlias = (envPropertyName == 'url')
+							? printf('%s_%s', alias, env)
+							: printf('%s_%s_%s', alias, env, envPropertyName)
+						parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithAliases[environmentVariableNameWithAlias] = environmentVariableValue
+					endfor
 				endif
 			endfor
-	   endif
-   endfor
+		endif
+	endfor
 endfor
 
 g:rc.env.resourcesAutocompletion = []
-for [name, value] in items(parsedFromResources.dynamicallyGeneratedEnvironmentVariables)
+g:rc.env.resourcesAutocompletionWithAliases = []
+for [name, value] in items(parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases)
 	call add(g:rc.env.resourcesAutocompletion, { 'word': printf('$%s', name), 'menu': value})
+	var scriptGeneratingEnvironmentVariable = printf('$%s = ''%s''', name, substitute(value, "'", "''", 'g'))
+	execute(scriptGeneratingEnvironmentVariable)
 
+	call add(g:rc.env.resourcesAutocompletionWithAliases, { 'word': printf('$%s', name), 'menu': value})
+endfor
+
+for [name, value] in items(parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithAliases)
+	call add(g:rc.env.resourcesAutocompletionWithAliases, { 'word': printf('$%s', name), 'menu': value})
 	var scriptGeneratingEnvironmentVariable = printf('$%s = ''%s''', name, substitute(value, "'", "''", 'g'))
 	execute(scriptGeneratingEnvironmentVariable)
 endfor
