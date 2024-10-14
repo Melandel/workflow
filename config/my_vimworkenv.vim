@@ -16,9 +16,15 @@ def ParseDeploymentEnvironmentResource(envResourceName: string, envResourcePrope
 				parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[environmentVariableName] = environmentVariableValue
 			endfor
 		else
-			var environmentVariableValue = envPropertyValue
-			var environmentVariableName = printf('%s_%s', envResourceName, envPropertyName)
-			parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[environmentVariableName] = environmentVariableValue
+			var currentPrefixes = [envResourceName, envPropertyName]
+			var environmentVariables = {}
+			environmentVariables = BuildEnvironmentVariablesFromLeafItems(
+				envPropertyValue,
+				environmentVariables,
+				currentPrefixes)
+			for [variableName, variableValue] in items(environmentVariables)
+				parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[variableName] = variableValue
+			endfor
 		endif
 	endfor
 enddef
@@ -62,6 +68,21 @@ def ParseResource(resourceName: string, resourceProperties: any): void
 			endfor
 		endif
 	endfor
+enddef
+
+def BuildEnvironmentVariablesFromLeafItems(node: any, environmentVariables: dict<string>, currentPrefixes: list<string>): dict<string>
+	if type(node) != type({})
+		var environmentVariableName = join(currentPrefixes, '_')
+		var environmentVariableValue = node
+		environmentVariables[environmentVariableName] = environmentVariableValue
+		return environmentVariables
+	endif
+	for [key, value] in items(node)
+		add(currentPrefixes, key)
+		BuildEnvironmentVariablesFromLeafItems(value, environmentVariables, currentPrefixes)
+		remove(currentPrefixes, index(currentPrefixes, key))
+	endfor
+	return environmentVariables
 enddef
 
 var parsedFromResources = {

@@ -5049,7 +5049,7 @@ function! GetResourcesAutocompletion(findstart, base)
 		let c = 1
 		let spaceChar = 32
 		let dollarChar = 36
-		while(c <= nbOfChars && strgetchar(untilCursor, nbOfChars-1-c) != spaceChar)
+		while(c <= nbOfChars && nr2char(strgetchar(untilCursor, nbOfChars-1-c)) =~ '[a-zA-Z_]')
 			let c = c+1
 			if (strgetchar(untilCursor, nbOfChars-1-c) == dollarChar)
 				break
