@@ -9,6 +9,11 @@ if g:isWindows
 	let desktop = printf('%s/Desktop', substitute($HOME, '\\', '/', 'g'))
 	let $rc        = printf('%s/config/my_vimrc.vim', desktop)
 	let $rce       = printf('%s/config/my_vimworkenv.vim', desktop)
+	let $p         = printf('%s/projects', desktop)
+	let $n         = printf('%s/notes', desktop)
+	let $m         = printf('%s/notes/media', desktop)
+	let $i         = printf('%s/notes/icons', desktop)
+	let $d         = printf('%s/diffs', desktop)
 	let $vimFiles  = printf('%s/config/myVim', desktop)
 	let resourcesFile = ($MELANDEL_RESOURCES_JSON != '')
 		\? $MELANDEL_RESOURCES_JSON
