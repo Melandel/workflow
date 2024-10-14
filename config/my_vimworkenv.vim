@@ -99,7 +99,7 @@ var parsedFromResources = {
 	dynamicallyGeneratedEnvironmentVariablesWithAliases: {}
 }
 for [resourceName, resourceProperties] in items(g:rc.env.resources)
-	var isDeploymentEnvironmentResource = resourceProperties.type == 'env'
+	var isDeploymentEnvironmentResource = !has_key(resourceProperties, 'type') || resourceProperties.type == 'env'
 	if isDeploymentEnvironmentResource
 		ParseDeploymentEnvironmentResource(resourceName, resourceProperties)
 	else
