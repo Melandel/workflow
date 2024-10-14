@@ -5066,19 +5066,17 @@ function! GetResourcesAutocompletion(findstart, base)
 	if a:findstart
 		if (PreviousCharacter() == '$') | return col('.')-2 | endif
 		let currentLine = getline('.')
-		let untilCursor = currentLine[:col('.')]
+		let untilCursor = currentLine[:col('.')-1-1]
 		let nbOfChars = len(untilCursor)
 		let c = 1
-		let spaceChar = 32
-		let dollarChar = 36
-		while(c < (nbOfChars-1) && nr2char(strgetchar(untilCursor, nbOfChars-1-c-1)) =~ '[a-zA-Z_]')
+		while(c < nbOfChars && untilCursor[nbOfChars-c] =~ '[a-zA-Z_]')
 			let c = c+1
-			if (strgetchar(untilCursor, nbOfChars-1-c-1) == dollarChar)
+			if (untilCursor[nbOfChars-c] == '$')
 				break
 			endif
 		endwhile
-		return (strgetchar(untilCursor, nbOfChars-1-c-1) == dollarChar)
-			\? nbOfChars-1-c-1
+		return (untilCursor[nbOfChars-c] == '$')
+			\? (nbOfChars-c)
 			\: col('.')
 	endif
 	let filteredAutocompletions = empty(a:base)
