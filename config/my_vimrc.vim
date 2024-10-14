@@ -5049,14 +5049,14 @@ function! GetResourcesAutocompletion(findstart, base)
 		let c = 1
 		let spaceChar = 32
 		let dollarChar = 36
-		while(c <= nbOfChars && nr2char(strgetchar(untilCursor, nbOfChars-1-c)) =~ '[a-zA-Z_]')
+		while(c < (nbOfChars-1) && nr2char(strgetchar(untilCursor, nbOfChars-1-c-1)) =~ '[a-zA-Z_]')
 			let c = c+1
-			if (strgetchar(untilCursor, nbOfChars-1-c) == dollarChar)
+			if (strgetchar(untilCursor, nbOfChars-1-c-1) == dollarChar)
 				break
 			endif
 		endwhile
-		return (strgetchar(untilCursor, nbOfChars-1-c) == dollarChar)
-			\? nbOfChars-c-1
+		return (strgetchar(untilCursor, nbOfChars-1-c-1) == dollarChar)
+			\? nbOfChars-1-c-1
 			\: col('.')
 	endif
 	let filteredAutocompletions = empty(a:base)
