@@ -4872,10 +4872,16 @@ function! ExpandEnvironmentVariables(script)
 		if (StringStartsWith(value, '[TO-FETCH-USING] '))
 			let fetchCommand = value[len('[TO-FETCH-USING] '):]
 			let fetchedValue = substitute(system(fetchCommand), '[\x0]', '', 'g')
-			echomsg 'fetchedValue' fetchedValue
 			execute(printf('let %s = ''%s''', var, substitute(fetchedValue, "'", "''", "g")))
 			for i in range(len(g:rc.env.resourcesAutocompletion))
 				let resourceAutocompletion = g:rc.env.resourcesAutocompletion[i]
+				if resourceAutocompletion.word == var
+					let resourceAutocompletion.menu = printf('<FETCHED> %s', fetchedValue)
+					break
+				endif
+			endfor
+			for i in range(len(g:rc.env.resourcesAutocompletionWithAliases))
+				let resourceAutocompletion = g:rc.env.resourcesAutocompletionWithAliases[i]
 				if resourceAutocompletion.word == var
 					let resourceAutocompletion.menu = printf('<FETCHED> %s', fetchedValue)
 					break
