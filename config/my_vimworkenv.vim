@@ -3,12 +3,27 @@ vim9script
 g:rc.env.browser = "firefox.exe"
 g:rc.env.resources = js_decode(join(readfile(g:rc.env.resourcesFile)))
 
-var parsedFromResources = {
-	deploymentEnvironments: [],
-	dynamicallyGeneratedEnvironmentVariablesWithoutAliases: {},
-	dynamicallyGeneratedEnvironmentVariablesWithAliases: {}
-}
-for [resourceName, resourceProperties] in items(g:rc.env.resources)
+def ParseDeploymentEnvironmentResource(envResourceName: string, envResourceProperties: any): void
+	for [envPropertyName, envPropertyValue] in items(envResourceProperties)
+		if (index(['type', 'aliases', 'descr'], envPropertyName) >= 0)
+			continue
+		endif
+		if (envPropertyName == 'fetchables')
+			var fetchables = envPropertyValue
+			for [fetchableName, fetchCommand] in items(fetchables)
+				var environmentVariableValue = printf('[TO-FETCH-USING] %s', fetchCommand)
+				var environmentVariableName = printf('%s_%s', envResourceName, fetchableName)
+				parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[environmentVariableName] = environmentVariableValue
+			endfor
+		else
+			var environmentVariableValue = envPropertyValue
+			var environmentVariableName = printf('%s_%s', envResourceName, envPropertyName)
+			parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[environmentVariableName] = environmentVariableValue
+		endif
+	endfor
+enddef
+
+def ParseResource(resourceName: string, resourceProperties: any): void
 	var aliases = []
 	for [propertyName, property] in items(resourceProperties)
 		if propertyName == 'aliases'
@@ -47,6 +62,20 @@ for [resourceName, resourceProperties] in items(g:rc.env.resources)
 			endfor
 		endif
 	endfor
+enddef
+
+var parsedFromResources = {
+	deploymentEnvironments: [],
+	dynamicallyGeneratedEnvironmentVariablesWithoutAliases: {},
+	dynamicallyGeneratedEnvironmentVariablesWithAliases: {}
+}
+for [resourceName, resourceProperties] in items(g:rc.env.resources)
+	var isDeploymentEnvironmentResource = resourceProperties.type == 'env'
+	if isDeploymentEnvironmentResource
+		ParseDeploymentEnvironmentResource(resourceName, resourceProperties)
+	else
+		ParseResource(resourceName, resourceProperties)
+	endif
 endfor
 
 g:rc.env.resourcesAutocompletion = []

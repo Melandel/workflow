@@ -1,4 +1,10 @@
 {
+  "dev":
+  {
+    "type": "env",
+		"descr": "deployment environment for continuous integration",
+    "APIKey": "qwerty"
+  },
 	"MyAPI":
 	{
 		"type": "api",
@@ -30,3 +36,4 @@
 		}
 	}
 }
+
