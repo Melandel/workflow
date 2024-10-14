@@ -64,3 +64,6 @@ for [name, value] in items(parsedFromResources.dynamicallyGeneratedEnvironmentVa
 	var scriptGeneratingEnvironmentVariable = printf('$%s = ''%s''', name, substitute(value, "'", "''", 'g'))
 	execute(scriptGeneratingEnvironmentVariable)
 endfor
+
+sort(g:rc.env.resourcesAutocompletion)
+sort(g:rc.env.resourcesAutocompletionWithAliases)
