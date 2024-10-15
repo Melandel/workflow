@@ -4866,8 +4866,13 @@ function! EscapeBatchCharactersAsInBatchFile(script)
 	let script = substitute(script, '&', '^&', 'g')
 	let script = substitute(script, '<', '^<', 'g')
 	let script = substitute(script, '>', '^>', 'g')
+
+	let hasBothPipesToEscapeAndToUseWithoutEscaping = (stridx(script, '👉') >= 0)
+	if hasBothPipesToEscapeAndToUseWithoutEscaping
 	let script = substitute(script, '|', '^|', 'g')
 	let script = substitute(script, '👉',  '|', 'g') " 👈  allow pipes in requests using a special character
+	endif
+
 	let script = substitute(script, "'", "^'", 'g')
 	return script
 endfunction
@@ -4881,9 +4886,6 @@ function! ExpandEnvironmentVariables(script)
 		let var = '$'.key
 		if (stridx(script, var) == -1)
 			continue
-		endif
-		if StringStartsWith(key, 'jq_')
-			let value = substitute(value, '|', '👉', 'g') " 👈 protect pipes from being escaped when running the query
 		endif
 		if (StringStartsWith(value, '[TO-FETCH-USING] '))
 			let fetchCommand = value[len('[TO-FETCH-USING] '):]
