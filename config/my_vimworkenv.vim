@@ -1,73 +1,48 @@
 vim9script
 
 g:rc.env.browser = "firefox.exe"
-g:rc.env.resources = js_decode(join(readfile(g:rc.env.resourcesFile)))
 
-def ParseDeploymentEnvironmentResource(envResourceName: string, envResourceProperties: any): void
-	for [envPropertyName, envPropertyValue] in items(envResourceProperties)
-		if (index(['type', 'aliases', 'descr'], envPropertyName) >= 0)
-			continue
-		endif
-		if (envPropertyName == 'fetchables')
-			var fetchables = envPropertyValue
-			for [fetchableName, fetchCommand] in items(fetchables)
-				var environmentVariableValue = printf('[TO-FETCH-USING] %s', fetchCommand)
-				var environmentVariableName = printf('%s_%s', envResourceName, fetchableName)
-				parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[environmentVariableName] = environmentVariableValue
-			endfor
-		else
-			var currentPrefixes = [envResourceName, envPropertyName]
-			var environmentVariables = {}
-			environmentVariables = BuildEnvironmentVariablesFromLeafItems(
-				envPropertyValue,
-				environmentVariables,
-				currentPrefixes)
-			for [variableName, variableValue] in items(environmentVariables)
-				parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[variableName] = variableValue
-			endfor
-		endif
+def BuildUniversalAutocompletions(jsonFile: string): list<any>
+	var config = ParseUniversalAutocompletion(jsonFile)
+	var autocompletionsList = []
+	for [name, value] in items(config.dynamicallyGeneratedEnvironmentVariables)
+		var autocompletionItem = { 'word': printf('$%s', name), 'menu': value}
+		call add(autocompletionsList, autocompletionItem)
+		var scriptGeneratingEnvironmentVariable = printf('$%s = ''%s''', name, substitute(value, "'", "''", 'g'))
+		execute(scriptGeneratingEnvironmentVariable)
 	endfor
+	sort(autocompletionsList)
+	return autocompletionsList
 enddef
 
-def ParseResource(resourceName: string, resourceProperties: any): void
-	var aliases = []
-	for [propertyName, property] in items(resourceProperties)
-		if propertyName == 'aliases'
-			aliases = property
-		endif
-		var isEnvironmentProperty = index(['type', 'aliases', 'descr'], propertyName) == -1
-		if (isEnvironmentProperty)
-			var env = propertyName
-			var envProperty = property
-			if (index(parsedFromResources.deploymentEnvironments, env) == -1) | call add(parsedFromResources.deploymentEnvironments, env) | endif
-			for [envPropertyName, envPropertyValue] in items(envProperty)
-				if (envPropertyName == 'fetchables')
-					var fetchables = envPropertyValue
-					for [fetchableName, fetchCommand] in items(fetchables)
-						var environmentVariableValue = printf('[TO-FETCH-USING] %s', fetchCommand)
-						var environmentVariableName = printf('%s_%s_%s', resourceName, env, fetchableName)
-						parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[environmentVariableName] = environmentVariableValue
-						for alias in aliases
-							var environmentVariableNameUsingAlias = printf('%s_%s_%s', alias, env, fetchableName)
-							parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithAliases[environmentVariableNameUsingAlias] = environmentVariableValue
-						endfor
-					endfor
-				else
-					var environmentVariableValue = envPropertyValue
-					var environmentVariableName = (envPropertyName == 'url')
-						? printf('%s_%s', resourceName, env)
-						: printf('%s_%s_%s', resourceName, env, envPropertyName)
-					parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases[environmentVariableName] = environmentVariableValue
-					for alias in aliases
-						var environmentVariableNameWithAlias = (envPropertyName == 'url')
-							? printf('%s_%s', alias, env)
-							: printf('%s_%s_%s', alias, env, envPropertyName)
-						parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithAliases[environmentVariableNameWithAlias] = environmentVariableValue
-					endfor
-				endif
-			endfor
-		endif
+def ParseUniversalAutocompletion(resourcesFile: string): dict<any>
+	var universalAutocompletionJson = js_decode(join(readfile(resourcesFile)))
+	var parsed = {
+		deploymentEnvironments: [],
+		dynamicallyGeneratedEnvironmentVariables: {}
+	}
+	for [completionNamePart, completionItem] in items(universalAutocompletionJson)
+		for [completionItemKey, completionItemValue] in items(completionItem)
+			if (index(['type', 'aliases', 'descr'], completionItemKey) >= 0)
+				continue
+			elseif (completionItemKey == 'fetchables')
+				var fetchables = completionItemValue
+				for [fetchableName, fetchCommand] in items(fetchables)
+					var environmentVariableValue = printf('[TO-FETCH-USING] %s', fetchCommand)
+					var environmentVariableName = printf('%s_%s', completionNamePart, fetchableName)
+					parsed.dynamicallyGeneratedEnvironmentVariables[environmentVariableName] = environmentVariableValue
+				endfor
+			else
+				var environmentVariables = {}
+				var currentPrefixes = [RemoveDiacritics(completionNamePart), RemoveDiacritics(completionItemKey)]
+				environmentVariables = BuildEnvironmentVariablesFromLeafItems(completionItemValue, environmentVariables, currentPrefixes)
+				for [variableName, variableValue] in items(environmentVariables)
+					parsed.dynamicallyGeneratedEnvironmentVariables[variableName] = variableValue
+				endfor
+			endif
+		endfor
 	endfor
+	return parsed
 enddef
 
 def BuildEnvironmentVariablesFromLeafItems(node: any, environmentVariables: dict<string>, currentPrefixes: list<string>): dict<string>
@@ -78,9 +53,10 @@ def BuildEnvironmentVariablesFromLeafItems(node: any, environmentVariables: dict
 		return environmentVariables
 	endif
 	for [key, value] in items(node)
-		add(currentPrefixes, key)
+		var normalizedKey = RemoveDiacritics(key)
+		add(currentPrefixes, normalizedKey)
 		BuildEnvironmentVariablesFromLeafItems(value, environmentVariables, currentPrefixes)
-		remove(currentPrefixes, index(currentPrefixes, key))
+		remove(currentPrefixes, index(currentPrefixes, normalizedKey))
 	endfor
 	return environmentVariables
 enddef
@@ -93,37 +69,5 @@ def RemoveDiacritics(str: string): string
 	return tr(str, diacs, repls)
 enddef
 
-var parsedFromResources = {
-	deploymentEnvironments: [],
-	dynamicallyGeneratedEnvironmentVariablesWithoutAliases: {},
-	dynamicallyGeneratedEnvironmentVariablesWithAliases: {}
-}
-for [resourceName, resourceProperties] in items(g:rc.env.resources)
-	var isDeploymentEnvironmentResource = !has_key(resourceProperties, 'type') || resourceProperties.type == 'env'
-	if isDeploymentEnvironmentResource
-		ParseDeploymentEnvironmentResource(resourceName, resourceProperties)
-	else
-		ParseResource(resourceName, resourceProperties)
-	endif
-endfor
 
-g:rc.env.resourcesAutocompletion = []
-g:rc.env.resourcesAutocompletionWithAliases = []
-for [name, value] in items(parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithoutAliases)
-	var normalizedName = RemoveDiacritics(name)
-	call add(g:rc.env.resourcesAutocompletion, { 'word': printf('$%s', normalizedName), 'menu': value})
-	var scriptGeneratingEnvironmentVariable = printf('$%s = ''%s''', normalizedName, substitute(value, "'", "''", 'g'))
-	execute(scriptGeneratingEnvironmentVariable)
-
-	call add(g:rc.env.resourcesAutocompletionWithAliases, { 'word': printf('$%s', normalizedName), 'menu': value})
-endfor
-
-for [name, value] in items(parsedFromResources.dynamicallyGeneratedEnvironmentVariablesWithAliases)
-	var normalizedName = RemoveDiacritics(name)
-	call add(g:rc.env.resourcesAutocompletionWithAliases, { 'word': printf('$%s', normalizedName), 'menu': value})
-	var scriptGeneratingEnvironmentVariable = printf('$%s = ''%s''', normalizedName, substitute(value, "'", "''", 'g'))
-	execute(scriptGeneratingEnvironmentVariable)
-endfor
-
-sort(g:rc.env.resourcesAutocompletion)
-sort(g:rc.env.resourcesAutocompletionWithAliases)
+g:rc.env.universalAutocompletions = BuildUniversalAutocompletions(g:rc.env.universalAutocompletionFile)

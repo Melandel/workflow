@@ -15,10 +15,10 @@ if g:isWindows
 	let $i         = printf('%s/notes/icons', desktop)
 	let $d         = printf('%s/diffs', desktop)
 	let $vimFiles  = printf('%s/config/myVim', desktop)
-	let resourcesFile = ($MELANDEL_RESOURCES_JSON != '')
-		\? $MELANDEL_RESOURCES_JSON
-		\: printf('%s/config/resources.json', desktop)
-	let $res = resourcesFile
+	let universalAutocompletionFile = ($UNIVERSAL_AUTOCOMPLETION_JSON != '')
+		\? $UNIVERSAL_AUTOCOMPLETION_JSON
+		\: printf('%s/config/universal_autocompletion.json', desktop)
+	let $ua = universalAutocompletionFile
 	let g:rc = {
 		\"desktop": desktop,
 		\"notes":    printf('%s/%s', desktop, 'notes'),
@@ -51,10 +51,9 @@ if g:isWindows
 			\"adosMyAssignedActiveWits": "myquery",
 			\"mainBuildUrl": "www.google.fr",
 			\"ghOrganization": '',
-			\"resourcesFile": resourcesFile,
-			\"resourcesAutocompletion": [],
-			\"resourcesAutocompletionWithAliases": [],
-			\"resourceAutocompletionMaxLength": 60
+			\"universalAutocompletionFile": universalAutocompletionFile,
+			\"universalAutocompletions": [],
+			\"universalAutocompletionItemMaxWidth": 60
 		\}
 	\}
 endif
@@ -404,8 +403,11 @@ augroup lcd
 augroup end
 
 " Utils:-------------------------------{{{
-function! StringStartsWith(longer, shorter)
-	return a:longer[:len(a:shorter)-1] == a:shorter
+function! StringStartsWith(longer, shorter, ...)
+	let isCaseSensitive = (a:0 != 0)
+	return isCaseSensitive
+		\? a:longer[:len(a:shorter)-1] ==# a:shorter
+		\: a:longer[:len(a:shorter)-1] ==? a:shorter
 endfunc
 
 function! ParseJsonFile(path)
@@ -2604,7 +2606,8 @@ function! GetCommitTypes(findstart, base)
 		\]
 	elseif getline('.') =~ 'Motivation'
 		return [
-			\'keep code warnings exclusively as a tool for the dev-at-hand'
+			\'keep code warnings exclusively as a tool for the dev-at-hand',
+			\'le code mort au mieux pollue, au pire embrouille'
 		\]
 	endif
 
@@ -4637,7 +4640,7 @@ endfunction
 
 function! InitQueryRowRequestWindow()
 	set filetype=zsh
-	set omnifunc=GetResourcesAutocompletion
+	set omnifunc=GetUniversalAutocompletions
 	nnoremap <silent> <buffer> <LocalLeader>m :RunQuery<CR>
 	nnoremap <silent> <buffer> # :TogglePayloadEditor<CR>
 	nnoremap <silent> <buffer> <Space> `V
@@ -4891,15 +4894,8 @@ function! ExpandEnvironmentVariables(script)
 			let fetchCommand = value[len('[TO-FETCH-USING] '):]
 			let fetchedValue = substitute(system(fetchCommand), '[\x0]', '', 'g')
 			execute(printf('let %s = ''%s''', var, substitute(fetchedValue, "'", "''", "g")))
-			for i in range(len(g:rc.env.resourcesAutocompletion))
-				let resourceAutocompletion = g:rc.env.resourcesAutocompletion[i]
-				if resourceAutocompletion.word == var
-					let resourceAutocompletion.menu = printf('<FETCHED> %s', fetchedValue)
-					break
-				endif
-			endfor
-			for i in range(len(g:rc.env.resourcesAutocompletionWithAliases))
-				let resourceAutocompletion = g:rc.env.resourcesAutocompletionWithAliases[i]
+			for i in range(len(g:rc.env.universalAutocompletions))
+				let resourceAutocompletion = g:rc.env.universalAutocompletions[i]
 				if resourceAutocompletion.word == var
 					let resourceAutocompletion.menu = printf('<FETCHED> %s', fetchedValue)
 					break
@@ -5064,7 +5060,7 @@ function! DisplayQueryFile(file, content)
 endfunction
 
 " Work environment config: ------------{{{
-function! GetResourcesAutocompletion(findstart, base)
+function! GetUniversalAutocompletions(findstart, base)
 	if a:findstart
 		if (PreviousCharacter() == '$') | return col('.')-2 | endif
 		let currentLine = getline('.')
@@ -5082,13 +5078,13 @@ function! GetResourcesAutocompletion(findstart, base)
 			\: col('.')
 	endif
 	let filteredAutocompletions = empty(a:base)
-		\? g:rc.env.resourcesAutocompletion
-		\: filter(copy(g:rc.env.resourcesAutocompletionWithAliases), { i,x-> StringStartsWith(x.word, a:base) })
-	let completionMaxLength = g:rc.env.resourceAutocompletionMaxLength
-	return mapnew(filteredAutocompletions, { _,x -> { 'word': x.word, 'menu': len(x.menu) > g:rc.env.resourceAutocompletionMaxLength ? printf('%s…', x.menu[:g:rc.env.resourceAutocompletionMaxLength-len('…')-1]) : x.menu } })
+		\? g:rc.env.universalAutocompletions
+		\: filter(copy(g:rc.env.universalAutocompletions), { i,x-> StringStartsWith(x.word, a:base) })
+	let maxWidth = g:rc.env.universalAutocompletionItemMaxWidth
+	return mapnew(filteredAutocompletions, { _,x -> { 'word': x.word, 'menu': len(x.menu) > maxWidth ? printf('%s…', x.menu[:maxWidth-len('…')-1]) : x.menu } })
 endfunction
 
 augroup resources
 	au!
-	au BufWritePost $res source $rce
+	au BufWritePost $ua source $ua
 augroup end
