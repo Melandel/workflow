@@ -1,6 +1,7 @@
 vim9script
 
 g:rc.env.browser = "firefox.exe"
+g:rc.env.meetingKinds = [ ".dev", ".archi" ]
 
 def BuildUniversalAutocompletions(jsonFile: string): list<any>
 	var config = ParseUniversalAutocompletion(jsonFile)

@@ -53,7 +53,8 @@ if g:isWindows
 			\"ghOrganization": '',
 			\"universalAutocompletionFile": universalAutocompletionFile,
 			\"universalAutocompletions": [],
-			\"universalAutocompletionItemMaxWidth": 60
+			\"universalAutocompletionItemMaxWidth": 60,
+			\"meetingKinds": []
 		\}
 	\}
 endif
@@ -2796,6 +2797,131 @@ function! GetFilename()
 endfunction
 
 function! SaveInFolderAs(path, filetype)
+endfunc
+
+function! Meeting(...)
+		let meetingKind = a:0 && !empty(a:1) ? a:1 : 'meeting'
+		let meetingKindInFilename = StringStartsWith(meetingKind, '.')
+			\? printf('point_%s', trim(meetingKind, '.'))
+			\: meetingKind
+		let today = strftime('%Y-%m-%d-%A')
+		let filename = printf('%s/%s.%s.md', g:rc.notes, meetingKindInFilename, today)
+		let finalFilename = filename
+		let c = 1
+		while (filereadable(finalFilename) != 0)
+			let c += 1
+			let finalFilename = printf('%s-%d.md', fnamemodify(filename, ':r'), c)
+		endwhile
+		if &buftype != 'nofile' | exec winnr('$') == 1 ? 'vnew' : 'new' | endif
+		exec 'set bt= ft=markdown'
+		exec 'saveas' finalFilename
+		let title = printf('%s %s', meetingKind, today)
+		if (getline(1) !~ '^#')
+			call append(0, [
+				\printf('# %s', meetingKind),
+				\'{|41 2024-10-21-lundi',
+				\'Sujets candidats:',
+				\'* foo',
+				\'* bar',
+				\'',
+				\'.| Contexte',
+				\'Participants:',
+				\'* toto',
+				\'',
+				\'Ressources:',
+				\'* foo',
+				\'|}',
+				\'',
+				\'```d2 Architecture diagram',
+				\'user1: Utilisateur 1 {',
+				\'  shape: person',
+				\'}',
+				\'user2: Utilisateur 2 {',
+				\'  shape: person',
+				\'  style.multiple: true',
+				\'}',
+				\'user3: Utilisateur 3 {',
+				\'  shape: person',
+				\'}',
+				\'front-1',
+				\'front-2',
+				\'front-3',
+				\'context {',
+				\'  bff-A',
+				\'  bff-B',
+				\'  business-logic',
+				\'  anti-corruption-layer',
+				\'}',
+				\'user1 -> front-1 -> context.bff-A',
+				\'user2 -> front-2 -> context.bff-A',
+				\'user3 -> front-3 -> context.bff-B',
+				\'context.bff-A -> context.business-logic',
+				\'context.bff-B -> context.business-logic',
+				\'context.business-logic -> context.anti-corruption-layer -> source of truth',
+				\'```',
+				\'',
+				\'```d2 SQL Diagram',
+				\'cloud: {',
+				\'  disks: {',
+				\'    shape: sql_table',
+				\'    id: int {constraint: primary_key}',
+				\'  }',
+				\'  blocks: {',
+				\'    shape: sql_table',
+				\'    id: int {constraint: primary_key}',
+				\'    disk: int {constraint: foreign_key}',
+				\'    blob: blob',
+				\'  }',
+				\'  blocks.disk -> disks.id',
+				\'  AWS S3 Vancouver -> disks',
+				\'}',
+				\'```',
+				\'',
+				\'```d2 Sequence diagram',
+				\'Before and after becoming friends: {',
+				\'  2007: Office chatter in 2007 {',
+				\'    shape: sequence_diagram',
+				\'    alice: Alice',
+				\'    bob: Bobby',
+				\'    awkward small talk: {',
+				\'      alice -> bob: uhm, hi',
+				\'      bob -> alice: oh, hello',
+				\'      icebreaker attempt: {',
+				\'        alice -> bob: what did you have for lunch?',
+				\'      }',
+				\'      unfortunate outcome: {',
+				\'        bob -> alice: that''s personal',
+				\'      }',
+				\'    }',
+				\'  }',
+				\'  2012: Office chatter in 2012 {',
+				\'    shape: sequence_diagram',
+				\'    alice: Alice',
+				\'    bob: Bobby',
+				\'    alice -> bob: Want to play with ChatGPT?',
+				\'    bob -> alice: Yes!',
+				\'    bob -> alice.play: Write a play...',
+				\'    alice.play -> bob.play: about 2 friends...',
+				\'    bob.play -> alice.play: who find love...',
+				\'    alice.play -> bob.play: in a sequence diagram',
+				\'  }',
+				\'  2007 -> 2012: Five\nyears\nlater',
+				\'}',
+				\'```'
+			\])
+			write
+			normal! gg2j
+		endif
+		if (!has_key(b:, 'livenote_job') || job_status(b:livenote_job) != 'run')
+			call StartLiveNote()
+			GvimTweakToggleTransparency
+		endif
+endfunc
+command! -nargs=? -complete=customlist,GetMeetingKinds Meeting call Meeting(<q-args>)
+command! -nargs=? -complete=customlist,GetMeetingKinds M call Meeting(<q-args>)
+
+function! GetMeetingKinds(argLead, cmdLine, cursorPos)
+	return g:rc.env.meetingKinds
 endfunc
 
 function! Note(...)
