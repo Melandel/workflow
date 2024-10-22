@@ -54,7 +54,7 @@ if g:isWindows
 			\"universalAutocompletionFile": universalAutocompletionFile,
 			\"universalAutocompletions": [],
 			\"universalAutocompletionItemMaxWidth": 60,
-			\"meetingKinds": []
+			\"meetingKindsFolder": printf('%s/%s', desktop, 'templates/meetings')
 		\}
 	\}
 endif
@@ -2817,98 +2817,7 @@ function! Meeting(...)
 		exec 'saveas' finalFilename
 		let title = printf('%s %s', meetingKind, today)
 		if (getline(1) !~ '^#')
-			call append(0, [
-				\printf('# %s', meetingKind),
-				\'{|41 2024-10-21-lundi',
-				\'Sujets candidats:',
-				\'* foo',
-				\'* bar',
-				\'',
-				\'.| Contexte',
-				\'Participants:',
-				\'* toto',
-				\'',
-				\'Ressources:',
-				\'* foo',
-				\'|}',
-				\'',
-				\'```d2 Architecture diagram',
-				\'user1: Utilisateur 1 {',
-				\'  shape: person',
-				\'}',
-				\'user2: Utilisateur 2 {',
-				\'  shape: person',
-				\'  style.multiple: true',
-				\'}',
-				\'user3: Utilisateur 3 {',
-				\'  shape: person',
-				\'}',
-				\'front-1',
-				\'front-2',
-				\'front-3',
-				\'context {',
-				\'  bff-A',
-				\'  bff-B',
-				\'  business-logic',
-				\'  anti-corruption-layer',
-				\'}',
-				\'user1 -> front-1 -> context.bff-A',
-				\'user2 -> front-2 -> context.bff-A',
-				\'user3 -> front-3 -> context.bff-B',
-				\'context.bff-A -> context.business-logic',
-				\'context.bff-B -> context.business-logic',
-				\'context.business-logic -> context.anti-corruption-layer -> source of truth',
-				\'```',
-				\'',
-				\'```d2 SQL Diagram',
-				\'cloud: {',
-				\'  disks: {',
-				\'    shape: sql_table',
-				\'    id: int {constraint: primary_key}',
-				\'  }',
-				\'  blocks: {',
-				\'    shape: sql_table',
-				\'    id: int {constraint: primary_key}',
-				\'    disk: int {constraint: foreign_key}',
-				\'    blob: blob',
-				\'  }',
-				\'  blocks.disk -> disks.id',
-				\'  AWS S3 Vancouver -> disks',
-				\'}',
-				\'```',
-				\'',
-				\'```d2 Sequence diagram',
-				\'Before and after becoming friends: {',
-				\'  2007: Office chatter in 2007 {',
-				\'    shape: sequence_diagram',
-				\'    alice: Alice',
-				\'    bob: Bobby',
-				\'    awkward small talk: {',
-				\'      alice -> bob: uhm, hi',
-				\'      bob -> alice: oh, hello',
-				\'      icebreaker attempt: {',
-				\'        alice -> bob: what did you have for lunch?',
-				\'      }',
-				\'      unfortunate outcome: {',
-				\'        bob -> alice: that''s personal',
-				\'      }',
-				\'    }',
-				\'  }',
-				\'  2012: Office chatter in 2012 {',
-				\'    shape: sequence_diagram',
-				\'    alice: Alice',
-				\'    bob: Bobby',
-				\'    alice -> bob: Want to play with ChatGPT?',
-				\'    bob -> alice: Yes!',
-				\'    bob -> alice.play: Write a play...',
-				\'    alice.play -> bob.play: about 2 friends...',
-				\'    bob.play -> alice.play: who find love...',
-				\'    alice.play -> bob.play: in a sequence diagram',
-				\'  }',
-				\'  2007 -> 2012: Five\nyears\nlater',
-				\'}',
-				\'```'
-			\])
+			call append(0, GetMeetingKindTemplateLines(meetingKind))
 			write
 			normal! gg2j
 		endif
@@ -2920,8 +2829,19 @@ endfunc
 command! -nargs=? -complete=customlist,GetMeetingKinds Meeting call Meeting(<q-args>)
 command! -nargs=? -complete=customlist,GetMeetingKinds M call Meeting(<q-args>)
 
+function! GetMeetingKindTemplateLines(meetingKind)
+	let templateFile = printf('%s/%s', g:rc.env.meetingKindsFolder, a:meetingKind)
+	let lines = readfile(templateFile)
+	let lines = map(lines, printf('substitute(v:val, "${FILENAME}", "%s", "g")', a:meetingKind))
+	let lines = map(lines, printf('substitute(v:val, "${DATE}", "%s", "g")', strftime('%Y-%m-%d-%A')))
+	return lines
+endfunc
+
 function! GetMeetingKinds(argLead, cmdLine, cursorPos)
-	return g:rc.env.meetingKinds
+	let meetingKindsTemplateFiles =
+		\glob(printf('%s/*', g:rc.env.meetingKindsFolder), 1, 1)
+		\+ glob(printf('%s/.[^.]*', g:rc.env.meetingKindsFolder), 1, 1)
+	return filter(map(meetingKindsTemplateFiles, 'fnamemodify(v:val, ":t")'), 'v:val != "meeting"')
 endfunc
 
 function! Note(...)

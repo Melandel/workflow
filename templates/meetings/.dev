@@ -1,0 +1,17 @@
+# ${FILENAME}
+{|41 ${DATE}
+Sujets candidats:
+* foo
+* bar
+
+Ressources:
+* nop
+
+.| Contexte
+Participants:
+* Alice
+* Minh-Tâm
+
+|}
+
+## Sujet #1

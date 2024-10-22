@@ -257,80 +257,6 @@ $0
 \`\`\`
 endsnippet
 
-snippet "archi([0-9]*)" "pack of classes with suffix" br
-package "${1:Api`!p snip.rv = match.group(1)`}" as Package`!p snip.rv = match.group(1)` {
-	$0rectangle "Infrastructure" as Infra`!p snip.rv = match.group(1)` {
-	}
-
-	rectangle "Domain" as Domain`!p snip.rv = match.group(1)` {
-	}
-
-	rectangle "Application" as Application`!p snip.rv = match.group(1)` {
-	}
-
-	rectangle "Api / Dto" as Api`!p snip.rv = match.group(1)` {
-	}
-}
-
-endsnippet
-
-snippet Archi "class diagram (architecture)" b
-package "Api / Dto" as Api {
-	class "Controller" as Controller {
-		+ Response DoStuff(request)
-	}
-	class "Request" as Request {
-	}
-	class "Response" as Response {
-	}
-}
-
-package Application {
-	rectangle "ServiceProviders" as ServiceProviders {
-		interface IServiceProvider {
-			+ DomainObject GetDomainObject()
-		}
-	}
-	rectangle "UseCases" as UseCases {
-		interface IUseCase {
-			UseCaseOutput Process(UseCaseInput)
-		}
-		class UseCase {
-			- IServiceProvider
-			+ UseCaseOutput Process(UseCaseInput)
-		}
-
-		class "UseCaseOutput" as UseCaseOutput {
-			+ Guid useCaseExecutionId
-		}
-
-		class "UseCaseInput" as UseCaseInput {
-			+ Guid useCaseExecutionId
-			+ CancellationToken cancellationToken
-		}
-	}
-}
-
-package "Domain" as Domain {
-	class DomainObject {
-		+ foo
-		{static} Create(foo)
-		{static} Reconstitute(guid, foo)
-		+ DoStuff()
-	}
-}
-
-package "Infrastructure" as Infrastructure {
-	class ServiceProvider {
-		- ServiceProviderClient
-		+ DomainObject GetDomainObject()
-	}
-}
-
-UseCase -up-|> IUseCase
-ServiceProvider -up-|> IServiceProvider
-endsnippet
-
 snippet mm "mindmap diagram" b
 \`\`\`puml_mindmap
 title __${1:Not only customer collaboration, but also productive partnerships}__
@@ -376,4 +302,131 @@ endsnippet
 
 snippet ic "d2 icon" b
 icon: ./icons/
+endsnippet
+
+snippet cible "Diagramme de visualisation de la cible" b
+\`\`\`d2 Comment aller à la cible?
+grid-columns: 2
+Départ {
+    label.near: outside-top-center
+    a: "a" {
+    }
+    b: "b" {
+    }
+    a -> b
+}
+Cible {
+    label.near: outside-top-center
+    a: "a" {
+    }
+    b: "b" {
+    }
+    c: "c" {
+    }
+    a -> b
+    b -> c
+}
+\`\`\`
+
+endsnippet
+
+snippet design "Diagramme de design" b
+\`\`\`d2 Not only working software, but also well-crafted software
+grid-rows: 2
+classes: {
+  NONE: {style.opacity: 0}
+  PLUGIN: { style.stroke: blue; style.font-color: blue }
+}
+
+$0ios: "(Plugins)\nLivraison des entrées/sorties" {
+  class: PLUGIN
+  io: "X.Mecanism.IO.webapi.DLL" {
+    controller: "controller" {
+    }
+  }
+}
+
+core: "" {
+  class: NONE
+  grid-columns: 2
+  app: "X.application.dll" {
+    grid-rows: 2
+    grid-columns: 2
+    api: "application programming interface" {
+      height: 200
+    }
+    usecase: "use case" {
+      height: 100
+    }
+    1-2: "" { class: NONE }
+    spi: "service provider interface" {
+    }
+  }
+  domain: "X.domain.dll" {
+    grid-rows: 3
+    entity: "entity" {
+    }
+  }
+}
+2-1: "" { class: NONE }
+infras: "(Plugins)\nPersistence" {
+  class: PLUGIN
+  label.near: outside-left-top
+  infra: "X.Mecanism.Persistence.DLL" {
+    width: 1100
+    repository: "repository" {
+    }
+  }
+}
+
+ios -> core.app.api { class: PLUGIN }
+infras -> core.app.spi { class: PLUGIN }
+infras -> core.domain.entity { class: PLUGIN }
+
+core.app.usecase -> core.domain.entity
+core.app.spi -> core.domain.entity
+core.app.usecase -> core.app.api {
+  target-arrowhead.style.filled: false
+}
+\`\`\`
+
+endsnippet
+
+snippet archi "Diagramme d'architecture" b
+\`\`\`d2 Not only responding to change, but also steadily adding value
+$0u1: Utilisateur 1 {
+  shape: person
+}
+u2: Utilisateur 2 {
+  shape: person
+  style.multiple: true
+}
+u3: Utilisateur 3 {
+  shape: person
+}
+front: "front-1" {
+}
+front2: "front-2" {
+}
+front3: "front-3" {
+}
+d: "sub-domain" {
+  bff: "bff-A" {
+  }
+  bff2: "bff-B" {
+  }
+  back: "business-logic" {
+  }
+  acl: "anti-corruption-layer"
+}
+ext: "external system" {
+}
+u1 -> front -> d.bff
+u2 -> front2 -> d.bff
+u3 -> front3 -> d.bff2
+d.bff -> d.back
+d.bff2 -> d.back
+d.back -> d.acl -> ext
+\`\`\`
+
 endsnippet

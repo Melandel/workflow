@@ -1,0 +1,21 @@
+# ${FILENAME}
+{|41 ${DATE}
+Sujet: foo
+
+seq
+cible
+design
+archi
+
+.| Contexte
+Participants:
+* Alice
+* Minh-Tâm
+|}
+
+## Mise à plat du problème
+### Le besoin
+### Pistes de solution
+### Remarques
+
+## Solutions proposées
