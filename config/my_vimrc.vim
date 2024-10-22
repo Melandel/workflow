@@ -2761,7 +2761,10 @@ endfunction
 
 function! StopLiveNote()
 	autocmd! TextChangedI <buffer>
- call job_stop(b:livenote_job)
+	call ch_sendraw(b:livenote_job, "\n\n")
+	if job_status(b:livenote_job) != 'dead'
+		call job_stop(b:livenote_job)
+	endif
 endfunction
 command StopLiveNote call StopLiveNote()
 command! ToggleLiveNote if has_key(b:, 'livenote_job') && job_status(b:livenote_job) == "run" | call StopLiveNote() | else | call StartLiveNote() | endif
