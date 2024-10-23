@@ -332,6 +332,13 @@ endsnippet
 
 snippet design "Diagramme de design" b
 \`\`\`d2 Not only working software, but also well-crafted software
+légende: {
+  style.stroke: pink
+  style.fill: pink
+  near: top-left
+  direction: right
+  a -> b: \"dépend de\"
+}
 grid-rows: 2
 classes: {
   NONE: {style.opacity: 0}
@@ -394,6 +401,14 @@ endsnippet
 
 snippet archi "Diagramme d'architecture" b
 \`\`\`d2 Not only responding to change, but also steadily adding value
+légende: {
+  style.stroke: lightgreen
+  style.fill: lightgreen
+  near: top-left
+  direction: right
+  a -> b: \"appelle\"
+}
+
 $0u1: Utilisateur 1 {
   shape: person
 }
