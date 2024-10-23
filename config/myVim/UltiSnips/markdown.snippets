@@ -336,16 +336,21 @@ légende: {
   style.stroke: pink
   style.fill: pink
   near: top-left
-  direction: right
-  a -> b: \"dépend de\"
+  détail d'implémentation { class: PLUGIN }
+  a -> b: \"consomme\"\nou bien\n\"appelle\"
+  classe
+  interface { class: ABSTRACT}
+  classe -> interface: \"implémente\" { class: IMPL }
 }
 grid-rows: 2
 classes: {
   NONE: {style.opacity: 0}
   PLUGIN: { style.stroke: blue; style.font-color: blue }
+  ABSTRACT: { style.fill: lightyellow; style.stroke: brown }
+  IMPL: { target-arrowhead.style.filled: false; style.stroke: brown }
 }
 
-$0ios: "(Plugins)\nLivraison des entrées/sorties" {
+ios: "Mécanismes\nde livraison\ndes entrées/sorties" {
   class: PLUGIN
   io: "X.Mecanism.IO.webapi.DLL" {
     controller: "controller" {
@@ -361,12 +366,14 @@ core: "" {
     grid-columns: 2
     api: "application programming interface" {
       height: 200
+      class: ABSTRACT
     }
     usecase: "use case" {
       height: 100
     }
     1-2: "" { class: NONE }
     spi: "service provider interface" {
+      class: ABSTRACT
     }
   }
   domain: "X.domain.dll" {
@@ -376,25 +383,24 @@ core: "" {
   }
 }
 2-1: "" { class: NONE }
-infras: "(Plugins)\nPersistence" {
+infras: "Mécanismes\nde Persistence" {
   class: PLUGIN
   label.near: outside-left-top
   infra: "X.Mecanism.Persistence.DLL" {
     width: 1100
-    repository: "repository" {
+    repo: "repository" {
     }
   }
 }
 
-ios -> core.app.api { class: PLUGIN }
-infras -> core.app.spi { class: PLUGIN }
-infras -> core.domain.entity { class: PLUGIN }
+ios.io.controller -> core.app.api
 
 core.app.usecase -> core.domain.entity
 core.app.spi -> core.domain.entity
-core.app.usecase -> core.app.api {
-  target-arrowhead.style.filled: false
-}
+core.app.usecase -> core.app.spi
+core.app.usecase -> core.app.api { class: IMPL }
+
+infras.infra.repo -> core.app.spi { class: IMPL }
 \`\`\`
 
 endsnippet
@@ -406,7 +412,7 @@ légende: {
   style.fill: lightgreen
   near: top-left
   direction: right
-  a -> b: \"appelle\"
+  a -> b: \"consomme\"\nou bien\n\"appelle\"
 }
 
 $0u1: Utilisateur 1 {
@@ -436,12 +442,21 @@ d: "sub-domain" {
 }
 ext: "external system" {
 }
-u1 -> front -> d.bff
-u2 -> front2 -> d.bff
-u3 -> front3 -> d.bff2
+
+u1 -> front
+front -> d.bff
+
+u2 -> front2
+front2 -> d.bff
+
 d.bff -> d.back
+
+u3 -> front3
+front3 -> d.bff2
 d.bff2 -> d.back
-d.back -> d.acl -> ext
+
+d.back -> d.acl
+d.acl -> ext
 \`\`\`
 
 endsnippet
