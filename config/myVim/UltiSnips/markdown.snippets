@@ -332,75 +332,172 @@ endsnippet
 
 snippet design "Diagramme de design" b
 \`\`\`d2 Not only working software, but also well-crafted software
-légende: {
-  style.stroke: pink
-  style.fill: pink
-  near: top-left
-  détail d'implémentation { class: PLUGIN }
-  a -> b: \"consomme\"\nou bien\n\"appelle\"
-  classe
-  interface { class: ABSTRACT}
-  classe -> interface: \"implémente\" { class: IMPL }
+$0vars: {
+  ASSEMBLY_PREFIX: "X"
+  USECASE_CONCEPT: "UseCase"
+  USECASE_NAME: ${USECASE_CONCEPT}
+  BUSINESS_OBJECT_NAME: "BusinessObject"
+  CONNECTOR_CONCEPT: "Connector"
+  REPOSITORY_CONCEPT: "Repository"
+  DEPENDENCY1_NAME: "SomeDatabase"
+  DEPENDENCY2_NAME: "AnotherDatabase"
+  DEPENDENCY3_NAME: "YetAnotherDatabase"
+  DEPENDENCY4_NAME: "SomeWebApi"
+  DEPENDENCYTECH1_NAME: "Entity Framework"
+  DEPENDENCYTECH2_NAME: "REST API"
+  DEPENDENCYTECH3_NAME: "Technology-specific Nuget"
+  DEPENDENCYTECH4_NAME: "Provided Web Client"
+}
+classes: {
+  INVISIBLE: {style.opacity: 0}
+  LEGEND: {
+    style {
+      stroke: red
+      stroke-width: 3
+      fill: pink
+      double-border: false
+      underline: true
+    }
+  }
+  PLUGIN_CONTAINER: {
+    style {
+      font-color: blue
+      stroke: blue
+      stroke-dash: 3
+      double-border: false
+    }
+  }
+  PLUGIN_ASSEMBLY: { style.fill: lightblue; }
+  CORE_CONTAINER: {
+    style {
+      font-color: darkgreen
+      stroke: darkgreen
+      double-border: false
+    }
+  }
+  CORE_ASSEMBLY: { style.fill: lightgreen; }
+  INTERFACE: { style.fill: lightyellow; style.stroke: brown }
+  IMPLEMENTS: { target-arrowhead.style.filled: false; style.stroke: brown }
+  PLUGIN_CLASS: { shape: class }
+  TECHNOLOGY: {
+    style {
+      border-radius: 5
+      stroke: transparent
+      fill: transparent
+      font-color: blue
+    }
+  }
 }
 grid-rows: 2
-classes: {
-  NONE: {style.opacity: 0}
-  PLUGIN: { style.stroke: blue; style.font-color: blue }
-  ABSTRACT: { style.fill: lightyellow; style.stroke: brown }
-  IMPL: { target-arrowhead.style.filled: false; style.stroke: brown }
-}
 
-ios: "Mécanismes\nde livraison\ndes entrées/sorties" {
-  class: PLUGIN
-  io: "X.Mecanism.IO.webapi.DLL" {
-    controller: "controller" {
-    }
+ios: "Mécanismes de livraison des entrées/sorties" {
+  class: PLUGIN_CONTAINER
+  grid-columns: 1
+  height: 530
+  io: "${ASSEMBLY_PREFIX}.Mechanism.IO.WebApi.dll" {
+    height: 210
+    class: PLUGIN_ASSEMBLY
+    grid-columns: 1
+    label.near: top-center
+    controller: "Controller" { class: PLUGIN_CLASS }
+  }
+  io2: "${ASSEMBLY_PREFIX}.Mechanism.IO.AzureApp.dll" {
+    class: PLUGIN_ASSEMBLY
+    grid-columns: 1
+    height: 210
+    label.near: top-center
+    controller: "MyAzureFunction" { class: PLUGIN_CLASS }
   }
 }
 
-core: "" {
-  class: NONE
+core: "Génération de valeur métier" {
+  class: CORE_CONTAINER
   grid-columns: 2
-  app: "X.application.dll" {
-    grid-rows: 2
+  app: "${ASSEMBLY_PREFIX}.Application.dll" {
+    class: CORE_ASSEMBLY
     grid-columns: 2
-    api: "application programming interface" {
-      height: 200
-      class: ABSTRACT
+    grid-gap: 0
+    api: "${USECASE_CONCEPT}s\nAPI" { class: INTERFACE }
+    __: "" {
+      class: INVISIBLE
+      grid-rows:2
+      grid-gap: 0
+      usecase: "" {
+        class: INVISIBLE
+        object: "${USECASE_NAME}" { shape: class }
+      }
+      spi: "Service Provider Interface\n(SPI)" { class: INTERFACE }
+      usecase.object -> spi
     }
-    usecase: "use case" {
-      height: 100
-    }
-    1-2: "" { class: NONE }
-    spi: "service provider interface" {
-      class: ABSTRACT
-    }
+  __.usecase.object -> api { class: IMPLEMENTS }
   }
-  domain: "X.domain.dll" {
-    grid-rows: 3
-    entity: "entity" {
-    }
+  domain: "${ASSEMBLY_PREFIX}.Domain.dll" {
+    class: CORE_ASSEMBLY
+    entity: "${BUSINESS_OBJECT_NAME}" { shape: class }
   }
-}
-2-1: "" { class: NONE }
-infras: "Mécanismes\nde Persistence" {
-  class: PLUGIN
-  label.near: outside-left-top
-  infra: "X.Mecanism.Persistence.DLL" {
-    width: 1100
-    repo: "repository" {
-    }
-  }
+  app.__.spi -> domain.entity
+  app.__.usecase.object -> domain.entity
 }
 
-ios.io.controller -> core.app.api
+Légende: {
+  class: LEGEND
+  grid-columns: 1
+  __:"" {
+    direction: right
+    class: INVISIBLE
+    A -> B: \"consomme\"\nou bien\n\"appelle\"
+  }
+  Valeur ajoutée métier {
+    class: [CORE_CONTAINER;CORE_ASSEMBLY]
+    style.fill: lightgreen
+    style.font-color: darkgreen
+    style.stroke: darkgreen
+  }
+  Détails d'implémentation {
+    class: [PLUGIN_CONTAINER;PLUGIN_ASSEMBLY]
+    style.double-border: false;
+    style.fill: lightblue;
+    style.stroke-dash: 3
+  }
+  ___: "" {
+    class: INVISIBLE
+    Classe { shape:class }
+    Interface { class: INTERFACE; width: 200; height: 80; }
+    Classe -> Interface: \"implémente\" { class: IMPLEMENTS }
+  }
+}
 
-core.app.usecase -> core.domain.entity
-core.app.spi -> core.domain.entity
-core.app.usecase -> core.app.spi
-core.app.usecase -> core.app.api { class: IMPL }
+infras: "Mécanismes de persistence des objets métier" {
+  class: PLUGIN_CONTAINER
+  label.near: bottom-center
+  infra: "${ASSEMBLY_PREFIX}.Mechanism.Persistence.dll" {
+    class: PLUGIN_ASSEMBLY
+    direction: down
+    repo: "${BUSINESS_OBJECT_NAME}${REPOSITORY_CONCEPT}" { shape: class }
+    conn1: "${DEPENDENCY1_NAME}${CONNECTOR_CONCEPT}" { class: PLUGIN_CLASS }; tech_conn1: "⚡ ${DEPENDENCYTECH1_NAME}" { class: TECHNOLOGY }; conn1 -> tech_conn1
+    conn2: "${DEPENDENCY2_NAME}${CONNECTOR_CONCEPT}" { class: PLUGIN_CLASS }; tech_conn2: "⚡ ${DEPENDENCYTECH2_NAME}" { class: TECHNOLOGY }; conn2 -> tech_conn2
+    conn3: "${DEPENDENCY3_NAME}${CONNECTOR_CONCEPT}" { class: PLUGIN_CLASS }; tech_conn3: "⚡ ${DEPENDENCYTECH3_NAME}" { class: TECHNOLOGY }; conn3 -> tech_conn3
+    conn4: "${DEPENDENCY4_NAME}${CONNECTOR_CONCEPT}" { class: PLUGIN_CLASS }; tech_conn4: "⚡ ${DEPENDENCYTECH4_NAME}" { class: TECHNOLOGY }; conn4 -> tech_conn4
+    repo -> conn*
+  }
+}
 
-infras.infra.repo -> core.app.spi { class: IMPL }
+# Code IO
+ios.io.controller.  "ProcessHttpRequest(HttpRequest request)":              HttpResponse
+ios.io2.controller. "Run               (HttpRequest request, ILogger log)": Task<IActionResult>
+
+# Code CORE
+core.app.__.usecase.object. "Process(Input input)": ${USECASE_NAME}Output
+core.domain.entity.         "ExecuteBusinessLogic()": void
+
+# Code INFRA
+infras.infra.repo.          "ProvideBusinessObject(BusinessObjectId id)": ${BUSINESS_OBJECT_NAME}
+infras.infra.repo.          "Persist(BusinessObject obj)": ${BUSINESS_OBJECT_NAME}PersistenceReport
+
+**.style.text-transform: none
+ios.io*.controller -> core.app.api
+infras.infra.repo -> core.app.__ { class: IMPLEMENTS }
+infras.infra.repo -> core.domain.entity
 \`\`\`
 
 endsnippet
