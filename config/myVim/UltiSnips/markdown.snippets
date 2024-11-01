@@ -332,7 +332,8 @@ endsnippet
 
 snippet design "Diagramme de design" b
 \`\`\`d2 Not only working software, but also well-crafted software
-$0vars: {
+$0
+vars: {
   ASSEMBLY_PREFIX: "X"
   USECASE_CONCEPT: "UseCase"
   USECASE_NAME: ${USECASE_CONCEPT}
@@ -376,8 +377,8 @@ classes: {
     }
   }
   CORE_ASSEMBLY: { style.fill: lightgreen; }
-  INTERFACE: { style.fill: lightyellow; style.stroke: brown }
-  IMPLEMENTS: { target-arrowhead.style.filled: false; style.stroke: brown }
+  INTERFACE: { style.fill: "#000068"; style.font-color: gold; }
+  IMPLEMENTS: { target-arrowhead.style.filled: false; style.stroke: red }
   PLUGIN_CLASS: { shape: class }
   TECHNOLOGY: {
     style {
@@ -417,7 +418,7 @@ core: "Génération de valeur métier" {
     class: CORE_ASSEMBLY
     grid-columns: 2
     grid-gap: 0
-    api: "${USECASE_CONCEPT}s\nAPI" { class: INTERFACE }
+    api: "<Interface>\n\n${USECASE_CONCEPT} API" { class: INTERFACE }
     __: "" {
       class: INVISIBLE
       grid-rows:2
@@ -426,10 +427,10 @@ core: "Génération de valeur métier" {
         class: INVISIBLE
         object: "${USECASE_NAME}" { shape: class }
       }
-      spi: "Service Provider Interface\n(SPI)" { class: INTERFACE }
+      spi: "<Interfaces>\n\nService Providers Interfaces (SPI)" { class: INTERFACE }
       usecase.object -> spi
     }
-  __.usecase.object -> api { class: IMPLEMENTS }
+    __.usecase.object -> api { class: IMPLEMENTS }
   }
   domain: "${ASSEMBLY_PREFIX}.Domain.dll" {
     class: CORE_ASSEMBLY
@@ -498,6 +499,7 @@ infras.infra.repo.          "Persist(BusinessObject obj)": ${BUSINESS_OBJECT_NAM
 ios.io*.controller -> core.app.api
 infras.infra.repo -> core.app.__ { class: IMPLEMENTS }
 infras.infra.repo -> core.domain.entity
+
 \`\`\`
 
 endsnippet
