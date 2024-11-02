@@ -404,6 +404,23 @@ augroup lcd
 augroup end
 
 " Utils:-------------------------------{{{
+function! StrftimeFR(format, ...)
+ let currentLanguageReport = execute('language')
+ let lcTimePosition = stridx(currentLanguageReport, 'LC_TIME=')
+ let lcTimeStart = lcTimePosition + len('LC_TIME=')
+ let lastQuotePosition = stridx(currentLanguageReport, '"', lcTimeStart)
+ let nextLcItem = stridx(currentLanguageReport, ';', lcTimeStart)
+ let lcTimeStop = nextLcItem == -1 ? lastQuotePosition-1 : nextLcItem-1
+ let currentTimeLanguage = currentLanguageReport[lcTimeStart:lcTimeStop]
+	if currentTimeLanguage == 'French_France.utf8'
+		return strftime = a:0 ? strftime(a:format, a:1) : strftime(a:format)
+	endif
+ execute ('language time French_France.utf8')
+ let strftime = a:0 ? strftime(a:format, a:1) : strftime(a:format)
+ execute (printf('language time %s', currentTimeLanguage))
+	return strftime
+endfunction
+
 function! StringStartsWith(longer, shorter, ...)
 	let isCaseSensitive = (a:0 != 0)
 	return isCaseSensitive
@@ -1596,7 +1613,7 @@ command! Diff call SaveAsDiffFile()
 
 function! BuildDiffFilenameWithoutExtension(...)
 	let title = a:0 ? a:1 : ''
-	let date = strftime('%Y-%m-%d-%A')[:len('YYYY-MM-DD-ddd')-1]
+	let date = StrftimeFR('%Y-%m-%d-%A')[:len('YYYY-MM-DD-ddd')-1]
 	let index = float2nr(str2float(string(len(expand(g:rc.diffs.'/*', v:true, v:true)))) / 2)
 	let index +=1
 	if empty(title)
@@ -2807,7 +2824,7 @@ function! Meeting(...)
 		let meetingKindInFilename = StringStartsWith(meetingKind, '.')
 			\? printf('point_%s', trim(meetingKind, '.'))
 			\: meetingKind
-		let today = strftime('%Y-%m-%d-%A')
+		let today = StrftimeFR('%Y-%m-%d-%A')
 		let filename = printf('%s/%s.%s.md', g:rc.notes, meetingKindInFilename, today)
 		let finalFilename = filename
 		let c = 1
@@ -2836,7 +2853,7 @@ function! GetMeetingKindTemplateLines(meetingKind)
 	let templateFile = printf('%s/%s', g:rc.env.meetingKindsFolder, a:meetingKind)
 	let lines = readfile(templateFile)
 	let lines = map(lines, printf('substitute(v:val, "${FILENAME}", "%s", "g")', a:meetingKind))
-	let lines = map(lines, printf('substitute(v:val, "${DATE}", "%s", "g")', strftime('%Y-%m-%d-%A')))
+	let lines = map(lines, printf('substitute(v:val, "${DATE}", "%s", "g")', StrftimeFR('%Y-%m-%d-%A')))
 	return lines
 endfunc
 
@@ -5055,7 +5072,7 @@ function! InitQueryRowHistoryWindows(rowId, historyBufDirvishDirValue)
 endfunction
 
 function! BuildQueryOutputFilenameWithoutExtension(title)
-	let date = strftime('%Y-%m-%d-%A')[:len('YYYY-MM-DD-ddd')-1]
+	let date = StrftimeFR('%Y-%m-%d-%A')[:len('YYYY-MM-DD-ddd')-1]
 	let index = len(expand(g:rc.queries.'/*.script', v:true, v:true))
 	let index +=1
 	let displayedEnv = get(g:rc.ctx, 'env', 'no-env')
