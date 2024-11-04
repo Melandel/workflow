@@ -448,6 +448,12 @@ Légende: {
     class: INVISIBLE
     A -> B: \"consomme\"\nou bien\n\"appelle\"
   }
+  ___: "" {
+    class: INVISIBLE
+    Classe { shape:class }
+    Interface { class: INTERFACE; width: 200; height: 80; }
+    Classe -> Interface: \"implémente\" { class: IMPLEMENTS }
+  }
   Valeur ajoutée métier {
     class: [CORE_CONTAINER;CORE_ASSEMBLY]
     style.fill: lightgreen
@@ -459,12 +465,6 @@ Légende: {
     style.double-border: false;
     style.fill: lightblue;
     style.stroke-dash: 3
-  }
-  ___: "" {
-    class: INVISIBLE
-    Classe { shape:class }
-    Interface { class: INTERFACE; width: 200; height: 80; }
-    Classe -> Interface: \"implémente\" { class: IMPLEMENTS }
   }
 }
 
