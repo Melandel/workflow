@@ -24,23 +24,12 @@ def ParseUniversalAutocompletion(resourcesFile: string): dict<any>
 	}
 	for [completionNamePart, completionItem] in items(universalAutocompletionJson)
 		for [completionItemKey, completionItemValue] in items(completionItem)
-			if (index(['type', 'aliases', 'descr'], completionItemKey) >= 0)
-				continue
-			elseif (completionItemKey == 'fetchables')
-				var fetchables = completionItemValue
-				for [fetchableName, fetchCommand] in items(fetchables)
-					var environmentVariableValue = printf('[TO-FETCH-USING] %s', fetchCommand)
-					var environmentVariableName = printf('%s_%s', completionNamePart, fetchableName)
-					parsed.dynamicallyGeneratedEnvironmentVariables[environmentVariableName] = environmentVariableValue
-				endfor
-			else
-				var environmentVariables = {}
-				var currentPrefixes = [RemoveDiacritics(completionNamePart), RemoveDiacritics(completionItemKey)]
-				environmentVariables = BuildEnvironmentVariablesFromLeafItems(completionItemValue, environmentVariables, currentPrefixes)
-				for [variableName, variableValue] in items(environmentVariables)
-					parsed.dynamicallyGeneratedEnvironmentVariables[variableName] = variableValue
-				endfor
-			endif
+			var environmentVariables = {}
+			var currentPrefixes = [RemoveDiacritics(completionNamePart), RemoveDiacritics(completionItemKey)]
+			environmentVariables = BuildEnvironmentVariablesFromLeafItems(completionItemValue, environmentVariables, currentPrefixes)
+			for [variableName, variableValue] in items(environmentVariables)
+				parsed.dynamicallyGeneratedEnvironmentVariables[variableName] = variableValue
+			endfor
 		endfor
 	endfor
 	return parsed
@@ -54,9 +43,29 @@ def BuildEnvironmentVariablesFromLeafItems(node: any, environmentVariables: dict
 		return environmentVariables
 	endif
 	for [key, value] in items(node)
+		if (key == 'fetchables')
+			BuildFetchableEnvironmentVariablesFromLeafItems(value, environmentVariables, currentPrefixes)
+		else
+			var normalizedKey = RemoveDiacritics(key)
+			add(currentPrefixes, normalizedKey)
+			BuildEnvironmentVariablesFromLeafItems(value, environmentVariables, currentPrefixes)
+			remove(currentPrefixes, index(currentPrefixes, normalizedKey))
+		endif
+	endfor
+	return environmentVariables
+enddef
+
+def BuildFetchableEnvironmentVariablesFromLeafItems(node: any, environmentVariables: dict<string>, currentPrefixes: list<string>): dict<string>
+	if type(node) != type({})
+		var environmentVariableName = join(currentPrefixes, '_')
+		var environmentVariableValue = printf('[TO-FETCH-USING] %s', node)
+		environmentVariables[environmentVariableName] = environmentVariableValue
+		return environmentVariables
+	endif
+	for [key, value] in items(node)
 		var normalizedKey = RemoveDiacritics(key)
 		add(currentPrefixes, normalizedKey)
-		BuildEnvironmentVariablesFromLeafItems(value, environmentVariables, currentPrefixes)
+		BuildFetchableEnvironmentVariablesFromLeafItems(value, environmentVariables, currentPrefixes)
 		remove(currentPrefixes, index(currentPrefixes, normalizedKey))
 	endfor
 	return environmentVariables
