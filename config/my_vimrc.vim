@@ -5152,5 +5152,5 @@ endfunction
 
 augroup resources
 	au!
-	au BufWritePost $ua source $ua
+	au BufWritePost $ua source $rce
 augroup end
