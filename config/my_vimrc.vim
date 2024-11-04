@@ -405,19 +405,19 @@ augroup end
 
 " Utils:-------------------------------{{{
 function! StrftimeFR(format, ...)
- let currentLanguageReport = execute('language')
- let lcTimePosition = stridx(currentLanguageReport, 'LC_TIME=')
- let lcTimeStart = lcTimePosition + len('LC_TIME=')
- let lastQuotePosition = stridx(currentLanguageReport, '"', lcTimeStart)
- let nextLcItem = stridx(currentLanguageReport, ';', lcTimeStart)
- let lcTimeStop = nextLcItem == -1 ? lastQuotePosition-1 : nextLcItem-1
- let currentTimeLanguage = currentLanguageReport[lcTimeStart:lcTimeStop]
+	let currentLanguageReport = execute('language')
+	let lcTimePosition = stridx(currentLanguageReport, 'LC_TIME=')
+	let lcTimeStart = lcTimePosition + len('LC_TIME=')
+	let lastQuotePosition = stridx(currentLanguageReport, '"', lcTimeStart)
+	let nextLcItem = stridx(currentLanguageReport, ';', lcTimeStart)
+	let lcTimeStop = nextLcItem == -1 ? lastQuotePosition-1 : nextLcItem-1
+	let currentTimeLanguage = currentLanguageReport[lcTimeStart:lcTimeStop]
 	if currentTimeLanguage == 'French_France.utf8'
-		return strftime = a:0 ? strftime(a:format, a:1) : strftime(a:format)
+		return a:0 ? strftime(a:format, a:1) : strftime(a:format)
 	endif
- execute ('language time French_France.utf8')
- let strftime = a:0 ? strftime(a:format, a:1) : strftime(a:format)
- execute (printf('language time %s', currentTimeLanguage))
+	execute ('language time French_France.utf8')
+	let strftime = a:0 ? strftime(a:format, a:1) : strftime(a:format)
+	execute (printf('language time %s', currentTimeLanguage))
 	return strftime
 endfunction
 
