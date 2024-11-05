@@ -1,43 +1,34 @@
 {
-  "jq":
-  {
+  "jq": {
     "format": "."
   },
-  "dev":
-  {
-    "type": "env",
-		"descr": "deployment environment for continuous integration",
+  "dev": {
     "APIKey": "qwerty"
   },
-	"MyAPI":
-	{
-		"type": "api",
-		"aliases": [ "bob", "alice" ],
-		"descr": "a description of the resource",
-		"dev":
-		{
-			"url": "http://foo.fr",
-			"fetchables":
-			{
-				"bearerToken": "echo toto"
-			}
-		},
-		"qa":
-		{
-			"url": "http://bar.fr",
-			"fetchables":
-			{
-				"bearerToken": "echo tata"
-			}
-		},
-		"local":
-		{
-			"url": "http://localhost.fr:5053",
-			"fetchables":
-			{
-				"bearerToken": "echo tata"
-			}
-		}
-	}
+  "MyApp": {
+    "prod": {
+      "api": "http://foo.fr",
+      "fetchables": {
+        "bearerToken": "echo tata"
+      }
+    },
+    "qa": {
+      "api": "http://foo.fr",
+      "fetchables": {
+        "bearerToken": "echo tata"
+      }
+    },
+    "dev": {
+      "api": "http://foo.fr",
+      "fetchables": {
+        "bearerToken": "echo toto"
+      }
+    },
+    "local": {
+      "api": "http://foo.fr",
+      "fetchables": {
+        "bearerToken": "echo tata"
+      }
+    }
+  }
 }
-
