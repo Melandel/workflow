@@ -1,7 +1,11 @@
+import os
 import os.path
 import uuid
 import textwrap
 from datetime import datetime
+
+def envVar(varName):
+ return os.environ[varName]
 
 def today():
  return datetime.today().strftime('%Y-%m-%d')

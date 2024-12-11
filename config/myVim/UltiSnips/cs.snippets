@@ -335,3 +335,9 @@ endsnippet
 snippet serialize "serialize" w
 System.Text.Json.JsonSerializer.Serialize(${VISUAL}, new System.Text.Json.JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Default });
 endsnippet
+
+snippet sw "StreamWrite into a file" b
+StreamWriter sw; for ((int i, string filenameFormat) = (1, @"`!p snip.rv = envVar('d')`/${1:foo}_{0:00}${2:_bar}.${3:json}");;) { var filename = String.Format(filenameFormat, i++);  if (!File.Exists(filename)) { sw = new StreamWriter(filename, append: true); break; } }
+sw.WriteLine("Hello :)");
+sw.Dispose();
+endsnippet
