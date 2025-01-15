@@ -4930,7 +4930,7 @@ endfunction
 function! EscapeBatchCharactersAsInBatchFile(script)
 	let script = a:script
 	" 👇 https://www.robvanderwoude.com/escapechars.php
-	let script = substitute(script, '%', '%%', 'g')
+	"let script = substitute(script, '%', '%%', 'g')
 	let script = substitute(script, '\^', '^^', 'g')
 	let script = substitute(script, '&', '^&', 'g')
 	let script = substitute(script, '<', '^<', 'g')
