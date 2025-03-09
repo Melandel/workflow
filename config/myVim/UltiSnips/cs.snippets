@@ -584,3 +584,19 @@ StreamWriter sw; for ((int i, string filenameFormat) = (1, @"`!p snip.rv = envVa
 sw.WriteLine("Hello :)");
 sw.Dispose();
 endsnippet
+
+snippet factory "factory method" b
+try
+{
+	${VISUAL}
+}
+catch (ObjectConstructionException objectConstructionException)
+{
+	objectConstructionException.EnrichWithInformationAbout<`!p snip.rv = basename_to_classname(snip.basename)`>($1);
+	throw;
+}
+catch (Exception developerMistake)
+{
+	throw ObjectConstructionException.WhenConstructingAnInstanceOf<`!p snip.rv = basename_to_classname(snip.basename)`>(developerMistake`!p snip.rv = (', ' + camel_case(t[1])) if t[1] != "" else ""`);
+}
+endsnippet
