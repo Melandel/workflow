@@ -539,27 +539,20 @@ static class `!p snip.rv = basename_to_classname(snip.basename)`
 endsnippet
 
 snippet M "Factory method" b
-$0public static `!p snip.rv = basename_to_classname(snip.basename)` From${1:Something}(${2:Foo} `!p snip.rv = camel_case(t[2])`)
+$0public static `!p snip.rv = basename_to_classname(snip.basename)` From(${1:Foo} `!p snip.rv = camel_case(t[1])`)
 {
 	try
 	{
-		return new($0`!p snip.rv = camel_case(t[2])`);
+		$0`!p snip.rv = snip.v.text if snip.v.text != "" else "return new("+camel_case(t[1])+")"`;
 	}
-	catch (${3:ObjectConstructionException} `!p snip.rv = camel_case(t[3])`)
+	catch (ObjectConstructionException objectConstructionException)
 	{
-		AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
+		objectConstructionException.EnrichWithInformationAbout<`!p snip.rv = basename_to_classname(snip.basename)`>($1);
 		throw;
 	}
 	catch (Exception developerMistake)
 	{
-		var `!p snip.rv = camel_case(t[3])` = $3.FromDeveloperMistake(typeof(`!p snip.rv = basename_to_classname(snip.basename)`), developerMistake);
-		AddMethodParametersValuesAsDebuggingInformation(`!p snip.rv = camel_case(t[3])`);
-		throw `!p snip.rv = camel_case(t[3])`;
-	}
-
-	void AddMethodParametersValuesAsDebuggingInformation($3 `!p snip.rv = camel_case(t[3])`)
-	{
-		`!p snip.rv = camel_case(t[3])`.AddDebuggingInformation(nameof(`!p snip.rv = camel_case(t[2])`), `!p snip.rv = camel_case(t[2])`);
+		throw ObjectConstructionException.WhenConstructingAnInstanceOf<`!p snip.rv = basename_to_classname(snip.basename)`>(developerMistake`!p snip.rv = (', ' + camel_case(t[1])) if t[1] != "" else ""`);
 	}
 }
 endsnippet
@@ -583,20 +576,4 @@ snippet sw "StreamWrite into a file" b
 StreamWriter sw; for ((int i, string filenameFormat) = (1, @"`!p snip.rv = envVar('d')`/${1:foo}_{0:00}${2:_bar}.${3:json}");;) { var filename = String.Format(filenameFormat, i++);  if (!File.Exists(filename)) { sw = new StreamWriter(filename, append: true); break; } }
 sw.WriteLine("Hello :)");
 sw.Dispose();
-endsnippet
-
-snippet factory "factory method" b
-try
-{
-	${VISUAL}
-}
-catch (ObjectConstructionException objectConstructionException)
-{
-	objectConstructionException.EnrichWithInformationAbout<`!p snip.rv = basename_to_classname(snip.basename)`>($1);
-	throw;
-}
-catch (Exception developerMistake)
-{
-	throw ObjectConstructionException.WhenConstructingAnInstanceOf<`!p snip.rv = basename_to_classname(snip.basename)`>(developerMistake`!p snip.rv = (', ' + camel_case(t[1])) if t[1] != "" else ""`);
-}
 endsnippet
