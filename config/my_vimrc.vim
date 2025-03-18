@@ -4902,6 +4902,9 @@ endfunction
 
 function! RunQuery()
 	let requestLines = BuildRequestLinesFromCurrentBuffer()
+	if requestLines[0] =~ '^curl'
+		let requestLines[0] = EncodeWhitespacesInCurlUrl(requestLines[0])
+	endif
 	let title = BuildQueryTitle(requestLines)
 	let queryFilenameWithoutExtension = BuildQueryOutputFilenameWithoutExtension(title)
 	let shouldWipeOut = BufferIsEmpty()
@@ -4919,6 +4922,16 @@ function! RunQuery()
 endfunction
 command! RunQuery call RunQuery()
 
+function! EncodeWhitespacesInCurlUrl(lineWithUrl)
+		let firstDollar = stridx(a:lineWithUrl, '$')
+		if (firstDollar == -1)
+			return a:lineWithUrl
+		endif
+		let nextCurlArg = stridx(a:lineWithUrl,' -', firstDollar)
+		return (nextCurlArg == -1)
+			\? a:lineWithUrl[:firstDollar-1] .. substitute(a:lineWithUrl[firstDollar:], ' ', '%20', 'g')
+			\: a:lineWithUrl[:firstDollar-1] .. substitute(a:lineWithUrl[firstDollar:nextCurlArg], ' ', '%20', 'g') .. a:lineWithUrl[nextCurlArg:]
+endfunc
 function! BuildRequestLinesFromCurrentBuffer()
 	let requestLines = getbufline(bufnr(), 1, '$')
 	call map(requestLines, 'v:val')
