@@ -4903,7 +4903,7 @@ endfunction
 function! RunQuery()
 	let requestLines = BuildRequestLinesFromCurrentBuffer()
 	if requestLines[0] =~ '^curl'
-		let requestLines[0] = EncodeWhitespacesInCurlUrl(requestLines[0])
+		let requestLines[0] = EncodeUrl(requestLines[0])
 	endif
 	let title = BuildQueryTitle(requestLines)
 	let queryFilenameWithoutExtension = BuildQueryOutputFilenameWithoutExtension(title)
@@ -4917,20 +4917,33 @@ function! RunQuery()
 	silent pu!=requestLines | silent exec 'saveas' (queryFilenameWithoutExtension . '.script')
 	call InitQueryRowWindow(w:row.id, w:row.cwd, 'query', w:row.content)
 	let request = join(map(map(requestLines, 'ExpandEnvironmentVariables(v:val)'), 'EscapeBatchCharactersAsInBatchFile(v:val)'))
+	echomsg request
 	redraw | echomsg printf("❓ %s...", fnamemodify(queryFilenameWithoutExtension, ':t:r')[len('YYYY-MM-DD-ddd '):])
 	let s:job = job_start(BuildCommandToRunAsJob(request), BuildQueryRowJobOptions(w:row, queryFilenameWithoutExtension))
 endfunction
 command! RunQuery call RunQuery()
 
-function! EncodeWhitespacesInCurlUrl(lineWithUrl)
-		let firstDollar = stridx(a:lineWithUrl, '$')
-		if (firstDollar == -1)
+function! EncodeUrl(lineWithUrl)
+		let firstSlash = stridx(a:lineWithUrl, '$')
+		if (firstSlash == -1)
 			return a:lineWithUrl
 		endif
-		let nextCurlArg = stridx(a:lineWithUrl,' -', firstDollar)
+		let nextCurlArg = stridx(a:lineWithUrl,' -', firstSlash)
+		let modifiableUrlPart = (nextCurlArg == -1)
+			\? a:lineWithUrl[firstSlash:]
+			\: a:lineWithUrl[firstSlash:nextCurlArg]
+
+		let encodedModifiableUrlPart = modifiableUrlPart
+		let encodedModifiableUrlPart = substitute(encodedModifiableUrlPart, ' ', '%20', 'g')
+		let encodedModifiableUrlPart = substitute(encodedModifiableUrlPart, 'é', '%C3%A9', 'g')
+		let encodedModifiableUrlPart = substitute(encodedModifiableUrlPart, 'è', '%C3%A8', 'g')
+		let encodedModifiableUrlPart = substitute(encodedModifiableUrlPart, 'à', '%C3%A0', 'g')
+		let encodedModifiableUrlPart = substitute(encodedModifiableUrlPart, 'ù', '%%C3%B9', 'g')
+		let encodedModifiableUrlPart = substitute(encodedModifiableUrlPart, 'ê', '%C3%AA', 'g')
+
 		return (nextCurlArg == -1)
-			\? a:lineWithUrl[:firstDollar-1] .. substitute(a:lineWithUrl[firstDollar:], ' ', '%20', 'g')
-			\: a:lineWithUrl[:firstDollar-1] .. substitute(a:lineWithUrl[firstDollar:nextCurlArg], ' ', '%20', 'g') .. a:lineWithUrl[nextCurlArg:]
+			\? a:lineWithUrl[:firstSlash-1] .. encodedModifiableUrlPart
+			\: a:lineWithUrl[:firstSlash-1] .. encodedModifiableUrlPart .. a:lineWithUrl[nextCurlArg:]
 endfunc
 function! BuildRequestLinesFromCurrentBuffer()
 	let requestLines = getbufline(bufnr(), 1, '$')
