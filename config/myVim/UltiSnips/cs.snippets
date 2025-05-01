@@ -169,6 +169,44 @@ snippet throw "throw exception" i
 throw ObjectConstructionException.WhenConstructingAMemberFor<${1:`!p snip.rv = basename_to_classname(snip.basename)`}>(nameof(${2:foo}), ${3:$2}, "@member must ${4:…}")
 endsnippet
 
+snippet throwd "throw exception on data fetching" i
+throw ObjectConstructionException.WhenFetchingTheNecessaryDataFor<${1:object}>(${2:arg1})
+endsnippet
+
+snippet build "builder method implementation with try/catch" i
+try
+{
+	$0${VISUAL}
+
+	return this;
+}
+catch (ObjectConstructionException objectConstructionException)
+{
+	objectConstructionException.EnrichConstructionFailureContextWith<${2:`!p snip.rv = basename_to_classname(snip.basename).replace('Builder', '').replace('Mapper', '')`}>(${3:arg1});
+	throw;
+}
+catch (Exception developerMistake)
+{
+	throw ObjectConstructionException.WhenConstructingAnInstanceViaAnotherClass<$2, ${1:`!p snip.rv = basename_to_classname(snip.basename)`}>(developerMistake, $3);
+}
+endsnippet
+
+snippet fetch "data fetching method implementation with try/catch" i
+try
+{
+	$0${VISUAL}
+}
+catch (ObjectConstructionException objectConstructionException)
+{
+	objectConstructionException.EnrichDataFetchingFailureContextWith<${1:`!p snip.rv = basename_to_classname(snip.basename).replace('Repository', '').replace('Provider', '')`}>(${2:arg1});
+	throw;
+}
+catch (Exception developerMistake)
+{
+	throw ObjectConstructionException.WhenFetchingTheNecessaryDataFor<$1>(developerMistake, $2);
+}
+endsnippet
+
 snippet td "Test Double" b
 namespace `!v GetCurrentCsharpNamespace()`;
 
