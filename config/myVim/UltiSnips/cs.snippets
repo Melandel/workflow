@@ -1,4 +1,5 @@
 priority 1
+
 global !p
 from my_snippets_helpers import *
 endglobal
@@ -82,7 +83,7 @@ namespace `!v GetCurrentCsharpNamespace()`;
 	{
 		$1 = `!p snip.rv = camel_case(t[1]).lstrip('_')` switch
 		{
-			null => throw ${3:ObjectConstructionException}.${4:WhenConstructingAMemberFor}<`!p snip.rv = basename_to_classname(snip.basename)`>(nameof($1), `!p snip.rv = camel_case(t[1]).lstrip('_')`),
+			null => throw ObjectConstructionException.WhenConstructingAMemberFor<${3:`!p snip.rv = basename_to_classname(snip.basename)`}>(nameof($1), `!p snip.rv = camel_case(t[1]).lstrip('_')`, "@member must ${4:…}"),
 			_ => `!p snip.rv = camel_case(t[1]).lstrip('_')`
 		};
 	}
@@ -93,14 +94,14 @@ namespace `!v GetCurrentCsharpNamespace()`;
 		{
 			return new(`!p snip.rv = camel_case(t[1]).lstrip('_')`);
 		}
-		catch ($3 `!p snip.rv = camel_case(t[3])`)
+		catch (ObjectConstructionException objectConstructionException)
 		{
-			`!p snip.rv = camel_case(t[3])`.EnrichWithInformationAbout<`!p snip.rv = basename_to_classname(snip.basename)`>(`!p snip.rv = camel_case(t[1]).lstrip('_')`);
+			objectConstructionException.EnrichConstructionFailureContextWith<$3>(`!p snip.rv = camel_case(t[1]).lstrip('_')`);
 			throw;
 		}
 		catch (Exception developerMistake)
 		{
-			throw $3.WhenConstructingAnInstanceOf<`!p snip.rv = basename_to_classname(snip.basename)`>(developerMistake, `!p snip.rv = camel_case(t[1]).lstrip('_')`);
+			throw ObjectConstructionException.WhenConstructingAnInstanceOf<$3>(developerMistake, `!p snip.rv = camel_case(t[1]).lstrip('_')`);
 		}
 	}
 }
@@ -119,7 +120,7 @@ namespace `!v GetCurrentCsharpNamespace()`;
 	{
 		$1 = `!p snip.rv = camel_case(t[1]).lstrip('_')` switch
 		{
-			null => throw ${3:ObjectConstructionException}.${4:WhenConstructingAMemberFor}<`!p snip.rv = basename_to_classname(snip.basename)`>(nameof($1), `!p snip.rv = camel_case(t[1]).lstrip('_')`),
+			null => throw ObjectConstructionException.WhenConstructingAMemberFor<${3:`!p snip.rv = basename_to_classname(snip.basename)`}>(nameof($1), `!p snip.rv = camel_case(t[1]).lstrip('_')`, "@member must ${4:…}"),
 			_ => `!p snip.rv = camel_case(t[1]).lstrip('_')`
 		};
 	}
@@ -130,20 +131,20 @@ namespace `!v GetCurrentCsharpNamespace()`;
 		{
 			return new(`!p snip.rv = camel_case(t[1]).lstrip('_')`);
 		}
-		catch ($3 `!p snip.rv = camel_case(t[3])`)
+		catch (ObjectConstructionException objectConstructionException)
 		{
-			`!p snip.rv = camel_case(t[3])`.EnrichWithInformationAbout<`!p snip.rv = basename_to_classname(snip.basename)`>(`!p snip.rv = camel_case(t[1]).lstrip('_')`);
+			objectConstructionException.EnrichConstructionFailureContextWith<$3>(`!p snip.rv = camel_case(t[1]).lstrip('_')`);
 			throw;
 		}
 		catch (Exception developerMistake)
 		{
-			throw $3.WhenConstructingAnInstanceOf<`!p snip.rv = basename_to_classname(snip.basename)`>(developerMistake, `!p snip.rv = camel_case(t[1]).lstrip('_')`);
+			throw ObjectConstructionException.WhenConstructingAnInstanceOf<$3>(developerMistake, `!p snip.rv = camel_case(t[1]).lstrip('_')`);
 		}
 	}
 }
 endsnippet
 
-snippet exc "Exception" b
+snippet ex "Exception" b
 namespace `!v GetCurrentCsharpNamespace()`;
 
 public class ${1:`!p snip.rv = basename_to_classname(snip.basename)`} : Exception
@@ -164,324 +165,8 @@ public class ${1:`!p snip.rv = basename_to_classname(snip.basename)`} : Exceptio
 }
 endsnippet
 
-snippet ex "Object construction exception" b
-using System.Text.Json;
-using System.Text.Encodings.Web;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-
-namespace `!v GetCurrentCsharpNamespace()`;
-
-public class ${1:ObjectConstructionException} : Exception
-{
-	public override string Message => string.Join(" ; ", _messages);
-	readonly List<string> _messages;
-	$1(string message, Exception? innerException = null) : base(message, innerException)
-	{
-		_messages = new List<string>() { message };
-	}
-
-	public static $1 WhenConstructingAMemberFor<TObjectUnderConstruction>(
-		string memberUnderConstruction,
-		object? invalidValue,
-		string? ruleThatInvalidatesTheValue = null,
-		Exception? innerException = null)
-	{
-		var errorDuringSpecificMemberConstruction = BuildMemberConstructionMessage(
-			typeof(TObjectUnderConstruction).Name,
-			typeof(TObjectUnderConstruction).Namespace!,
-			memberUnderConstruction,
-			invalidValue);
-
-		return new(errorDuringSpecificMemberConstruction, innerException);
-	}
-
-	public static $1 WhenConstructingAnInstanceOf<TObjectUnderConstruction>(
-		Exception? innerException = null,
-		object? constructionMethodParameter = null,
-		[CallerMemberName] string callerMethodName = "")
-	{
-		string errorMessage = BuildInstanceConstructionErrorMessage(
-			typeof(TObjectUnderConstruction).Name,
-			typeof(TObjectUnderConstruction).Namespace!,
-			innerException,
-			callerMethodName,
-			constructionMethodParameter == null
-				? Array.Empty<object?>()
-				: new[] { constructionMethodParameter });
-
-		return new(errorMessage, innerException);
-	}
-
-	public static $1 WhenConstructingAnInstanceOf<TObjectUnderConstruction>(
-		Exception? innerException = null,
-		IEnumerable<object?>? constructionMethodParameters = null,
-		[CallerMemberName] string callerMethodName = "")
-	{
-		string errorMessage = BuildInstanceConstructionErrorMessage(
-			typeof(TObjectUnderConstruction).Name,
-			typeof(TObjectUnderConstruction).Namespace!,
-			innerException,
-			callerMethodName,
-			constructionMethodParameters?.ToArray() ?? Array.Empty<object?>());
-
-		return new(errorMessage, innerException);
-	}
-
-	public $1 EnrichWithInformationAbout<TObjectUnderConstruction>(
-		string memberUnderConstruction,
-		object? invalidValue,
-		string? ruleThatInvalidatesTheValue = null,
-		Exception? innerException = null,
-		[CallerMemberName] string callerMethodName = "",
-		params object?[] constructionMethodParameters)
-	{
-		_messages.Add(
-			BuildMemberConstructionMessage(
-				typeof(TObjectUnderConstruction).Name,
-				typeof(TObjectUnderConstruction).Namespace!,
-				memberUnderConstruction,
-				invalidValue,
-				ruleThatInvalidatesTheValue: null,
-				callerMethodName,
-				constructionMethodParameters));
-
-		return this;
-	}
-
-	public $1 EnrichWithInformationAbout<TObjectUnderConstruction>(
-		IEnumerable<object?> constructionMethodParameters,
-		Exception? innerException = null,
-		[CallerMemberName] string callerMethodName = "")
-	{
-		_messages.Add(
-			BuildInstanceConstructionErrorMessage(
-				typeof(TObjectUnderConstruction).Name,
-				typeof(TObjectUnderConstruction).Namespace!,
-				innerException,
-				callerMethodName,
-				constructionMethodParameters.ToArray()));
-
-		return this;
-	}
-
-	public $1 EnrichWithInformationAbout<TObjectUnderConstruction>(
-		object? constructionMethodParameter,
-		Exception? innerException = null,
-		[CallerMemberName] string callerMethodName = "")
-	{
-		_messages.Add(
-			BuildInstanceConstructionErrorMessage(
-				typeof(TObjectUnderConstruction).Name,
-				typeof(TObjectUnderConstruction).Namespace!,
-				innerException,
-				callerMethodName,
-				new[] { constructionMethodParameter }));
-
-		return this;
-	}
-
-	static string BuildInstanceConstructionErrorMessage(
-		string objectUnderConstruction,
-		string objectUnderConstructionNamespace,
-		Exception? innerException,
-		string callerMethodName,
-		object?[] constructionMethodParameters)
-	{
-		var sb = new System.Text.StringBuilder();
-
-		sb.Append($"{objectUnderConstruction}: construction failed ");
-
-		if (innerException != null)
-		{
-			sb.Append($"due to {innerException.GetType().Name} ");
-		}
-
-		sb.Append($"calling {BuildCallerMethodPartialSignature(objectUnderConstruction, callerMethodName, constructionMethodParameters)} ");
-
-		if (constructionMethodParameters.Length == 1)
-		{
-			sb.Append($"on {Render(constructionMethodParameters.First())}");
-		}
-		else if (constructionMethodParameters.Length > 1)
-		{
-			sb.Append($"with the following parameters: {string.Join(" ; ", constructionMethodParameters.Select(Render))}");
-		}
-
-		if (!string.IsNullOrEmpty(objectUnderConstructionNamespace))
-		{
-			sb.Append($"[{objectUnderConstructionNamespace}]");
-		}
-
-		return sb.ToString();
-	}
-
-	static string BuildMemberConstructionMessage(
-		string objectUnderConstruction,
-		string objectUnderConstructionNamespace,
-		string memberUnderConstruction,
-		object? invalidValue,
-		string? ruleThatInvalidatesTheValue = null,
-		string callerMethodName = "",
-		params object?[] constructionMethodParameters)
-	{
-		var sb = new System.Text.StringBuilder();
-
-		sb.Append($"{objectUnderConstruction}: ");
-
-		if (!string.IsNullOrEmpty(callerMethodName))
-		{
-			sb.Append($"when called from {BuildCallerMethodPartialSignature(objectUnderConstruction, callerMethodName, constructionMethodParameters)}, ");
-		}
-
-		sb.Append($"{memberUnderConstruction} cannot accept value {Render(invalidValue)} ");
-
-		if (!string.IsNullOrEmpty(ruleThatInvalidatesTheValue))
-		{
-			sb.Append($"- {Format(ruleThatInvalidatesTheValue, objectUnderConstruction, memberUnderConstruction)} ");
-		}
-
-		if (!string.IsNullOrEmpty(objectUnderConstructionNamespace))
-		{
-			sb.Append($"[{objectUnderConstructionNamespace}]");
-		}
-
-		return sb.ToString();
-	}
-
-	static string? Format(string? rule, string objectUnderConstruction, string memberUnderConstruction)
-	=> rule switch
-	{
-		null => null,
-		_ => rule
-			.Replace("{type}", objectUnderConstruction)
-			.Replace("{member}", memberUnderConstruction)
-	};
-
-	static string Render(object? invalidValue)
-	=> invalidValue switch
-	{
-		null => "null",
-		var v when v.HasInstancePropertiesWithPublicGetter() => JsonSerializer.Serialize(invalidValue, new JsonSerializerOptions(JsonSerializerDefaults.Web) { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping }),
-		var v when v.HasUserDefinedConversions(out var converters) => Render(converters.First().Invoke(null, new[] { invalidValue })!),
-		var v when v.HasConstructorWhoseParametersAllHaveAMatchingPropertyOrField(out var propertiesToRender, out var fieldsToRender) => RenderMembers(invalidValue, propertiesToRender, fieldsToRender),
-		_ => invalidValue.ToString() ?? "null"
-	};
-
-	static string RenderMembers(object invalidValue, PropertyInfo[] propertiesToRender, FieldInfo[] fieldsToRender)
-	=> (propertiesToRender, fieldsToRender) switch
-	{
-		([var encapsulatedProperty], _) => Render(encapsulatedProperty.GetValue(invalidValue)),
-		(_, [var encapsulatedField]) => Render(encapsulatedField.GetValue(invalidValue)),
-		_ => RenderComplexObject(invalidValue, propertiesToRender, fieldsToRender)
-	};
-
-	static string RenderComplexObject(object invalidValue, PropertyInfo[] propertiesToRender, FieldInfo[] fieldsToRender)
-	{
-		var renderedFields = fieldsToRender.Select(field => $"\"{field.Name}\": {Render(field.GetValue(invalidValue))}");
-		var renderedProperties = propertiesToRender.Select(property => $"\"{property.Name}\": {Render(property.GetValue(invalidValue))}");
-		var renderedMembers = renderedFields.Concat(renderedProperties);
-
-		return $"{{ {string.Join(", ", renderedMembers)} }}";
-	}
-
-	static string BuildCallerMethodPartialSignature(
-		string objectUnderConstruction,
-		string callerMethodName,
-		params object?[] constructionMethodParameters)
-	=> $"{objectUnderConstruction}.{callerMethodName}({(constructionMethodParameters.Any() ? "..." : "")})";
-}
-
-public static class ObjectExtensionMethods
-{
-	public static bool HasInstancePropertiesWithPublicGetter(this object obj)
-	=> obj.GetType()
-		.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-		.Where(property => property.HasAPublicGetter(out var _))
-		.Any();
-
-	public static bool HasUserDefinedConversions(this object obj, out MethodInfo[] converters)
-	{
-		var methods = obj.GetType().GetMethods().ToArray();
-		var implicitConverters = methods.Where(mi => mi.Name == "op_Implicit");
-		var explicitConverters = methods.Where(mi => mi.Name == "op_Explicit");
-
-		converters = implicitConverters
-			.Concat(explicitConverters)
-			.ToArray();
-		return converters.Any();
-	}
-
-	public static bool HasConstructorWhoseParametersAllHaveAMatchingPropertyOrField(this object obj, out PropertyInfo[] propertiesToRender, out FieldInfo[] fieldsToRender)
-	{
-		var type = obj.GetType();
-
-		var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-		var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-		var parametersOfEachConstructor = type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-			.Select(ctor => ctor.GetParameters())
-			.OrderByDescending(parameters => parameters.Length);
-
-		foreach(var parametersOfOneConstructor in parametersOfEachConstructor)
-		{
-			var matchingProperties = new List<PropertyInfo>();
-			var matchingFields = new List<FieldInfo>();
-			foreach (var param in parametersOfOneConstructor)
-			{
-				var matchingProperty = properties.FirstOrDefault(propertyInfo => string.Equals(param.Name, propertyInfo.Name, StringComparison.InvariantCultureIgnoreCase));
-				if (matchingProperty != null)
-				{
-					matchingProperties.Add(matchingProperty);
-					continue;
-				}
-
-				var matchingFieldName = fields.FirstOrDefault(field => string.Equals(param.Name, field.Name, StringComparison.InvariantCultureIgnoreCase));
-				if (matchingFieldName != null)
-				{
-					matchingFields.Add(matchingFieldName);
-					continue;
-				}
-
-				break;
-			}
-
-			var numberOfMatchesFound = matchingProperties.Count + matchingFields.Count;
-			var isConstructorWhoseParametersAllHaveAMatchingPropertyOrField = (numberOfMatchesFound == parametersOfOneConstructor.Length);
-			if (isConstructorWhoseParametersAllHaveAMatchingPropertyOrField)
-			{
-				propertiesToRender = matchingProperties.ToArray();
-				fieldsToRender = matchingFields.ToArray();
-				return true;
-			}
-		}
-
-		propertiesToRender = Array.Empty<PropertyInfo>();
-		fieldsToRender = Array.Empty<FieldInfo>();
-		return false;
-	}
-}
-
-static class PropertyInfoExtensionMethods
-{
-	public static bool HasAPublicGetter(this PropertyInfo propertyInfo, out MethodInfo getter)
-	{
-		var publicAccessors = propertyInfo.GetAccessors(nonPublic: false);
-		var publicGetters = publicAccessors.Where(method => method.ReturnType != typeof(void));
-
-		if (!publicGetters.Any())
-		{
-			getter = null!;
-			return false;
-		}
-
-		getter = publicGetters.First();
-		return true;
-	}
-}
-endsnippet
-
 snippet throw "throw exception" i
-throw ${4:ObjectConstructionException}.${5:WhenConstructingAMemberFor}<${3:`!p snip.rv = basename_to_classname(snip.basename)`}>(nameof(${1:foo}), ${2:$1})
+throw ObjectConstructionException.WhenConstructingAMemberFor<${1:`!p snip.rv = basename_to_classname(snip.basename)`}>(nameof(${2:foo}), ${3:$2}, "@member must ${4:…}")
 endsnippet
 
 snippet td "Test Double" b
@@ -539,20 +224,20 @@ static class `!p snip.rv = basename_to_classname(snip.basename)`
 endsnippet
 
 snippet M "Factory method" b
-$0public static `!p snip.rv = basename_to_classname(snip.basename)` From(${1:Foo} `!p snip.rv = camel_case(t[1])`)
+$0public static ${2:`!p snip.rv = basename_to_classname(snip.basename)`} From(${1:Foo} `!p snip.rv = camel_case(t[1])`)
 {
 	try
 	{
-		$0`!p snip.rv = snip.v.text if snip.v.text != "" else "return new("+camel_case(t[1])+")"`;
+		$0`!p snip.rv = snip.v.text if snip.v.text != "" else "return new("+camel_case(t[1])+");"`
 	}
 	catch (ObjectConstructionException objectConstructionException)
 	{
-		objectConstructionException.EnrichWithInformationAbout<`!p snip.rv = basename_to_classname(snip.basename)`>($1);
+		objectConstructionException.EnrichConstructionFailureContextWith<$2>($1);
 		throw;
 	}
 	catch (Exception developerMistake)
 	{
-		throw ObjectConstructionException.WhenConstructingAnInstanceOf<`!p snip.rv = basename_to_classname(snip.basename)`>(developerMistake`!p snip.rv = (', ' + camel_case(t[1])) if t[1] != "" else ""`);
+		throw ObjectConstructionException.WhenConstructingAnInstanceOf<$2>(developerMistake`!p snip.rv = (', ' + camel_case(t[1])) if t[1] != "" else ""`);
 	}
 }
 endsnippet
