@@ -2693,7 +2693,7 @@ function! FormatAsMarkdownTableRow(commitBodyWithMarks)
 	let newlineMark = ' èé '
 	let commitBody = a:commitBodyWithMarks[len(startMark):]
 	let subject = trim(commitBody[:stridx(commitBody, newlineMark)])
-	let isWellStructured = (subject =~ '^. [a-zA-Z\-_]\+ *([a-zA-Z\-_0-9]\+): *.*$')
+	let isWellStructured = (subject =~ '^. [a-zA-Z\-_|]\+ *([a-zA-Z\-_0-9]\+): *.*$')
 	if !isWellStructured | return { 'type': 'behavior', 'content': printf('| %s | %s | %s |', '-', escape(subject, '|'), '-') } | endif
 	let commitScope = escape(matchlist(subject, '(\zs.\{-1,}\ze)')[0], '|')
 	let commitType = escape(subject[:match(subject, ' *(')], '|')
