@@ -2779,6 +2779,7 @@ endfunction
 function! StopLiveNote()
 	autocmd! TextChangedI <buffer>
 	call ch_sendraw(b:livenote_job, "\n\n")
+	sleep 100m
 	if job_status(b:livenote_job) != 'dead'
 		call job_stop(b:livenote_job)
 	endif
