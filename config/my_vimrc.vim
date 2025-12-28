@@ -398,7 +398,7 @@ augroup lcd
 	au!
 	" enew has a delay before updating bufname()
 	autocmd BufCreate * call timer_start(100, { timerid -> execute('if &ft != "qf" && bufname() == "" | set bt=nofile | endif', '') })
-	autocmd BufEnter	* call timer_start(100, { timerid -> execute('if &ft == "dosbatch" | | elseif &ft!="dirvish" | Lcd | else | lcd %:p:h | endif', '') })
+	autocmd BufEnter * call timer_start(100, { timerid -> execute('if &ft == "dosbatch" | | elseif &ft!="dirvish" | Lcd | else | lcd %:p:h | endif', '') })
 	autocmd QuickFixCmdPre * call timer_start(100, { timerid -> execute('let g:lcd_qf = getcwd()', '') })
 	autocmd BufEnter * call UpdateEnvironmentLocationVariables()
 augroup end
@@ -1352,7 +1352,10 @@ endfunction
 
 set switchbuf+=uselast
 set errorformat=%m
-nnoremap <Leader>f :Files<CR>
+nnoremap <Leader>f :FuzzyFiles <CR>
+nnoremap <Leader>F :FuzzyCodeBuffers<CR>
+nnoremap <Leader>a :FuzzyFiles <C-R>=glob('**/TestSuites')<CR><CR>
+nnoremap <Leader>S :FuzzyModifiedFiles<CR>
 nnoremap	 µ :Grep -F "<C-R>=EscapeRipgrepPattern(expand('<cword>'))<CR>"<CR>
 vnoremap	 µ "vy:let cmd = printf('Grep -F "%s"', EscapeRipgrepPattern(@v))\|call histadd('cmd',cmd)\|exec cmd<CR>
 nnoremap <Leader>! :Grep -F ""<left>
@@ -1946,10 +1949,26 @@ nnoremap <silent> H :CycleBackwards<CR>
 nnoremap <silent> L :CycleForward<CR>
 
 " Fuzzy Finder:------------------------{{{
-" Makes Omnishahrp-vim code actions select both two elements
-"let g:fzf_layout = { 'window': { 'width': 0.39, 'height': 0.25 } }
-"let g:fzf_preview_window = []
+let $FZF_DEFAULT_COMMAND='rg --files '
 let $FZF_DEFAULT_OPTS='--bind up:preview-up,down:preview-down,ctrl-j:backward-char,ctrl-k:forward-char'
+let g:fzf_action = { 'ctrl-e': 'tab split', 'ctrl-s': 'split', 'ctrl-f': 'vsplit' }
+
+func! FuzzyFiles(...)
+	let path = a:0 ? a:1 : ''
+	call fzf#vim#files(path, {'options': ['--preview', 'bat --color always --style=numbers --theme "Monokai Extended Origin" {}', '--preview-window', 'hidden,right,50%', '--bind', 'ctrl-a:change-preview-window(right|hidden|)']})
+endfunc
+command! -nargs=? -complete=dir FuzzyFiles call FuzzyFiles(<q-args>)
+
+func! FuzzySourceCodeBuffers()
+	echomsg getcwd()
+	call fzf#vim#buffers("", map(filter(getbufinfo({'buflisted':1}), 'v:val.name =~ ".cs$"'), 'v:val.bufnr'), {'options': ['--scheme', 'path', '--preview', 'bat --color always --style=numbers --theme "Monokai Extended Origin" --highlight-line {2} {4}', '--preview-window', 'bottom,80%', '--bind', 'ctrl-a:change-preview-window(bottom|hidden|)']}, 0)
+endfunc
+command! FuzzyCodeBuffers call FuzzySourceCodeBuffers()
+
+func! FuzzyModifiedSourceCodeBuffers()
+	call fzf#run(fzf#wrap({'source': 'git ls-files --modified', 'options': ['--preview', 'bat --diff --diff-context 3 --color always --style=changes,snip,numbers --theme "Monokai Extended Origin" {}', '--preview-window', 'bottom,80%', '--bind', 'ctrl-a:change-preview-window(bottom|hidden|)']}))
+endfunc
+command! FuzzyModifiedFiles call FuzzyModifiedSourceCodeBuffers()
 
 augroup my_fzf
 	au!
@@ -3734,8 +3753,8 @@ function! MyOmniSharpGlobalCodeCheck()
 	call OmniSharp#actions#diagnostics#CheckGlobal(function('MyOmniSharpGlobalCodeCheckCallback'))
 endfunction
 
-command! MyOmniSharpFindSymbols call OmniSharp#actions#symbols#Find(<q-args>)
-command! MyOmniSharpFindType call OmniSharp#actions#symbols#FindType(<q-args>)
+command! -nargs=? MyOmniSharpFindSymbols call OmniSharp#actions#symbols#Find(<f-args>)
+command! -nargs=? MyOmniSharpFindType call OmniSharp#actions#symbols#FindType(<f-args>)
 
 function! MyOmniSharpGlobalCodeCheckCallback(quickfixes, ...)
 	let g:OmniSharp_diagnostic_exclude_paths = g:old_OmniSharp_diagnostic_exclude_paths
@@ -4600,7 +4619,7 @@ function! LocListAdos(...)
 	nnoremap <silent> <buffer> b :exec 'WebBrowser' eval("b:urlBuilders[getline(".b:urlBuilders['Kanban Board'].order.")].urlBuilder()")<CR>:q<CR>
 	nnoremap <silent> <buffer> d :exec 'WebBrowser' eval("b:urlBuilders[getline(".b:urlBuilders['Deployment'].order.")].urlBuilder()")<CR>:q<CR>
 endfunction
-nnoremap <silent> <Leader>a :if exists('g:previousWorkItemId') \| call LocListAdos() \| else \| call feedkeys(":Ados \<tab>") \| endif<CR>
+"nnoremap <silent> <Leader>a :if exists('g:previousWorkItemId') \| call LocListAdos() \| else \| call feedkeys(":Ados \<tab>") \| endif<CR>
 command! -nargs=1 -complete=customlist,GetWorkItemsAssignedToMeInCurrentIteration Ados call LocListAdos(str2nr(<f-args>))
 nnoremap <Leader>A :Ados <tab>
 
