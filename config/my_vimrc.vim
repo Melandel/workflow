@@ -3571,6 +3571,25 @@ let g:OmniSharp_diagnostic_showid = 1
 let g:omnicomplete_fetch_full_documentation = 0
 let g:OmniSharp_open_quickfix = 1
 let g:OmniSharp_autoselect_existing_sln = 1
+function MyOmniSharpIsBufferValid(bufnr)
+	let fileSize = getfsize(bufname(a:bufnr))
+	if (fileSize == -2)
+		return 0
+	endif
+	if (fileSize == -1 && bufnr() != a:bufnr)
+		return getbufvar(a:bufnr, 'is_omnisharp_valid', 1)
+	endif
+	let bufferSize = (fileSize == -1)
+		\? line2byte(line('$') +1)
+		\: fileSize
+	let isValid = bufferSize < 20000
+	if (!isValid)
+		call setbufvar(a:bufnr, 'is_omnisharp_valid', 0)
+	endif
+	return isValid
+endfunction
+let g:OmniSharp_buffer_valid = function('MyOmniSharpIsBufferValid')
+
 
 function! OmniSharpReloadProject()
 	if !OmniSharp#proc#IsJobRunning(GetSln()) | return | endif
