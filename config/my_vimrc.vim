@@ -2352,7 +2352,7 @@ endif
 	autocmd FileType dirvish unmap <buffer> a
 	autocmd FileType dirvish nnoremap <silent> <buffer> a :call PreviewFile('split')<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> t :call PreviewFile('tab split')<CR>
-	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | setlocal foldcolumn=1
+	autocmd FileType dirvish let b:vifm_mappings=1 | lcd %:p:h | setlocal foldcolumn=1 | normal 200zh
 	autocmd FileType dirvish nnoremap <silent> <buffer> l :<C-U>.call dirvish#open("edit", 0)<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> i :call CreateDirectory()<CR>
 	autocmd FileType dirvish nnoremap <silent> <buffer> I :call CreateFile()<CR>
