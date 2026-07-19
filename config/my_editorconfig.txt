@@ -9,9 +9,9 @@ tab_width = 4
 trim_trailing_whitespace = true
 
 [*.{cs,csx,vb,vbx}]
-tab_width = 1
+tab_width = 4
 
-[*.{json,md,html}]
+[*.{json,md,html,lua}]
 indent_style = space
 indent_size = 2
 
@@ -49,3 +49,23 @@ insert_final_newline = unset
 trim_trailing_whitespace = unset
 indent_style = unset
 indent_size = unset
+
+[*.cs]
+# Mark members as static
+#   Justification: internal methods in a class that don't use its state do not all benefit from being marked static
+dotnet_diagnostic.CA1822.severity = none
+# Name can be simplified
+#   Justification: Buggy
+dotnet_diagnostic.IDE0002.severity = none
+# Use collection expression for fluent
+#   Justification: [x, ..y, z] is not as readable as x.AddRange(y).Add(z).AsSpan()
+dotnet_diagnostic.IDE0305.severity = none
+# Unnecessary assignment of a value to 'v'
+#   Justification: already caught as a warning during build time by CS0219: The variable 'v' is assigned but its value is never used
+dotnet_diagnostic.IDE0059.severity = none
+# Collection initialization can be simplified
+#   Justification: Exhaustive syntax adds information about type over "var"
+dotnet_diagnostic.IDE0028.severity = none
+# 'new' expression can be simplified
+#   Justification: Sometimes it's readable, sometimes it's not. Better let the user decide without polluting with excessive hints
+dotnet_diagnostic.IDE0090.severity = none
