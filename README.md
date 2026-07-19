@@ -56,7 +56,7 @@ My experience suggests that the following files/folders address my different nee
 | `[…]/tools/**`      | Regroups all the **tools** I use as part of my workflow                         |
 
 ### Tool box ###
-I went with a dev environment made mostly from **vim**.
+I went with a dev environment made mostly from **vim/nvim**.
 ||
 |-|
 |Vim is **fast**. |
@@ -112,12 +112,12 @@ But here, I'm also using VIM (and I know and understand many whom think this is 
 Install:
 * [jq](https://jqlang.github.io/jq/download/)
 * [xmllint](https://code.google.com/archive/p/xmllint/downloads)
+* Windows Terminal
 
 #### Using config/vimfiles
 Add environment variable:
-* `VIMINIT` to `source %HOMEPATH%\Desktop\config\my_vimrc.vim`
+* `VIMINIT` to `if has('win32') && !has('nvim') | source %HOMEPATH%\Desktop\config\my_vimrc.vim | elseif has('win32') && has('nvim') | source $HOMEPATH\Desktop\config\my_nvim_rc.vim | endif`
 * `D2_LAYOUT` to `tala`
-* `MELANDEL_RESOURCES_JSON` to `%HOMEPATH%\Desktop\config\resources.json`
 
 Also:
 ```txt
@@ -143,5 +143,47 @@ Set WshShell = Nothing
 
 `Windows Terminal` has a particular configuration item `"startOnUserLogin": true`.
 
+`settings.json`
+
+```json
+{
+
+  "themes": [],
+  "copyOnSelect": false,
+  "defaultProfile": "{2d49c296-7de7-4a90-8ae3-2f44bcd23aef}",
+  "$schema": "https://aka.ms/terminal-profiles-schema",
+  "$help": "https://aka.ms/terminal-documentation",
+  "schemes": [],
+  "launchMode": "fullscreen",
+  "defaultProfile": "{2d49c296-7de7-4a90-8ae3-2f44bcd23aef}",
+  "profiles": {
+    "list": [
+      {
+        "adjustIndistinguishableColors": "never",
+        "hidden": false,
+        "closeOnExit": "always",
+        "name": "Neovim",
+        "commandline": "cmd.exe /C \"nvim -S %HOMEPATH%\\Desktop\\Session.vim\"",
+        "guid": "{2d49c296-7de7-4a90-8ae3-2f44bcd23aef}",
+        "intenseTextStyle": "bold",
+        "startingDirectory": "%HOMEPATH%\\Desktop"
+      }
+    ],
+    "defaults": {
+      "colorScheme": "One Half Dark",
+      "cursorShape": "filledBox",
+      "font": {
+        "size": 11,
+        "face": "Consolas"
+      },
+      "opacity": 100,
+      "startingDirectory": "%USERPROFILE%\\Desktop"
+    }
+  },
+  "copyFormatting": "none",
+  "disableAnimations": true
+}
+```
+
 #### Task Bar Icons ####
-Don't forget to set the target of the task bar icon to `$HOME\Desktop\tools\vim\gvim.exe -S` and its startup directory to `$HOME` in order to use and locate Vim's session file properly!
+Don't forget to set the target of the task bar icon to `$HOME\Desktop\tools\nvim\gvim.exe -S` and its startup directory to `$HOME` in order to use and locate Vim's session file properly!
